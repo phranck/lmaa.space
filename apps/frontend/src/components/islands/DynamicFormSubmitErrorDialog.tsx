@@ -1,6 +1,7 @@
 import { AlertDialog } from "@lmaa/ui";
 
 import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
+import { getSafeActionUrl } from "@/lib/safe-url";
 
 export interface SubmitErrorState {
   message: string;
@@ -13,11 +14,14 @@ export interface SubmitErrorState {
 
 function PublishedShopName({ name, url }: { name: string | undefined; url: string | undefined }) {
   if (!name) return null;
-  if (!url) return <strong>{name}</strong>;
-  const isExternal = /^https?:\/\//i.test(url);
+  // Sanitize the stored shop URL: a `javascript:`/`data:` value must never become
+  // a clickable href. Fall back to plain text when the URL is unsafe.
+  const safeUrl = url ? getSafeActionUrl(url) : null;
+  if (!safeUrl) return <strong>{name}</strong>;
+  const isExternal = /^https?:\/\//i.test(safeUrl);
   return (
     <a
-      href={url}
+      href={safeUrl}
       className="font-bold text-[var(--ds-accent)] underline hover:no-underline"
       {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
     >
@@ -26,7 +30,13 @@ function PublishedShopName({ name, url }: { name: string | undefined; url: strin
   );
 }
 
-function BlockedMessage({ messageMarkdown, fallback }: { messageMarkdown?: string; fallback: string }) {
+function BlockedMessage({
+  messageMarkdown,
+  fallback,
+}: {
+  messageMarkdown?: string;
+  fallback: string;
+}) {
   const messageRef = useMarkdownHtml(messageMarkdown);
 
   if (!messageMarkdown) {
@@ -60,20 +70,20 @@ export function SubmitErrorDialog({ submitError, onClose }: SubmitErrorDialogPro
             ? "Shop wird bereits geprüft"
             : submitError?.status === "blocked"
               ? "Hinweis"
-            : submitError?.status === "available"
-              ? "Shop ist verfügbar"
-              : submitError?.status === "invalid"
-                ? "Ungültige URL"
-                : "Shop bereits vorhanden"
+              : submitError?.status === "available"
+                ? "Shop ist verfügbar"
+                : submitError?.status === "invalid"
+                  ? "Ungültige URL"
+                  : "Shop bereits vorhanden"
       }
       variant={
         submitError?.status === "rejected"
           ? "warning"
           : submitError?.status === "blocked"
             ? "warning"
-          : submitError?.status === "available"
-            ? "info"
-            : "error"
+            : submitError?.status === "available"
+              ? "info"
+              : "error"
       }
       buttonLabel="Verstanden"
       onClose={onClose}
@@ -89,8 +99,8 @@ export function SubmitErrorDialog({ submitError, onClose }: SubmitErrorDialogPro
         </p>
       ) : submitError?.status === "rejected" ? (
         <p>
-          Der Shop <strong>{submitError.shopName}</strong> wurde bereits geprüft und abgelehnt.
-          Eine ausführliche Begründung für die Ablehnung kannst du{" "}
+          Der Shop <strong>{submitError.shopName}</strong> wurde bereits geprüft und abgelehnt. Eine
+          ausführliche Begründung für die Ablehnung kannst du{" "}
           {submitError.rejectionUrl ? (
             <a
               href={submitError.rejectionUrl}
