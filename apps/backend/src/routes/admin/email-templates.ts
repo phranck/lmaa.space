@@ -69,9 +69,7 @@ emailTemplateRoutes.post(
   zValidator("json", emailTemplateCreateSchema),
   async (c) => {
     const payload = c.req.valid("json");
-    const safePayload = c.get("isOwner")
-      ? payload
-      : { ...payload, isSystemTemplate: undefined };
+    const safePayload = c.get("isOwner") ? payload : { ...payload, isSystemTemplate: undefined };
     const result = await createManagedEmailTemplate(safePayload);
     if (!result.ok) {
       if (result.reason === "name_taken") return fail(c, 409, "Template name already exists");
@@ -89,9 +87,7 @@ emailTemplateRoutes.put(
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) return fail(c, 400, "Invalid ID");
     const payload = c.req.valid("json");
-    const safePayload = c.get("isOwner")
-      ? payload
-      : { ...payload, isSystemTemplate: undefined };
+    const safePayload = c.get("isOwner") ? payload : { ...payload, isSystemTemplate: undefined };
     const result = await updateManagedEmailTemplate(id, safePayload);
     if (!result.ok) return fail(c, 404, "Email template not found");
     return ok(c, result.data);
@@ -115,7 +111,10 @@ emailTemplateRoutes.post(
   zValidator("json", emailTemplateImportSchema),
   async (c) => {
     const { overwrite, ...data } = c.req.valid("json");
-    const result = await importManagedEmailTemplate(data, overwrite);
+    // Only an owner may flag a template as a system template — strip it for others,
+    // matching the create/update handlers (the import path must not be a bypass).
+    const safeData = c.get("isOwner") ? data : { ...data, isSystemTemplate: undefined };
+    const result = await importManagedEmailTemplate(safeData, overwrite);
     if (!result.ok) return fail(c, 409, "Template name already exists");
     return ok(c, result.data, 201);
   },
