@@ -4,6 +4,13 @@ import type { FormField, FormRow } from "@lmaa/contracts";
 
 const DISPLAY_FIELD_TYPES = new Set(["richtext", "headline", "separator", "paragraph", "button"]);
 
+/** Default upper bound for text fields without an explicit `validation.max`, to cap storage abuse. */
+const DEFAULT_FIELD_MAX_LENGTH = 5000;
+/** Default element cap for multi-select fields, to bound unbounded array submissions. */
+const DEFAULT_MULTI_SELECT_MAX = 100;
+/** Maximum admin-defined pattern length compiled to RegExp, to limit ReDoS exposure. */
+const MAX_VALIDATION_PATTERN_LENGTH = 200;
+
 function buildFieldSchema(field: FormField): z.ZodTypeAny | null {
   if (DISPLAY_FIELD_TYPES.has(field.type)) return null;
 
@@ -16,14 +23,25 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny | null {
     case "password":
     case "select": {
       let s = z.string();
+      if (field.type === "email") s = s.email();
       if (field.validation?.min != null) s = s.min(field.validation.min);
-      if (field.validation?.max != null) s = s.max(field.validation.max);
-      if (field.validation?.pattern) s = s.regex(new RegExp(field.validation.pattern));
+      // Always cap length: an explicit max if configured, otherwise a sane default.
+      s = s.max(field.validation?.max ?? DEFAULT_FIELD_MAX_LENGTH);
+      if (
+        field.validation?.pattern &&
+        field.validation.pattern.length <= MAX_VALIDATION_PATTERN_LENGTH
+      ) {
+        try {
+          s = s.regex(new RegExp(field.validation.pattern));
+        } catch {
+          // Ignore an invalid admin-authored pattern rather than crashing validation.
+        }
+      }
       schema = s;
       break;
     }
     case "multi-select":
-      schema = z.array(z.union([z.string(), z.number()]));
+      schema = z.array(z.union([z.string(), z.number()])).max(DEFAULT_MULTI_SELECT_MAX);
       break;
     case "checkbox":
       schema = z.union([z.boolean(), z.string()]);

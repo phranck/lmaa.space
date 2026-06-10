@@ -60,7 +60,7 @@ import { getSocialPreviewImage } from "../services/social-preview-images.js";
 export const publicRoutes = new Hono();
 
 const publicReadLimit = rateLimit({ max: 100, windowMs: 60 * 1000 });
-const concernBodySchema = z.object({ reason: z.string().min(1) });
+const concernBodySchema = z.object({ reason: z.string().min(1).max(2000) });
 const rejectedShopsQuerySchema = z.object({
   q: z.string().max(200).optional().default(""),
   page: z.coerce.number().int().positive().catch(1),
