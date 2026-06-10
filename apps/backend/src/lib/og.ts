@@ -1,5 +1,5 @@
 import { logger } from "./logger.js";
-import { isExternalUrl } from "./validate.js";
+import { isPublicFetchTarget } from "./validate.js";
 
 const HEADERS = {
   "User-Agent":
@@ -113,7 +113,7 @@ export async function fetchExternalResource(
   url: string,
   init: RequestInit,
 ): Promise<{ response: Response; finalUrl: string } | null> {
-  if (!isExternalUrl(url)) return null;
+  if (!(await isPublicFetchTarget(url))) return null;
 
   try {
     return fetchExternalResourceHop(url, init, MAX_REDIRECTS, url);
@@ -146,7 +146,7 @@ async function fetchExternalResourceHop(
   const location = response.headers.get("location");
   const nextUrl = location ? resolveRedirectUrl(location, currentUrl) : null;
 
-  if (!nextUrl || !isExternalUrl(nextUrl)) {
+  if (!nextUrl || !(await isPublicFetchTarget(nextUrl))) {
     logger.warn({ currentUrl, location }, "blocked redirect while resolving external resource");
     return null;
   }

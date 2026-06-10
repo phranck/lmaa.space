@@ -24,6 +24,8 @@ export async function verifyMastodonCredentials(
     response = await fetch(url, {
       method: "GET",
       headers: { Authorization: `Bearer ${accessToken}` },
+      // Block redirect-based SSRF: a 3xx to an internal target must not be followed.
+      redirect: "error",
     });
   } catch {
     return {

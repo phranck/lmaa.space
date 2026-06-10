@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { detectImageType, isExternalUrl, parseId } from "../lib/validate.js";
+import {
+  detectImageType,
+  isExternalUrl,
+  isPrivateIp,
+  isPublicFetchTarget,
+  parseId,
+} from "../lib/validate.js";
 
 describe("parseId", () => {
   it("returns number for valid positive integer", () => {
@@ -202,5 +208,83 @@ describe("isExternalUrl", () => {
   it("returns false for invalid URL", () => {
     expect(isExternalUrl("not a url")).toBe(false);
     expect(isExternalUrl("")).toBe(false);
+  });
+});
+
+describe("isPrivateIp", () => {
+  it("flags loopback, private, link-local, CGNAT and reserved IPv4 ranges", () => {
+    for (const ip of [
+      "127.0.0.1",
+      "10.0.0.1",
+      "172.16.0.1",
+      "172.31.255.255",
+      "192.168.1.1",
+      "169.254.169.254",
+      "0.0.0.0",
+      "100.64.0.1",
+    ]) {
+      expect(isPrivateIp(ip)).toBe(true);
+    }
+  });
+
+  it("allows public IPv4 addresses", () => {
+    for (const ip of ["8.8.8.8", "93.184.216.34", "172.15.0.1", "172.32.0.1"]) {
+      expect(isPrivateIp(ip)).toBe(false);
+    }
+  });
+
+  it("unwraps IPv4-mapped IPv6 and flags the inner private address", () => {
+    expect(isPrivateIp("::ffff:169.254.169.254")).toBe(true);
+    expect(isPrivateIp("::ffff:127.0.0.1")).toBe(true);
+    expect(isPrivateIp("::ffff:8.8.8.8")).toBe(false);
+  });
+
+  it("blocks hex-normalized IPv4-mapped IPv6, NAT64 and 6to4 (SSRF bypass regression)", () => {
+    // WHATWG `new URL("http://[::ffff:127.0.0.1]/").hostname` === "::ffff:7f00:1"
+    expect(isPrivateIp("::ffff:7f00:1")).toBe(true); // 127.0.0.1
+    expect(isPrivateIp("::ffff:a9fe:a9fe")).toBe(true); // 169.254.169.254 (cloud metadata)
+    expect(isPrivateIp("::ffff:c0a8:1")).toBe(true); // 192.168.0.1
+    expect(isPrivateIp("::ffff:808:808")).toBe(false); // 8.8.8.8 (public)
+    expect(isPrivateIp("64:ff9b::7f00:1")).toBe(true); // NAT64 127.0.0.1
+    expect(isPrivateIp("2002::1")).toBe(true); // 6to4
+  });
+
+  it("flags IPv6 loopback, unspecified, ULA and link-local", () => {
+    for (const ip of ["::1", "::", "fc00::1", "fd12:3456::1", "fe80::1"]) {
+      expect(isPrivateIp(ip)).toBe(true);
+    }
+  });
+
+  it("fails closed for non-IP input", () => {
+    expect(isPrivateIp("not-an-ip")).toBe(true);
+    expect(isPrivateIp("example.com")).toBe(true);
+  });
+});
+
+describe("isPublicFetchTarget", () => {
+  it("rejects non-http(s) schemes", async () => {
+    expect(await isPublicFetchTarget("javascript:alert(1)")).toBe(false);
+    expect(await isPublicFetchTarget("ftp://example.com")).toBe(false);
+  });
+
+  it("rejects http targets when httpsOnly is set", async () => {
+    expect(await isPublicFetchTarget("http://93.184.216.34", { httpsOnly: true })).toBe(false);
+  });
+
+  it("rejects private and reserved IP literals", async () => {
+    expect(await isPublicFetchTarget("http://127.0.0.1")).toBe(false);
+    expect(await isPublicFetchTarget("http://169.254.169.254")).toBe(false);
+    expect(await isPublicFetchTarget("http://[::1]")).toBe(false);
+  });
+
+  it("accepts public IP literals", async () => {
+    expect(await isPublicFetchTarget("https://93.184.216.34")).toBe(true);
+    expect(await isPublicFetchTarget("https://8.8.8.8", { httpsOnly: true })).toBe(true);
+  });
+
+  it("blocks hex IPv4-mapped IPv6 literals end-to-end (SSRF guard regression)", async () => {
+    expect(await isPublicFetchTarget("http://[::ffff:7f00:1]/")).toBe(false); // 127.0.0.1
+    expect(await isPublicFetchTarget("http://[::ffff:a9fe:a9fe]/")).toBe(false); // 169.254.169.254
+    expect(await isPublicFetchTarget("https://[::ffff:7f00:1]/", { httpsOnly: true })).toBe(false);
   });
 });
