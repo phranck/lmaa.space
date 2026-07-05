@@ -62,6 +62,14 @@ const PLACEHOLDER_CLOSE = String.fromCharCode(0xe001);
  * swapped for the HTML-escaped plain-text values. Neither Markdown syntax nor
  * autolinking can therefore apply to user input. Substitution is a single pass,
  * so a placeholder appearing inside a value is never re-expanded.
+ *
+ * The placeholder characters (U+E000 / U+E001, Private Use Area) were chosen so
+ * they survive Markdown parsing: `marked` considers them plain text and passes
+ * them through to the HTML output unmodified — **except inside `href` attributes,
+ * where it URL-encodes them** because non-ASCII bytes are invalid in URLs. The
+ * replacement regex must therefore match both the raw PUA bytes and their
+ * percent-encoded form (`%EE%80%80` / `%EE%80%81`) so that variables used in
+ * Markdown link targets (e.g. `[Text]({{url}})`) are correctly substituted.
  */
 function interpolateMarkdown(text: string, variables: Record<string, string>): string {
   const values: string[] = [];
@@ -70,8 +78,10 @@ function interpolateMarkdown(text: string, variables: Record<string, string>): s
     return `${PLACEHOLDER_OPEN}${index}${PLACEHOLDER_CLOSE}`;
   });
   const html = parseMarkdown(withPlaceholders);
+  const escOpen = encodeURIComponent(PLACEHOLDER_OPEN);
+  const escClose = encodeURIComponent(PLACEHOLDER_CLOSE);
   return html.replace(
-    new RegExp(`${PLACEHOLDER_OPEN}(\\d+)${PLACEHOLDER_CLOSE}`, "g"),
+    new RegExp(`(?:${PLACEHOLDER_OPEN}|${escOpen})(\\d+)(?:${PLACEHOLDER_CLOSE}|${escClose})`, "g"),
     (_, index) => values[Number(index)] ?? "",
   );
 }
