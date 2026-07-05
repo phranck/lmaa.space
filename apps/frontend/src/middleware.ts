@@ -5,6 +5,7 @@
  *   /api/v1/*  – versioned API (same-origin, avoids CORS)
  *   /uploads/* – uploaded category images
  *   /sitemap.xml – generated sitemap
+ *   /health/*  – status-page liveness probes (status.lmaa.space)
  */
 import { defineMiddleware } from "astro:middleware";
 
@@ -86,6 +87,7 @@ function shouldProxy(pathname: string): boolean {
   return (
     pathname.startsWith("/api/v1/") ||
     pathname === "/api/v1" ||
+    pathname.startsWith("/health") ||
     pathname.startsWith("/uploads/") ||
     pathname === "/sitemap.xml"
   );
