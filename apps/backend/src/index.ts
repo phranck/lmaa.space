@@ -229,6 +229,19 @@ app.get("/health/website", async (c) => {
   return c.json({ status: "unavailable" });
 });
 
+app.get("/health/storage", async (c) => {
+  const endpoint = env.S3_ENDPOINT;
+  if (!endpoint) {
+    c.status(503);
+    return c.json({ status: "unavailable", reason: "S3 not configured" });
+  }
+  if (await isUpstreamReachable(endpoint)) {
+    return c.json({ status: "ok" });
+  }
+  c.status(503);
+  return c.json({ status: "unavailable" });
+});
+
 app.get("/health/dashboard", async (c) => {
   const url = env.DASHBOARD_URL;
   if (url && (await isUpstreamReachable(url))) {
