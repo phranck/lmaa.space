@@ -59,4 +59,49 @@ describe("email renderer", () => {
     expect(html).toContain("<strong");
     expect(html).toContain("Ada");
   });
+
+  it("substitutes variables used as Markdown link URLs (href)", async () => {
+    const { html } = await renderEmailTemplate(
+      { ...template, bodyText: "[Dashboard]({{dashboardUrl}})" },
+      { dashboardUrl: "https://example.com/dashboard" },
+    );
+    expect(html).toContain('href="https://example.com/dashboard"');
+    expect(html).toContain(">Dashboard</a>");
+  });
+
+  it("substitutes variables used as Markdown link URLs when text also contains a variable", async () => {
+    const { html } = await renderEmailTemplate(
+      { ...template, bodyText: "[{{shopName}}]({{shopUrl}})" },
+      { shopName: "Alrighty", shopUrl: "https://alrighty.coffee/" },
+    );
+    expect(html).toContain('href="https://alrighty.coffee/"');
+    expect(html).toContain(">Alrighty</a>");
+  });
+
+  it("resolves multiple Markdown links with different URL variables", async () => {
+    const { html } = await renderEmailTemplate(
+      {
+        ...template,
+        bodyText: "Shop: [{{shopName}}]({{shopUrl}})\n\nIm [Dashboard]({{dashboardUrl}}) prüfen.",
+      },
+      {
+        shopName: "Alrighty",
+        shopUrl: "https://alrighty.coffee/",
+        dashboardUrl: "https://lmaa.space/dashboard/submissions/42",
+      },
+    );
+    expect(html).toContain('href="https://alrighty.coffee/"');
+    expect(html).toContain(">Alrighty</a>");
+    expect(html).toContain('href="https://lmaa.space/dashboard/submissions/42"');
+    expect(html).toContain(">Dashboard</a>");
+  });
+
+  it("substitutes link URL variables regardless of variable order", async () => {
+    const { html } = await renderEmailTemplate(
+      { ...template, bodyText: "[Link]({{b}}) and then [Link]({{a}})" },
+      { a: "https://first.example", b: "https://second.example" },
+    );
+    expect(html).toContain('href="https://first.example"');
+    expect(html).toContain('href="https://second.example"');
+  });
 });
