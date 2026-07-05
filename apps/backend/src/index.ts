@@ -121,6 +121,123 @@ app.get("/health", async (c) => {
   }
 });
 
+// ── Health endpoints for the public status page (status.lmaa.space) ──────────
+// Each service is probed through a consistent /health/<service> URL so the
+// IPv4-only GitHub Actions monitor can reach IPv6-only Zerops services through
+// the backend, which shares the dual-stack Zerops network.
+
+/** Timeout for upstream liveness probes (ms). */
+const UPSTREAM_HEALTH_TIMEOUT_MS = 5000;
+
+/**
+ * Probes an upstream URL and returns true when it answers with a non-5xx
+ * status before the timeout. A 3xx redirect (followed by `fetch`) still
+ * counts as up — the app is serving.
+ */
+async function isUpstreamReachable(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      redirect: "follow",
+      signal: AbortSignal.timeout(UPSTREAM_HEALTH_TIMEOUT_MS),
+    });
+    return res.status < 500;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Tables whose absence would break request-time SELECTs. Every Drizzle table
+ * in the schema must be listed here; add new tables when migrations add them.
+ */
+const EXPECTED_TABLES = [
+  "admin_users",
+  "app_settings",
+  "categories",
+  "content_pages",
+  "dead_link_reports",
+  "email_templates",
+  "footer_config",
+  "form_configs",
+  "form_submissions",
+  "markdown_widgets",
+  "media_assets",
+  "media_folders",
+  "nav_items",
+  "rate_limit_entries",
+  "sessions",
+  "shop_categories",
+  "shop_concern_reports",
+  "shop_geo_cities",
+  "shop_geo_countries",
+  "shop_geo_regions",
+  "shop_headquarters",
+  "shop_likes",
+  "shop_reminders",
+  "shops",
+  "social_media_accounts",
+  "social_media_post_templates",
+  "submission_categories",
+  "submission_headquarters",
+  "submissions",
+];
+
+/**
+ * Confirms the database is reachable and every hot-path table exists.
+ * Catches the partially-migrated state where a deploy ships code that queries
+ * tables a failed migration never created.
+ *
+ * @returns `{ ok: true }` when ready, else `{ ok: false, missingTables }`.
+ */
+async function checkDbReadiness(): Promise<
+  { ok: true } | { ok: false; missingTables: string[] }
+> {
+  try {
+    await db.execute(sql`SELECT 1`);
+    const rows = await db.execute(
+      sql`SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema()`,
+    );
+    const existing = new Set(
+      (rows as unknown as { table_name: string }[]).map((r) => r.table_name),
+    );
+    const missing = EXPECTED_TABLES.filter((t) => !existing.has(t));
+    if (missing.length > 0) return { ok: false, missingTables: missing };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, missingTables: ["(query failed)"] };
+  }
+}
+
+app.get("/health/backend", async (c) => {
+  return c.json({ status: "ok" });
+});
+
+app.get("/health/db", async (c) => {
+  const result = await checkDbReadiness();
+  if (result.ok) return c.json({ status: "ok" });
+  c.status(503);
+  return c.json({ status: "not_ready", missingTables: result.missingTables });
+});
+
+app.get("/health/website", async (c) => {
+  const url = env.FRONTEND_URL;
+  if (url && (await isUpstreamReachable(url))) {
+    return c.json({ status: "ok" });
+  }
+  c.status(503);
+  return c.json({ status: "unavailable" });
+});
+
+app.get("/health/dashboard", async (c) => {
+  const url = env.DASHBOARD_URL;
+  if (url && (await isUpstreamReachable(url))) {
+    return c.json({ status: "ok" });
+  }
+  c.status(503);
+  return c.json({ status: "unavailable" });
+});
+
 app.notFound((c) => fail(c, 404, "Not found"));
 app.onError((err, c) => {
   logger.error({ err }, "unhandled error");
