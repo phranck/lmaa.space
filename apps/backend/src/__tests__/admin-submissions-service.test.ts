@@ -15,7 +15,7 @@ async function loadServiceModule() {
   vi.doMock("../config/env.js", () => ({
     env: {
       NODE_ENV: "test",
-      RESEND_API_KEY: "",
+      SMTP2GO_API_KEY: "",
       EMAIL_FROM: "test@test.com",
       LOG_LEVEL: "silent",
     },
