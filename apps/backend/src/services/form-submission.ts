@@ -3,6 +3,7 @@ import type { SubmissionConfig } from "@lmaa/contracts";
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
 import { notifyOwnerOfNewShopSubmission } from "./owner-notifications.js";
+import { isEmailRecipient } from "../lib/email-address.js";
 import { escapeHtml } from "../lib/html.js";
 import { logger } from "../lib/logger.js";
 import { createSubmissionFromFormData } from "../repositories/admin-submissions.js";
@@ -47,11 +48,20 @@ async function executeSubmissionStep(
       break;
     }
     case "email": {
-      const to =
-        step.toFieldId && typeof data[step.toFieldId] === "string"
-          ? (data[step.toFieldId] as string)
-          : step.to;
-      logger.debug({ toFieldId: step.toFieldId, resolvedTo: to }, "email step resolve");
+      const fromField = step.toFieldId ? data[step.toFieldId] : undefined;
+      const to = (
+        typeof fromField === "string" && fromField.trim() ? fromField : (step.to ?? "")
+      ).trim();
+      // Optional recipient fields (e.g. a blank "your email" field) resolve to
+      // an empty value. Skip the confirmation instead of sending an empty `to`,
+      // which the provider rejects with a 422 and surfaces as a background error.
+      if (!isEmailRecipient(to)) {
+        logger.debug(
+          { toFieldId: step.toFieldId, formName: formConfig.name },
+          "email step skipped: no valid recipient",
+        );
+        break;
+      }
       await handleEmail(
         to,
         step.subject,
