@@ -29,7 +29,7 @@ zerops:
         RUN_MIGRATIONS_ON_STARTUP: "true"
         # Secrets (set in Zerops dashboard):
         # IP_HASH_SALT (required in production, min. 16 characters)
-        # RESEND_API_KEY
+        # SMTP2GO_API_KEY
         # EMAIL_FROM  (default: hallo@lmaa.space)
         # OWNER_EMAIL (recipient for report/submission notifications)
       initCommands:
