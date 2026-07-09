@@ -2,6 +2,7 @@
 import type { NavItem } from "@lmaa/shared";
 import { getSafeConfigHref, isExternalHref } from "@/lib/safe-url";
 import SupportButton from "@/components/SupportButton.astro";
+import logo from "@/assets/logo.png";
 
 interface Props {
   navItems: NavItem[];
@@ -27,7 +28,13 @@ function navLinkClass(href: string, external = false) {
       <!-- Left: Logo + Desktop Nav -->
       <div class="flex items-center gap-10">
         <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
-          <img src="/logo.png" alt="lmaa.space" class="h-8 w-auto" />
+          <img
+            src={logo.src}
+            width={logo.width}
+            height={logo.height}
+            alt="lmaa.space"
+            class="h-8 w-auto"
+          />
         </a>
 
         <div class="hidden md:flex items-center gap-8">

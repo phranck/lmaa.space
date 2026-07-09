@@ -3,7 +3,7 @@
   font-family: "Barlow";
   font-style: normal;
   font-weight: 400;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-400-latin-ext.woff2") format("woff2");
   unicode-range:
     U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
@@ -14,7 +14,7 @@
   font-family: "Barlow";
   font-style: italic;
   font-weight: 400;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-400-italic-latin-ext.woff2") format("woff2");
   unicode-range:
     U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
@@ -25,7 +25,7 @@
   font-family: "Barlow";
   font-style: normal;
   font-weight: 500;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-500-latin-ext.woff2") format("woff2");
   unicode-range:
     U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
@@ -36,7 +36,7 @@
   font-family: "Barlow";
   font-style: italic;
   font-weight: 500;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-500-italic-latin-ext.woff2") format("woff2");
   unicode-range:
     U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
@@ -47,7 +47,7 @@
   font-family: "Barlow";
   font-style: normal;
   font-weight: 600;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-600-latin-ext.woff2") format("woff2");
   unicode-range:
     U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
@@ -58,7 +58,7 @@
   font-family: "Barlow";
   font-style: italic;
   font-weight: 600;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-600-italic-latin-ext.woff2") format("woff2");
   unicode-range:
     U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
@@ -71,7 +71,7 @@
   font-family: "Barlow";
   font-style: normal;
   font-weight: 400;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-400-latin.woff2") format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
@@ -81,7 +81,7 @@
   font-family: "Barlow";
   font-style: italic;
   font-weight: 400;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-400-italic-latin.woff2") format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
@@ -91,7 +91,7 @@
   font-family: "Barlow";
   font-style: normal;
   font-weight: 500;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-500-latin.woff2") format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
@@ -101,7 +101,7 @@
   font-family: "Barlow";
   font-style: italic;
   font-weight: 500;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-500-italic-latin.woff2") format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
@@ -111,7 +111,7 @@
   font-family: "Barlow";
   font-style: normal;
   font-weight: 600;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-600-latin.woff2") format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
@@ -121,7 +121,7 @@
   font-family: "Barlow";
   font-style: italic;
   font-weight: 600;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-600-italic-latin.woff2") format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
@@ -132,7 +132,7 @@
   font-family: "Barlow Condensed";
   font-style: normal;
   font-weight: 400;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-condensed-400.woff2") format("woff2");
 }
 
@@ -140,7 +140,7 @@
   font-family: "Barlow Condensed";
   font-style: normal;
   font-weight: 500;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-condensed-500.woff2") format("woff2");
 }
 
@@ -148,7 +148,7 @@
   font-family: "Barlow Condensed";
   font-style: normal;
   font-weight: 600;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-condensed-600.woff2") format("woff2");
 }
 
@@ -156,7 +156,7 @@
   font-family: "Barlow Condensed";
   font-style: normal;
   font-weight: 700;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-condensed-700.woff2") format("woff2");
 }
 
@@ -164,7 +164,7 @@
   font-family: "Barlow Condensed";
   font-style: normal;
   font-weight: 800;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/barlow-condensed-800.woff2") format("woff2");
 }
 
@@ -172,7 +172,7 @@
   font-family: "DynaPuff";
   font-style: normal;
   font-weight: 500;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/dynapuff-500.woff2") format("woff2");
 }
 
@@ -180,6 +180,6 @@
   font-family: "DynaPuff";
   font-style: normal;
   font-weight: 600;
-  font-display: block;
+  font-display: swap;
   src: url("/fonts/dynapuff-600.woff2") format("woff2");
 }
