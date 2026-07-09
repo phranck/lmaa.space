@@ -106,6 +106,44 @@ describe("executeSubmissionChain", () => {
     );
   });
 
+  it("skips the email step when the recipient field is omitted (optional email left blank)", async () => {
+    await executeSubmissionChain(
+      {
+        steps: [
+          {
+            type: "email",
+            to: "",
+            toFieldId: "submitterEmail",
+            subject: "Dein Shop-Vorschlag",
+          },
+        ],
+      },
+      { shopName: "Cute Paradise" },
+      { id: 1, name: "suggestion" },
+    );
+
+    expect(emailMocks.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("skips the email step when the recipient field is blank/whitespace", async () => {
+    await executeSubmissionChain(
+      {
+        steps: [
+          {
+            type: "email",
+            to: "",
+            toFieldId: "submitterEmail",
+            subject: "Dein Shop-Vorschlag",
+          },
+        ],
+      },
+      { submitterEmail: "   " },
+      { id: 1, name: "suggestion" },
+    );
+
+    expect(emailMocks.sendMail).not.toHaveBeenCalled();
+  });
+
   it("uses default subject when none provided", async () => {
     await executeSubmissionChain(
       { steps: [{ type: "email", to: "a@b.com" }] },
