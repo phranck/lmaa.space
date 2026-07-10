@@ -12,7 +12,13 @@ import {
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
-import { renderEmailPreview } from "../../services/email-renderer.js";
+import { getAdminProfileById } from "../../repositories/admin-auth.js";
+import { getEmailTemplateById } from "../../repositories/email-templates.js";
+import {
+  renderEmailPreview,
+  renderEmailTemplate,
+  sampleVariablesForTemplate,
+} from "../../services/email-renderer.js";
 import {
   createManagedEmailTemplate,
   deleteManagedEmailTemplate,
@@ -21,6 +27,7 @@ import {
   importManagedEmailTemplate,
   updateManagedEmailTemplate,
 } from "../../services/email-templates.js";
+import { sendMail } from "../../services/email.js";
 
 /**
  * Admin email template CRUD routes.
@@ -119,6 +126,26 @@ emailTemplateRoutes.post(
     return ok(c, result.data, 201);
   },
 );
+
+// POST /api/admin/email-templates/:id/send-test — send the template to the current admin
+emailTemplateRoutes.post("/email-templates/:id/send-test", async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid ID");
+
+  const template = await getEmailTemplateById(id);
+  if (!template) return fail(c, 404, "Email template not found");
+
+  const admin = await getAdminProfileById(c.get("adminId"));
+  if (!admin?.email) return fail(c, 400, "No email address on file for the current user");
+
+  const rendered = await renderEmailTemplate(template, sampleVariablesForTemplate(template));
+  const sent = await sendMail(admin.email, rendered.subject, rendered.html, {
+    errorSource: "test-email",
+  });
+  if (!sent) return fail(c, 502, "The email provider rejected the test message");
+
+  return ok(c, { sentTo: admin.email });
+});
 
 // DELETE /api/admin/email-templates/:id — delete
 emailTemplateRoutes.delete("/email-templates/:id", async (c) => {

@@ -21,7 +21,29 @@ const serviceMocks = vi.hoisted(() => ({
 
 vi.mock("../services/email-templates.js", () => serviceMocks);
 
+const emailMocks = vi.hoisted(() => ({ sendMail: vi.fn() }));
+const templateRepoMocks = vi.hoisted(() => ({ getEmailTemplateById: vi.fn() }));
+const adminAuthMocks = vi.hoisted(() => ({ getAdminProfileById: vi.fn() }));
+
+vi.mock("../services/email.js", () => emailMocks);
+vi.mock("../repositories/email-templates.js", () => templateRepoMocks);
+vi.mock("../repositories/admin-auth.js", () => adminAuthMocks);
+
 import { emailTemplateRoutes } from "../routes/admin/email-templates.js";
+
+const sampleTemplate = {
+  id: 6,
+  name: "shop-submission-feedback",
+  subject: 'Vorschlag "{{shopName}}"',
+  headerBannerUrl: null,
+  headerText: null,
+  bodyText: "Hallo, dein Vorschlag {{shopName}} ist da.",
+  footerBannerUrl: null,
+  footerText: null,
+  isSystemTemplate: true,
+  createdAt: new Date("2026-01-01T00:00:00Z"),
+  updatedAt: new Date("2026-01-01T00:00:00Z"),
+};
 
 /**
  * Build a Hono test app that injects `isOwner` on every request before
@@ -180,5 +202,45 @@ describe("email-templates routes — owner gate", () => {
       // Other fields should still pass through
       expect(callArg.name).toBe("updated-name");
     });
+  });
+});
+
+describe("POST /email-templates/:id/send-test", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("renders the template with sample values and sends it to the current admin", async () => {
+    templateRepoMocks.getEmailTemplateById.mockResolvedValue(sampleTemplate);
+    adminAuthMocks.getAdminProfileById.mockResolvedValue({ id: 1, email: "admin@lmaa.space" });
+    emailMocks.sendMail.mockResolvedValue(true);
+
+    const res = await makeApp(false).request("/email-templates/6/send-test", { method: "POST" });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ data: { sentTo: "admin@lmaa.space" } });
+    expect(emailMocks.sendMail).toHaveBeenCalledWith(
+      "admin@lmaa.space",
+      'Vorschlag "Beispiel-Shop"',
+      expect.stringContaining("Beispiel-Shop"),
+      { errorSource: "test-email" },
+    );
+  });
+
+  it("returns 404 when the template does not exist", async () => {
+    templateRepoMocks.getEmailTemplateById.mockResolvedValue(null);
+
+    const res = await makeApp(false).request("/email-templates/99/send-test", { method: "POST" });
+
+    expect(res.status).toBe(404);
+    expect(emailMocks.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("returns 502 when the provider rejects the message", async () => {
+    templateRepoMocks.getEmailTemplateById.mockResolvedValue(sampleTemplate);
+    adminAuthMocks.getAdminProfileById.mockResolvedValue({ id: 1, email: "admin@lmaa.space" });
+    emailMocks.sendMail.mockResolvedValue(false);
+
+    const res = await makeApp(false).request("/email-templates/6/send-test", { method: "POST" });
+
+    expect(res.status).toBe(502);
   });
 });

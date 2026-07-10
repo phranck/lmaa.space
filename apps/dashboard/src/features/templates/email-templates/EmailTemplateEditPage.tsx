@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { Suspense, lazy, type ReactNode, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { toast } from "react-toastify";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
@@ -16,7 +17,7 @@ const MarkdownEditor = lazy(() =>
   import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
 );
 
-import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -28,6 +29,7 @@ import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.
 import {
   useCreateEmailTemplate,
   useEmailTemplate,
+  useSendTestEmail,
   useUpdateEmailTemplate,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 
@@ -95,6 +97,7 @@ export function EmailTemplateEditPage() {
   const { data: existing, isLoading } = useEmailTemplate(numId);
   const createMutation = useCreateEmailTemplate();
   const updateMutation = useUpdateEmailTemplate(numId);
+  const sendTestMutation = useSendTestEmail();
 
   const [form, setForm] = useState<TemplateFormFields>({
     name: "",
@@ -178,6 +181,17 @@ export function EmailTemplateEditPage() {
     }
   }
 
+  function handleSendTest() {
+    sendTestMutation.mutate(numId, {
+      onSuccess: (res) => {
+        toast.success(`${m.sendTestSuccess} ${res.sentTo}`);
+      },
+      onError: () => {
+        toast.error(m.sendTestError);
+      },
+    });
+  }
+
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   if (!isNew && isLoading) {
@@ -207,6 +221,9 @@ export function EmailTemplateEditPage() {
           savingLabel={messages.common.saving}
           saveLabel={m.save}
           onSave={handleSave}
+          canSendTest={!isNew}
+          isSendingTest={sendTestMutation.isPending}
+          onSendTest={handleSendTest}
         />
       </PageHeader>
 
@@ -238,6 +255,9 @@ interface EmailTemplateHeaderActionsProps {
   savingLabel: string;
   saveLabel: string;
   onSave: () => void;
+  canSendTest: boolean;
+  isSendingTest: boolean;
+  onSendTest: () => void;
 }
 
 function EmailTemplateHeaderActions({
@@ -248,6 +268,9 @@ function EmailTemplateHeaderActions({
   savingLabel,
   saveLabel,
   onSave,
+  canSendTest,
+  isSendingTest,
+  onSendTest,
 }: EmailTemplateHeaderActionsProps) {
   return (
     <div className="flex items-center gap-3">
@@ -258,6 +281,15 @@ function EmailTemplateHeaderActions({
         </span>
       )}
       {error && <p className="text-xs text-red-500">{error}</p>}
+      {canSendTest && (
+        <DashboardActionButton
+          action="sendTest"
+          type="button"
+          onClick={onSendTest}
+          busy={isSendingTest}
+          disabled={isSendingTest}
+        />
+      )}
       <SaveActionButton
         type="button"
         onClick={onSave}

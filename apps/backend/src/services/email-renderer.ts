@@ -188,6 +188,47 @@ export async function renderEmailTemplate(
 }
 
 /**
+ * Representative sample values for the known template variables. Used to fill a
+ * template for a test send so the rendered email looks complete rather than
+ * showing blank slots where the variables would be.
+ */
+const SAMPLE_TEMPLATE_VARIABLES: Record<string, string> = {
+  shopName: "Beispiel-Shop",
+  shopUrl: "https://beispiel-shop.de",
+  username: "maxmustermann",
+  password: "Xy7!Beispiel",
+  loginUrl: "https://lmaa.space/dashboard",
+  dashboardUrl: "https://lmaa.space/dashboard",
+  region: "Berlin",
+  reportCount: "3",
+  rejectionUrl: "https://lmaa.space/shops/beispiel-shop",
+  reminderMessage: "Bitte prüfe die Öffnungszeiten dieses Shops.",
+  submitterNote: "Toller lokaler Laden, bitte aufnehmen!",
+};
+
+/**
+ * Builds a variable map filled with representative sample values for every
+ * `{{placeholder}}` used anywhere in the template (subject, header, body,
+ * footer). Known variables get a realistic value; unknown ones fall back to
+ * their own name so the slot stays visible. Used for admin test sends.
+ *
+ * @param template - The email template to scan for placeholders.
+ * @returns A record mapping each referenced variable name to a sample value.
+ */
+export function sampleVariablesForTemplate(template: EmailTemplate): Record<string, string> {
+  const haystack = [template.subject, template.headerText, template.bodyText, template.footerText]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ");
+
+  const variables: Record<string, string> = {};
+  for (const match of haystack.matchAll(new RegExp(VAR_REGEX.source, "g"))) {
+    const name = match[1];
+    variables[name] = SAMPLE_TEMPLATE_VARIABLES[name] ?? name;
+  }
+  return variables;
+}
+
+/**
  * Renders a preview of template fields for the dashboard.
  *
  * Unlike `renderEmailTemplate`, this does not use a `@media` query —

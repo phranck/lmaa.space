@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import type { EmailTemplate } from "../db/schema.js";
-import { renderEmailPreview, renderEmailTemplate } from "../services/email-renderer.js";
+import {
+  renderEmailPreview,
+  renderEmailTemplate,
+  sampleVariablesForTemplate,
+} from "../services/email-renderer.js";
 
 const template: EmailTemplate = {
   id: 1,
@@ -103,5 +107,36 @@ describe("email renderer", () => {
     );
     expect(html).toContain('href="https://first.example"');
     expect(html).toContain('href="https://second.example"');
+  });
+});
+
+describe("sampleVariablesForTemplate", () => {
+  it("fills known variables with sample values and unknown ones with their name", () => {
+    const vars = sampleVariablesForTemplate({
+      ...template,
+      subject: 'Vorschlag "{{shopName}}"',
+      headerText: "Hallo {{username}}",
+      bodyText: "{{shopUrl}} und {{customThing}}",
+      footerText: null,
+    });
+
+    expect(vars).toEqual({
+      shopName: "Beispiel-Shop",
+      username: "maxmustermann",
+      shopUrl: "https://beispiel-shop.de",
+      customThing: "customThing",
+    });
+  });
+
+  it("returns an empty map when the template has no placeholders", () => {
+    const vars = sampleVariablesForTemplate({
+      ...template,
+      subject: "Statisch",
+      headerText: null,
+      bodyText: "Kein Platzhalter hier.",
+      footerText: null,
+    });
+
+    expect(vars).toEqual({});
   });
 });
