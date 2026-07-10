@@ -1,9 +1,12 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router";
+import { ToastContainer } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
 
 import { ContentEditorLoadingFallback } from "@/components/app/ContentEditorLoadingFallback.tsx";
 import { I18nProvider } from "@/context/I18nContext.tsx";
-import { ThemeProvider } from "@/context/ThemeContext.tsx";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { KeyboardSaveProvider } from "@/lib/hooks/useKeyboardSave.ts";
 
@@ -523,6 +526,25 @@ function AppRoutes() {
 }
 
 /**
+ * App-wide toast host. Rendered once inside the theme provider so notifications
+ * adopt the active light/dark theme.
+ *
+ * @returns The react-toastify container for the whole dashboard.
+ */
+function AppToaster() {
+  const { effectiveTheme } = useTheme();
+  return (
+    <ToastContainer
+      position="top-center"
+      autoClose={5000}
+      newestOnTop
+      pauseOnFocusLoss={false}
+      theme={effectiveTheme}
+    />
+  );
+}
+
+/**
  * Root dashboard application shell with routing, providers and layout.
  *
  * @returns Top-level React tree for the admin dashboard SPA.
@@ -534,6 +556,7 @@ export default function App() {
         <ThemeProvider>
           <KeyboardSaveProvider>
             <AppRoutes />
+            <AppToaster />
           </KeyboardSaveProvider>
         </ThemeProvider>
       </I18nProvider>
