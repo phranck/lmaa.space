@@ -6,6 +6,7 @@ import {
   CopyIcon,
   DownloadSimpleIcon,
   FloppyDiskIcon,
+  PaperPlaneTiltIcon,
   PauseCircleIcon,
   PencilSimpleIcon,
   PlusIcon,
@@ -61,6 +62,14 @@ export const DASHBOARD_ACTIONS = {
     labelKey: "common.save",
     size: "action",
     statusLabelKeys: { busy: "common.saving" },
+  },
+  sendTest: {
+    ariaBehavior: "visible-label",
+    colorRole: "neutral",
+    icon: PaperPlaneTiltIcon,
+    labelKey: "common.sendTestEmail",
+    size: "action",
+    statusLabelKeys: { busy: "common.sending" },
   },
   delete: {
     ariaBehavior: "visible-label",

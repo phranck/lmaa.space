@@ -70,6 +70,19 @@ export function useDeleteEmailTemplate() {
 }
 
 /**
+ * Sends a template as a test email to the currently logged-in admin.
+ *
+ * @returns A mutation whose input is the template id and whose result carries
+ *   the recipient address the provider accepted the message for.
+ */
+export function useSendTestEmail() {
+  return useMutation({
+    mutationFn: (id: number) =>
+      api.post<{ sentTo: string }>(`/admin/email-templates/${id}/send-test`, {}),
+  });
+}
+
+/**
  * Imports a single email template (create or overwrite by name).
  */
 export function useImportEmailTemplate() {

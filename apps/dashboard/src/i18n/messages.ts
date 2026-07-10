@@ -16,6 +16,8 @@ export interface DashboardMessages {
     save: string;
     saving: string;
     saved: string;
+    sending: string;
+    sendTestEmail: string;
     edit: string;
     create: string;
     delete: string;
@@ -1078,6 +1080,8 @@ export interface DashboardMessages {
     saved: string;
     saveError: string;
     nameConflict: string;
+    sendTestSuccess: string;
+    sendTestError: string;
     systemBadge: string;
     systemHint: string;
     systemCheckbox: string;
@@ -1458,6 +1462,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       save: "Speichern",
       saving: "Wird gespeichert…",
       saved: "Gespeichert",
+      sending: "Wird gesendet…",
+      sendTestEmail: "Test Email senden",
       edit: "Bearbeiten",
       create: "Erstellen",
       delete: "Löschen",
@@ -2548,6 +2554,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saved: "Gespeichert",
       saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
       nameConflict: "Ein Template mit diesem Namen existiert bereits.",
+      sendTestSuccess: "Test-Mail gesendet an",
+      sendTestError: "Test-Mail konnte nicht gesendet werden. Bitte erneut versuchen.",
       systemBadge: "System",
       systemHint: "System-Templates können nicht gelöscht werden.",
       systemCheckbox: "System-Template",
@@ -2957,6 +2965,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       save: "Save",
       saving: "Saving…",
       saved: "Saved",
+      sending: "Sending…",
+      sendTestEmail: "Send test email",
       edit: "Edit",
       create: "Create",
       delete: "Delete",
@@ -4042,6 +4052,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saved: "Saved",
       saveError: "Error saving. Please try again.",
       nameConflict: "A template with this name already exists.",
+      sendTestSuccess: "Test email sent to",
+      sendTestError: "Could not send the test email. Please try again.",
       systemBadge: "System",
       systemHint: "System templates cannot be deleted.",
       systemCheckbox: "System template",
