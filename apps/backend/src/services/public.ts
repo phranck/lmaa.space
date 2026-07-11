@@ -70,6 +70,33 @@ export function normalizeShopHostname(url: string): string | null {
 }
 
 /**
+ * Canonicalizes a user-submitted shop URL before validation and persistence.
+ *
+ * Removes campaign/tracking query strings, fragments, a leading `www.` host
+ * prefix, and trailing slashes. Bare hostnames are treated as HTTPS URLs.
+ *
+ * @param urlRaw - Raw URL string from form input.
+ * @returns Canonical absolute URL, or `null` when the input cannot be parsed.
+ */
+export function normalizeSubmittedShopUrl(urlRaw: string): string | null {
+  const trimmed = urlRaw.trim();
+  if (!trimmed) return null;
+
+  try {
+    const parsed = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+
+    const hostname = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    const port = parsed.port ? `:${parsed.port}` : "";
+    const pathname = parsed.pathname.replace(/\/+$/, "");
+
+    return `${parsed.protocol}//${hostname}${port}${pathname}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * One-way HMAC-SHA256 hash of an IP address using the configured `IP_HASH_SALT`.
  *
  * Used for anonymous rate-limiting and reporting without storing raw IPs.
