@@ -124,7 +124,7 @@
 
   /* Typography — font families */
   --ds-font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --ds-font-serif: "Barlow Condensed", system-ui, sans-serif;
+  --ds-font-serif: "Barlow Condensed", "Barlow Condensed Fallback", system-ui, sans-serif;
   --ds-font-mono: ui-monospace, "Cascadia Code", "Fira Code", monospace;
 
   /* Typography Scale — Perfect Fourth

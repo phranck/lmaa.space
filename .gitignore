@@ -18,6 +18,7 @@ dist/
 .claude/
 .codex/
 .serena/
+.pi/
 memory/
 papers/
 plans/
