@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codeberg → Zerops Self-Hosted Runner Setup</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --panel-soft: #f1f5f9;
+        --text: #0f172a;
+        --muted: #475569;
+        --border: #dbe3ee;
+        --accent: #2563eb;
+        --good: #16a34a;
+        --warn: #d97706;
+        --bad: #dc2626;
+        --owner-user: #0f766e;
+        --owner-claude: #7c3aed;
+        --code-bg: #eef2f7;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #020617;
+          --panel: #0f172a;
+          --panel-soft: #111c33;
+          --text: #e5eefb;
+          --muted: #9fb0c7;
+          --border: #243047;
+          --accent: #60a5fa;
+          --good: #4ade80;
+          --warn: #fbbf24;
+          --bad: #f87171;
+          --owner-user: #2dd4bf;
+          --owner-claude: #c084fc;
+          --code-bg: #07101f;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 48px 24px 88px;
+      }
+
+      header {
+        margin-bottom: 32px;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        line-height: 1.2;
+        margin: 0 0 14px;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 5vw, 3.4rem);
+        letter-spacing: -0.04em;
+      }
+
+      h2 {
+        font-size: clamp(1.45rem, 3vw, 2.1rem);
+        margin-top: 44px;
+      }
+
+      h3 {
+        font-size: 1.2rem;
+        margin-top: 0;
+      }
+
+      p {
+        margin: 0 0 16px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      code {
+        padding: 0.12rem 0.35rem;
+        border-radius: 6px;
+        background: var(--code-bg);
+        font-size: 0.92em;
+      }
+
+      pre {
+        overflow-x: auto;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--code-bg);
+        font-size: 0.88rem;
+        margin: 12px 0;
+      }
+
+      pre code {
+        background: transparent;
+        padding: 0;
+      }
+
+      ul,
+      ol {
+        margin-top: 0;
+        padding-left: 1.5rem;
+      }
+
+      li {
+        margin-bottom: 6px;
+      }
+
+      .lead {
+        max-width: 880px;
+        color: var(--muted);
+        font-size: 1.1rem;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 5px 12px;
+        background: var(--panel-soft);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 20px 0 32px;
+      }
+
+      .owner-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 8px;
+        padding: 3px 10px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .owner-pill.user {
+        background: color-mix(in srgb, var(--owner-user) 18%, transparent);
+        color: var(--owner-user);
+        border: 1px solid color-mix(in srgb, var(--owner-user) 35%, transparent);
+      }
+
+      .owner-pill.claude {
+        background: color-mix(in srgb, var(--owner-claude) 18%, transparent);
+        color: var(--owner-claude);
+        border: 1px solid color-mix(in srgb, var(--owner-claude) 35%, transparent);
+      }
+
+      .step {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--panel);
+        padding: 22px 24px;
+        margin-bottom: 18px;
+      }
+
+      .step header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .step-number {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .step h3 {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .check {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .check li {
+        position: relative;
+        padding-left: 1.8rem;
+      }
+
+      .check li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.45rem;
+        width: 14px;
+        height: 14px;
+        border: 1.5px solid var(--muted);
+        border-radius: 4px;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 16px 18px;
+        color: var(--text);
+        margin: 16px 0;
+      }
+
+      .note.warning {
+        border-left-color: var(--warn);
+      }
+
+      .note.danger {
+        border-left-color: var(--bad);
+      }
+
+      .note strong {
+        color: var(--text);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--panel);
+        margin: 12px 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 580px;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+        font-size: 0.94rem;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 650;
+        background: var(--panel-soft);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Codeberg → Zerops Self-Hosted Runner Setup</h1>
+        <p class="lead">
+          Schritt-für-Schritt Checkliste für den Aufbau eines self-hosted Forgejo-Runners auf Zerops, der CI-Jobs
+          aller Codeberg-Repos unter <code>phranck/*</code> übernimmt. Hintergrund: Codeberg-Hosted-Runner
+          (<code>codeberg-medium</code>/<code>-small</code>) verfehlen die 5-/10-min-Limits bei
+          <code>npm install</code>-lastigen Monorepos und stehen ohnehin oft minutenlang in der Queue.
+        </p>
+        <div class="meta">
+          <span class="pill">Erstellt: 2026-06-10</span>
+          <span class="pill">Status: Setup ausstehend</span>
+          <span class="pill">Tracked: <code>.claude/plans/open/</code> (separat)</span>
+        </div>
+      </header>
+
+      <h2>Wer macht was</h2>
+      <div class="legend">
+        <span class="owner-pill user">Du</span>
+        <span style="color: var(--muted)">— manuelle Schritte im Browser-UI (Codeberg / Zerops)</span>
+      </div>
+      <div class="legend">
+        <span class="owner-pill claude">Claude</span>
+        <span style="color: var(--muted)">— File-Edits, Commits, Pushes, Verification</span>
+      </div>
+
+      <div class="note danger">
+        <strong>Blocker vor Schritt 5:</strong> Zerops hat 2026-06 <em>keine</em> native Codeberg-Git-Source-Integration
+        (nur GitHub / GitLab). Vor Schritt 5 entscheiden, welche Deploy-Variante du nimmst — siehe
+        <a href="#variant-decision">Deploy-Variante</a> weiter unten.
+      </div>
+
+      <h2>Status der vorbereiteten Files</h2>
+      <p>
+        Lokal bereits geschrieben und git-staged in
+        <code>/Users/phranck/Sites/infra/ci-runner/</code> (noch kein Remote, noch nicht committed):
+      </p>
+      <ul>
+        <li><code>zerops.yml</code> — Ubuntu-24.04-Service, installiert Node 22, git, curl, <code>forgejo-runner v12.10.2</code>, <code>zcli</code>.</li>
+        <li><code>setup.sh</code> — Boot-Skript: env-check → register-falls-noch-nicht-da → <code>forgejo-runner daemon</code> als PID 1.</li>
+        <li><code>config.yaml</code> — Runner-Config-Template mit <code>${RUNNER_LABELS}</code>-Platzhaltern.</li>
+        <li><code>README.md</code> — Operator-Guide (Token-Rotation, Maintenance, Security-Notes).</li>
+        <li><code>.gitignore</code> — schliesst <code>.runner</code>-State aus.</li>
+      </ul>
+
+      <h2>Schritte</h2>
+
+      <section class="step" id="step-1">
+        <header>
+          <span class="step-number">Schritt 1</span>
+          <h3>Codeberg-Repo anlegen</h3>
+          <span class="owner-pill user">Du</span>
+        </header>
+        <ul class="check">
+          <li>
+            <code>https://codeberg.org/repo/create</code> öffnen.
+          </li>
+          <li>
+            <strong>Owner:</strong> <code>phranck</code> &middot;
+            <strong>Name:</strong> <code>ci-runner</code> &middot;
+            <strong>Visibility:</strong> Public (oder Private — egal, kein PR-Trigger geplant).
+          </li>
+          <li>
+            <strong>Initialize:</strong> <em>NEIN</em> — leeres Repo, Claude pushed die fünf Files rein.
+          </li>
+          <li>Die SSH-URL kopieren und an Claude geben: <code>ssh://git@codeberg.org/phranck/ci-runner.git</code>.</li>
+        </ul>
+      </section>
+
+      <section class="step" id="step-2">
+        <header>
+          <span class="step-number">Schritt 2</span>
+          <h3>User-Level Runner-Token holen</h3>
+          <span class="owner-pill user">Du</span>
+        </header>
+        <ul class="check">
+          <li>
+            <code>https://codeberg.org/user/settings/actions/runners</code> öffnen.
+          </li>
+          <li>
+            <strong>"Create new Runner"</strong> klicken. Token erscheint <strong>nur einmal</strong> — sofort in 1Password / sicherer Notiz parken.
+          </li>
+          <li>UUID / Token für Schritt 6 bereithalten.</li>
+        </ul>
+        <div class="note warning">
+          User-Level (nicht Repo-Level) gewählt, damit derselbe Runner später auch für musiccloud, layered.work
+          etc. Jobs annimmt. Repo-Level-Token wäre an <code>ci-runner</code> selbst gebunden — wir brauchen Account-Scope.
+        </div>
+      </section>
+
+      <section class="step" id="step-3">
+        <header>
+          <span class="step-number">Schritt 3</span>
+          <h3>Lokales Repo committen + Remote setzen + push</h3>
+          <span class="owner-pill claude">Claude</span>
+        </header>
+        <p>Sobald du Claude die SSH-URL aus Schritt 1 gegeben hast:</p>
+        <pre><code>cd /Users/phranck/Sites/infra/ci-runner
+git commit -m "Chore: initial Forgejo runner setup for Zerops"
+git remote add origin ssh://git@codeberg.org/phranck/ci-runner.git
+git push -u origin main</code></pre>
+      </section>
+
+      <section class="step" id="step-4">
+        <header>
+          <span class="step-number">Schritt 4</span>
+          <h3>Zerops-Projekt <code>ci-runners</code> anlegen</h3>
+          <span class="owner-pill user">Du</span>
+        </header>
+        <ul class="check">
+          <li>Zerops-Dashboard → <strong>+ New Project</strong>.</li>
+          <li><strong>Name:</strong> <code>ci-runners</code> &middot; <strong>Region:</strong> beliebig (Prag = niedrigste Latenz zu Codeberg-EU).</li>
+          <li>Project-ID notieren — brauchst du falls du <code>zcli push</code> nutzt (Variante a/c unten).</li>
+        </ul>
+      </section>
+
+      <section class="step" id="step-5">
+        <header>
+          <span class="step-number">Schritt 5</span>
+          <h3>Ubuntu-24.04-Service anlegen</h3>
+          <span class="owner-pill user">Du</span>
+        </header>
+        <ul class="check">
+          <li>Im Projekt <code>ci-runners</code> → <strong>+ Add Service</strong> → <strong>Ubuntu 24.04</strong>.</li>
+          <li><strong>Service-Name:</strong> <code>runner</code> (muss dem <code>setup:</code>-Eintrag in <code>zerops.yml</code> entsprechen).</li>
+          <li><strong>Resources:</strong> 2 vCPU shared / 4 GB RAM / 10 GB Disk.</li>
+          <li><strong>Persistent Volume:</strong> 1 GB anlegen, <strong>Mount Path: <code>/data</code></strong>. Ohne das registriert sich der Runner bei jedem Restart neu und hinterlässt Karteileichen auf Codeberg.</li>
+          <li><strong>Ports:</strong> keine (Runner connectet nur outbound zu codeberg.org).</li>
+        </ul>
+
+        <h4 id="variant-decision" style="margin-top: 20px">Deploy-Variante (Zerops ↔ Codeberg)</h4>
+        <p>Da Zerops Codeberg nicht als Git-Source kennt, eine der drei Varianten wählen:</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Variante</th>
+                <th>Wie</th>
+                <th>Trade-off</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>a) zcli push manuell</strong></td>
+                <td>Service ohne Git-Source anlegen, lokal <code>zcli push --project-id … --service-id runner</code> für jeden Update.</td>
+                <td>Voll unter deiner Kontrolle, keine Mirror-Pflege. Manueller Schritt bei jedem Runner-Update.</td>
+              </tr>
+              <tr>
+                <td><strong>b) GitHub-Mirror</strong></td>
+                <td>Repo zusätzlich als <code>github.com/phranck/ci-runner</code> spiegeln, Zerops auf den GH-Mirror hängen.</td>
+                <td>Auto-Build bei jedem Push. Codeberg bleibt Source-of-Truth, GH-Mirror muss synchron bleiben.</td>
+              </tr>
+              <tr>
+                <td><strong>c) Erst-Setup via zcli, dann ruhen lassen</strong></td>
+                <td>Wie (a), aber Updates sind selten (forgejo-runner-Version-Bumps alle paar Monate).</td>
+                <td>Einfachster Pfad. Pragmatisch wenn der Runner stabil läuft.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>Empfehlung:</strong> Variante <strong>c</strong> als Default — <code>zcli push</code> einmalig
+          jetzt, dann Wartung nur bei <code>forgejo-runner</code>-Version-Updates.
+        </p>
+      </section>
+
+      <section class="step" id="step-6">
+        <header>
+          <span class="step-number">Schritt 6</span>
+          <h3>Env-Vars im Zerops-Service setzen</h3>
+          <span class="owner-pill user">Du</span>
+        </header>
+        <p>Im Service-Detail → <strong>Environment Variables</strong>:</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Variable</th>
+                <th>Wert</th>
+                <th>Als Secret?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>RUNNER_TOKEN</code></td>
+                <td>Token aus Schritt 2</td>
+                <td>Ja</td>
+              </tr>
+              <tr>
+                <td><code>RUNNER_NAME</code></td>
+                <td><code>zerops-layered-1</code></td>
+                <td>Nein</td>
+              </tr>
+              <tr>
+                <td><code>RUNNER_LABEL</code></td>
+                <td><code>layered-runner</code></td>
+                <td>Nein</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="step" id="step-7">
+        <header>
+          <span class="step-number">Schritt 7</span>
+          <h3>Ersten Deploy triggern</h3>
+          <span class="owner-pill user">Du</span>
+        </header>
+        <p>Bei Variante a/c (lokaler Push):</p>
+        <pre><code>cd /Users/phranck/Sites/infra/ci-runner
+zcli push --project-id &lt;PROJECT_ID&gt; --service-id runner</code></pre>
+        <p>Bei Variante b: einfach auf den GH-Mirror pushen, Zerops baut automatisch.</p>
+      </section>
+
+      <section class="step" id="step-8">
+        <header>
+          <span class="step-number">Schritt 8</span>
+          <h3>Runner-Online-Check</h3>
+          <span class="owner-pill user">Du</span>
+        </header>
+        <ul class="check">
+          <li>
+            Zerops-Service-Dashboard → <strong>Runtime logs</strong> → sollten zeigen:
+          </li>
+        </ul>
+        <pre><code>setup.sh: rendering config.yaml from template…
+setup.sh: no existing .runner state — registering with https://codeberg.org…
+setup.sh: launching forgejo-runner daemon…</code></pre>
+        <ul class="check">
+          <li>
+            <code>https://codeberg.org/user/settings/actions/runners</code> öffnen — Runner <code>zerops-layered-1</code> erscheint als <strong>online</strong> (grüner Punkt).
+          </li>
+        </ul>
+      </section>
+
+      <section class="step" id="step-9">
+        <header>
+          <span class="step-number">Schritt 9</span>
+          <h3>WebApp-Workflow umstellen</h3>
+          <span class="owner-pill claude">Claude</span>
+        </header>
+        <p>Sobald der Runner online ist:</p>
+        <ul>
+          <li>
+            In <code>apps/.../</code><code>.forgejo/workflows/deploy.yml</code> alle Vorkommen
+            <code>runs-on: codeberg-small</code> ersetzen durch <code>runs-on: layered-runner</code>.
+          </li>
+          <li>Commit (Pre-Commit-Hook läuft) + Push nach Codeberg.</li>
+        </ul>
+      </section>
+
+      <section class="step" id="step-10">
+        <header>
+          <span class="step-number">Schritt 10</span>
+          <h3>Smoke-Test</h3>
+          <span class="owner-pill user">Du</span>
+          <span class="owner-pill claude">Claude</span>
+        </header>
+        <ul class="check">
+          <li>Leerer Commit auf <code>main</code> der WebApp oder Workflow von Hand dispatchen.</li>
+          <li>Codeberg → WebApp-Repo → Actions: Job startet <strong>sofort</strong> (keine Queue), läuft auf <code>layered-runner</code>.</li>
+          <li>Bei Grün: Migration durch.</li>
+          <li>Bei Rot: Logs gemeinsam anschauen, fixen.</li>
+        </ul>
+      </section>
+
+      <h2>Nach erfolgreicher Migration</h2>
+      <ul>
+        <li>Memory-Update: Codeberg-Runner-URL und Label-Konvention in <code>MEMORY.md</code> festhalten.</li>
+        <li>Bei jedem weiteren Repo-Umzug (musiccloud, layered.work, …): nur <code>runs-on: layered-runner</code> setzen, kein Setup-Aufwand mehr.</li>
+        <li>Forgejo-Runner alle paar Monate aktualisieren — Version im <code>zerops.yml</code> bumpen, neu deployen.</li>
+      </ul>
+    </main>
+  </body>
+</html>

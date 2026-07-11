@@ -44,7 +44,7 @@ export default defineConfig({
     },
     font: {
       sans: '"Barlow", system-ui, -apple-system, sans-serif',
-      serif: '"Barlow Condensed", system-ui, sans-serif',
+      serif: '"Barlow Condensed", "Barlow Condensed Fallback", system-ui, sans-serif',
     },
     fontSize: {
       xs: ["var(--ds-text-xs)", { lineHeight: "var(--ds-leading-xs)" }],

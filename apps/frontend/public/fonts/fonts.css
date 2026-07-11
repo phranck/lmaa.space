@@ -1,3 +1,20 @@
+/*
+ * Metric-adjusted fallback for "Barlow Condensed". Sized to Barlow Condensed's
+ * own metrics (unitsPerEm 1000, ascent 1000, descent -200, xAvgCharWidth 417)
+ * against Arial (unitsPerEm 2048, xWidthAvg 904) so the fallback occupies the
+ * same width and line box. With font-display: swap this makes the swap from
+ * fallback to the real condensed font imperceptible — no "wider then narrower"
+ * flash on (re)load while the woff2 revalidates.
+ */
+@font-face {
+  font-family: "Barlow Condensed Fallback";
+  src: local("Arial"), local("Helvetica Neue");
+  size-adjust: 94.47%;
+  ascent-override: 105.85%;
+  descent-override: 21.17%;
+  line-gap-override: 0%;
+}
+
 /* Barlow — latin-ext (subset für Sonderzeichen) */
 @font-face {
   font-family: "Barlow";
