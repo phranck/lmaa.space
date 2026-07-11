@@ -63,7 +63,18 @@ const socialPreviewMocks = vi.hoisted(() => ({
   getSocialPreviewImage: vi.fn(),
 }));
 
-vi.mock("../services/public.js", () => publicServiceMocks);
+const formSubmissionMocks = vi.hoisted(() => ({
+  executeSubmissionChain: vi.fn(),
+}));
+
+const formValidationMocks = vi.hoisted(() => ({
+  buildFormValidationSchema: vi.fn(),
+}));
+
+vi.mock("../services/public.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../services/public.js")>();
+  return { ...actual, ...publicServiceMocks };
+});
 vi.mock("../services/admin-form-config.js", () => formConfigMocks);
 vi.mock("../services/admin-media.js", () => mediaMocks);
 vi.mock("../repositories/footer-config.js", () => footerMocks);
@@ -72,12 +83,8 @@ vi.mock("../services/footer-preview-store.js", () => footerPreviewMocks);
 vi.mock("../services/content-preview-store.js", () => contentPreviewMocks);
 vi.mock("../services/hero.js", () => heroMocks);
 vi.mock("../services/social-preview-images.js", () => socialPreviewMocks);
-vi.mock("../services/form-submission.js", () => ({
-  executeSubmissionChain: vi.fn(),
-}));
-vi.mock("../services/form-validation.js", () => ({
-  buildFormValidationSchema: vi.fn(),
-}));
+vi.mock("../services/form-submission.js", () => formSubmissionMocks);
+vi.mock("../services/form-validation.js", () => formValidationMocks);
 vi.mock("../middleware/rate-limit.js", () => ({
   rateLimit: vi.fn(() => (_c: unknown, next: () => Promise<void>) => next()),
   resolveClientIp: vi.fn(() => "127.0.0.1"),
@@ -182,6 +189,47 @@ describe("publicRoutes", () => {
 
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ data: { status: "available" } });
+    });
+  });
+
+  describe("POST /form/:slug/submit", () => {
+    it("normalizes submitted shop URLs before validation and persistence", async () => {
+      const rawShopUrl =
+        "https://www.kraeuterhaus.de/?campaign=bing/brand/brand_de/&ref=wkz11&msclkid=d9dd619c12c31f6f42df0bce8ab1bf76&utm_source=bing&utm_medium=cpc&utm_campaign=Brand&utm_term=%2Bst%20%2Bbernhard&utm_content=KSB_1-18%20kraeuterhaus%20st%20bernhard%20bad%20ditzenbach";
+      const normalizedShopUrl = "https://kraeuterhaus.de";
+      const formConfig = {
+        id: 9,
+        name: "shop-submission",
+        isActive: true,
+        rows: [],
+        submissionConfig: { steps: [{ type: "create-shop-suggestion" }] },
+      };
+
+      formConfigMocks.getManagedPublicFormConfigBySlug.mockResolvedValue({
+        ok: true,
+        data: formConfig,
+      });
+      formValidationMocks.buildFormValidationSchema.mockReturnValue({
+        safeParse: () => ({
+          success: true,
+          data: { shopName: "Kräuterhaus", shopUrl: rawShopUrl },
+        }),
+      });
+      publicServiceMocks.validateShopUrl.mockResolvedValue({ status: "available" });
+
+      const res = await app.request("/form/shop-submission/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shopName: "Kräuterhaus", shopUrl: rawShopUrl }),
+      });
+
+      expect(res.status).toBe(201);
+      expect(publicServiceMocks.validateShopUrl).toHaveBeenCalledWith(normalizedShopUrl);
+      expect(formSubmissionMocks.executeSubmissionChain).toHaveBeenCalledWith(
+        formConfig.submissionConfig,
+        { shopName: "Kräuterhaus", shopUrl: normalizedShopUrl },
+        formConfig,
+      );
     });
   });
 

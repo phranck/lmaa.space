@@ -30,6 +30,7 @@ import { buildFormValidationSchema } from "../services/form-validation.js";
 import { getCurrentHeroImage } from "../services/hero.js";
 import {
   validateShopUrl,
+  normalizeSubmittedShopUrl,
   createManagedDeadLinkReport,
   createManagedShopConcernReport,
   getManagedPublicCacheStats,
@@ -160,8 +161,8 @@ publicRoutes.post(
 
     const rawShopUrl =
       typeof parsed.data.shopUrl === "string" ? parsed.data.shopUrl.trim() : undefined;
-    if (rawShopUrl && !/^https?:\/\//i.test(rawShopUrl)) {
-      parsed.data.shopUrl = `https://${rawShopUrl}`;
+    if (rawShopUrl) {
+      parsed.data.shopUrl = normalizeSubmittedShopUrl(rawShopUrl) ?? rawShopUrl;
     }
     const shopUrl = typeof parsed.data.shopUrl === "string" ? parsed.data.shopUrl : undefined;
     if (shopUrl) {
