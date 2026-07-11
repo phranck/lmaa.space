@@ -15,6 +15,7 @@ export const envSchema = z
     PORT: z.coerce.number().int().positive(),
     DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
     DATABASE_URL_MIGRATOR: z.string().optional(),
+    DB_MIGRATION_ROLE: z.string().optional(),
     IMAGE_PATH: z.string().default("./uploads"),
     S3_ENDPOINT: z.string().optional(),
     S3_BUCKET: z.string().optional(),
