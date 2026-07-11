@@ -47,8 +47,8 @@ export function getSafeConfigHref(raw: string | null | undefined): string | null
 /**
  * Returns a safe URL for form `action` attributes and interactive links.
  *
- * More permissive than `getSafeConfigHref`: also accepts `tel:` and bare hostnames
- * (prefixed with `https://`). Only `http:` to loopback is allowed.
+ * More permissive than `getSafeConfigHref`: also accepts `tel:`, root-relative paths
+ * and bare hostnames (prefixed with `https://`). Only `http:` to loopback is allowed.
  *
  * @param raw - Raw URL or bare hostname string.
  * @returns Sanitized URL, or `null` if empty or unsafe.
@@ -56,6 +56,10 @@ export function getSafeConfigHref(raw: string | null | undefined): string | null
 export function getSafeActionUrl(raw: string | null | undefined): string | null {
   const value = raw?.trim();
   if (!value) return null;
+
+  if (value.startsWith("/")) {
+    return /^\/(?![\\/])/.test(value) ? value : null;
+  }
 
   try {
     const parsed = hasExplicitScheme(value) ? new URL(value) : new URL(`https://${value}`);
