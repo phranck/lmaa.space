@@ -26,6 +26,7 @@ zerops:
         NODE_ENV: production
         DATABASE_URL: ${postgres_connectionString}
         DATABASE_URL_MIGRATOR: ${postgres_connectionString}
+        DB_MIGRATION_ROLE: "db"
         RUN_MIGRATIONS_ON_STARTUP: "true"
         # Secrets (set in Zerops dashboard):
         # IP_HASH_SALT (required in production, min. 16 characters)
