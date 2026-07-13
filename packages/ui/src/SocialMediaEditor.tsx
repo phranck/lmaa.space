@@ -1,5 +1,10 @@
-import { ArrowSquareOutIcon, GlobeIcon, MinusCircleIcon, PlusCircleIcon } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import {
+  ArrowSquareOutIcon,
+  GlobeIcon,
+  MinusCircleIcon,
+  PlusCircleIcon,
+} from "@phosphor-icons/react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { detectPlatformFromUrl, normalizeSocialMediaValue } from "@lmaa/shared";
@@ -36,7 +41,6 @@ export interface SocialMediaEditorProps {
   onChange: (value: Record<string, string>) => void;
   messages: SocialMediaEditorMessages;
   blurOnPaste?: boolean;
-  onValidationChange?: (message: string | null) => void;
 }
 
 function getEntryError(entry: Entry, messages: SocialMediaEditorMessages): string | null {
@@ -94,25 +98,32 @@ export function SocialMediaEditor({
   onChange,
   messages,
   blurOnPaste = false,
-  onValidationChange,
 }: SocialMediaEditorProps) {
-  const [entries, setEntries] = useState<Entry[]>(() => recordToEntries(value));
+  const [entryState, replaceEntryState] = useReducer(
+    (
+      _current: { entries: Entry[]; lastEmitted: string },
+      next: { entries: Entry[]; lastEmitted: string },
+    ) => next,
+    value,
+    (initialValue) => ({
+      entries: recordToEntries(initialValue),
+      lastEmitted: JSON.stringify(initialValue),
+    }),
+  );
+  const { entries } = entryState;
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
-  const lastEmittedRef = useRef(JSON.stringify(value));
-  const lastValidationMessageRef = useRef<string | null | undefined>(undefined);
   const triggerRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
   const portalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const serialized = JSON.stringify(value);
-    if (serialized !== lastEmittedRef.current) {
-      lastEmittedRef.current = serialized;
-      setEntries(recordToEntries(value));
+    if (serialized !== entryState.lastEmitted) {
+      replaceEntryState({ entries: recordToEntries(value), lastEmitted: serialized });
     }
-  }, [value]);
+  }, [value, entryState.lastEmitted]);
 
   useEffect(() => {
     if (!openDropdownId) return;
@@ -139,18 +150,6 @@ export function SocialMediaEditor({
     return () => cancelAnimationFrame(frameId);
   }, [pendingFocusId]);
 
-  useEffect(() => {
-    const firstError =
-      entries
-        .map((entry) => getEntryError(entry, messages))
-        .find((message): message is string => message !== null) ?? null;
-    if (lastValidationMessageRef.current === firstError) {
-      return;
-    }
-    lastValidationMessageRef.current = firstError;
-    onValidationChange?.(firstError);
-  }, [entries, messages, onValidationChange]);
-
   function toggleDropdown(entryId: string) {
     if (openDropdownId === entryId) {
       setOpenDropdownId(null);
@@ -160,14 +159,13 @@ export function SocialMediaEditor({
     const trigger = triggerRefs.current.get(entryId);
     if (trigger) {
       setDropdownRect(trigger.getBoundingClientRect());
-      setOpenDropdownId(entryId);
+      setOpenDropdownId(() => entryId);
     }
   }
 
   function emit(next: Entry[]) {
-    setEntries(next);
     const record = entriesToRecord(next);
-    lastEmittedRef.current = JSON.stringify(record);
+    replaceEntryState({ entries: next, lastEmitted: JSON.stringify(record) });
     onChange(record);
   }
 
@@ -225,7 +223,11 @@ export function SocialMediaEditor({
     });
   }
 
-  const usedPlatforms = new Set(entries.map((e) => e.platform).filter(Boolean));
+  const usedPlatforms = new Set<string>();
+  for (const entry of entries) {
+    if (entry.platform) usedPlatforms.add(entry.platform);
+  }
+  const openEntryPlatform = entries.find((entry) => entry.id === openDropdownId)?.platform;
 
   const btnClass =
     "shrink-0 flex items-center justify-center w-9 border border-[var(--ds-border)] rounded-control transition-colors";
@@ -246,12 +248,9 @@ export function SocialMediaEditor({
             className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
           >
             <div className="max-h-60 overflow-y-auto py-1">
-              {PLATFORMS.filter(
-                (p) =>
-                  p.key === entries.find((e) => e.id === openDropdownId)?.platform ||
-                  !usedPlatforms.has(p.key),
-              ).map((p) => {
-                const isSelected = entries.find((e) => e.id === openDropdownId)?.platform === p.key;
+              {PLATFORMS.flatMap((p) => {
+                if (p.key !== openEntryPlatform && usedPlatforms.has(p.key)) return [];
+                const isSelected = openEntryPlatform === p.key;
                 return (
                   <button
                     key={p.key}

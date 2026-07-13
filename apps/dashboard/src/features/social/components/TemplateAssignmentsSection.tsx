@@ -59,7 +59,16 @@ export function TemplateAssignmentsSection({
     if (next.length !== assignments.length) {
       onChange(next);
     }
-  }, [open, masto.data, bsky.data, choices.data, assignments.length, onChange]);
+  }, [
+    open,
+    masto.data,
+    masto.isLoading,
+    bsky.data,
+    bsky.isLoading,
+    choices.data,
+    assignments.length,
+    onChange,
+  ]);
 
   function previewFor(
     platform: "mastodon" | "bluesky",

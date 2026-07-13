@@ -87,27 +87,67 @@ const TEMPLATE_VARIABLE_SECTIONS = [
   variables: readonly string[];
 }[];
 
+type ExistingSocialMediaPostTemplate = NonNullable<
+  ReturnType<typeof useSocialMediaPostTemplate>["data"]
+>;
+
+function createTemplateForm(
+  existing?: ExistingSocialMediaPostTemplate,
+): SocialMediaPostTemplateInput {
+  return {
+    name: existing?.name ?? "",
+    platforms: existing?.platforms ?? ["mastodon"],
+    scopes: existing?.scopes ?? ["submission"],
+    bodyMastodon: existing?.bodyMastodon ?? "",
+    bodyBluesky: existing?.bodyBluesky ?? null,
+    isSystemTemplate: existing?.isSystemTemplate ?? false,
+  };
+}
+
 export function SocialMediaPostTemplateEditPage() {
+  const { messages } = useI18n();
+  const { id: idParam } = useParams<{ id?: string }>();
+  const isNew = !idParam || idParam === "new";
+  const numId = isNew ? 0 : Number(idParam);
+  const { data: existing, isLoading } = useSocialMediaPostTemplate(numId);
+
+  if (!isNew && isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-[var(--ds-text-muted)]">
+        {messages.common.loading}
+      </div>
+    );
+  }
+
+  return (
+    <SocialMediaPostTemplateEditor
+      key={existing?.id ?? "new"}
+      existing={existing}
+      isNew={isNew}
+      numId={numId}
+    />
+  );
+}
+
+function SocialMediaPostTemplateEditor({
+  existing,
+  isNew,
+  numId,
+}: {
+  existing?: ExistingSocialMediaPostTemplate;
+  isNew: boolean;
+  numId: number;
+}) {
   const { messages } = useI18n();
   const m = messages.socialMediaTemplates;
   const navigate = useNavigate();
   const { user } = useAuth();
   const isOwner = Boolean(user?.isOwner);
-  const { id: idParam } = useParams<{ id?: string }>();
-  const isNew = !idParam || idParam === "new";
-  const numId = isNew ? 0 : Number(idParam);
-  const { data: existing, isLoading } = useSocialMediaPostTemplate(numId);
   const createMutation = useCreateSocialMediaPostTemplate();
   const updateMutation = useUpdateSocialMediaPostTemplate(numId);
-  const [form, setForm] = useState<SocialMediaPostTemplateInput>({
-    name: "",
-    platforms: ["mastodon"],
-    scopes: ["submission"],
-    bodyMastodon: "",
-    bodyBluesky: null,
-    isSystemTemplate: false,
-  });
-  const syncedExistingIdRef = useRef<number | undefined>(undefined);
+  const [form, setForm] = useState<SocialMediaPostTemplateInput>(() =>
+    createTemplateForm(existing),
+  );
   const [savedIndicator, setSavedIndicator] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mastoQuery = usePostingAccount("mastodon");
@@ -136,18 +176,6 @@ export function SocialMediaPostTemplateEditPage() {
       else next.delete(s);
       if (next.size === 0) next.add(s);
       return { ...current, scopes: Array.from(next) as SocialMediaPostTemplateScope[] };
-    });
-  }
-
-  if (existing && existing.id !== syncedExistingIdRef.current) {
-    syncedExistingIdRef.current = existing.id;
-    setForm({
-      name: existing.name,
-      platforms: existing.platforms,
-      scopes: existing.scopes,
-      bodyMastodon: existing.bodyMastodon,
-      bodyBluesky: existing.bodyBluesky,
-      isSystemTemplate: existing.isSystemTemplate,
     });
   }
 
@@ -193,14 +221,6 @@ export function SocialMediaPostTemplateEditPage() {
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;
-
-  if (!isNew && isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center text-sm text-[var(--ds-text-muted)]">
-        {messages.common.loading}
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-full flex-col">
@@ -360,7 +380,7 @@ function TemplateVariablesSidebar({
       window.clearTimeout(copyResetTimeoutRef.current);
     }
 
-    setCopiedVariable(variable);
+    setCopiedVariable(() => variable);
     copyResetTimeoutRef.current = window.setTimeout(() => {
       setCopiedVariable(null);
       copyResetTimeoutRef.current = null;

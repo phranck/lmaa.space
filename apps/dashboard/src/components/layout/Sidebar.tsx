@@ -48,10 +48,8 @@ import { NavLink, useNavigate } from "react-router";
 import type { AdminRole } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
-import {
-  CollapsibleSidebarGroup,
-  sidebarGroupItemClass,
-} from "@/components/layout/CollapsibleSidebarGroup.tsx";
+import { CollapsibleSidebarGroup } from "@/components/layout/CollapsibleSidebarGroup.tsx";
+import { sidebarGroupItemClass } from "@/components/layout/sidebar-group-styles.ts";
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
@@ -637,8 +635,6 @@ export function Sidebar({
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
   const suggestionsCount = pendingSubmissions.length;
-  const [groupOpenVersion, setGroupOpenVersion] = useState(0);
-  const [groupOpenState, setGroupOpenState] = useState<boolean | null>(null);
   const [groupStatus, setGroupStatus] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(
       SIDEBAR_GROUP_STORAGE_KEYS.map((key) => [key, localStorage.getItem(key) === "true"]),
@@ -653,8 +649,6 @@ export function Sidebar({
   function handleToggleAllGroups(next: boolean) {
     SIDEBAR_GROUP_STORAGE_KEYS.forEach((key) => localStorage.setItem(key, String(next)));
     setGroupStatus(Object.fromEntries(SIDEBAR_GROUP_STORAGE_KEYS.map((key) => [key, next])));
-    setGroupOpenState(next);
-    setGroupOpenVersion((version) => version + 1);
   }
 
   function handleGroupOpenChange(
@@ -757,8 +751,7 @@ export function Sidebar({
                   </NavLink>
                   <ReportsGroup
                     onItemClick={onItemClick}
-                    globalOpenState={groupOpenState}
-                    globalOpenVersion={groupOpenVersion}
+                    globalOpenState={groupStatus["sidebar-reports-open"]}
                     onOpenChange={(open) => handleGroupOpenChange("sidebar-reports-open", open)}
                     suggestionsCount={suggestionsCount}
                     pendingCount={pendingSubmissions.length}
@@ -810,8 +803,7 @@ export function Sidebar({
                   {isAdmin && (
                     <PagesGroup
                       onItemClick={onItemClick}
-                      globalOpenState={groupOpenState}
-                      globalOpenVersion={groupOpenVersion}
+                      globalOpenState={groupStatus["sidebar-pages-open"]}
                       onOpenChange={(open) => handleGroupOpenChange("sidebar-pages-open", open)}
                     />
                   )}
@@ -839,22 +831,19 @@ export function Sidebar({
                 <DashboardSection.Body className="!gap-0.5 !p-2">
                   <FormsGroup
                     onItemClick={onItemClick}
-                    globalOpenState={groupOpenState}
-                    globalOpenVersion={groupOpenVersion}
+                    globalOpenState={groupStatus["sidebar-forms-open"]}
                     onOpenChange={(open) => handleGroupOpenChange("sidebar-forms-open", open)}
                   />
                   <EmailTemplatesGroup
                     onItemClick={onItemClick}
-                    globalOpenState={groupOpenState}
-                    globalOpenVersion={groupOpenVersion}
+                    globalOpenState={groupStatus["sidebar-email-templates-open"]}
                     onOpenChange={(open) =>
                       handleGroupOpenChange("sidebar-email-templates-open", open)
                     }
                   />
                   <SocialMediaPostTemplatesGroup
                     onItemClick={onItemClick}
-                    globalOpenState={groupOpenState}
-                    globalOpenVersion={groupOpenVersion}
+                    globalOpenState={groupStatus["sidebar-social-media-post-templates-open"]}
                     onOpenChange={(open) =>
                       handleGroupOpenChange("sidebar-social-media-post-templates-open", open)
                     }
@@ -948,8 +937,7 @@ export function Sidebar({
                   </NavLink>
                   <SocialPreviewGroup
                     onItemClick={onItemClick}
-                    globalOpenState={groupOpenState}
-                    globalOpenVersion={groupOpenVersion}
+                    globalOpenState={groupStatus["sidebar-social-preview-open"]}
                     onOpenChange={(open) =>
                       handleGroupOpenChange("sidebar-social-preview-open", open)
                     }

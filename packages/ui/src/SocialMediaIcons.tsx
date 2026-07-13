@@ -6,10 +6,15 @@ export interface SocialMediaIconsProps {
   linkable?: boolean;
 }
 
-export function SocialMediaIcons({ socialMedia, className, linkable = true }: SocialMediaIconsProps) {
-  const entries = PLATFORMS.filter((p) => socialMedia[p.key])
-    .map((p) => ({ ...p, url: socialMedia[p.key] }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+export function SocialMediaIcons({
+  socialMedia,
+  className,
+  linkable = true,
+}: SocialMediaIconsProps) {
+  const entries = PLATFORMS.flatMap((platform) => {
+    const url = socialMedia[platform.key];
+    return url ? [{ ...platform, url }] : [];
+  }).sort((a, b) => a.label.localeCompare(b.label));
 
   if (entries.length === 0) return null;
 
@@ -29,12 +34,7 @@ export function SocialMediaIcons({ socialMedia, className, linkable = true }: So
             <Icon size={20} />
           </a>
         ) : (
-          <span
-            key={key}
-            className="text-stone-400"
-            aria-label={label}
-            title={label}
-          >
+          <span key={key} className="text-stone-400" aria-label={label} title={label}>
             <Icon size={14} />
           </span>
         ),

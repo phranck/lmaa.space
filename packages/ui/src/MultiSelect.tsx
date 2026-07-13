@@ -15,7 +15,8 @@ const multiSelectVariants = cva(
     variants: {
       variant: {
         default: "border-transparent bg-[var(--color-primary)] text-white",
-        secondary: "border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[var(--ds-text)]",
+        secondary:
+          "border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[var(--ds-text)]",
         destructive: "border-transparent bg-red-500 text-white",
         inverted: "border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)]",
       },
@@ -90,9 +91,10 @@ export function MultiSelect({
   const filteredOptions = searchQuery
     ? options.filter((o) => o.label.toLowerCase().includes(searchQuery.toLowerCase()))
     : options;
+  const valueSet = new Set(value);
 
   function handleOpenChange(nextOpen: boolean) {
-    setIsOpen(nextOpen);
+    setIsOpen(() => nextOpen);
     if (nextOpen) {
       setSearchQuery("");
       requestAnimationFrame(() => searchInputRef.current?.focus());
@@ -112,8 +114,9 @@ export function MultiSelect({
 
   function handleToggleAll() {
     const filteredValues = filteredOptions.map((o) => o.value);
+    const filteredValueSet = new Set(filteredValues);
     if (allSelected) {
-      onValueChange(value.filter((v) => !filteredValues.includes(v)));
+      onValueChange(value.filter((item) => !filteredValueSet.has(item)));
     } else {
       onValueChange([...new Set([...value, ...filteredValues])]);
     }
@@ -148,7 +151,8 @@ export function MultiSelect({
     handleToggle();
   }
 
-  const allSelected = filteredOptions.length > 0 && filteredOptions.every((o) => value.includes(o.value));
+  const allSelected =
+    filteredOptions.length > 0 && filteredOptions.every((o) => valueSet.has(o.value));
   const listboxOptionValues = [SELECT_ALL_VALUE, ...filteredOptions.map((option) => option.value)];
   const disabledValues = filteredOptions.reduce<string[]>((disabled, option) => {
     if (option.disabled) {
@@ -219,7 +223,7 @@ export function MultiSelect({
 
         {/* Options */}
         {filteredOptions.map((opt) => {
-          const isSelected = value.includes(opt.value);
+          const isSelected = valueSet.has(opt.value);
           return (
             <ListboxOption
               key={opt.value}
@@ -320,7 +324,9 @@ export function MultiSelect({
                 data-clear-extra="true"
                 className={cn(multiSelectVariants({ variant }), "max-w-full cursor-pointer")}
               >
-                <span className="min-w-0 truncate">{messages.moreSelected(value.length - maxCount)}</span>
+                <span className="min-w-0 truncate">
+                  {messages.moreSelected(value.length - maxCount)}
+                </span>
                 <XCircle className="size-3 shrink-0 opacity-60" />
               </span>
             )}

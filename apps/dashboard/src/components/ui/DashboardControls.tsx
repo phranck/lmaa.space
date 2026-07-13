@@ -1,13 +1,5 @@
-import {
-  CaretDownIcon,
-  CaretRightIcon,
-  CaretUpIcon,
-  CaretUpDownIcon,
-  ListIcon,
-  MinusIcon,
-  PlusIcon,
-} from "@phosphor-icons/react";
-import type { ButtonHTMLAttributes, KeyboardEvent, ReactNode, SelectHTMLAttributes } from "react";
+import { CaretDownIcon, CaretUpIcon, CaretUpDownIcon, ListIcon } from "@phosphor-icons/react";
+import type { ButtonHTMLAttributes, KeyboardEvent, ReactNode } from "react";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import {
@@ -26,7 +18,6 @@ import {
   type TextareaPrimitiveProps,
 } from "@lmaa/ui/field-primitives";
 import { ControlTrigger, ListboxOption, ListboxPopover } from "@lmaa/ui/listbox-primitives";
-import { MultiSelect, type MultiSelectProps } from "@lmaa/ui/multi-select";
 import {
   SegmentedControlPrimitive,
   type SegmentedControlPrimitiveProps,
@@ -42,12 +33,7 @@ import {
   type TabTriggerPrimitiveProps,
 } from "@lmaa/ui/tabs-primitives";
 
-import {
-  DashboardButton,
-  DashboardIconButton,
-  type DashboardButtonProps,
-  type DashboardIconButtonProps,
-} from "./DashboardButton.tsx";
+import { DashboardIconButton, type DashboardIconButtonProps } from "./DashboardButton.tsx";
 
 export type DashboardFieldProps = FieldShellProps;
 
@@ -159,88 +145,10 @@ export function DashboardTextarea({
   );
 }
 
-export interface DashboardSelectOption {
-  disabled?: boolean;
-  label: ReactNode;
-  value: string;
-}
-
-export interface DashboardSelectProps extends Omit<
-  SelectHTMLAttributes<HTMLSelectElement>,
-  "size"
-> {
-  controlSize?: FieldControlSize;
-  error?: ReactNode;
-  fieldClassName?: string;
-  hint?: ReactNode;
-  label?: ReactNode;
-  options?: readonly DashboardSelectOption[];
-  optionalLabel?: ReactNode;
-  placeholder?: ReactNode;
-}
-
-const controlBaseClass =
-  "w-full box-border rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)] transition-colors focus:outline-none focus:border-[var(--ds-border-focus)] focus:ring-2 focus:ring-[var(--ds-focus-ring)] disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]";
-
 const selectSizeClass: Record<FieldControlSize, string> = {
   field: "h-[var(--ds-control-h-field)] px-3",
   large: "h-[var(--ds-control-h-field-large)] px-4",
 };
-
-export function DashboardSelect({
-  className,
-  controlSize = "field",
-  error,
-  fieldClassName,
-  hint,
-  id,
-  label,
-  optionalLabel,
-  options,
-  placeholder,
-  required,
-  ...selectProps
-}: DashboardSelectProps) {
-  const select = (controlProps?: {
-    "aria-describedby"?: string;
-    "aria-invalid"?: true;
-    "aria-required"?: true;
-    id: string;
-  }) => (
-    <select
-      {...selectProps}
-      {...controlProps}
-      className={cx(controlBaseClass, selectSizeClass[controlSize], className)}
-      required={required}
-    >
-      {placeholder && <option value="">{placeholder}</option>}
-      {options?.map((option) => (
-        <option disabled={option.disabled} key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-      {selectProps.children}
-    </select>
-  );
-
-  if (!hasFieldShell(label, hint, error, optionalLabel)) {
-    return select(id ? { id } : undefined);
-  }
-
-  return (
-    <DashboardField
-      className={fieldClassName}
-      controlId={id}
-      error={error}
-      hint={hint}
-      label={label}
-      optionalLabel={optionalLabel}
-      required={required}
-    >
-      {(controlProps) => select(controlProps)}
-    </DashboardField>
-  );
-}
 
 export interface DashboardComboboxOption {
   addOn?: ReactNode;
@@ -324,8 +232,9 @@ export function DashboardCombobox({
     }
     return values;
   }, []);
+  const disabledValueSet = new Set(disabledValues);
   const enabledOptionValues = optionValues.filter(
-    (optionValue) => !disabledValues.includes(optionValue),
+    (optionValue) => !disabledValueSet.has(optionValue),
   );
   const allEnabledOptionValues = options.reduce<string[]>((values, option) => {
     if (!option.disabled) {
@@ -629,15 +538,9 @@ export function DashboardCombobox({
       optionalLabel={optionalLabel}
       required={required}
     >
-      {(controlProps) => content(controlProps)}
+      {content}
     </DashboardField>
   );
-}
-
-export type DashboardMultiSelectProps = MultiSelectProps;
-
-export function DashboardMultiSelect(props: DashboardMultiSelectProps) {
-  return <MultiSelect {...props} />;
 }
 
 function DashboardComboboxMeasureOption({
@@ -677,72 +580,6 @@ export interface DashboardNumberInputProps extends Omit<DashboardInputProps, "ty
 
 export function DashboardNumberInput(props: DashboardNumberInputProps) {
   return <DashboardInput {...props} type="number" />;
-}
-
-export interface DashboardStepperProps extends Omit<
-  DashboardNumberInputProps,
-  "onChange" | "value"
-> {
-  decrementLabel?: string;
-  incrementLabel?: string;
-  onValueChange: (value: number) => void;
-  step?: number;
-  value: number;
-}
-
-export function DashboardStepper({
-  className,
-  decrementLabel = "Decrease",
-  incrementLabel = "Increase",
-  max,
-  min,
-  onValueChange,
-  step = 1,
-  value,
-  ...inputProps
-}: DashboardStepperProps) {
-  function commit(nextValue: number) {
-    const minNumber = toOptionalNumber(min);
-    const maxNumber = toOptionalNumber(max);
-    const clampedToMin = minNumber === undefined ? nextValue : Math.max(minNumber, nextValue);
-    const clamped = maxNumber === undefined ? clampedToMin : Math.min(maxNumber, clampedToMin);
-    onValueChange(clamped);
-  }
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <DashboardIconButton
-        aria-label={decrementLabel}
-        disabled={inputProps.disabled || value <= (toOptionalNumber(min) ?? -Infinity)}
-        onClick={() => commit(value - step)}
-        variant="neutral"
-      >
-        <MinusIcon className="size-3.5" weight="duotone" />
-      </DashboardIconButton>
-      <DashboardNumberInput
-        {...inputProps}
-        className={cx("w-24 text-center", className)}
-        max={max}
-        min={min}
-        onChange={(event) => {
-          const nextValue = event.currentTarget.valueAsNumber;
-          if (!Number.isNaN(nextValue)) {
-            commit(nextValue);
-          }
-        }}
-        step={step}
-        value={value}
-      />
-      <DashboardIconButton
-        aria-label={incrementLabel}
-        disabled={inputProps.disabled || value >= (toOptionalNumber(max) ?? Infinity)}
-        onClick={() => commit(value + step)}
-        variant="neutral"
-      >
-        <PlusIcon className="size-3.5" weight="duotone" />
-      </DashboardIconButton>
-    </div>
-  );
 }
 
 export type DashboardCheckboxFieldProps = CheckboxPrimitiveProps;
@@ -830,16 +667,6 @@ export function TableSortHeader({
   );
 }
 
-export function getTableSortAriaSort(direction: TableSortDirection) {
-  if (direction === "asc") {
-    return "ascending";
-  }
-  if (direction === "desc") {
-    return "descending";
-  }
-  return "none";
-}
-
 export interface DashboardDragHandleProps extends Omit<DashboardIconButtonProps, "children"> {}
 
 export function DashboardDragHandle({
@@ -855,36 +682,6 @@ export function DashboardDragHandle({
     >
       <ListIcon className="size-4" weight="bold" />
     </DashboardIconButton>
-  );
-}
-
-export interface DisclosureButtonProps extends Omit<DashboardButtonProps, "leadingIcon"> {
-  open: boolean;
-}
-
-export function DisclosureButton({
-  children,
-  open,
-  trailingIcon,
-  variant = "ghost",
-  ...buttonProps
-}: DisclosureButtonProps) {
-  return (
-    <DashboardButton
-      {...buttonProps}
-      aria-expanded={open}
-      leadingIcon={
-        open ? (
-          <CaretDownIcon className="size-3.5" weight="duotone" />
-        ) : (
-          <CaretRightIcon className="size-3.5" weight="duotone" />
-        )
-      }
-      trailingIcon={trailingIcon}
-      variant={variant}
-    >
-      {children}
-    </DashboardButton>
   );
 }
 
@@ -913,17 +710,6 @@ function optionLabelToString(label: ReactNode) {
     return String(label);
   }
   return "";
-}
-
-function toOptionalNumber(value: string | number | readonly string[] | undefined) {
-  if (typeof value === "number") {
-    return value;
-  }
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    return Number.isNaN(parsed) ? undefined : parsed;
-  }
-  return undefined;
 }
 
 function TableSortIcon({ direction }: { direction: TableSortDirection }) {

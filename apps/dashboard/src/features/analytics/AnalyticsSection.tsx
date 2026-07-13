@@ -64,7 +64,7 @@ export function AnalyticsSection() {
   const [period, setPeriod] = useState<UmamiPeriod>(() => loadPeriod(periodStorageKey));
 
   const handlePeriodChange = useCallback((p: UmamiPeriod) => {
-    setPeriod(p);
+    setPeriod(() => p);
   }, []);
   const periodOptions = useMemo<{ label: string; value: UmamiPeriod }[]>(
     () => [

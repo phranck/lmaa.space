@@ -1,5 +1,5 @@
 import { BracketsCurlyIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useRef, useState } from "react";
+import { Suspense, lazy, useState } from "react";
 
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 import { FormErrorText } from "@lmaa/ui/form-primitives";
@@ -17,12 +17,10 @@ import { ShopPreviewImageSection } from "./ShopPreviewImageSection.tsx";
 import { ShopReminderSection } from "./ShopReminderSection.tsx";
 
 export function ShopEditorFormContent({ controller }: { controller: ShopEditorController }) {
-  const initialJsonRef = useRef<string | null>(null);
   const activeReviewData = controller.activeShop?.reviewData;
-  if (initialJsonRef.current === null && activeReviewData) {
-    initialJsonRef.current = JSON.stringify(activeReviewData, null, 2);
-  }
-  const [shopCheckJson, setShopCheckJson] = useState(initialJsonRef.current ?? "");
+  const [shopCheckJson, setShopCheckJson] = useState(() =>
+    activeReviewData ? JSON.stringify(activeReviewData, null, 2) : "",
+  );
   const [jsonImportError, setJsonImportError] = useState<string | null>(null);
   const {
     categories,
@@ -46,7 +44,6 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     previewImageLabel,
     reloadImageLabel,
     setForm,
-    setFormErrors,
     setImageLabel,
     shopFormI18n,
     shopsMessages,
@@ -137,18 +134,6 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           regionOptions={shopFormI18n.regionOptions}
           messages={shopFormI18n.messages}
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
-          onSocialMediaValidationChange={(message) =>
-            setFormErrors((current) => {
-              const nextMessage = message ?? undefined;
-              if (current.socialMedia === nextMessage) {
-                return current;
-              }
-              return {
-                ...current,
-                socialMedia: nextMessage,
-              };
-            })
-          }
           previewAside={previewAside}
           topAside={
             <DashboardSection>

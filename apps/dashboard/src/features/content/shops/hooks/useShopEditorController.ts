@@ -185,7 +185,8 @@ export function useShopEditorController({
       }
       return saved;
     } catch (error) {
-      setSaveErrorMessage(error instanceof Error ? error.message : common.unknownError);
+      const message = error instanceof Error ? error.message : common.unknownError;
+      setSaveErrorMessage(() => message);
       throw error;
     }
   }
@@ -195,7 +196,8 @@ export function useShopEditorController({
     needsReview?: boolean;
   }) {
     try {
-      return await handleSave(options);
+      const saveOptions = options ? { ...options } : undefined;
+      return await handleSave(saveOptions);
     } catch {
       return null;
     }

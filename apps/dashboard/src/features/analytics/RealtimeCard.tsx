@@ -11,6 +11,13 @@ const RealtimeBarsChart = lazy(() =>
   import("./AnalyticsCharts.tsx").then((module) => ({ default: module.RealtimeBarsChart })),
 );
 
+const LIVE_ICON = (
+  <span className="relative flex h-2 w-2">
+    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+  </span>
+);
+
 export function RealtimeCard() {
   const { locale, messages, formatNumber } = useI18n();
   const { effectiveTheme } = useTheme();
@@ -34,18 +41,19 @@ export function RealtimeCard() {
     });
 
     if (realtime?.series) {
+      const slotsByTimestamp = new Map(slots.map((slot) => [slot.ts, slot]));
       const viewSeries = realtime.series.pageviews ?? realtime.series.views ?? [];
       const toMs = (x: number | string) =>
         typeof x === "string" ? new Date(x).getTime() : x > 1e12 ? x : x * 1000;
 
       for (const v of realtime.series.visitors ?? []) {
         const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
-        const slot = slots.find((s) => s.ts === rounded);
+        const slot = slotsByTimestamp.get(rounded);
         if (slot) slot.visitors = v.y;
       }
       for (const v of viewSeries) {
         const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
-        const slot = slots.find((s) => s.ts === rounded);
+        const slot = slotsByTimestamp.get(rounded);
         if (slot) slot.pageviews = v.y;
       }
     }
@@ -59,13 +67,6 @@ export function RealtimeCard() {
         .slice(0, 5)
     : [];
   const rtMaxVal = Math.max(...chartData.map((d) => Math.max(d.visitors, d.pageviews)), 1);
-
-  const liveIcon = (
-    <span className="relative flex h-2 w-2">
-      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-    </span>
-  );
 
   const headerAddOn = (
     <div className="flex items-center gap-5">
@@ -101,7 +102,7 @@ export function RealtimeCard() {
     <div className="mb-4">
       <DashboardSection>
         <DashboardSection.Header
-          icon={liveIcon}
+          icon={LIVE_ICON}
           title={analyticsMessages.realtime.title}
           addOn={headerAddOn}
         />

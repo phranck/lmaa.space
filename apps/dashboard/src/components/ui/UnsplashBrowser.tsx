@@ -1,11 +1,13 @@
-import { ArrowClockwiseIcon, CheckCircleIcon, MagnifyingGlassIcon, XCircleIcon } from "@phosphor-icons/react";
+import {
+  ArrowClockwiseIcon,
+  CheckCircleIcon,
+  MagnifyingGlassIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { DashboardButton, DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
-import {
-  DashboardInput,
-  DashboardSegmentedControl,
-} from "@/components/ui/DashboardControls.tsx";
+import { DashboardInput, DashboardSegmentedControl } from "@/components/ui/DashboardControls.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
@@ -104,7 +106,11 @@ type ColorLabelKey =
   | "colorBlue";
 
 const COLORS: { value: UnsplashColorValue; css: string; labelKey: ColorLabelKey }[] = [
-  { value: "black_and_white", css: "linear-gradient(135deg, #1a1a1a 50%, #f5f5f5 50%)", labelKey: "colorBlackAndWhite" },
+  {
+    value: "black_and_white",
+    css: "linear-gradient(135deg, #1a1a1a 50%, #f5f5f5 50%)",
+    labelKey: "colorBlackAndWhite",
+  },
   { value: "black", css: "#1a1a1a", labelKey: "colorBlack" },
   { value: "white", css: "#f0f0f0", labelKey: "colorWhite" },
   { value: "yellow", css: "#facc15", labelKey: "colorYellow" },
@@ -150,6 +156,25 @@ function reducer(state: SearchState, action: SearchAction): SearchState {
   }
 }
 
+function mapUnsplashPhoto(photo: UnsplashPhoto): UnsplashSelectedPhoto {
+  return {
+    unsplashId: photo.id,
+    url: photo.urls.regular,
+    urlSmall: photo.urls.small,
+    photographer: photo.user.name,
+    photographerUrl: photo.user.link,
+    downloadLocation: photo.downloadLocation,
+    width: photo.width,
+    height: photo.height,
+    color: photo.color,
+    blurHash: photo.blurHash,
+    description: photo.description,
+    altDescription: photo.altDescription,
+    likes: photo.likes,
+    createdAt: photo.createdAt,
+  };
+}
+
 /**
  * Shared Unsplash asset browser for admin UI.
  *
@@ -160,7 +185,12 @@ function reducer(state: SearchState, action: SearchAction): SearchState {
  * @param props - Initial query, selection callback and close handler.
  * @returns Full-screen media picker overlay.
  */
-export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple, onClose }: UnsplashBrowserProps) {
+export function UnsplashBrowser({
+  defaultQuery = "",
+  onSelect,
+  onSelectMultiple,
+  onClose,
+}: UnsplashBrowserProps) {
   const { messages } = useI18n();
   const categoriesMessages = messages.categories;
   const common = messages.common;
@@ -228,7 +258,6 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
     searchRef.current = search;
   }, [search]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: searchRef stays current via its own effect
   useEffect(() => {
     if (isFirstRun.current) {
       isFirstRun.current = false;
@@ -246,7 +275,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query, orientation, orderBy, color]);
+  }, [query, orientation, orderBy, color, search]);
 
   const hasMore = photos.length > 0 && photos.length < total;
   // biome-ignore lint/correctness/useExhaustiveDependencies: photos.length triggers re-observe after append
@@ -270,25 +299,6 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
     return () => observer.disconnect();
   }, [hasMore, photos.length]);
 
-  function mapPhoto(p: UnsplashPhoto): UnsplashSelectedPhoto {
-    return {
-      unsplashId: p.id,
-      url: p.urls.regular,
-      urlSmall: p.urls.small,
-      photographer: p.user.name,
-      photographerUrl: p.user.link,
-      downloadLocation: p.downloadLocation,
-      width: p.width,
-      height: p.height,
-      color: p.color,
-      blurHash: p.blurHash,
-      description: p.description,
-      altDescription: p.altDescription,
-      likes: p.likes,
-      createdAt: p.createdAt,
-    };
-  }
-
   function handlePhotoClick(photo: UnsplashPhoto) {
     if (multiSelect) {
       setSelectedIds((prev) => {
@@ -304,7 +314,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
       api
         .post("/admin/unsplash/download", { downloadLocation: photo.downloadLocation })
         .catch(() => {});
-      onSelect(mapPhoto(photo));
+      onSelect(mapUnsplashPhoto(photo));
     }
   }
 
@@ -316,7 +326,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
         .post("/admin/unsplash/download", { downloadLocation: photo.downloadLocation })
         .catch(() => {});
     }
-    onSelectMultiple(selected.map(mapPhoto));
+    onSelectMultiple(selected.map(mapUnsplashPhoto));
   }
 
   const isLoading = status === "loading";
@@ -487,9 +497,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
       {multiSelect && (
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-[var(--ds-border-subtle)] shrink-0">
           <span className="text-sm text-[var(--ds-text-muted)]">
-            {selectedIds.size > 0
-              ? `${selectedIds.size} ${unsplash.selectedCount}`
-              : ""}
+            {selectedIds.size > 0 ? `${selectedIds.size} ${unsplash.selectedCount}` : ""}
           </span>
           <DashboardButton
             type="button"

@@ -147,13 +147,6 @@ export function OverlayCard({
     setClosing((current) => (current ? current : true));
   }, []);
 
-  useEffect(() => {
-    if (!open) {
-      closingRef.current = false;
-      setClosing(false);
-    }
-  }, [open]);
-
   // Overlay stack registration
   useLayoutEffect(() => {
     if (!open) return;

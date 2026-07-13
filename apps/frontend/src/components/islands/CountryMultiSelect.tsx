@@ -30,6 +30,7 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
   const [rect, setRect] = useState<DOMRect | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
+  const valueSet = new Set(value);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -91,7 +92,7 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
       >
         <div className="max-h-[300px] overflow-y-auto">
           {options.map(({ code }) => {
-            const checked = value.includes(code);
+            const checked = valueSet.has(code);
             return (
               <button
                 key={code}
@@ -122,7 +123,7 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
     ) : null;
 
   return (
-    <div>
+    <div className="relative">
       <button
         ref={btnRef}
         type="button"
@@ -137,23 +138,6 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
           {label ?? "Alle"}
         </span>
         <div className="flex items-center shrink-0 ml-2 gap-0.5">
-          {value.length > 0 && (
-            <>
-              <button
-                type="button"
-                className="cursor-pointer text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] p-0.5"
-                aria-label="Auswahl aufheben"
-                tabIndex={-1}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange([]);
-                }}
-              >
-                <XCircleIcon weight="duotone" className="size-4" />
-              </button>
-              <div className="w-px h-4 bg-[var(--ds-border)] mx-0.5" />
-            </>
-          )}
           {open ? (
             <CaretUpIcon
               weight="duotone"
@@ -167,6 +151,16 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
           )}
         </div>
       </button>
+      {value.length > 0 && (
+        <button
+          type="button"
+          className="absolute right-8 top-1/2 -translate-y-1/2 cursor-pointer border-r border-[var(--ds-border)] pr-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
+          aria-label="Auswahl aufheben"
+          onClick={() => onChange([])}
+        >
+          <XCircleIcon weight="duotone" className="size-4" />
+        </button>
+      )}
       {typeof document !== "undefined" && dropdown ? createPortal(dropdown, document.body) : null}
     </div>
   );

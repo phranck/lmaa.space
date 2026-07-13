@@ -54,7 +54,7 @@ export interface DashboardActionDefinition {
   >;
 }
 
-export const DASHBOARD_ACTIONS = {
+const DASHBOARD_ACTIONS = {
   save: {
     ariaBehavior: "visible-label",
     colorRole: "primary",
@@ -331,14 +331,6 @@ export function RejectActionButton(props: SpecificDashboardActionButtonProps) {
 
 export function ApproveActionButton(props: SpecificDashboardActionButtonProps) {
   return <DashboardActionButton action="approve" {...props} />;
-}
-
-export function RestoreActionButton(props: SpecificDashboardActionButtonProps) {
-  return <DashboardActionButton action="restore" {...props} />;
-}
-
-export function HoldActionButton(props: SpecificDashboardActionButtonProps) {
-  return <DashboardActionButton action="hold" {...props} />;
 }
 
 export function OverwriteActionButton(props: SpecificDashboardActionButtonProps) {

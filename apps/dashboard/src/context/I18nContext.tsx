@@ -1,4 +1,12 @@
-import { type ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
@@ -58,22 +66,24 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [localeState, user?.locale]);
 
+  const updateLocale = useCallback((next: DashboardLocale) => {
+    setLocaleState(() => next);
+    try {
+      localStorage.setItem(DASHBOARD_LOCALE_STORAGE_KEY, next);
+    } catch {}
+  }, []);
+
   const value = useMemo<I18nContextValue>(() => {
     const messages = DASHBOARD_MESSAGES[localeState];
     const numberFormatter = new Intl.NumberFormat(localeState);
 
     return {
       locale: localeState,
-      setLocale: (next) => {
-        setLocaleState(next);
-        try {
-          localStorage.setItem(DASHBOARD_LOCALE_STORAGE_KEY, next);
-        } catch {}
-      },
+      setLocale: updateLocale,
       messages,
       formatNumber: (value) => numberFormatter.format(value),
     };
-  }, [localeState]);
+  }, [localeState, updateLocale]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

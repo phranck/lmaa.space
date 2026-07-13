@@ -16,7 +16,8 @@ import type { ReactNode } from "react";
 import type { ShopCheckNotes } from "@lmaa/shared";
 
 import { AlertDialog } from "./AlertDialog.tsx";
-import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
+import type { CountryCodeOption } from "./CountryCodeOptions.ts";
+import { CountryCodeSelect } from "./CountryCodeSelect.tsx";
 import { DashboardSection } from "./DashboardSection.tsx";
 import { InputPrimitive, TextareaPrimitive } from "./FieldPrimitives.tsx";
 import {
@@ -28,59 +29,14 @@ import {
 } from "./FormPrimitives.tsx";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
-import {
-  RegionSelect,
-  type RegionSelectMessages,
-  type RegionSelectOption,
-} from "./RegionSelect.tsx";
+import type { RegionSelectOption } from "./RegionOptions.ts";
+import { RegionSelect, type RegionSelectMessages } from "./RegionSelect.tsx";
+import type { ShopEditFormValue } from "./ShopEditFormModel.ts";
 import { SocialMediaEditor, type SocialMediaEditorMessages } from "./SocialMediaEditor.tsx";
 
 /**
  * Canonical value model used by the shared shop edit form.
  */
-export interface ShopEditFormValue {
-  name: string;
-  url: string;
-  description: string;
-  categoryIds: number[];
-  region: string[];
-  shipping: string;
-  contactEmail: string;
-  socialMedia: Record<string, string>;
-  shopCheckNotes: ShopCheckNotes | null;
-  headquartersStreet: string;
-  headquartersPostalCode: string;
-  headquartersCity: string;
-  headquartersState: string;
-  headquartersCountryCode: string;
-  headquartersLatitude: string;
-  headquartersLongitude: string;
-  logoBackgroundColor: string | null;
-}
-
-/**
- * Empty initial state for shop creation/edit flows.
- */
-export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
-  name: "",
-  url: "",
-  description: "",
-  categoryIds: [],
-  region: [],
-  shipping: "",
-  contactEmail: "",
-  socialMedia: {},
-  shopCheckNotes: null,
-  headquartersStreet: "",
-  headquartersPostalCode: "",
-  headquartersCity: "",
-  headquartersState: "",
-  headquartersCountryCode: "",
-  headquartersLatitude: "",
-  headquartersLongitude: "",
-  logoBackgroundColor: null,
-};
-
 /**
  * Localizable UI copy contract for the shared shop edit form.
  */
@@ -154,7 +110,6 @@ export interface ShopEditFormProps {
   urlWarning?: ReactNode;
   descriptionHint?: ReactNode;
   blurSocialMediaOnPaste?: boolean;
-  onSocialMediaValidationChange?: (message: string | null) => void;
   previewAside?: ReactNode;
   topAside?: ReactNode;
   detailsAside?: ReactNode;
@@ -176,7 +131,6 @@ export function ShopEditForm({
   urlWarning,
   descriptionHint,
   blurSocialMediaOnPaste = false,
-  onSocialMediaValidationChange,
   previewAside,
   topAside,
   detailsAside,
@@ -217,15 +171,27 @@ export function ShopEditForm({
       const res = await fetch(
         `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`,
       );
-      const data = (await res.json()) as { features?: { geometry: { coordinates: [number, number] } }[] };
+      const data = (await res.json()) as {
+        features?: { geometry: { coordinates: [number, number] } }[];
+      };
       if (data.features && data.features.length > 0) {
         const [lng, lat] = data.features[0].geometry.coordinates;
-        onChange({ ...value, headquartersLatitude: String(lat), headquartersLongitude: String(lng) });
+        onChange({
+          ...value,
+          headquartersLatitude: String(lat),
+          headquartersLongitude: String(lng),
+        });
       } else {
-        setGeocodeErrorMessage(messages.geocodingNoResultsLabel ?? "Für die eingegebene Adresse konnten keine Koordinaten gefunden werden.");
+        setGeocodeErrorMessage(
+          messages.geocodingNoResultsLabel ??
+            "Für die eingegebene Adresse konnten keine Koordinaten gefunden werden.",
+        );
       }
     } catch {
-      setGeocodeErrorMessage(messages.geocodingFetchErrorLabel ?? "Die Geocoding-Anfrage ist fehlgeschlagen. Bitte versuche es erneut.");
+      setGeocodeErrorMessage(
+        messages.geocodingFetchErrorLabel ??
+          "Die Geocoding-Anfrage ist fehlgeschlagen. Bitte versuche es erneut.",
+      );
     } finally {
       setGeocoding(false);
     }
@@ -242,84 +208,84 @@ export function ShopEditForm({
             title={messages.shopDataSectionLabel}
           />
           <DashboardSection.Body>
-          {/* Name */}
-          <div>
-            <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
-          <InputPrimitive
-            id="sef-name"
-            value={value.name}
-            onChange={(e) => set("name", e.target.value)}
-            invalid={Boolean(errors?.name)}
-          />
-          {errors?.name && <FormErrorText>{errors.name}</FormErrorText>}
-        </div>
+            {/* Name */}
+            <div>
+              <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
+              <InputPrimitive
+                id="sef-name"
+                value={value.name}
+                onChange={(e) => set("name", e.target.value)}
+                invalid={Boolean(errors?.name)}
+              />
+              {errors?.name && <FormErrorText>{errors.name}</FormErrorText>}
+            </div>
 
-        {/* URL */}
-        <div>
-          <FormLabel htmlFor="sef-url">{messages.urlLabel}</FormLabel>
-          <div className="flex gap-2">
-            <InputPrimitive
-              id="sef-url"
-              type="url"
-              value={value.url}
-              onChange={(e) => set("url", e.target.value)}
-              onBlur={() => onUrlBlur?.(value.url)}
-              placeholder={messages.urlPlaceholder}
-              className="flex-1"
-              invalid={Boolean(errors?.url)}
-            />
-            <a
-              href={value.url || undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={messages.openUrlAriaLabel}
-              title={messages.openUrlAriaLabel}
-              tabIndex={value.url ? 0 : -1}
-              className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
-                value.url
-                  ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
-                  : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
-              }`}
-            >
-              <ArrowSquareOutIcon weight="duotone" className="size-4" />
-            </a>
-          </div>
-          {errors?.url && <FormErrorText>{errors.url}</FormErrorText>}
-          {urlWarning}
-        </div>
+            {/* URL */}
+            <div>
+              <FormLabel htmlFor="sef-url">{messages.urlLabel}</FormLabel>
+              <div className="flex gap-2">
+                <InputPrimitive
+                  id="sef-url"
+                  type="url"
+                  value={value.url}
+                  onChange={(e) => set("url", e.target.value)}
+                  onBlur={() => onUrlBlur?.(value.url)}
+                  placeholder={messages.urlPlaceholder}
+                  className="flex-1"
+                  invalid={Boolean(errors?.url)}
+                />
+                <a
+                  href={value.url || undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={messages.openUrlAriaLabel}
+                  title={messages.openUrlAriaLabel}
+                  tabIndex={value.url ? 0 : -1}
+                  className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
+                    value.url
+                      ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
+                      : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
+                  }`}
+                >
+                  <ArrowSquareOutIcon weight="duotone" className="size-4" />
+                </a>
+              </div>
+              {errors?.url && <FormErrorText>{errors.url}</FormErrorText>}
+              {urlWarning}
+            </div>
 
-        {/* Contact Email */}
-        <div>
-          <FormLabel htmlFor="sef-contact-email">
-            <span className="flex items-center gap-1.5">
-              {messages.contactEmailLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
-            </span>
-          </FormLabel>
-          <InputPrimitive
-            id="sef-contact-email"
-            type="email"
-            value={value.contactEmail}
-            onChange={(e) => set("contactEmail", e.target.value)}
-            placeholder={messages.contactEmailPlaceholder}
-            invalid={Boolean(errors?.contactEmail)}
-          />
-          {errors?.contactEmail && <FormErrorText>{errors.contactEmail}</FormErrorText>}
-        </div>
+            {/* Contact Email */}
+            <div>
+              <FormLabel htmlFor="sef-contact-email">
+                <span className="flex items-center gap-1.5">
+                  {messages.contactEmailLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+                </span>
+              </FormLabel>
+              <InputPrimitive
+                id="sef-contact-email"
+                type="email"
+                value={value.contactEmail}
+                onChange={(e) => set("contactEmail", e.target.value)}
+                placeholder={messages.contactEmailPlaceholder}
+                invalid={Boolean(errors?.contactEmail)}
+              />
+              {errors?.contactEmail && <FormErrorText>{errors.contactEmail}</FormErrorText>}
+            </div>
 
-        {/* Categories */}
-        <div>
-          <FormLabelText>{messages.categoriesLabel}</FormLabelText>
-          <MultiSelect
-            options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
-            value={value.categoryIds.map(String)}
-            onValueChange={(vals) => set("categoryIds", vals.map(Number))}
-            placeholder={messages.categoriesPlaceholder}
-            messages={messages.categorySelect}
-            error={errors?.categoryIds}
-            className="-mt-px"
-          />
-        </div>
-        </DashboardSection.Body>
+            {/* Categories */}
+            <div>
+              <FormLabelText>{messages.categoriesLabel}</FormLabelText>
+              <MultiSelect
+                options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
+                value={value.categoryIds.map(String)}
+                onValueChange={(vals) => set("categoryIds", vals.map(Number))}
+                placeholder={messages.categoriesPlaceholder}
+                messages={messages.categorySelect}
+                error={errors?.categoryIds}
+                className="-mt-px"
+              />
+            </div>
+          </DashboardSection.Body>
         </DashboardSection>
 
         {/* Headquarters + Geo */}
@@ -329,95 +295,110 @@ export function ShopEditForm({
             title={messages.headquartersLabel}
           />
           <DashboardSection.Body>
-          <div>
-            <FormLabel htmlFor="sef-hq-street">{messages.streetLabel}</FormLabel>
-            <InputPrimitive
-              id="sef-hq-street"
-              value={value.headquartersStreet}
-              onChange={(e) => set("headquartersStreet", e.target.value)}
-              placeholder={messages.streetPlaceholder}
-              invalid={Boolean(errors?.headquartersStreet)}
-            />
-            {errors?.headquartersStreet && <FormErrorText>{errors.headquartersStreet}</FormErrorText>}
-          </div>
+            <div>
+              <FormLabel htmlFor="sef-hq-street">{messages.streetLabel}</FormLabel>
+              <InputPrimitive
+                id="sef-hq-street"
+                value={value.headquartersStreet}
+                onChange={(e) => set("headquartersStreet", e.target.value)}
+                placeholder={messages.streetPlaceholder}
+                invalid={Boolean(errors?.headquartersStreet)}
+              />
+              {errors?.headquartersStreet && (
+                <FormErrorText>{errors.headquartersStreet}</FormErrorText>
+              )}
+            </div>
 
-          {/* CC (1sp) + PLZ (1sp) + City (2sp) */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-1">
-              <CountryCodeSelect
-                label={messages.countryCodeLabel}
-                value={value.headquartersCountryCode}
-                onChange={(code) => set("headquartersCountryCode", code)}
-                options={countryCodeOptions}
-                placeholder={messages.countryCodePlaceholder}
-                error={errors?.headquartersCountryCode}
-              />
+            {/* CC (1sp) + PLZ (1sp) + City (2sp) */}
+            <div className="grid grid-cols-4 gap-4">
+              <div className="col-span-1">
+                <CountryCodeSelect
+                  label={messages.countryCodeLabel}
+                  value={value.headquartersCountryCode}
+                  onChange={(code) => set("headquartersCountryCode", code)}
+                  options={countryCodeOptions}
+                  placeholder={messages.countryCodePlaceholder}
+                  error={errors?.headquartersCountryCode}
+                />
+              </div>
+              <div className="col-span-1">
+                <FormLabel htmlFor="sef-hq-postal-code">{messages.postalCodeLabel}</FormLabel>
+                <InputPrimitive
+                  id="sef-hq-postal-code"
+                  value={value.headquartersPostalCode}
+                  onChange={(e) => set("headquartersPostalCode", e.target.value)}
+                  placeholder={messages.postalCodePlaceholder}
+                  invalid={Boolean(errors?.headquartersPostalCode)}
+                />
+                {errors?.headquartersPostalCode && (
+                  <FormErrorText>{errors.headquartersPostalCode}</FormErrorText>
+                )}
+              </div>
+              <div className="col-span-2">
+                <FormLabel htmlFor="sef-hq-city">{messages.cityLabel}</FormLabel>
+                <InputPrimitive
+                  id="sef-hq-city"
+                  value={value.headquartersCity}
+                  onChange={(e) => set("headquartersCity", e.target.value)}
+                  placeholder={messages.cityPlaceholder}
+                  invalid={Boolean(errors?.headquartersCity)}
+                />
+                {errors?.headquartersCity && (
+                  <FormErrorText>{errors.headquartersCity}</FormErrorText>
+                )}
+              </div>
             </div>
-            <div className="col-span-1">
-              <FormLabel htmlFor="sef-hq-postal-code">{messages.postalCodeLabel}</FormLabel>
-              <InputPrimitive
-                id="sef-hq-postal-code"
-                value={value.headquartersPostalCode}
-                onChange={(e) => set("headquartersPostalCode", e.target.value)}
-                placeholder={messages.postalCodePlaceholder}
-                invalid={Boolean(errors?.headquartersPostalCode)}
-              />
-              {errors?.headquartersPostalCode && <FormErrorText>{errors.headquartersPostalCode}</FormErrorText>}
-            </div>
-            <div className="col-span-2">
-              <FormLabel htmlFor="sef-hq-city">{messages.cityLabel}</FormLabel>
-              <InputPrimitive
-                id="sef-hq-city"
-                value={value.headquartersCity}
-                onChange={(e) => set("headquartersCity", e.target.value)}
-                placeholder={messages.cityPlaceholder}
-                invalid={Boolean(errors?.headquartersCity)}
-              />
-              {errors?.headquartersCity && <FormErrorText>{errors.headquartersCity}</FormErrorText>}
-            </div>
-          </div>
 
-          {/* Lat (3sp) + Lng (3sp) + Geocode-Button (2sp) */}
-          <div className="grid grid-cols-8 gap-4">
-            <div className="col-span-3">
-              <FormLabel htmlFor="sef-hq-lat">{messages.latitudeLabel}</FormLabel>
-              <InputPrimitive
-                id="sef-hq-lat"
-                inputMode="decimal"
-                value={value.headquartersLatitude}
-                onChange={(e) => set("headquartersLatitude", e.target.value)}
-                placeholder={messages.latitudePlaceholder}
-                invalid={Boolean(errors?.headquartersLatitude)}
-              />
-              {errors?.headquartersLatitude && <FormErrorText>{errors.headquartersLatitude}</FormErrorText>}
+            {/* Lat (3sp) + Lng (3sp) + Geocode-Button (2sp) */}
+            <div className="grid grid-cols-8 gap-4">
+              <div className="col-span-3">
+                <FormLabel htmlFor="sef-hq-lat">{messages.latitudeLabel}</FormLabel>
+                <InputPrimitive
+                  id="sef-hq-lat"
+                  inputMode="decimal"
+                  value={value.headquartersLatitude}
+                  onChange={(e) => set("headquartersLatitude", e.target.value)}
+                  placeholder={messages.latitudePlaceholder}
+                  invalid={Boolean(errors?.headquartersLatitude)}
+                />
+                {errors?.headquartersLatitude && (
+                  <FormErrorText>{errors.headquartersLatitude}</FormErrorText>
+                )}
+              </div>
+              <div className="col-span-3">
+                <FormLabel htmlFor="sef-hq-lng">{messages.longitudeLabel}</FormLabel>
+                <InputPrimitive
+                  id="sef-hq-lng"
+                  inputMode="decimal"
+                  value={value.headquartersLongitude}
+                  onChange={(e) => set("headquartersLongitude", e.target.value)}
+                  placeholder={messages.longitudePlaceholder}
+                  invalid={Boolean(errors?.headquartersLongitude)}
+                />
+                {errors?.headquartersLongitude && (
+                  <FormErrorText>{errors.headquartersLongitude}</FormErrorText>
+                )}
+              </div>
+              <div className="col-span-2 flex flex-col">
+                <FormLabel className="invisible" aria-hidden="true">
+                  &nbsp;
+                </FormLabel>
+                <button
+                  type="button"
+                  aria-label={messages.geocodeButtonLabel ?? "Geo-Koordinaten ermitteln"}
+                  onClick={handleGeocode}
+                  disabled={geocoding}
+                  title={messages.geocodeButtonLabel ?? "Geo-Koordinaten ermitteln"}
+                  className="w-full flex-1 flex items-center justify-center gap-1.5 px-3 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text-muted)] bg-[var(--ds-bg-elevated)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-hover)] transition-colors disabled:opacity-40"
+                >
+                  {geocoding ? (
+                    <SpinnerIcon className="size-4 animate-spin" />
+                  ) : (
+                    <CrosshairIcon weight="duotone" className="size-4" />
+                  )}
+                </button>
+              </div>
             </div>
-            <div className="col-span-3">
-              <FormLabel htmlFor="sef-hq-lng">{messages.longitudeLabel}</FormLabel>
-              <InputPrimitive
-                id="sef-hq-lng"
-                inputMode="decimal"
-                value={value.headquartersLongitude}
-                onChange={(e) => set("headquartersLongitude", e.target.value)}
-                placeholder={messages.longitudePlaceholder}
-                invalid={Boolean(errors?.headquartersLongitude)}
-              />
-              {errors?.headquartersLongitude && <FormErrorText>{errors.headquartersLongitude}</FormErrorText>}
-            </div>
-            <div className="col-span-2 flex flex-col">
-              <FormLabel className="invisible" aria-hidden="true">&nbsp;</FormLabel>
-              <button
-                type="button"
-                onClick={handleGeocode}
-                disabled={geocoding}
-                title={messages.geocodeButtonLabel ?? "Geo-Koordinaten ermitteln"}
-                className="w-full flex-1 flex items-center justify-center gap-1.5 px-3 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text-muted)] bg-[var(--ds-bg-elevated)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-hover)] transition-colors disabled:opacity-40"
-              >
-                {geocoding
-                  ? <SpinnerIcon className="size-4 animate-spin" />
-                  : <CrosshairIcon weight="duotone" className="size-4" />}
-              </button>
-            </div>
-          </div>
           </DashboardSection.Body>
         </DashboardSection>
 
@@ -428,29 +409,29 @@ export function ShopEditForm({
             title={messages.shippingSectionLabel}
           />
           <DashboardSection.Body>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-2">
-              <RegionSelect
-                value={value.region}
-                onChange={(v) => set("region", v)}
-                options={regionOptions}
-                messages={messages.regionSelect}
-                error={errors?.region}
-                variant="dashboard"
-              />
+            <div className="grid grid-cols-4 gap-4">
+              <div className="col-span-2">
+                <RegionSelect
+                  value={value.region}
+                  onChange={(v) => set("region", v)}
+                  options={regionOptions}
+                  messages={messages.regionSelect}
+                  error={errors?.region}
+                  variant="dashboard"
+                />
+              </div>
+              <div className="col-span-2">
+                <FormLabel htmlFor="sef-shipping">{messages.shippingLabel}</FormLabel>
+                <InputPrimitive
+                  id="sef-shipping"
+                  value={value.shipping}
+                  onChange={(e) => set("shipping", e.target.value)}
+                  placeholder={messages.shippingPlaceholder}
+                  invalid={Boolean(errors?.shipping)}
+                />
+                {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
+              </div>
             </div>
-            <div className="col-span-2">
-              <FormLabel htmlFor="sef-shipping">{messages.shippingLabel}</FormLabel>
-              <InputPrimitive
-                id="sef-shipping"
-                value={value.shipping}
-                onChange={(e) => set("shipping", e.target.value)}
-                placeholder={messages.shippingPlaceholder}
-                invalid={Boolean(errors?.shipping)}
-              />
-              {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
-            </div>
-          </div>
           </DashboardSection.Body>
         </DashboardSection>
 
@@ -462,14 +443,13 @@ export function ShopEditForm({
               title={messages.socialMediaLabel}
             />
             <DashboardSection.Body>
-            <SocialMediaEditor
-              value={value.socialMedia}
-              onChange={(v) => set("socialMedia", v)}
-              messages={messages.socialMedia}
-              blurOnPaste={blurSocialMediaOnPaste}
-              onValidationChange={onSocialMediaValidationChange}
-            />
-            {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
+              <SocialMediaEditor
+                value={value.socialMedia}
+                onChange={(v) => set("socialMedia", v)}
+                messages={messages.socialMedia}
+                blurOnPaste={blurSocialMediaOnPaste}
+              />
+              {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
             </DashboardSection.Body>
           </DashboardSection>
         )}
@@ -564,7 +544,9 @@ export function ShopEditForm({
               resizable
               className={`!border-0 !rounded-none !rounded-b-xl flex-1 ${errors?.description ? "border-red-400" : ""}`}
             />
-            {errors?.description && <FormErrorText className="px-4 pb-3">{errors.description}</FormErrorText>}
+            {errors?.description && (
+              <FormErrorText className="px-4 pb-3">{errors.description}</FormErrorText>
+            )}
             {descriptionHint}
           </DashboardSection.Body>
         </DashboardSection>
@@ -600,7 +582,7 @@ function ShopCheckListTextarea({
   }, [externalValue]);
 
   function handleDraftChange(nextDraftValue: string) {
-    setDraftValue(nextDraftValue);
+    setDraftValue(() => nextDraftValue);
     onValueChange(parseTextareaList(nextDraftValue));
   }
 

@@ -55,7 +55,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
           <ToggleSwitch
             checked={isActive}
             onChange={(v) => {
-              setIsActive(v);
+              setIsActive(() => v);
               if (!v && !hasReminder) setEditing(false);
             }}
           />
@@ -66,7 +66,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
         <DashboardSection.Body>
           {showPushPrompt && (
             <DashboardButton
-              onClick={() => push.subscribe()}
+              onClick={() => push.enable()}
               className="w-full justify-start"
               leadingIcon={<BellIcon weight="duotone" className="size-3.5 text-amber-400" />}
               variant="neutral"

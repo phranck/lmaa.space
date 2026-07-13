@@ -1,11 +1,13 @@
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
-import React, { useMemo, useReducer, useRef } from "react";
+import React, { useCallback, useMemo, useReducer } from "react";
 
-import {
-  getTableSortAriaSort,
-  TableSortHeader,
-  type TableSortDirection,
-} from "@/components/ui/DashboardControls.tsx";
+import { TableSortHeader, type TableSortDirection } from "@/components/ui/DashboardControls.tsx";
+
+function getTableSortAriaSort(direction: TableSortDirection) {
+  if (direction === "asc") return "ascending";
+  if (direction === "desc") return "descending";
+  return "none";
+}
 
 // ─── Group type ───────────────────────────────────────────────────────────────
 
@@ -133,11 +135,6 @@ export function DataTable<T>({
   allowUnsorted = true,
 }: DataTableProps<T>) {
   const [uncontrolledSort, setUncontrolledSort] = useReducer(updateSortState, initialSort);
-  const prevInitialSortRef = useRef(initialSort);
-  if (initialSort !== prevInitialSortRef.current) {
-    prevInitialSortRef.current = initialSort;
-    setUncontrolledSort(initialSort);
-  }
   const sort = controlledSort ?? uncontrolledSort;
 
   function handleSort(col: ColumnDef<T>) {
@@ -158,31 +155,31 @@ export function DataTable<T>({
     onSortChange?.(nextSort);
   }
 
-  function sortRows(rows: T[]): T[] {
-    if (!sort) return rows;
-    const col = columns.find((c) => c.id === sort.id);
-    if (!col?.sortKey) return rows;
-    return Array.from(rows).sort((a, b) => {
-      // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
-      const av = col.sortKey!(a);
-      // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
-      const bv = col.sortKey!(b);
-      const cmp =
-        typeof av === "number" && typeof bv === "number"
-          ? av - bv
-          : tableSortCollator.compare(String(av), String(bv));
-      return sort.dir === "asc" ? cmp : -cmp;
-    });
-  }
-
-  const sorted = useMemo(
-    () => sortRows(data ?? EMPTY_TABLE_ROWS),
-    [allowUnsorted, data, sort, columns],
+  const sortRows = useCallback(
+    (rows: T[]): T[] => {
+      if (!sort) return rows;
+      const col = columns.find((c) => c.id === sort.id);
+      if (!col?.sortKey) return rows;
+      return Array.from(rows).sort((a, b) => {
+        // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
+        const av = col.sortKey!(a);
+        // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
+        const bv = col.sortKey!(b);
+        const cmp =
+          typeof av === "number" && typeof bv === "number"
+            ? av - bv
+            : tableSortCollator.compare(String(av), String(bv));
+        return sort.dir === "asc" ? cmp : -cmp;
+      });
+    },
+    [columns, sort],
   );
+
+  const sorted = useMemo(() => sortRows(data ?? EMPTY_TABLE_ROWS), [data, sortRows]);
 
   const sortedGroups = useMemo(
     () => groups?.map((g) => ({ ...g, rows: sortRows(g.rows) })),
-    [allowUnsorted, groups, sort, columns],
+    [groups, sortRows],
   );
 
   return (
@@ -235,8 +232,8 @@ export function DataTable<T>({
 
                     return (
                       <TableRow
-                        {...restRowProps}
                         key={getRowKey(row)}
+                        {...restRowProps}
                         className={`${idx % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""} ${rowClassName ?? ""}`}
                       >
                         {columns.map((col) => (
@@ -256,8 +253,8 @@ export function DataTable<T>({
 
               return (
                 <TableRow
-                  {...restRowProps}
                   key={getRowKey(row)}
+                  {...restRowProps}
                   className={`${index % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""} ${rowClassName ?? ""}`}
                 >
                   {columns.map((col) => (

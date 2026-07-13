@@ -87,7 +87,18 @@ const DE_REGION_CODE_TO_NAME: Record<DashboardLocale, Record<string, string>> = 
   },
 };
 
-const regionNameCache = new Map<DashboardLocale, Intl.DisplayNames | null>();
+const REGION_NAMES: Record<DashboardLocale, Intl.DisplayNames> = {
+  de: new Intl.DisplayNames(["de"], { type: "region" }),
+  en: new Intl.DisplayNames(["en"], { type: "region" }),
+};
+const TIME_FORMATTERS: Record<DashboardLocale, Intl.DateTimeFormat> = {
+  de: new Intl.DateTimeFormat("de", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+  en: new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+};
+const DATE_FORMATTERS: Record<DashboardLocale, Intl.DateTimeFormat> = {
+  de: new Intl.DateTimeFormat("de", { day: "2-digit", month: "2-digit" }),
+  en: new Intl.DateTimeFormat("en", { day: "2-digit", month: "2-digit" }),
+};
 
 function normalizeName(value: string): string {
   return value.trim().toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
@@ -111,18 +122,7 @@ function getCountryCodeFromName(value: string): string | null {
 }
 
 function getRegionNames(locale: DashboardLocale): Intl.DisplayNames | null {
-  if (regionNameCache.has(locale)) {
-    return regionNameCache.get(locale) ?? null;
-  }
-
-  let resolved: Intl.DisplayNames | null = null;
-  try {
-    resolved = new Intl.DisplayNames([locale], { type: "region" });
-  } catch {
-    resolved = null;
-  }
-  regionNameCache.set(locale, resolved);
-  return resolved;
+  return REGION_NAMES[locale];
 }
 
 function getCountryDisplayName(
@@ -254,13 +254,9 @@ export function formatDuration(
 export function formatLabel(x: string, period: UmamiPeriod, locale: DashboardLocale): string {
   const date = new Date(x);
   if (period === "today") {
-    return new Intl.DateTimeFormat(locale, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    }).format(date);
+    return TIME_FORMATTERS[locale].format(date);
   }
-  return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit" }).format(date);
+  return DATE_FORMATTERS[locale].format(date);
 }
 
 export function formatTrendValue(change: number): string {
@@ -293,11 +289,7 @@ export function relativeChange(current: number, previous: number | null): number
 }
 
 export function formatMinute(ts: number, locale: DashboardLocale): string {
-  return new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(new Date(ts));
+  return TIME_FORMATTERS[locale].format(new Date(ts));
 }
 
 export function intTicks(max: number): number[] {

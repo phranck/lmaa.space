@@ -4,6 +4,14 @@ import { api } from "@/lib/api.ts";
 
 type PushState = "unsupported" | "prompt" | "denied" | "subscribed" | "unsubscribed";
 
+async function createPushSubscription(vapidPublicKey: string): Promise<PushSubscription> {
+  const registration = await navigator.serviceWorker.ready;
+  return registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: vapidPublicKey,
+  });
+}
+
 export function usePushNotifications() {
   const [state, setState] = useState<PushState>("unsupported");
   const registeredRef = useRef(false);
@@ -31,7 +39,7 @@ export function usePushNotifications() {
       });
   }, []);
 
-  const subscribe = useCallback(async () => {
+  const enable = useCallback(async () => {
     if (registeredRef.current) return;
     registeredRef.current = true;
 
@@ -44,11 +52,7 @@ export function usePushNotifications() {
         return;
       }
 
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: vapidPublicKey,
-      });
+      const sub = await createPushSubscription(vapidPublicKey);
 
       const json = sub.toJSON();
       await api.post("/admin/push/subscribe", {
@@ -81,5 +85,5 @@ export function usePushNotifications() {
     }
   }, []);
 
-  return { state, subscribe, unsubscribe };
+  return { state, enable, unsubscribe };
 }

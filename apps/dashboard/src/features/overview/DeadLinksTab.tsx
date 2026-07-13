@@ -60,7 +60,8 @@ export function DeadLinksTab() {
         id: "reportedAt",
         header: submissionsMessages.suggestions.submittedAt,
         className: "w-52",
-        sortKey: (report) => (report.lastReportedAt ? new Date(report.lastReportedAt).getTime() : 0),
+        sortKey: (report) =>
+          report.lastReportedAt ? new Date(report.lastReportedAt).getTime() : 0,
         cell: (report) =>
           report.lastReportedAt ? (
             <span className="text-xs text-[var(--ds-text-subtle)]">
@@ -98,7 +99,14 @@ export function DeadLinksTab() {
         ),
       },
     ],
-    [deleteMutation.isPending, dismissMutation.isPending, locale, messages.shops.table.shop, submissionsMessages],
+    [
+      deleteMutation.isPending,
+      dismissMutation.isPending,
+      dismissMutation.mutate,
+      locale,
+      messages.shops.table.shop,
+      submissionsMessages,
+    ],
   );
 
   if (isLoading) {

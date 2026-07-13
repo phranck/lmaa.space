@@ -47,13 +47,19 @@ function ImportDialog({
         }
       }}
     >
-      <div
-        role="dialog"
+      <dialog
+        open
+        aria-labelledby="liked-shops-import-title"
         className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">Shops importieren</h2>
+        <h2
+          id="liked-shops-import-title"
+          className="font-serif text-xl font-semibold text-stone-900 mb-1"
+        >
+          Shops importieren
+        </h2>
         <p className="text-sm text-stone-500 mb-5">
           {importCount} {importCount === 1 ? "Shop wird" : "Shops werden"} importiert.
           {hasExisting ? " Du hast bereits gelikte Shops auf diesem Gerät." : ""}
@@ -88,7 +94,7 @@ function ImportDialog({
             Abbrechen
           </button>
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }
@@ -98,7 +104,7 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
   const qrRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
-  const likedIds = [...getLikedShopIds()];
+  const [likedIds] = useState(() => [...getLikedShopIds()]);
   const encoded = encodeLikedIds(likedIds);
   const syncUrl = `${window.location.origin}/my-shops?s=${encoded}`;
 
@@ -173,13 +179,17 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
         }
       }}
     >
-      <div
-        role="dialog"
+      <dialog
+        open
+        aria-labelledby="liked-shops-sync-title"
         className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
+        <h2
+          id="liked-shops-sync-title"
+          className="font-serif text-xl font-semibold text-stone-900 mb-1"
+        >
           Shops synchronisieren
         </h2>
         <p className="text-sm text-stone-500 mb-5">
@@ -206,7 +216,7 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
             Schließen
           </button>
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }

@@ -130,15 +130,6 @@ export function useSyncMedia() {
   });
 }
 
-export function useDeleteMedia() {
-  const qc = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) => api.delete<{ message: string }>(`/admin/media/${id}`),
-    onSuccess: () => invalidateMediaQueries(qc),
-  });
-}
-
 export function useDeleteMediaAssets() {
   const qc = useQueryClient();
 

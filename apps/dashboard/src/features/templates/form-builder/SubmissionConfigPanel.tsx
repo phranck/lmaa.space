@@ -22,7 +22,7 @@ import {
   StorefrontIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
 
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
@@ -234,7 +234,11 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
   const cfg = ensureConfig(config);
 
   // Stable UUIDs per step — independent of position, prevents ghost artifacts after DnD.
-  const [uids, setUids] = useState<string[]>(() => cfg.steps.map(() => crypto.randomUUID()));
+  const [uids, replaceUids] = useReducer(
+    (_current: string[], next: string[]) => next,
+    cfg.steps,
+    (steps) => steps.map(() => crypto.randomUUID()),
+  );
   const prevStepCount = useRef(cfg.steps.length);
 
   // Sync uid list length when steps are added/removed from outside (e.g. initial load).
@@ -243,16 +247,15 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
     const next = cfg.steps.length;
     if (next === prev) return;
     prevStepCount.current = next;
-    setUids((ids) => {
-      if (next > ids.length) {
-        return [...ids, ...Array.from({ length: next - ids.length }, () => crypto.randomUUID())];
-      }
-      return ids.slice(0, next);
-    });
-  }, [cfg.steps.length]);
+    const nextUids =
+      next > uids.length
+        ? [...uids, ...Array.from({ length: next - uids.length }, () => crypto.randomUUID())]
+        : uids.slice(0, next);
+    replaceUids(nextUids);
+  }, [cfg.steps.length, uids]);
 
   function updateSteps(steps: SubmissionStep[], nextUids?: string[]) {
-    if (nextUids) setUids(nextUids);
+    if (nextUids) replaceUids(nextUids);
     onChange(
       steps.length === 0 && !cfg.successMessage && !cfg.successRedirectUrl
         ? undefined
@@ -291,18 +294,21 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
   }
 
   const [pendingStepType, setPendingStepType] = useState<SubmissionStep["type"]>("store");
-  const [activeUid, setActiveUid] = useState<string | null>(null);
+  const [activeUid, replaceActiveUid] = useReducer(
+    (_current: string | null, next: string | null) => next,
+    null,
+  );
   const activeStep = activeUid !== null ? (cfg.steps[uids.indexOf(activeUid)] ?? null) : null;
 
   const sensors = useDashboardSortableSensors({ activationDistance: 6 });
   const sortableIds = uids.slice(0, cfg.steps.length);
 
   function handleDragStart(event: DragStartEvent) {
-    setActiveUid(String(event.active.id));
+    replaceActiveUid(String(event.active.id));
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    setActiveUid(null);
+    replaceActiveUid(null);
     reorderSteps(event);
   }
 
@@ -371,7 +377,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
               collisionDetection={closestCenter}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
-              onDragCancel={() => setActiveUid(null)}
+              onDragCancel={() => replaceActiveUid(null)}
             >
               <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
                 <div className="flex flex-row flex-wrap items-start gap-y-2">

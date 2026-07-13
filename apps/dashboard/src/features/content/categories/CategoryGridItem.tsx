@@ -25,6 +25,7 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
     <div className="relative bg-[var(--ds-surface)] rounded-2xl overflow-hidden border border-[var(--ds-border)] flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
       <button
         type="button"
+        aria-label={`${categoriesMessages.card.edit}: ${category.name}`}
         className="block aspect-video cursor-pointer overflow-hidden text-left"
         onClick={() => onEdit(category.id)}
       >
@@ -41,7 +42,9 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
       </button>
       <div className="px-4 py-3 flex flex-col">
         <div>
-          <p className="font-semibold font-serif text-[var(--ds-text)] text-lg leading-snug truncate">{category.name}</p>
+          <p className="font-semibold font-serif text-[var(--ds-text)] text-lg leading-snug truncate">
+            {category.name}
+          </p>
           {category.shopCount !== undefined && (
             <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5">
               {category.shopCount}{" "}

@@ -25,15 +25,8 @@ import type {
 } from "@lmaa/contracts";
 import type { MediaFolderColor, MediaKind, ShopCheckNotes } from "@lmaa/shared";
 
-function quotedTextSql(values: readonly string[]) {
-  return sql.join(
-    values.map((value) => sql.raw(`'${value.replaceAll("'", "''")}'`)),
-    sql`, `,
-  );
-}
-
-const POSTING_PLATFORM_SQL = quotedTextSql(["mastodon", "bluesky"]);
-const SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL = quotedTextSql(["submission", "category"]);
+const POSTING_PLATFORM_SQL = sql`'mastodon', 'bluesky'`;
+const SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL = sql`'submission', 'category'`;
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -391,7 +384,10 @@ export const contentPages = pgTable("content_pages", {
   content: text("content").notNull().default(""),
   status: text("status").$type<"draft" | "published" | "hidden">().notNull().default("draft"),
   showTitle: boolean("show_title").notNull().default(true),
-  contentWidth: text("content_width").$type<"default" | "wide" | "full">().notNull().default("default"),
+  contentWidth: text("content_width")
+    .$type<"default" | "wide" | "full">()
+    .notNull()
+    .default("default"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at").defaultNow(),

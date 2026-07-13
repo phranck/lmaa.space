@@ -8,6 +8,9 @@ import { HeroBannerTab } from "./HeroBannerTab.tsx";
 
 const TABS = ["heroBanner"] as const;
 type TabId = (typeof TABS)[number];
+const TAB_ICONS: Record<TabId, React.ReactNode> = {
+  heroBanner: <ImageIcon weight="duotone" className="size-4" />,
+};
 
 /**
  * Landing page editor with tab-based sections.
@@ -21,10 +24,6 @@ export function LandingPagePage() {
 
   const tabLabel: Record<TabId, string> = {
     heroBanner: m.tabHeroBanner,
-  };
-
-  const tabIcon: Record<TabId, React.ReactNode> = {
-    heroBanner: <ImageIcon weight="duotone" className="size-4" />,
   };
 
   // Single tab for now -- no useState needed, always "heroBanner"
@@ -46,16 +45,14 @@ export function LandingPagePage() {
                   : "border-transparent text-[var(--ds-text-subtle)]"
               }`}
             >
-              {tabIcon[tab]}
+              {TAB_ICONS[tab]}
               {tabLabel[tab]}
             </div>
           ))}
         </div>
       </div>
 
-      <PageBody>
-        {activeTab === "heroBanner" && <HeroBannerTab />}
-      </PageBody>
+      <PageBody>{activeTab === "heroBanner" && <HeroBannerTab />}</PageBody>
     </PageLayout>
   );
 }

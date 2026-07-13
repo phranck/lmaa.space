@@ -233,8 +233,10 @@ function SocialMediaOrderEditor({
   // after the order was saved appear at the end; orphan keys (account removed
   // or showInFooter toggled off) drop out.
   const accountKeys: string[] = accounts.map((a) => a.platform);
-  const ordered = (block.order ?? []).filter((k) => accountKeys.includes(k));
-  const remaining = accountKeys.filter((k) => !ordered.includes(k));
+  const accountKeySet = new Set(accountKeys);
+  const ordered = (block.order ?? []).filter((key) => accountKeySet.has(key));
+  const orderedSet = new Set(ordered);
+  const remaining = accountKeys.filter((key) => !orderedSet.has(key));
   const currentOrder = [...ordered, ...remaining];
 
   function handleDragEnd(event: DragEndEvent) {

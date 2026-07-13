@@ -107,7 +107,10 @@ export function JsonEditor({
   // without recreating the extension (and re-registering the event listener)
   // on every render.
   const onPasteRef = React.useRef(onPaste);
-  onPasteRef.current = onPaste;
+
+  React.useEffect(() => {
+    onPasteRef.current = onPaste;
+  }, [onPaste]);
 
   const hasPasteHandler = onPaste !== undefined;
   const extensions = React.useMemo(
@@ -153,7 +156,7 @@ export function JsonEditor({
         theme={jsonTheme}
         className={editorContainerClassName}
         height={hasBoundedHeight ? "100%" : undefined}
-        minHeight={resizable ? undefined : (height ? undefined : minHeight)}
+        minHeight={resizable ? undefined : height ? undefined : minHeight}
         editable={!readOnly}
         basicSetup={{
           lineNumbers: true,

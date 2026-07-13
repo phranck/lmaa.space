@@ -4,7 +4,8 @@
  * Used by LikedShopsGrid (React island) and shop-actions.ts (vanilla JS).
  */
 
-const LIKES_KEY = "lmaa-liked-shops";
+const LIKES_KEY = "lmaa-liked-shops:v1";
+const LEGACY_LIKES_KEY = "lmaa-liked-shops";
 
 // ── localStorage helpers ────────────────────────────────────────────
 
@@ -14,7 +15,11 @@ export function getLikedShopIds(): Set<string> {
   if (cache) return cache;
 
   try {
-    const raw = localStorage.getItem(LIKES_KEY);
+    const raw = localStorage.getItem(LIKES_KEY) ?? localStorage.getItem(LEGACY_LIKES_KEY);
+    if (raw && localStorage.getItem(LIKES_KEY) === null) {
+      localStorage.setItem(LIKES_KEY, raw);
+      localStorage.removeItem(LEGACY_LIKES_KEY);
+    }
     cache = raw ? new Set(JSON.parse(raw) as string[]) : new Set();
     return cache;
   } catch {
@@ -30,7 +35,7 @@ export function saveLikedShopIds(ids: Set<string>): void {
 // Invalidate cache when another tab changes localStorage
 if (typeof window !== "undefined") {
   window.addEventListener("storage", (e) => {
-    if (e.key === LIKES_KEY) cache = null;
+    if (e.key === LIKES_KEY || e.key === LEGACY_LIKES_KEY) cache = null;
   });
 }
 

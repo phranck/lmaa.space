@@ -22,10 +22,6 @@ export function hasDraggedFiles(dataTransfer: DataTransfer) {
   return Array.from(dataTransfer.types).includes("Files");
 }
 
-export function hasDroppedFiles(dataTransfer: DataTransfer) {
-  return dataTransfer.files.length > 0 || dataTransfer.items.length > 0;
-}
-
 export async function handleMediaDrop({
   dataTransfer,
   mediaMessages,

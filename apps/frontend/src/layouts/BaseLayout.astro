@@ -2,6 +2,10 @@
 import Footer from "@/components/Footer.astro";
 import type { SocialMediaProfile } from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
+import barlowCondensed400Url from "@/assets/fonts/barlow-condensed-400.woff2?url";
+import barlowCondensed600Url from "@/assets/fonts/barlow-condensed-600.woff2?url";
+import barlowCondensed700Url from "@/assets/fonts/barlow-condensed-700.woff2?url";
+import dynaPuff500Url from "@/assets/fonts/dynapuff-500.woff2?url";
 import { apiGet } from "@/lib/api";
 import type { FooterConfig, SocialPreviewPublicImage } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
@@ -32,6 +36,13 @@ const canonical =
   canonicalUrl ?? new URL(`${Astro.url.pathname}${Astro.url.search}`, publicSite).href;
 const defaultOgImage = new URL("/og-image.jpg", publicSite).href;
 let resolvedOgImage = ogImage ?? defaultOgImage;
+
+const criticalFontPreloads = [
+  barlowCondensed400Url,
+  barlowCondensed600Url,
+  barlowCondensed700Url,
+  dynaPuff500Url,
+] as const;
 
 function withPreviewVersion(url: string, version: string): string {
   const versionedUrl = new URL(url);
@@ -98,36 +109,12 @@ try {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" href="/favicon.png" />
 
-    <!-- Font preloads: real gerenderte Gewichte für Nav (400), Headlines (h2 600, h1 700) und Hero-Logo -->
-    <link
-      rel="preload"
-      href="/fonts/barlow-condensed-400.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/barlow-condensed-600.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/barlow-condensed-700.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/dynapuff-500.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <!-- Build-resolved critical fonts for navigation, headings, and the hero logo. -->
+    {
+      criticalFontPreloads.map((href) => (
+        <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+      ))
+    }
 
     <!-- OG / Twitter -->
     <meta property="og:type" content="website" />
