@@ -29,7 +29,6 @@ scripts/*
 apps/frontend/image-originals/
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep
-AGENTS.md
 TO-DOS.md
 WHATS-NEXT.md
 shop-geo-data.json
@@ -38,4 +37,3 @@ shop-geo-data.json
 .gource/lmaa-history/
 .gource/lmaa-history-hls/
 skills
-graphify-out/
