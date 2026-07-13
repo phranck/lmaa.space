@@ -32,9 +32,9 @@ const DEFAULT_BODY_LIMIT_LABEL = "10 MB";
 const ADMIN_MEDIA_UPLOAD_PATH = "/api/v1/admin/media";
 const ADMIN_HLS_BUNDLE_UPLOAD_PATH = "/api/v1/admin/media/bundles/hls";
 const ADMIN_HLS_BUNDLE_CHUNK_UPLOAD_PATH = "/api/v1/admin/media/bundles/hls/chunks";
-const FRONTEND_PUBLIC_ASSETS_ROOT = existsSync("apps/frontend/public")
-  ? "apps/frontend/public"
-  : "../frontend/public";
+const FRONTEND_FONT_ASSETS_ROOT = existsSync("apps/frontend/src/assets")
+  ? "apps/frontend/src/assets"
+  : "../frontend/src/assets";
 
 const app = new Hono<{ Variables: { requestId: string } }>();
 
@@ -101,7 +101,7 @@ app.route("/api/v1/admin", adminRoutes);
 app.get(
   "/fonts/*",
   serveStatic({
-    root: FRONTEND_PUBLIC_ASSETS_ROOT,
+    root: FRONTEND_FONT_ASSETS_ROOT,
     rewriteRequestPath: (path) => path,
     onFound: (_path, c) => {
       c.header("Cache-Control", "public, max-age=31536000, immutable");

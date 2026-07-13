@@ -1,5 +1,5 @@
 @import "@lmaa/shared/styles/tokens.css";
-@import "./fonts.css";
+@import "../assets/fonts/fonts.css";
 
 html {
   font-size: 18px;

@@ -28,13 +28,13 @@ describe("website font delivery", () => {
   });
 
   it("routes font declarations, binaries, and critical preloads through the Vite asset pipeline", () => {
-    const fontStylesPath = resolve(frontendRoot, "src/styles/fonts.css");
+    const fontStylesPath = resolve(frontendRoot, "src/assets/fonts/fonts.css");
     const globalStyles = read("src/styles/global.css");
     const layout = read("src/layouts/BaseLayout.astro");
     const tokens = read("../../packages/shared/styles/tokens.css");
 
     expect(existsSync(fontStylesPath)).toBe(true);
-    expect(globalStyles).toContain('@import "./fonts.css";');
+    expect(globalStyles).toContain('@import "../assets/fonts/fonts.css";');
     expect(layout).not.toContain('href="/fonts/fonts.css"');
     expect(layout).not.toMatch(/href="\/fonts\/[^\"]+\.woff2"/);
     expect(layout).toContain("criticalFontPreloads.map");
@@ -42,7 +42,7 @@ describe("website font delivery", () => {
 
     if (!existsSync(fontStylesPath)) return;
 
-    const fontStyles = read("src/styles/fonts.css");
+    const fontStyles = read("src/assets/fonts/fonts.css");
     const expectedFontAssets = [
       "barlow-400-italic-latin-ext.woff2",
       "barlow-400-italic-latin.woff2",
@@ -67,7 +67,7 @@ describe("website font delivery", () => {
 
     expect(fontStyles).not.toMatch(/url\(["']?\/fonts\//);
     for (const asset of expectedFontAssets) {
-      expect(fontStyles).toContain(`url("../assets/fonts/${asset}")`);
+      expect(fontStyles).toContain(`url("./${asset}")`);
     }
 
     for (const asset of [
