@@ -40,7 +40,7 @@ import {
   TrashIcon,
   VectorTwoIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
 import type {
@@ -500,15 +500,14 @@ function applyTextStyleToWholeLayer(
   const patchKeys = getTextStylePatchKeys(patch);
   if (patchKeys.length === 0) return layer;
 
-  const styleRanges = (layer.styleRanges ?? [])
-    .map((range) => {
-      const nextRange = { ...range };
-      for (const key of patchKeys) {
-        delete nextRange[key];
-      }
-      return nextRange;
-    })
-    .filter(hasStyleRangeOverrides);
+  const styleRanges: TextStyleRange[] = [];
+  for (const range of layer.styleRanges ?? []) {
+    const nextRange = { ...range };
+    for (const key of patchKeys) {
+      delete nextRange[key];
+    }
+    if (hasStyleRangeOverrides(nextRange)) styleRanges.push(nextRange);
+  }
 
   return {
     ...layer,
@@ -878,7 +877,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   const [textSelection, setTextSelection] = useState<TextSelectionRange | null>(null);
   const [browserMode, setBrowserMode] = useState<"layer" | null>(null);
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
-  const [dragState, setDragState] = useState<DragState | null>(null);
+  const dragStateRef = useRef<DragState | null>(null);
   const [guides, setGuides] = useState<GuideLine[]>([]);
   const [format, setFormat] = useState<SocialPreviewFormat>("image/jpeg");
   const [quality, setQuality] = useState(90);
@@ -914,6 +913,10 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   const imageAssets = useMemo(() => mediaAssets.filter(isImageAsset), [mediaAssets]);
   void historyVersion;
 
+  function setDragState(next: DragState | null) {
+    dragStateRef.current = next;
+  }
+
   function pushHistorySnapshot(snapshot = composition) {
     historyRef.current = [...historyRef.current.slice(-49), snapshot];
     futureRef.current = [];
@@ -923,21 +926,17 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   function commitComposition(
     updater: (current: SocialPreviewComposition) => SocialPreviewComposition,
   ) {
-    setComposition((current) => {
-      historyRef.current = [...historyRef.current.slice(-49), current];
-      futureRef.current = [];
-      return updater(current);
-    });
+    historyRef.current = [...historyRef.current.slice(-49), composition];
+    futureRef.current = [];
+    setComposition(updater(composition));
     setHistoryVersion((current) => current + 1);
   }
 
   function undoComposition() {
     const previous = historyRef.current.at(-1);
     if (!previous) return;
-    setComposition((current) => {
-      futureRef.current = [current, ...futureRef.current.slice(0, 49)];
-      return previous;
-    });
+    futureRef.current = [composition, ...futureRef.current.slice(0, 49)];
+    setComposition(previous);
     historyRef.current = historyRef.current.slice(0, -1);
     setSelection(null);
     setEditingTextLayerId(null);
@@ -947,10 +946,8 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   function redoComposition() {
     const next = futureRef.current[0];
     if (!next) return;
-    setComposition((current) => {
-      historyRef.current = [...historyRef.current.slice(-49), current];
-      return next;
-    });
+    historyRef.current = [...historyRef.current.slice(-49), composition];
+    setComposition(next);
     futureRef.current = futureRef.current.slice(1);
     setSelection(null);
     setEditingTextLayerId(null);
@@ -1107,12 +1104,11 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     setGuides([]);
   }
 
-  function handleLayerPointerDown(
-    event: React.PointerEvent<HTMLDivElement>,
-    layer: SocialPreviewLayer,
-  ) {
+  function handleLayerPointerDown(event: React.PointerEvent<HTMLDivElement>) {
     const stage = stageRef.current;
-    if (!stage) return;
+    const layerId = event.currentTarget.dataset.layerId;
+    const layer = composition.layers.find((entry) => entry.id === layerId);
+    if (!stage || !layer) return;
     event.preventDefault();
     event.stopPropagation();
     const position = getPointerPosition(event, stage);
@@ -1208,6 +1204,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   }
 
   function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const dragState = dragStateRef.current;
     if (!dragState) return;
     const stage = stageRef.current;
     if (!stage) return;
@@ -1602,9 +1599,10 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                           return (
                             <div
                               key={layer.id}
+                              data-layer-id={layer.id}
                               className={cx("absolute select-none", selected ? "z-20" : "z-10")}
                               style={renderLayerStyle(layer)}
-                              onPointerDown={(event) => handleLayerPointerDown(event, layer)}
+                              onPointerDown={handleLayerPointerDown}
                               onDoubleClick={(event) => {
                                 if (layer.type !== "text" || isLayerLocked(layer)) return;
                                 event.preventDefault();
@@ -1626,7 +1624,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                                     setEditingTextLayerId(layer.id);
                                   }
                                 }}
-                                onTextSelectionChange={(range) => setTextSelection(range)}
+                                onTextSelectionChange={setTextSelection}
                                 onEditEnd={() => {
                                   setEditingTextLayerId(null);
                                 }}
@@ -1732,6 +1730,35 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   );
 }
 
+interface LayerNameEditState {
+  target: string | null;
+  name: string;
+}
+
+type LayerNameEditAction =
+  | { type: "start"; target: string; name: string }
+  | { type: "change"; name: string }
+  | { type: "reset" };
+
+function layerNameEditReducer(
+  state: LayerNameEditState,
+  action: LayerNameEditAction,
+): LayerNameEditState {
+  switch (action.type) {
+    case "start":
+      return { target: action.target, name: action.name };
+    case "change":
+      return { ...state, name: action.name };
+    case "reset":
+      return { target: null, name: "" };
+  }
+}
+
+function getLayerDropPosition(event: React.DragEvent<HTMLElement>) {
+  const rect = event.currentTarget.getBoundingClientRect();
+  return event.clientY > rect.top + rect.height / 2 ? "after" : "before";
+}
+
 function LayerSidebar({
   messages,
   layers,
@@ -1764,18 +1791,16 @@ function LayerSidebar({
     layerId: string;
     position: "before" | "after";
   } | null>(null);
-  const [editingNameTarget, setEditingNameTarget] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
+  const [nameEdit, dispatchNameEdit] = useReducer(layerNameEditReducer, {
+    target: null,
+    name: "",
+  });
+  const editingNameTarget = nameEdit.target;
+  const editingName = nameEdit.name;
   const panelLayers = useMemo(() => [...layers].reverse(), [layers]);
 
-  function getDropPosition(event: React.DragEvent<HTMLElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    return event.clientY > rect.top + rect.height / 2 ? "after" : "before";
-  }
-
   function startNameEdit(target: string, currentName: string) {
-    setEditingNameTarget(target);
-    setEditingName(currentName);
+    dispatchNameEdit({ type: "start", target, name: currentName });
   }
 
   function finishNameEdit() {
@@ -1784,13 +1809,11 @@ function LayerSidebar({
     if (nextName) {
       onRenameLayer(editingNameTarget, nextName);
     }
-    setEditingNameTarget(null);
-    setEditingName("");
+    dispatchNameEdit({ type: "reset" });
   }
 
   function cancelNameEdit() {
-    setEditingNameTarget(null);
-    setEditingName("");
+    dispatchNameEdit({ type: "reset" });
   }
 
   function getLayerTypeLabel(layer: SocialPreviewLayer) {
@@ -1855,13 +1878,13 @@ function LayerSidebar({
                     event.preventDefault();
                     if (!draggedLayerId || draggedLayerId === layer.id) return;
                     event.dataTransfer.dropEffect = "move";
-                    setDragOver({ layerId: layer.id, position: getDropPosition(event) });
+                    setDragOver({ layerId: layer.id, position: getLayerDropPosition(event) });
                   }}
                   onDrop={(event) => {
                     event.preventDefault();
                     const draggedId = event.dataTransfer.getData("text/plain") || draggedLayerId;
                     if (draggedId && draggedId !== layer.id) {
-                      onReorderLayer(draggedId, layer.id, getDropPosition(event));
+                      onReorderLayer(draggedId, layer.id, getLayerDropPosition(event));
                     }
                     setDraggedLayerId(null);
                     setDragOver(null);
@@ -1891,10 +1914,16 @@ function LayerSidebar({
                       {editingNameTarget === layer.id ? (
                         <input
                           type="text"
+                          aria-label={messages.renameAction}
                           value={editingName}
                           className="h-5 w-full rounded border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-1 text-xs font-medium text-[var(--ds-text)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
                           autoFocus
-                          onChange={(event) => setEditingName(event.currentTarget.value)}
+                          onChange={(event) =>
+                            dispatchNameEdit({
+                              type: "change",
+                              name: event.currentTarget.value,
+                            })
+                          }
                           onBlur={finishNameEdit}
                           onClick={(event) => event.stopPropagation()}
                           onPointerDown={(event) => event.stopPropagation()}
@@ -2202,14 +2231,15 @@ function SocialPreviewOverviewPage() {
         </div>
       </PageBody>
 
-      <NewProjectDialog
-        open={newProjectDialogOpen}
-        messages={t}
-        commonMessages={common}
-        busy={createProject.isPending}
-        onCancel={() => setNewProjectDialogOpen(false)}
-        onSubmit={(nextProjectName) => void handleCreateProject(nextProjectName)}
-      />
+      {newProjectDialogOpen && (
+        <NewProjectDialog
+          messages={t}
+          commonMessages={common}
+          busy={createProject.isPending}
+          onCancel={() => setNewProjectDialogOpen(false)}
+          onSubmit={handleCreateProject}
+        />
+      )}
 
       <RenameDialog
         open={renameProjectTarget !== null}
@@ -2646,14 +2676,12 @@ function SavedPreviewImagesSection() {
 }
 
 function NewProjectDialog({
-  open,
   messages,
   commonMessages,
   busy,
   onCancel,
   onSubmit,
 }: {
-  open: boolean;
   messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
   commonMessages: ReturnType<typeof useI18n>["messages"]["common"];
   busy: boolean;
@@ -2662,14 +2690,6 @@ function NewProjectDialog({
 }) {
   const [name, setName] = useState("");
   const canSubmit = name.trim().length > 0 && !busy;
-
-  useEffect(() => {
-    if (open) {
-      setName("");
-    }
-  }, [open]);
-
-  if (!open) return null;
 
   return (
     <Dialog

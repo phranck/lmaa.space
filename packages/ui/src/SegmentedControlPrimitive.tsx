@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
 import { cx } from "./classNames";
@@ -44,9 +38,12 @@ const sizeClass: Record<SegmentedControlPrimitiveSize, string> = {
 };
 
 const iconOnlySizeClass: Record<SegmentedControlPrimitiveSize, string> = {
-  compact: "h-[calc(var(--ds-control-h-field)-0.25rem)] w-[calc(var(--ds-control-h-field)-0.25rem)] text-sm",
-  default: "h-[calc(var(--ds-control-h-field)-0.25rem)] w-[calc(var(--ds-control-h-field)-0.25rem)] text-sm",
-  large: "h-[calc(var(--ds-control-h-field-large)-0.25rem)] w-[calc(var(--ds-control-h-field-large)-0.25rem)] text-sm",
+  compact:
+    "h-[calc(var(--ds-control-h-field)-0.25rem)] w-[calc(var(--ds-control-h-field)-0.25rem)] text-sm",
+  default:
+    "h-[calc(var(--ds-control-h-field)-0.25rem)] w-[calc(var(--ds-control-h-field)-0.25rem)] text-sm",
+  large:
+    "h-[calc(var(--ds-control-h-field-large)-0.25rem)] w-[calc(var(--ds-control-h-field-large)-0.25rem)] text-sm",
 };
 
 const containerSizeClass: Record<SegmentedControlPrimitiveSize, string> = {
@@ -54,6 +51,34 @@ const containerSizeClass: Record<SegmentedControlPrimitiveSize, string> = {
   default: "h-[var(--ds-control-h-field)]",
   large: "h-[var(--ds-control-h-field-large)]",
 };
+
+function handleSegmentedControlKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+  const direction = getSegmentKeyDirection(event.key);
+  if (direction === null && event.key !== "Home" && event.key !== "End") return;
+
+  const buttons = getSegmentButtons(event.currentTarget).filter((button) => !button.disabled);
+  if (buttons.length === 0) return;
+
+  const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+  let nextIndex = currentIndex >= 0 ? currentIndex : 0;
+
+  if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = buttons.length - 1;
+  } else if (direction !== null) {
+    nextIndex =
+      currentIndex >= 0
+        ? (currentIndex + direction + buttons.length) % buttons.length
+        : direction > 0
+          ? 0
+          : buttons.length - 1;
+  }
+
+  event.preventDefault();
+  buttons[nextIndex]?.focus();
+  buttons[nextIndex]?.click();
+}
 
 export function SegmentedControlPrimitive<T extends string = string>({
   "aria-label": ariaLabel,
@@ -139,40 +164,6 @@ export function SegmentedControlPrimitive<T extends string = string>({
     measurePill();
   }, [measurePill]);
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const direction = getSegmentKeyDirection(event.key);
-    if (direction === null && event.key !== "Home" && event.key !== "End") {
-      return;
-    }
-
-    const buttons = getSegmentButtons(event.currentTarget).filter(
-      (button) => !button.disabled,
-    );
-    if (buttons.length === 0) {
-      return;
-    }
-
-    const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
-    let nextIndex = currentIndex >= 0 ? currentIndex : 0;
-
-    if (event.key === "Home") {
-      nextIndex = 0;
-    } else if (event.key === "End") {
-      nextIndex = buttons.length - 1;
-    } else if (direction !== null) {
-      nextIndex =
-        currentIndex >= 0
-          ? (currentIndex + direction + buttons.length) % buttons.length
-          : direction > 0
-            ? 0
-            : buttons.length - 1;
-    }
-
-    event.preventDefault();
-    buttons[nextIndex]?.focus();
-    buttons[nextIndex]?.click();
-  };
-
   return (
     <div
       aria-label={ariaLabel}
@@ -184,7 +175,7 @@ export function SegmentedControlPrimitive<T extends string = string>({
           : "border border-transparent bg-[var(--ds-segment-bg)]",
         className,
       )}
-      onKeyDown={handleKeyDown}
+      onKeyDown={handleSegmentedControlKeyDown}
       ref={containerRef}
       role="group"
     >
@@ -247,9 +238,7 @@ export function SegmentedControlPrimitive<T extends string = string>({
 
 function getSegmentButtons(root: HTMLElement) {
   return Array.from(
-    root.querySelectorAll<HTMLButtonElement>(
-      "[data-segmented-control-item='true']",
-    ),
+    root.querySelectorAll<HTMLButtonElement>("[data-segmented-control-item='true']"),
   );
 }
 

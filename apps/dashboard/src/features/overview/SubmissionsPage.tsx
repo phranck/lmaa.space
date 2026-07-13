@@ -159,7 +159,7 @@ export function SubmissionsPage() {
   }
 
   function handleStatusFilterChange(nextStatus: SuggestionsStatusFilter) {
-    setStoredStatusFilter(nextStatus);
+    setStoredStatusFilter(() => nextStatus);
     writeStoredSuggestionsStatusFilter(suggestionsStatusStorageKey, nextStatus);
     setSearchParams(applySuggestionsStatusFilterSearchParam(searchParams, nextStatus), {
       replace: true,

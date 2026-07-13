@@ -10,7 +10,8 @@ const DACH_BOUNDS: LatLngBoundsExpression = [
   [55.1, 17.3],
 ];
 const DETAIL_ZOOM = 15;
-const STORAGE_KEY = "lmaa-map-prefs";
+const STORAGE_KEY = "lmaa-map-prefs:v1";
+const LEGACY_STORAGE_KEY = "lmaa-map-prefs";
 
 const MARKER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41"><path d="M12.5 0C5.6 0 0 5.6 0 12.5 0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="#d97706"/><circle cx="12.5" cy="12.5" r="6" fill="#fff"/></svg>`;
 
@@ -27,8 +28,7 @@ const LAYERS = [
     id: "osm",
     label: "Karte",
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
     thumb: "https://a.tile.openstreetmap.org/12/2135/1407.png",
   },
@@ -38,14 +38,14 @@ const LAYERS = [
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
     maxZoom: 19,
-    thumb: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1407/2135",
+    thumb:
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1407/2135",
   },
   {
     id: "topo",
     label: "Topo",
     url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-    attribution:
-      '&copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
+    attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
     maxZoom: 17,
     thumb: "https://a.tile.opentopomap.org/12/2135/1407.png",
   },
@@ -177,7 +177,14 @@ const SCOPED_CSS = /* css */ `
 
 function LayersIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" fill="currentColor" style={{ marginTop: -3 }}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 256 256"
+      fill="currentColor"
+      style={{ marginTop: -3 }}
+    >
       <path d="M230.91 124 128 180.07 25.09 124a8 8 0 0 0-10.18 12l104 56a8 8 0 0 0 7.58 0l104-56a8 8 0 0 0-10.18-12ZM128 236.07 25.09 180a8 8 0 1 0-7.58 14.12l104 56a8 8 0 0 0 7.58 0l104-56a8 8 0 0 0-7.58-14.12Zm-99.49-128 104-56a8 8 0 0 1 7.58 0l104 56a8 8 0 0 1 0 14.12l-104 56a8 8 0 0 1-7.58 0l-104-56a8 8 0 0 1 0-14.12Z" />
     </svg>
   );
@@ -198,23 +205,15 @@ export interface ShopLocationMapProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function parseCoordinate(
-  value: string | number | null | undefined,
-  min: number,
-  max: number,
-) {
+function parseCoordinate(value: string | number | null | undefined, min: number, max: number) {
   if (typeof value === "number") {
-    return Number.isFinite(value) && value >= min && value <= max
-      ? value
-      : null;
+    return Number.isFinite(value) && value >= min && value <= max ? value : null;
   }
   if (typeof value !== "string") return null;
   const normalized = value.trim().replace(",", ".");
   if (normalized === "") return null;
   const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) && parsed >= min && parsed <= max
-    ? parsed
-    : null;
+  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : null;
 }
 
 function getDefaultPrefs(): MapPrefs {
@@ -224,8 +223,12 @@ function getDefaultPrefs(): MapPrefs {
 function loadPrefs(): MapPrefs {
   try {
     if (typeof window === "undefined") return getDefaultPrefs();
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) return getDefaultPrefs();
+    if (localStorage.getItem(STORAGE_KEY) === null) {
+      localStorage.setItem(STORAGE_KEY, raw);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    }
     const prefs = JSON.parse(raw);
     const fallback = getDefaultPrefs();
     return {
@@ -240,10 +243,7 @@ function loadPrefs(): MapPrefs {
 function savePrefs(nextPrefs: Partial<MapPrefs>) {
   try {
     if (typeof window === "undefined") return;
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...loadPrefs(), ...nextPrefs }),
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...loadPrefs(), ...nextPrefs }));
   } catch {}
 }
 
@@ -251,11 +251,7 @@ function savePrefs(nextPrefs: Partial<MapPrefs>) {
 // Internal map components
 // ---------------------------------------------------------------------------
 
-function ViewportSync({
-  position,
-}: {
-  position: LatLngLiteral | null;
-}) {
+function ViewportSync({ position }: { position: LatLngLiteral | null }) {
   const map = useMap();
   const hadPositionRef = React.useRef(position !== null);
 
@@ -302,10 +298,7 @@ function FullscreenControl() {
     const FullscreenCtrl = Control.extend({
       options: { position: "topleft" },
       onAdd() {
-        const container = DomUtil.create(
-          "div",
-          "leaflet-bar leaflet-control",
-        );
+        const container = DomUtil.create("div", "leaflet-bar leaflet-control");
         const a = DomUtil.create("a", "", container);
         a.href = "#";
         a.title = "Vollbild";
@@ -347,16 +340,13 @@ function FullscreenControl() {
   return null;
 }
 
-function PreferencePersist({
-  layerId,
-  persistZoom,
-}: {
-  layerId: string;
-  persistZoom: boolean;
-}) {
+function PreferencePersist({ layerId, persistZoom }: { layerId: string; persistZoom: boolean }) {
   const map = useMap();
   const persistZoomRef = React.useRef(persistZoom);
-  persistZoomRef.current = persistZoom;
+
+  React.useEffect(() => {
+    persistZoomRef.current = persistZoom;
+  }, [persistZoom]);
 
   React.useEffect(() => {
     function onZoomEnd() {
@@ -397,11 +387,9 @@ function LayerSwitcher({
   }
 
   function handleToggle() {
-    setOpen((prev) => {
-      clearTimeout(timerRef.current);
-      if (!prev) startAutoClose();
-      return !prev;
-    });
+    clearTimeout(timerRef.current);
+    if (!open) startAutoClose();
+    setOpen(!open);
   }
 
   function handleSelect(id: string) {
@@ -462,8 +450,7 @@ export function ShopLocationMap({
     return { lat, lng };
   }, [latitude, longitude]);
 
-  const [browserPosition, setBrowserPosition] =
-    React.useState<LatLngLiteral | null>(null);
+  const [browserPosition, setBrowserPosition] = React.useState<LatLngLiteral | null>(null);
   const [prefs] = React.useState(loadPrefs);
   const [activeLayerId, setActiveLayerId] = React.useState(prefs.layer);
 
@@ -474,8 +461,7 @@ export function ShopLocationMap({
       setBrowserPosition(null);
       return;
     }
-    if (typeof navigator === "undefined" || !("geolocation" in navigator))
-      return;
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) return;
 
     let cancelled = false;
     navigator.geolocation.getCurrentPosition(
@@ -505,7 +491,11 @@ export function ShopLocationMap({
   const markerPosition = shopPosition ?? browserPosition;
 
   return (
-    <div role="application" aria-label={name ? `Karte: ${name}` : "Karte"} className={`slm-root relative overflow-hidden ${className}`}>
+    <div
+      role="application"
+      aria-label={name ? `Karte: ${name}` : "Karte"}
+      className={`slm-root relative overflow-hidden ${className}`}
+    >
       {/* Scoped CSS for Leaflet map styling -- static trusted content */}
       <style>{SCOPED_CSS}</style>
       <MapContainer

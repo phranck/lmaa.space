@@ -3,6 +3,21 @@ import { HLS_MANIFEST_MIME_TYPE } from "@lmaa/shared";
 
 import type { DashboardLocale } from "@/i18n/messages.ts";
 
+const BYTE_FORMATTERS: Record<DashboardLocale, Record<"compact" | "fixed", Intl.NumberFormat>> = {
+  de: {
+    compact: new Intl.NumberFormat("de", { maximumFractionDigits: 1 }),
+    fixed: new Intl.NumberFormat("de", { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+  },
+  en: {
+    compact: new Intl.NumberFormat("en", { maximumFractionDigits: 1 }),
+    fixed: new Intl.NumberFormat("en", { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+  },
+};
+const MEDIA_DATE_FORMATTERS: Record<DashboardLocale, Intl.DateTimeFormat> = {
+  de: new Intl.DateTimeFormat("de", { dateStyle: "medium", timeStyle: "short" }),
+  en: new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }),
+};
+
 export function isImageAsset(asset: MediaAsset) {
   return asset.kind === "image";
 }
@@ -52,14 +67,8 @@ export function formatBytes(
   locale: DashboardLocale,
   options: FormatBytesOptions = {},
 ) {
-  const numberOptions =
-    options.fixedFractionDigits !== undefined
-      ? {
-          minimumFractionDigits: options.fixedFractionDigits,
-          maximumFractionDigits: options.fixedFractionDigits,
-        }
-      : { maximumFractionDigits: 1 };
-  const formatter = new Intl.NumberFormat(locale, numberOptions);
+  const formatter =
+    BYTE_FORMATTERS[locale][options.fixedFractionDigits === undefined ? "compact" : "fixed"];
 
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${formatter.format(bytes / 1024)} KB`;
@@ -67,10 +76,7 @@ export function formatBytes(
 }
 
 export function formatMediaDate(value: string, locale: DashboardLocale) {
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return MEDIA_DATE_FORMATTERS[locale].format(new Date(value));
 }
 
 export function getMediaTypeLabel(asset: MediaAsset) {

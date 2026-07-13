@@ -1,5 +1,4 @@
 import { CaretDownIcon } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
 import { useMatch } from "react-router";
 
 function SidebarBadge({ count }: { count: number }) {
@@ -35,32 +34,14 @@ export function CollapsibleSidebarGroup({
   onOpenChange,
 }: CollapsibleSidebarGroupProps) {
   const isGroupActive = !!useMatch(routeMatch);
-  const [localOpen, setLocalOpen] = useState(() => {
-    const stored = localStorage.getItem(storageKey) === "true";
-    return isGroupActive || stored;
-  });
-
-  useEffect(() => {
-    if (!isGroupActive) return;
-    setLocalOpen(true);
-  }, [isGroupActive]);
-
-  useEffect(() => {
-    if (globalOpenState === null) return;
-    setLocalOpen(globalOpenState);
-    localStorage.setItem(storageKey, String(globalOpenState));
-  }, [globalOpenState, globalOpenVersion, storageKey]);
-
-  useEffect(() => {
-    onOpenChange?.(localOpen);
-  }, [localOpen, onOpenChange]);
+  const storedOpen = localStorage.getItem(storageKey) === "true";
+  const isOpen = isGroupActive || (globalOpenState ?? storedOpen);
+  void globalOpenVersion;
 
   function toggleOpen() {
-    setLocalOpen((current) => {
-      const next = !current;
-      localStorage.setItem(storageKey, String(next));
-      return next;
-    });
+    const next = !isOpen;
+    localStorage.setItem(storageKey, String(next));
+    onOpenChange?.(next);
   }
 
   return (
@@ -68,7 +49,7 @@ export function CollapsibleSidebarGroup({
       <button
         type="button"
         onClick={toggleOpen}
-        aria-expanded={localOpen}
+        aria-expanded={isOpen}
         className="flex w-full items-center gap-3 px-3 py-2 rounded-control text-sm font-medium text-left select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
       >
         <span className="shrink-0 opacity-70">{icon}</span>
@@ -76,12 +57,12 @@ export function CollapsibleSidebarGroup({
         {badge !== undefined && <SidebarBadge count={badge} />}
         <CaretDownIcon
           weight="duotone"
-          className={`w-3.5 h-3.5 opacity-50 transition-transform duration-200 ease-out ${localOpen ? "rotate-180" : ""}`}
+          className={`w-3.5 h-3.5 opacity-50 transition-transform duration-200 ease-out ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       <div
         className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
-          localOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-70"
+          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-70"
         }`}
       >
         <div className="overflow-hidden">
@@ -92,15 +73,4 @@ export function CollapsibleSidebarGroup({
       </div>
     </div>
   );
-}
-
-/**
- * Returns className callback for NavLink items inside a CollapsibleSidebarGroup.
- */
-export function sidebarGroupItemClass({ isActive }: { isActive: boolean }): string {
-  return `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
-    isActive
-      ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-      : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-  }`;
 }

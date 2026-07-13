@@ -6,7 +6,7 @@ import {
   SealWarningIcon,
   SquareHalfBottomIcon,
 } from "@phosphor-icons/react";
-import { Suspense, lazy, type ReactNode, useRef, useState } from "react";
+import { Suspense, lazy, type ReactNode, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "react-toastify";
 
@@ -44,6 +44,21 @@ interface TemplateFormFields {
   footerBannerUrl: string;
   footerText: string;
   isSystemTemplate: boolean;
+}
+
+type ExistingEmailTemplate = NonNullable<ReturnType<typeof useEmailTemplate>["data"]>;
+
+function createTemplateForm(existing?: ExistingEmailTemplate): TemplateFormFields {
+  return {
+    name: existing?.name ?? "",
+    subject: existing?.subject ?? "",
+    headerBannerUrl: existing?.headerBannerUrl ?? "",
+    headerText: existing?.headerText ?? "",
+    bodyText: existing?.bodyText ?? "",
+    footerBannerUrl: existing?.footerBannerUrl ?? "",
+    footerText: existing?.footerText ?? "",
+    isSystemTemplate: existing?.isSystemTemplate ?? false,
+  };
 }
 
 function MarkdownEditorField({
@@ -86,29 +101,49 @@ function MarkdownEditorField({
  */
 export function EmailTemplateEditPage() {
   const { messages } = useI18n();
-  const m = messages.emailTemplates;
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const isOwner = Boolean(user?.isOwner);
   const { id: idParam } = useParams<{ id?: string }>();
   const isNew = !idParam || idParam === "new";
   const numId = isNew ? 0 : Number(idParam);
 
   const { data: existing, isLoading } = useEmailTemplate(numId);
+
+  if (!isNew && isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-[var(--ds-text-muted)] text-sm">
+        {messages.common.loading}
+      </div>
+    );
+  }
+
+  return (
+    <EmailTemplateEditor
+      key={existing?.id ?? "new"}
+      existing={existing}
+      isNew={isNew}
+      numId={numId}
+    />
+  );
+}
+
+function EmailTemplateEditor({
+  existing,
+  isNew,
+  numId,
+}: {
+  existing?: ExistingEmailTemplate;
+  isNew: boolean;
+  numId: number;
+}) {
+  const { messages } = useI18n();
+  const m = messages.emailTemplates;
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isOwner = Boolean(user?.isOwner);
   const createMutation = useCreateEmailTemplate();
   const updateMutation = useUpdateEmailTemplate(numId);
   const sendTestMutation = useSendTestEmail();
 
-  const [form, setForm] = useState<TemplateFormFields>({
-    name: "",
-    subject: "",
-    headerBannerUrl: "",
-    headerText: "",
-    bodyText: "",
-    footerBannerUrl: "",
-    footerText: "",
-    isSystemTemplate: false,
-  });
+  const [form, setForm] = useState<TemplateFormFields>(() => createTemplateForm(existing));
   const { name, subject, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText } =
     form;
 
@@ -121,22 +156,6 @@ export function EmailTemplateEditPage() {
 
   const [savedIndicator, setSavedIndicator] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Populate form when existing template data arrives (adjust-state-during-render pattern)
-  const syncedExistingIdRef = useRef<number | undefined>(undefined);
-  if (existing && existing.id !== syncedExistingIdRef.current) {
-    syncedExistingIdRef.current = existing.id;
-    setForm({
-      name: existing.name,
-      subject: existing.subject,
-      headerBannerUrl: existing.headerBannerUrl ?? "",
-      headerText: existing.headerText ?? "",
-      bodyText: existing.bodyText,
-      footerBannerUrl: existing.footerBannerUrl ?? "",
-      footerText: existing.footerText ?? "",
-      isSystemTemplate: existing.isSystemTemplate,
-    });
-  }
 
   function buildPayload(): EmailTemplateInput {
     return {
@@ -193,14 +212,6 @@ export function EmailTemplateEditPage() {
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;
-
-  if (!isNew && isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64 text-[var(--ds-text-muted)] text-sm">
-        {messages.common.loading}
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-full">

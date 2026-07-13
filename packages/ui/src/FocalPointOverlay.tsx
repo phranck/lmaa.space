@@ -8,18 +8,10 @@ import { useCallback, useRef, useState } from "react";
  * @param onCommit - Called with the final Y value when the user releases the drag.
  * @returns `{ focalY, containerRef, startDrag }` to wire up the overlay.
  */
-export function useFocalPointDrag(
-  initialValue: number,
-  onCommit: (focalPointY: number) => void,
-) {
-  const [focalY, setFocalY] = useState(initialValue);
-  const [prevInitial, setPrevInitial] = useState(initialValue);
+export function useFocalPointDrag(initialValue: number, onCommit: (focalPointY: number) => void) {
+  const [dragState, setDragState] = useState({ initialValue, focalY: initialValue });
   const containerRef = useRef<HTMLDivElement>(null);
-
-  if (initialValue !== prevInitial) {
-    setPrevInitial(initialValue);
-    setFocalY(initialValue);
-  }
+  const focalY = dragState.initialValue === initialValue ? dragState.focalY : initialValue;
 
   const startDrag = useCallback(
     (e: React.MouseEvent) => {
@@ -33,12 +25,12 @@ export function useFocalPointDrag(
         return Math.max(0, Math.min(100, Math.round(((clientY - rect.top) / rect.height) * 100)));
       };
 
-      setFocalY(calcY(e.clientY));
+      setDragState({ initialValue, focalY: calcY(e.clientY) });
 
-      const onMove = (ev: MouseEvent) => setFocalY(calcY(ev.clientY));
+      const onMove = (ev: MouseEvent) => setDragState({ initialValue, focalY: calcY(ev.clientY) });
       const onUp = (ev: MouseEvent) => {
         const y = calcY(ev.clientY);
-        setFocalY(y);
+        setDragState({ initialValue, focalY: y });
         onCommit(y);
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
@@ -47,7 +39,7 @@ export function useFocalPointDrag(
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
     },
-    [onCommit],
+    [initialValue, onCommit],
   );
 
   return { focalY, containerRef, startDrag };

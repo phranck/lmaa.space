@@ -104,13 +104,6 @@ export function useAdminShop(id: number | null) {
   });
 }
 
-export function getAdminShopQueryOptions(id: number) {
-  return {
-    queryKey: getAdminShopQueryKey(id),
-    queryFn: getAdminShopQueryFn(id),
-  };
-}
-
 /**
  * Creates or updates a shop depending on presence of `editId`.
  *
@@ -196,20 +189,6 @@ export function useDeleteShop() {
         wasReported: wasReported ?? false,
         mode: mode ?? "mark_deleted",
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
-  });
-}
-
-/**
- * Updates the delete reason of a soft-deleted shop.
- *
- * @returns React Query mutation.
- */
-export function useUpdateDeleteReason() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, reason }: { id: number; reason: string | null }) =>
-      api.patch(`/admin/shops/${id}/delete-reason`, { reason }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });
 }

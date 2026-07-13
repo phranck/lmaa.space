@@ -14,6 +14,31 @@ interface BuilderFieldProps {
   onDelete: () => void;
 }
 
+const FIELD_TYPE_ABBREVIATIONS: Record<string, string> = {
+  text: "Txt",
+  email: "Em",
+  textarea: "Ta",
+  select: "Sel",
+  "multi-select": "MSl",
+  checkbox: "Cb",
+  richtext: "Md",
+  button: "Btn",
+  password: "Pw",
+  headline: "H",
+  separator: "—",
+  paragraph: "Abs",
+};
+
+const INPUT_TYPE_ABBREVIATIONS: Record<string, string> = {
+  text: "Txt",
+  email: "Em",
+  password: "Pw",
+  url: "Url",
+  tel: "Tel",
+  date: "Dat",
+  number: "Nr",
+};
+
 /**
  * Sortable field card displayed inside a builder row.
  *
@@ -51,35 +76,10 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
     paragraph: ft.paragraph,
   };
 
-  const typeAbbr: Record<string, string> = {
-    text: "Txt",
-    email: "Em",
-    textarea: "Ta",
-    select: "Sel",
-    "multi-select": "MSl",
-    checkbox: "Cb",
-    richtext: "Md",
-    button: "Btn",
-    password: "Pw",
-    headline: "H",
-    separator: "—",
-    paragraph: "Abs",
-  };
-
-  const inputTypeAbbr: Record<string, string> = {
-    text: "Txt",
-    email: "Em",
-    password: "Pw",
-    url: "Url",
-    tel: "Tel",
-    date: "Dat",
-    number: "Nr",
-  };
-
   const fieldAbbr =
     field.type === "text"
-      ? (inputTypeAbbr[field.inputType ?? "text"] ?? "Txt")
-      : (typeAbbr[field.type] ?? field.type.slice(0, 3));
+      ? (INPUT_TYPE_ABBREVIATIONS[field.inputType ?? "text"] ?? "Txt")
+      : (FIELD_TYPE_ABBREVIATIONS[field.type] ?? field.type.slice(0, 3));
 
   return (
     <div

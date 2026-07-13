@@ -7,7 +7,15 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { BrowsersIcon, FileIcon, NotebookIcon, SquareHalfBottomIcon } from "@phosphor-icons/react";
-import { useEffect, useImperativeHandle, useReducer, useRef, useState, type Ref } from "react";
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useReducer,
+  useRef,
+  useState,
+  type Ref,
+} from "react";
 
 import type { NavId } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
@@ -215,10 +223,13 @@ function NavColumn({ navId, onDirtyChange, ref }: NavColumnProps) {
     dispatch({ items: typeof updater === "function" ? updater(items) : updater });
   };
 
-  function setDirty(dirty: boolean) {
-    dispatch({ dirty });
-    onDirtyChange?.(dirty);
-  }
+  const setDirty = useCallback(
+    (dirty: boolean) => {
+      dispatch({ dirty });
+      onDirtyChange?.(dirty);
+    },
+    [onDirtyChange],
+  );
 
   useEffect(() => {
     dispatch({
@@ -338,7 +349,7 @@ function NavColumn({ navId, onDirtyChange, ref }: NavColumnProps) {
     setDirty(true);
   }
 
-  async function handleSave(): Promise<boolean> {
+  const handleSave = useCallback(async (): Promise<boolean> => {
     if (!dirty) return true;
     try {
       await saveNav.mutateAsync(
@@ -354,7 +365,7 @@ function NavColumn({ navId, onDirtyChange, ref }: NavColumnProps) {
     } catch {
       return false;
     }
-  }
+  }, [dirty, items, saveNav, setDirty]);
 
   useImperativeHandle(
     ref,
@@ -362,7 +373,7 @@ function NavColumn({ navId, onDirtyChange, ref }: NavColumnProps) {
       save: handleSave,
       hasDirty: () => dirty,
     }),
-    [dirty, items],
+    [dirty, handleSave],
   );
 
   const usedPageSlugs = new Set<string>();

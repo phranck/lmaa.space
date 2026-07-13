@@ -9,13 +9,7 @@ import {
 } from "@phosphor-icons/react";
 import { Suspense, lazy } from "react";
 
-import type {
-  ButtonActionType,
-  FieldType,
-  FormField,
-  InputType,
-  RichTextVariant,
-} from "@lmaa/contracts";
+import type { ButtonActionType, FormField, InputType, RichTextVariant } from "@lmaa/contracts";
 import { FormLabelText } from "@lmaa/ui/form-primitives";
 
 const MarkdownEditor = lazy(() =>
@@ -35,16 +29,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 const IconPicker = lazy(() =>
   import("@/components/ui/IconPicker.tsx").then((module) => ({ default: module.IconPicker })),
 );
-
-// ---------------------------------------------------------------------------
-// Field type label helper
-// ---------------------------------------------------------------------------
-
-export function fieldTypeLabel(type: FieldType, ft: Record<string, string>): string {
-  // FieldType uses kebab-case ("multi-select") but i18n keys use camelCase
-  const key = type.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
-  return ft[key] ?? ft[type] ?? type;
-}
 
 interface FieldConfigPanelProps {
   field: FormField;

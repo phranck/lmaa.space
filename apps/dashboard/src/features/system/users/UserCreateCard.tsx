@@ -84,7 +84,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
   function handleSubmit() {
     createMutation.mutate(form, {
       onSuccess: (result) => {
-        setInviteResult(result);
+        setInviteResult(() => result);
         setCopied(false);
         onCreated();
       },

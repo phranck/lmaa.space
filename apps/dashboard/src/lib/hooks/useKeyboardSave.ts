@@ -65,8 +65,11 @@ export function useKeyboardSave(handler: () => void, enabled = true) {
   const context = useContext(KeyboardSaveContext);
   const handlerRef = useRef(handler);
   const enabledRef = useRef(enabled);
-  handlerRef.current = handler;
-  enabledRef.current = enabled;
+
+  useEffect(() => {
+    handlerRef.current = handler;
+    enabledRef.current = enabled;
+  }, [handler, enabled]);
 
   useEffect(() => {
     if (!context) {

@@ -47,7 +47,7 @@ export function EmailPreview({
           footerBannerUrl: footerBannerUrl || null,
           colorScheme,
         })
-        .then(({ html }) => setSrcDoc(html))
+        .then(({ html }) => setSrcDoc(() => html))
         .catch(() => {});
     }, 800);
     return () => {

@@ -55,14 +55,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [effectiveTheme]);
 
-  const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
+  const updateTheme = useCallback((t: Theme) => {
+    setThemeState(() => t);
     localStorage.setItem(STORAGE_KEY, t);
   }, []);
 
   const value = useMemo(
-    () => ({ theme, setTheme, effectiveTheme }),
-    [theme, setTheme, effectiveTheme],
+    () => ({ theme, setTheme: updateTheme, effectiveTheme }),
+    [theme, updateTheme, effectiveTheme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

@@ -7,6 +7,7 @@ import {
   useId,
   useLayoutEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
 } from "react";
@@ -23,15 +24,11 @@ import type {
 import { createPortal } from "react-dom";
 
 import { cx } from "./classNames";
-import {
-  OverlayLayerZIndexContext,
-  resolveOverlayZIndex,
-} from "./overlay-stack";
+import { OverlayLayerZIndexContext, resolveOverlayZIndex } from "./overlay-stack";
 
 type ControlTriggerSize = "field" | "large";
 
-export interface ControlTriggerProps
-  extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ControlTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   activeDescendant?: string;
   controls?: string;
   controlSize?: ControlTriggerSize;
@@ -93,14 +90,13 @@ export function ControlTrigger({
           : multiline
             ? "min-h-[var(--ds-control-h-field)] px-3 py-1.5"
             : "h-[var(--ds-control-h-field)] px-3",
-        invalid
-          ? "border-[var(--ds-danger-border,var(--ds-danger))]"
-          : "border-[var(--ds-border)]",
+        invalid ? "border-[var(--ds-danger-border,var(--ds-danger))]" : "border-[var(--ds-border)]",
         open && "border-[var(--ds-border-focus)] ring-2 ring-[var(--ds-focus-ring)]",
         className,
       )}
       disabled={disabled}
       ref={ref}
+      role="combobox"
       type={type}
       {...restButtonProps}
     >
@@ -152,8 +148,10 @@ export interface ListboxPopoverRenderState {
   listboxId: string;
 }
 
-export interface ListboxPopoverProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect"> {
+export interface ListboxPopoverProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "children" | "onSelect"
+> {
   activeValue?: string;
   children: ReactNode | ((state: ListboxPopoverRenderState) => ReactNode);
   closeOnSelect?: boolean;
@@ -207,27 +205,31 @@ export function ListboxPopover({
     portal,
     triggerRef,
   });
-  const disabledValueSet = useMemo(
-    () => new Set(disabledValues),
-    [disabledValues],
-  );
+  const disabledValueSet = useMemo(() => new Set(disabledValues), [disabledValues]);
   const enabledOptionValues = useMemo(
     () => optionValues.filter((value) => !disabledValueSet.has(value)),
     [disabledValueSet, optionValues],
   );
   const firstEnabledValue = enabledOptionValues[0];
-  const [internalActiveValue, setInternalActiveValue] = useState<
-    string | undefined
-  >(defaultActiveValue ?? selectedValue ?? firstEnabledValue);
-  const currentActiveValue = activeValue ?? internalActiveValue;
+  const [internalActiveValue, replaceInternalActiveValue] = useReducer(
+    (_current: string | undefined, next: string | undefined) => next,
+    defaultActiveValue ?? selectedValue ?? firstEnabledValue,
+  );
+  const requestedActiveValue = activeValue ?? internalActiveValue;
+  const currentActiveValue =
+    requestedActiveValue && enabledOptionValues.includes(requestedActiveValue)
+      ? requestedActiveValue
+      : selectedValue && enabledOptionValues.includes(selectedValue)
+        ? selectedValue
+        : firstEnabledValue;
 
-  const setActiveValue = useCallback(
+  const activateValue = useCallback(
     (nextValue: string) => {
       if (disabledValueSet.has(nextValue)) {
         return;
       }
       if (activeValue === undefined) {
-        setInternalActiveValue(nextValue);
+        replaceInternalActiveValue(nextValue);
       }
       onActiveValueChange?.(nextValue);
     },
@@ -237,9 +239,7 @@ export function ListboxPopover({
   const getOptionId = useCallback(
     (value: string) => {
       const optionIndex = optionValues.indexOf(value);
-      return optionIndex >= 0
-        ? `${resolvedListboxId}-option-${optionIndex}`
-        : undefined;
+      return optionIndex >= 0 ? `${resolvedListboxId}-option-${optionIndex}` : undefined;
     },
     [optionValues, resolvedListboxId],
   );
@@ -272,40 +272,15 @@ export function ListboxPopover({
     onOpenChange,
     open,
     selectValue,
-    setActiveValue,
+    setActiveValue: activateValue,
     triggerRef,
   });
-
-  useEffect(() => {
-    if (!open || enabledOptionValues.length === 0) {
-      return;
-    }
-    if (
-      currentActiveValue &&
-      enabledOptionValues.includes(currentActiveValue)
-    ) {
-      return;
-    }
-    if (selectedValue && enabledOptionValues.includes(selectedValue)) {
-      setActiveValue(selectedValue);
-      return;
-    }
-    setActiveValue(enabledOptionValues[0]);
-  }, [
-    currentActiveValue,
-    enabledOptionValues,
-    open,
-    selectedValue,
-    setActiveValue,
-  ]);
 
   if (!open) {
     return null;
   }
 
-  const activeDescendantId = currentActiveValue
-    ? getOptionId(currentActiveValue)
-    : undefined;
+  const activeDescendantId = currentActiveValue ? getOptionId(currentActiveValue) : undefined;
   const contextValue: ListboxContextValue = {
     activeValue: currentActiveValue,
     disabledValues: disabledValueSet,
@@ -313,7 +288,7 @@ export function ListboxPopover({
     listboxId: resolvedListboxId,
     selectedValue,
     selectValue,
-    setActiveValue,
+    setActiveValue: activateValue,
   };
   const renderState: ListboxPopoverRenderState = {
     activeDescendantId,
@@ -335,8 +310,7 @@ export function ListboxPopover({
           ...style,
         }
       : style;
-  const content =
-    typeof children === "function" ? children(renderState) : children;
+  const content = typeof children === "function" ? children(renderState) : children;
   const popover = (
     <ListboxPopoverContent
       activeDescendantId={activeDescendantId}
@@ -354,8 +328,7 @@ export function ListboxPopover({
   );
 
   const portalTarget =
-    portalContainer ??
-    (typeof document !== "undefined" ? document.body : undefined);
+    portalContainer ?? (typeof document !== "undefined" ? document.body : undefined);
 
   return portal && portalTarget ? createPortal(popover, portalTarget) : popover;
 }
@@ -373,8 +346,7 @@ function useListboxPortalPosition({
   portal,
   triggerRef,
 }: ListboxPortalPositionParams) {
-  const [portalPosition, setPortalPosition] =
-    useState<ListboxPopoverPosition | null>(null);
+  const [portalPosition, setPortalPosition] = useState<ListboxPopoverPosition | null>(null);
 
   useLayoutEffect(() => {
     if (!open || !portal) {
@@ -421,21 +393,19 @@ function useListboxDismissal({
   popoverRef,
   triggerRef,
 }: ListboxDismissalParams) {
-  const handleDocumentMouseDown = useEffectEvent(
-    (event: globalThis.MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) {
-        return;
-      }
-      if (triggerRef.current?.contains(target)) {
-        return;
-      }
-      if (popoverRef.current?.contains(target)) {
-        return;
-      }
-      onOpenChange(false);
-    },
-  );
+  const handleDocumentMouseDown = useEffectEvent((event: globalThis.MouseEvent) => {
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      return;
+    }
+    if (triggerRef.current?.contains(target)) {
+      return;
+    }
+    if (popoverRef.current?.contains(target)) {
+      return;
+    }
+    onOpenChange(false);
+  });
 
   useEffect(() => {
     if (!open) {
@@ -443,8 +413,7 @@ function useListboxDismissal({
     }
 
     document.addEventListener("mousedown", handleDocumentMouseDown);
-    return () =>
-      document.removeEventListener("mousedown", handleDocumentMouseDown);
+    return () => document.removeEventListener("mousedown", handleDocumentMouseDown);
   }, [open]);
 }
 
@@ -469,85 +438,81 @@ function useListboxKeyboardNavigation({
   setActiveValue,
   triggerRef,
 }: ListboxKeyboardNavigationParams) {
-  const handleDocumentKeyDown = useEffectEvent(
-    (event: globalThis.KeyboardEvent) => {
-      if (event.defaultPrevented) {
+  const handleDocumentKeyDown = useEffectEvent((event: globalThis.KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      onOpenChange(false);
+      triggerRef.current?.focus();
+      return;
+    }
+
+    if (isTextEntryTarget(event.target)) {
+      return;
+    }
+
+    const moveActiveValue = (direction: 1 | -1) => {
+      if (enabledOptionValues.length === 0) {
         return;
       }
 
-      if (event.key === "Escape") {
+      const currentIndex = currentActiveValue
+        ? enabledOptionValues.indexOf(currentActiveValue)
+        : -1;
+      const nextIndex =
+        currentIndex >= 0
+          ? (currentIndex + direction + enabledOptionValues.length) % enabledOptionValues.length
+          : direction > 0
+            ? 0
+            : enabledOptionValues.length - 1;
+
+      setActiveValue(enabledOptionValues[nextIndex]);
+    };
+
+    switch (event.key) {
+      case "ArrowDown":
         event.preventDefault();
         event.stopPropagation();
-        onOpenChange(false);
-        triggerRef.current?.focus();
-        return;
+        moveActiveValue(1);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        event.stopPropagation();
+        moveActiveValue(-1);
+        break;
+      case "Home":
+        event.preventDefault();
+        event.stopPropagation();
+        if (firstEnabledValue) {
+          setActiveValue(firstEnabledValue);
+        }
+        break;
+      case "End": {
+        event.preventDefault();
+        event.stopPropagation();
+        const lastEnabledValue = enabledOptionValues[enabledOptionValues.length - 1];
+        if (lastEnabledValue) {
+          setActiveValue(lastEnabledValue);
+        }
+        break;
       }
-
-      if (isTextEntryTarget(event.target)) {
-        return;
-      }
-
-      const moveActiveValue = (direction: 1 | -1) => {
-        if (enabledOptionValues.length === 0) {
+      case "Enter":
+      case " ":
+        if (!currentActiveValue) {
           return;
         }
-
-        const currentIndex = currentActiveValue
-          ? enabledOptionValues.indexOf(currentActiveValue)
-          : -1;
-        const nextIndex =
-          currentIndex >= 0
-            ? (currentIndex + direction + enabledOptionValues.length) %
-              enabledOptionValues.length
-            : direction > 0
-              ? 0
-              : enabledOptionValues.length - 1;
-
-        setActiveValue(enabledOptionValues[nextIndex]);
-      };
-
-      switch (event.key) {
-        case "ArrowDown":
-          event.preventDefault();
-          event.stopPropagation();
-          moveActiveValue(1);
-          break;
-        case "ArrowUp":
-          event.preventDefault();
-          event.stopPropagation();
-          moveActiveValue(-1);
-          break;
-        case "Home":
-          event.preventDefault();
-          event.stopPropagation();
-          if (firstEnabledValue) {
-            setActiveValue(firstEnabledValue);
-          }
-          break;
-        case "End": {
-          event.preventDefault();
-          event.stopPropagation();
-          const lastEnabledValue =
-            enabledOptionValues[enabledOptionValues.length - 1];
-          if (lastEnabledValue) {
-            setActiveValue(lastEnabledValue);
-          }
-          break;
-        }
-        case "Enter":
-        case " ":
-          if (!currentActiveValue) {
-            return;
-          }
-          event.preventDefault();
-          event.stopPropagation();
-          selectValue(currentActiveValue);
-          break;
-        default:
-          break;
-      }
-    },
-  );
+        event.preventDefault();
+        event.stopPropagation();
+        selectValue(currentActiveValue);
+        break;
+      default:
+        break;
+    }
+  });
 
   useEffect(() => {
     if (!open) {
@@ -555,13 +520,11 @@ function useListboxKeyboardNavigation({
     }
 
     document.addEventListener("keydown", handleDocumentKeyDown, true);
-    return () =>
-      document.removeEventListener("keydown", handleDocumentKeyDown, true);
+    return () => document.removeEventListener("keydown", handleDocumentKeyDown, true);
   }, [open]);
 }
 
-interface ListboxPopoverContentProps
-  extends HTMLAttributes<HTMLDivElement> {
+interface ListboxPopoverContentProps extends HTMLAttributes<HTMLDivElement> {
   activeDescendantId?: string;
   contextValue: ListboxContextValue;
   labelledBy?: string;
@@ -606,8 +569,10 @@ function ListboxPopoverContent({
   );
 }
 
-export interface ListboxOptionProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onSelect" | "value"> {
+export interface ListboxOptionProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "onSelect" | "value"
+> {
   active?: boolean;
   addOn?: ReactNode;
   leadingIcon?: ReactNode;
@@ -699,9 +664,7 @@ export function ListboxOption({
       )}
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {addOn && (
-        <span className="flex shrink-0 items-center text-[var(--ds-text-muted)]">
-          {addOn}
-        </span>
+        <span className="flex shrink-0 items-center text-[var(--ds-text-muted)]">{addOn}</span>
       )}
     </button>
   );

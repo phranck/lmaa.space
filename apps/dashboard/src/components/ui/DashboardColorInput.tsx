@@ -118,13 +118,13 @@ export function DashboardColorInput({
         </div>
       </div>
       {open && !disabled ? (
-        <div
-          className="absolute left-0 top-full z-50 mt-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3 shadow-lg"
-          role="dialog"
+        <dialog
+          open
+          className="absolute left-0 top-full z-50 m-0 mt-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3 shadow-lg"
           aria-label={ariaLabel}
         >
           <HexAlphaColorPicker color={pickerColor} onChange={onChange} />
-        </div>
+        </dialog>
       ) : null}
     </div>
   );

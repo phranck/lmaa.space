@@ -2,16 +2,11 @@ import type { HTMLAttributes, LabelHTMLAttributes, ReactNode } from "react";
 
 import { cx } from "./classNames.ts";
 import {
-  fieldErrorClass,
-  fieldHelpClass,
-  fieldLabelClass,
-  fieldOptionalClass,
-} from "./FieldPrimitives.tsx";
-
-export const formLabelClass = cx(fieldLabelClass, "mb-1");
-export const formOptionalClass = fieldOptionalClass;
-export const formHelpClass = fieldHelpClass;
-export const formErrorClass = cx(fieldErrorClass, "mt-1");
+  formErrorClass,
+  formHelpClass,
+  formLabelClass,
+  formOptionalClass,
+} from "./FormPrimitiveStyles.ts";
 
 export function FormLabel({ className, htmlFor, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
   return <label htmlFor={htmlFor} className={cx(formLabelClass, className)} {...props} />;

@@ -1,5 +1,5 @@
 import { CaretDownIcon, CaretUpIcon, SealWarningIcon, XCircleIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useController, useForm, useWatch } from "react-hook-form";
 
@@ -34,6 +34,11 @@ const inputClass =
 const errorClass = "text-[var(--ds-danger-text)] text-xs mt-1";
 
 const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5 px-1";
+const HEADLINE_CLASSES: Record<string, string> = {
+  h1: "text-3xl text-[var(--ds-text)]",
+  h2: "text-2xl text-[var(--ds-text)]",
+  h3: "text-xl text-[var(--ds-text)]",
+};
 
 function DynamicFormSubtext({ children }: { children: ReactNode }) {
   return <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-1">{children}</p>;
@@ -348,6 +353,7 @@ function MultiSelectDropdown({
   error,
 }: MultiSelectDropdownProps) {
   const [open, setOpen] = useState(false);
+  const listboxId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedValues = new Set(selected);
   const selectedOptions = [];
@@ -396,9 +402,19 @@ function MultiSelectDropdown({
           />
         )}
       </span>
-      <button
-        type="button"
+      <div
+        role="combobox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        aria-haspopup="listbox"
+        tabIndex={0}
         onClick={() => setOpen((v) => !v)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setOpen((current) => !current);
+          }
+        }}
         className={`w-full flex items-center gap-2 px-3 min-h-10 rounded-control border text-sm cursor-pointer text-left ${
           error ? "border-[var(--ds-danger-border)]" : "border-[var(--ds-border)]"
         } bg-[var(--ds-input-bg)] text-[var(--ds-text)]`}
@@ -457,16 +473,21 @@ function MultiSelectDropdown({
             />
           )}
         </div>
-      </button>
+      </div>
       {open && (
-        <div className="absolute z-20 w-full mt-1 bg-white border border-[var(--ds-border)] rounded-xl shadow-lg max-h-64 overflow-y-auto">
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-multiselectable="true"
+          className="absolute z-20 w-full mt-1 bg-white border border-[var(--ds-border)] rounded-xl shadow-lg max-h-64 overflow-y-auto"
+        >
           <label className="flex items-center gap-3 px-4 py-1.5 cursor-pointer hover:bg-[var(--ds-surface-alt)] select-none border-b border-[var(--ds-border)]">
             <input type="checkbox" checked={allSelected} onChange={toggleAll} className="sr-only" />
             <CustomCheckbox checked={allSelected} />
             <span className="text-sm text-[var(--ds-text-muted)]">(Alle auswählen)</span>
           </label>
           {options.map(({ value, label: optLabel, flag }) => {
-            const isChecked = selected.includes(value);
+            const isChecked = selectedValues.has(value);
             return (
               <label
                 key={value}
@@ -573,6 +594,8 @@ interface StaticMultiSelectProps {
 }
 
 function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSelectProps) {
+  const selectedValues = new Set(selected);
+
   function toggle(value: string) {
     if (selected.includes(value)) {
       onChange(selected.filter((v) => v !== value));
@@ -598,7 +621,7 @@ function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSele
             <input
               type="checkbox"
               value={opt}
-              checked={selected.includes(opt)}
+              checked={selectedValues.has(opt)}
               onChange={() => toggle(opt)}
               className="rounded border-[var(--ds-border)]"
             />
@@ -670,7 +693,7 @@ function ButtonField({
   const watchedRaw = useWatch({ control, name: sourceKey as keyof SimpleFields });
   const watchedValue = typeof watchedRaw === "string" ? watchedRaw : "";
 
-  const btnType = field.buttonType ?? "button";
+  const btnType = field.buttonType === "submit" ? "submit" : "button";
   const isSubmit = btnType === "submit";
   const btnWidth = field.buttonWidth ?? "automatic";
   const btnAlign = field.buttonAlign ?? "left";
@@ -888,12 +911,7 @@ export function FieldRenderer({
 
     case "headline": {
       const Tag = field.headlineLevel ?? "h2";
-      const headlineClass: Record<string, string> = {
-        h1: "text-3xl text-[var(--ds-text)]",
-        h2: "text-2xl text-[var(--ds-text)]",
-        h3: "text-xl text-[var(--ds-text)]",
-      };
-      return <Tag className={headlineClass[Tag]}>{field.label}</Tag>;
+      return <Tag className={HEADLINE_CLASSES[Tag]}>{field.label}</Tag>;
     }
 
     case "button":

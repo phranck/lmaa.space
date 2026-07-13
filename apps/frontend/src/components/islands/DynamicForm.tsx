@@ -78,6 +78,17 @@ function formReducer(state: FormState, patch: Partial<FormState>): FormState {
 
 export default function DynamicForm({ formConfig: rawFormConfig, categories }: Props) {
   const formConfig = useMemo(() => expandFormConfigText(rawFormConfig), [rawFormConfig]);
+  const iconContextValue = useMemo(
+    () => ({
+      weight: "duotone" as const,
+      style: {
+        transform: "scale(1.14)",
+        transformBox: "fill-box" as const,
+        transformOrigin: "center",
+      },
+    }),
+    [],
+  );
 
   const {
     register,
@@ -126,7 +137,8 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
             body && typeof body === "object" && "error" in body
               ? (body as Record<string, unknown>).error
               : null;
-          const errorObj = error && typeof error === "object" ? (error as Record<string, unknown>) : null;
+          const errorObj =
+            error && typeof error === "object" ? (error as Record<string, unknown>) : null;
           const rawStatus = errorObj?.status;
           const status =
             rawStatus === "published" ||
@@ -186,16 +198,7 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
   }
 
   return (
-    <IconContext.Provider
-      value={{
-        weight: "duotone",
-        style: {
-          transform: "scale(1.14)",
-          transformBox: "fill-box",
-          transformOrigin: "center",
-        },
-      }}
-    >
+    <IconContext.Provider value={iconContextValue}>
       <form
         onSubmit={(event) => {
           void handleSubmit(onSubmit)(event);

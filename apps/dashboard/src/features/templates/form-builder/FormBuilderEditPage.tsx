@@ -30,10 +30,8 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/templates/form-builder/BuilderCanvas.tsx";
-import {
-  FieldConfigPanel,
-  fieldTypeLabel,
-} from "@/features/templates/form-builder/FieldConfigPanel.tsx";
+import { fieldTypeLabel } from "@/features/templates/form-builder/field-type-label.ts";
+import { FieldConfigPanel } from "@/features/templates/form-builder/FieldConfigPanel.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { FieldPalette } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { SubmissionConfigPanel } from "@/features/templates/form-builder/SubmissionConfigPanel.tsx";

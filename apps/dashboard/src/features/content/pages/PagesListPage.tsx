@@ -111,8 +111,18 @@ export function PagesListPage() {
   }
 
   const [state, dispatch] = useReducer(
-    (prev: PagesListState, action: Partial<PagesListState>): PagesListState => ({ ...prev, ...action }),
-    { showCreate: false, title: "", slug: "", slugManual: false, createError: null, deleteTarget: null },
+    (prev: PagesListState, action: Partial<PagesListState>): PagesListState => ({
+      ...prev,
+      ...action,
+    }),
+    {
+      showCreate: false,
+      title: "",
+      slug: "",
+      slugManual: false,
+      createError: null,
+      deleteTarget: null,
+    },
   );
   const { showCreate, title, slug, slugManual, createError, deleteTarget } = state;
 
@@ -215,17 +225,14 @@ export function PagesListPage() {
         ),
       },
     ],
-    [text, locale, navigate, deletePage.isPending],
+    [common.delete, common.edit, text, locale, navigate, deletePage.isPending],
   );
 
   return (
     <PageLayout>
       <PageHeader title={text.title}>
         {!showCreate && (
-          <CreateActionButton
-            onClick={() => dispatch({ showCreate: true })}
-            label={text.newPage}
-          />
+          <CreateActionButton onClick={() => dispatch({ showCreate: true })} label={text.newPage} />
         )}
       </PageHeader>
 
@@ -283,10 +290,7 @@ export function PagesListPage() {
                 busy={createPage.isPending}
                 label={createPage.isPending ? text.creating : text.create}
               />
-              <CancelActionButton
-                onClick={handleCancelCreate}
-                label={common.cancel}
-              />
+              <CancelActionButton onClick={handleCancelCreate} label={common.cancel} />
             </div>
           </form>
         )}

@@ -24,6 +24,8 @@ papers/
 plans/
 scripts/*
 !scripts/smoke-prod.sh
+!scripts/check-web-fonts.mjs
+!scripts/check-web-fonts.test.mjs
 apps/frontend/image-originals/
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep

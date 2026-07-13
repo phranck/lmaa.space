@@ -23,10 +23,7 @@ import {
 } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
-import {
-  Dialog,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
@@ -262,11 +259,6 @@ export function FormBuilderListPage() {
     exportFormConfigAll(forms);
   }
 
-  function handleExportSingle(form: FormConfig) {
-    exportFormConfigSingle(form.name, form.slug ?? undefined, form.rows, form.submissionConfig);
-  }
-
-
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -301,7 +293,6 @@ export function FormBuilderListPage() {
     };
     reader.readAsText(file);
   }
-
 
   const columns = useMemo<ColumnDef<FormConfig>[]>(
     () => [
@@ -353,7 +344,14 @@ export function FormBuilderListPage() {
         cell: (form) => (
           <div className="flex items-center justify-end gap-2">
             <TableActionButton
-              onClick={() => handleExportSingle(form)}
+              onClick={() =>
+                exportFormConfigSingle(
+                  form.name,
+                  form.slug ?? undefined,
+                  form.rows,
+                  form.submissionConfig,
+                )
+              }
               icon={<UploadIcon weight="duotone" className="size-3.5" />}
               label={m.exportForm}
             />
@@ -373,7 +371,7 @@ export function FormBuilderListPage() {
         ),
       },
     ],
-    [m, common, navigate, deleteForm.isPending, setActive.isPending],
+    [m, common, navigate, deleteForm.isPending, setActive.isPending, setActive.mutate],
   );
 
   return (
@@ -390,10 +388,7 @@ export function FormBuilderListPage() {
           label={m.exportAll}
           variant="neutral"
         />
-        <CreateActionButton
-          onClick={() => setShowDialog(true)}
-          label={m.newForm}
-        />
+        <CreateActionButton onClick={() => setShowDialog(true)} label={m.newForm} />
       </PageHeader>
 
       <PageBody>
@@ -415,12 +410,7 @@ export function FormBuilderListPage() {
 
         {!isLoading && forms.length > 0 && (
           <div className="-mx-3 -mt-3">
-            <DataTable
-              columns={columns}
-              data={forms}
-              getRowKey={(form) => form.id}
-              stickyHeader
-            />
+            <DataTable columns={columns} data={forms} getRowKey={(form) => form.id} stickyHeader />
           </div>
         )}
       </PageBody>

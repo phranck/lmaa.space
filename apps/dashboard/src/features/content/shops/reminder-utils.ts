@@ -27,8 +27,10 @@ export function buildCustomSummary(r: ShopReminder): string {
       .split(",")
       .map(Number)
       .sort((a, b) => a - b)
-      .map((d) => WEEKDAYS.find((w) => w.iso === d)?.label ?? "")
-      .filter(Boolean)
+      .flatMap((day) => {
+        const label = WEEKDAYS.find((weekday) => weekday.iso === day)?.label;
+        return label ? [label] : [];
+      })
       .join(" ");
     if (dayNames) summary += ` (${dayNames})`;
   }

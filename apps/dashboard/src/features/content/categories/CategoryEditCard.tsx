@@ -155,7 +155,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     (y: number) => {
       if (!isNew && category) setFocalPoint.mutate({ id: category.id, focalPointY: y });
     },
-    [isNew, category?.id, setFocalPoint],
+    [isNew, category, setFocalPoint],
   );
   const {
     focalY,
@@ -168,7 +168,6 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   );
 
   // Populate form when editing existing category
-  // biome-ignore lint/correctness/useExhaustiveDependencies: category?.id intentionally used -- sync only when category changes, not on every property update
   useEffect(() => {
     if (category) {
       dispatchEdit({
@@ -189,7 +188,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         },
       });
     }
-  }, [category?.id]);
+  }, [category]);
 
   const handleEscape = useCallback(() => {
     if (showUnsplash) return false;

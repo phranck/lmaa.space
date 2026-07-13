@@ -22,12 +22,12 @@ export function CollapsibleList({
   const collapsedMeasureRef = useRef<HTMLDivElement>(null);
   const expandedMeasureRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<number | null>(null);
-  const [collapsedHeight, setCollapsedHeight] = useState(0);
-  const [expandedHeight, setExpandedHeight] = useState(0);
+  const collapsedHeightRef = useRef(0);
+  const expandedHeightRef = useRef(0);
 
   useLayoutEffect(() => {
-    setCollapsedHeight(collapsedMeasureRef.current?.getBoundingClientRect().height ?? 0);
-    setExpandedHeight(expandedMeasureRef.current?.getBoundingClientRect().height ?? 0);
+    collapsedHeightRef.current = collapsedMeasureRef.current?.getBoundingClientRect().height ?? 0;
+    expandedHeightRef.current = expandedMeasureRef.current?.getBoundingClientRect().height ?? 0;
   }, [collapsedContent, expandedContent]);
 
   useEffect(
@@ -39,21 +39,14 @@ export function CollapsibleList({
     [],
   );
 
-  useEffect(() => {
-    if (!canCollapse) {
-      setExpanded(false);
-      setAnimatedHeight(null);
-    }
-  }, [canCollapse]);
-
   function toggleExpanded() {
     if (!canCollapse) return;
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
     }
 
-    const from = expanded ? expandedHeight : collapsedHeight;
-    const to = expanded ? collapsedHeight : expandedHeight;
+    const from = effectiveExpanded ? expandedHeightRef.current : collapsedHeightRef.current;
+    const to = effectiveExpanded ? collapsedHeightRef.current : expandedHeightRef.current;
     setAnimatedHeight(from);
     setExpanded((current) => !current);
 
@@ -66,13 +59,15 @@ export function CollapsibleList({
     }, COLLAPSIBLE_ANIMATION_MS);
   }
 
-  const visibleContent = expanded ? expandedContent : collapsedContent;
+  const effectiveExpanded = canCollapse && expanded;
+  const visibleContent = effectiveExpanded ? expandedContent : collapsedContent;
+  const effectiveAnimatedHeight = canCollapse ? animatedHeight : null;
 
   return (
     <>
       <div
         className="overflow-hidden transition-[height] duration-300 ease-in-out"
-        style={animatedHeight === null ? undefined : { height: animatedHeight }}
+        style={effectiveAnimatedHeight === null ? undefined : { height: effectiveAnimatedHeight }}
       >
         {visibleContent}
       </div>
@@ -86,14 +81,14 @@ export function CollapsibleList({
         <button
           type="button"
           onClick={toggleExpanded}
-          aria-expanded={expanded}
+          aria-expanded={effectiveExpanded}
           className="self-start inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
         >
           <CaretDownIcon
             weight="duotone"
-            className={`w-3.5 h-3.5 transition-transform duration-200 ease-out ${expanded ? "rotate-180" : ""}`}
+            className={`w-3.5 h-3.5 transition-transform duration-200 ease-out ${effectiveExpanded ? "rotate-180" : ""}`}
           />
-          {expanded ? analyticsMessages.showLessRows : analyticsMessages.showAllRows}
+          {effectiveExpanded ? analyticsMessages.showLessRows : analyticsMessages.showAllRows}
         </button>
       )}
     </>

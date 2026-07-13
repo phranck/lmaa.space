@@ -123,7 +123,7 @@
   --ds-info-text: hsl(212 80% 44%);
 
   /* Typography — font families */
-  --ds-font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --ds-font-sans: "Barlow", system-ui, -apple-system, sans-serif;
   --ds-font-serif: "Barlow Condensed", "Barlow Condensed Fallback", system-ui, sans-serif;
   --ds-font-mono: ui-monospace, "Cascadia Code", "Fira Code", monospace;
 
@@ -222,10 +222,10 @@
   --ds-ease-in: cubic-bezier(0.4, 0, 1, 1);
 
   /* Markdown editor syntax highlighting */
-  --md-heading:     #0969da;
-  --md-emphasis:    #8250df;
-  --md-code:        #bc4c00;
-  --md-quote:       #1a7f37;
+  --md-heading: #0969da;
+  --md-emphasis: #8250df;
+  --md-code: #bc4c00;
+  --md-quote: #1a7f37;
   --md-punctuation: #6e7781;
 }
 
@@ -415,10 +415,10 @@
   --ds-badge-review-text: hsl(270 80% 80%);
 
   /* Markdown editor syntax highlighting */
-  --md-heading:     #79c0ff;
-  --md-emphasis:    #d2a8ff;
-  --md-code:        #ffa657;
-  --md-quote:       #7ee787;
+  --md-heading: #79c0ff;
+  --md-emphasis: #d2a8ff;
+  --md-code: #ffa657;
+  --md-quote: #7ee787;
   --md-punctuation: #8b949e;
 }
 

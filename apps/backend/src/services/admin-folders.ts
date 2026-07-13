@@ -165,23 +165,25 @@ export async function listChildFolders(parentId: number | null): Promise<MediaFo
   if (folders.length === 0) return folders;
 
   const folderIds = folders.map((folder) => folder.id);
-  const folderCounts = await db
-    .select({
-      parentId: mediaFolders.parentId,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(mediaFolders)
-    .where(inArray(mediaFolders.parentId, folderIds))
-    .groupBy(mediaFolders.parentId);
-  const assetCounts = await db
-    .select({
-      folderId: mediaAssets.folderId,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(mediaAssets)
-    .where(inArray(mediaAssets.folderId, folderIds))
-    .groupBy(mediaAssets.folderId);
-  const recursiveAssetSizes = await assetSizesByFolderTree(folderIds);
+  const [folderCounts, assetCounts, recursiveAssetSizes] = await Promise.all([
+    db
+      .select({
+        parentId: mediaFolders.parentId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(mediaFolders)
+      .where(inArray(mediaFolders.parentId, folderIds))
+      .groupBy(mediaFolders.parentId),
+    db
+      .select({
+        folderId: mediaAssets.folderId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(mediaAssets)
+      .where(inArray(mediaAssets.folderId, folderIds))
+      .groupBy(mediaAssets.folderId),
+    assetSizesByFolderTree(folderIds),
+  ]);
 
   const itemCounts = new Map<number, number>();
   for (const item of folderCounts) {
@@ -346,13 +348,15 @@ export async function deleteFolderCascade(folderId: number): Promise<DeleteFolde
     };
   });
 
-  for (const asset of captured.assets) {
-    try {
-      await removeStoredMediaAsset(asset.storedFilename);
-    } catch (error) {
-      console.error("media storage cleanup failed", { assetId: asset.id, error });
-    }
-  }
+  await Promise.all(
+    captured.assets.map(async (asset) => {
+      try {
+        await removeStoredMediaAsset(asset.storedFilename);
+      } catch (error) {
+        console.error("media storage cleanup failed", { assetId: asset.id, error });
+      }
+    }),
+  );
 
   return {
     deletedFolderCount: captured.folderCount,

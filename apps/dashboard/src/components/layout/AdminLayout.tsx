@@ -34,7 +34,6 @@ function useSidebarWidth() {
   const startW = useRef(0);
 
   const widthRef = useRef(width);
-  widthRef.current = width;
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,6 +51,7 @@ function useSidebarWidth() {
         SIDEBAR_MIN,
         Math.min(SIDEBAR_MAX, startW.current + e.clientX - startX.current),
       );
+      widthRef.current = w;
       setWidth(w);
     }
     function onUp() {
@@ -59,12 +59,9 @@ function useSidebarWidth() {
       isResizing.current = false;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
-      setWidth((w) => {
-        try {
-          localStorage.setItem("sidebar-width", String(w));
-        } catch {}
-        return w;
-      });
+      try {
+        localStorage.setItem("sidebar-width", String(widthRef.current));
+      } catch {}
     }
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
@@ -103,9 +100,9 @@ function AdminLayoutInner() {
 
   useEffect(() => {
     if (push.state === "unsubscribed" && Notification.permission === "granted") {
-      push.subscribe();
+      push.enable();
     }
-  }, [push.state, push.subscribe]);
+  }, [push.state, push.enable]);
 
   async function handleLogout() {
     await logout();
@@ -125,7 +122,11 @@ function AdminLayoutInner() {
           className="hidden md:flex items-center justify-center shrink-0 h-full px-3"
           style={{ width: sidebarWidth }}
         >
-          <img src="/logo.png" alt="lmaa.space" className="h-8 w-auto dark:invert dark:brightness-90" />
+          <img
+            src="/logo.png"
+            alt="lmaa.space"
+            className="h-8 w-auto dark:invert dark:brightness-90"
+          />
         </div>
         <div className="flex-1 flex items-center justify-between px-3">
           <div className="flex min-w-0 items-center gap-4">

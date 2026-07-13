@@ -7,19 +7,6 @@ function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
-export function HlsTypeBadge({ className }: { className?: string }) {
-  return (
-    <span
-      className={cx(
-        "inline-flex h-4 min-w-8 items-center justify-center rounded-md border border-white/45 bg-[#3b2bbf] px-1.5 text-[9px] font-black leading-none text-white shadow-sm",
-        className,
-      )}
-    >
-      HLS
-    </span>
-  );
-}
-
 export function HlsAssetVisual({ className, compact = false }: HlsAssetVisualProps) {
   return (
     <div

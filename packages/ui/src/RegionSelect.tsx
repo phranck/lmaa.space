@@ -1,20 +1,15 @@
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import { useId, useRef, useState } from "react";
 
-import { REGION_CODES, type RegionCode } from "@lmaa/shared";
+import type { RegionCode } from "@lmaa/shared";
 
-import { formLabelClass } from "./FormPrimitives.tsx";
+import { formLabelClass } from "./FormPrimitiveStyles.ts";
 import { ControlTrigger, ListboxOption, ListboxPopover } from "./ListboxPrimitives.tsx";
+import type { RegionSelectOption } from "./RegionOptions.ts";
 
 /**
  * Display option used by region select inputs.
  */
-export interface RegionSelectOption {
-  code: RegionCode;
-  flag: string;
-  name: string;
-}
-
 /**
  * Localizable copy contract for the region select component.
  */
@@ -26,49 +21,6 @@ export interface RegionSelectMessages {
 /**
  * Flag mapping keyed by {@link RegionCode}.
  */
-export const REGION_FLAGS: Readonly<Record<RegionCode, string>> = {
-  DE: "🇩🇪",
-  AT: "🇦🇹",
-  CH: "🇨🇭",
-  EU: "🇪🇺",
-  WORLD: "🌍",
-};
-
-/**
- * Creates region options from translated names while keeping canonical region order.
- *
- * @param regionNames Region label mapping keyed by `RegionCode`.
- * @returns Ordered list of options with flag + translated name.
- */
-export function createRegionOptions(
-  regionNames: Readonly<Record<RegionCode, string>>,
-): ReadonlyArray<RegionSelectOption> {
-  return REGION_CODES.map((code) => ({ code, flag: REGION_FLAGS[code], name: regionNames[code] }));
-}
-
-/**
- * Canonical region option set shared across dashboard and website forms.
- */
-export function createDefaultRegionOptions(locale: "de" | "en" = "de"): ReadonlyArray<RegionSelectOption> {
-  return createRegionOptions(
-    locale === "en"
-      ? {
-          DE: "Germany",
-          AT: "Austria",
-          CH: "Switzerland",
-          EU: "Europe",
-          WORLD: "World",
-        }
-      : {
-          DE: "Deutschland",
-          AT: "Österreich",
-          CH: "Schweiz",
-          EU: "Europa",
-          WORLD: "Weltweit",
-        },
-  );
-}
-
 /**
  * Re-export of shared `RegionCode` union for UI consumers.
  */
@@ -103,6 +55,7 @@ export function RegionSelect({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listboxId = useId();
   const optionValues = options.map((option) => option.code);
+  const valueSet = new Set(value);
 
   function toggle(code: RegionCode) {
     if (value.includes(code)) {
@@ -175,7 +128,7 @@ export function RegionSelect({
         triggerRef={buttonRef}
       >
         {options.map(({ code, flag, name }) => {
-          const checked = value.includes(code);
+          const checked = valueSet.has(code);
           return (
             <ListboxOption
               key={code}

@@ -228,7 +228,10 @@ function useFooterBuilderController(
   };
 
   const configRef = useRef(config);
-  configRef.current = config;
+
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
 
   useEffect(() => {
     if (loaded && config === null) {
