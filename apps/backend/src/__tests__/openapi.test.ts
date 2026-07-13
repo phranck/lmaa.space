@@ -1,3 +1,7 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { Hono } from "hono";
 import { describe, expect, it, vi } from "vitest";
 
@@ -78,6 +82,8 @@ import {
 } from "../docs/openapi-document.js";
 import { serveApiReference, serveOpenApiJson } from "../docs/openapi.js";
 import { publicRoutes } from "../routes/public.js";
+
+const repositoryRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 
 const APPROVED_DOCUMENTED_ROUTE_KEYS = [
   "GET /api/v1/shops",
@@ -269,5 +275,21 @@ describe("OpenAPI document", () => {
     expect(html).not.toContain("SwaggerUIBundle");
     expect(html).not.toContain("swagger-ui");
     expect(html).not.toContain("forceDarkModeState");
+  });
+
+  it("keeps API documentation fonts in deployable shared source assets", () => {
+    const zeropsConfig = readFileSync(resolve(repositoryRoot, "zerops.yml"), "utf8");
+    const backendEntry = readFileSync(
+      resolve(repositoryRoot, "apps/backend/src/index.ts"),
+      "utf8",
+    );
+
+    expect(zeropsConfig).not.toContain("apps/frontend/public/fonts");
+    expect(zeropsConfig).toContain("- apps/frontend/src/assets/fonts");
+    expect(existsSync(resolve(repositoryRoot, "apps/frontend/src/assets/fonts/fonts.css"))).toBe(
+      true,
+    );
+    expect(backendEntry).not.toContain("apps/frontend/public");
+    expect(backendEntry).toContain('"apps/frontend/src/assets"');
   });
 });
