@@ -25,8 +25,9 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
-      - run: npm install
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - run: npm run ci:quality
         env:
           API_URL: http://localhost:3000/api/v1
@@ -39,8 +40,9 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
-      - run: npm install
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - run: npm run build -w @lmaa/shared
       - run: npm test -w @lmaa/backend
 
