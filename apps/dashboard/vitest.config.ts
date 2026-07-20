@@ -10,6 +10,7 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
       "@lmaa/contracts": resolve(__dirname, "../../packages/contracts/src/index.ts"),
       "@lmaa/shared": resolve(__dirname, "../../packages/shared/src/index.ts"),
+      "@lmaa/ui/shop-edit-form": resolve(__dirname, "../../packages/ui/src/shop-edit-form.ts"),
       "@lmaa/ui": resolve(__dirname, "../../packages/ui/src/index.ts"),
     },
   },

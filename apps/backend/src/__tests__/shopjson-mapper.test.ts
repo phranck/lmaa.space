@@ -77,6 +77,38 @@ describe("mapShopJsonToShopData", () => {
     expect(result.socialMedia).toEqual({ instagram: "https://instagram.com/shop" });
   });
 
+  it("normalizes and deduplicates imported payment methods", () => {
+    const result = mapShopJsonToShopData(
+      {
+        paymentMethods: [
+          "PayPal",
+          "credit-card",
+          "Visa",
+          "MasterCard",
+          "amex",
+          "SEPA Direct Debit",
+          "Visa",
+          "bitcoin",
+        ],
+      },
+      categoryMap,
+    );
+
+    expect(result.paymentMethods).toEqual([
+      "paypal",
+      "visa",
+      "mastercard",
+      "american_express",
+      "sepa",
+    ]);
+  });
+
+  it("omits payment methods when older shop-check JSON has no payment field", () => {
+    const result = mapShopJsonToShopData({}, categoryMap);
+
+    expect(result.paymentMethods).toBeUndefined();
+  });
+
   it("maps headquarters from hq and geo", () => {
     const result = mapShopJsonToShopData(
       {

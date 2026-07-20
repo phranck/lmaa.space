@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 
 import type {
   AdminShopListItem,
+  PaymentMethodKey,
   Shop as SharedShop,
   ShopCheckNotes,
   ShopMutableVisibility,
@@ -29,6 +30,7 @@ export interface CreateAdminShopData {
   shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
+  paymentMethods?: PaymentMethodKey[];
 }
 
 /**
@@ -47,6 +49,7 @@ export interface UpdateAdminShopData {
   shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
+  paymentMethods?: PaymentMethodKey[];
   needsReview?: boolean;
   reviewData?: Record<string, unknown> | null;
 }
@@ -66,6 +69,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
            s.contact_email as "contactEmail",
            s.shop_check_notes as "shopCheckNotes",
            s.social_media as "socialMedia",
+           s.payment_methods as "paymentMethods",
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
            s.visibility,
@@ -127,6 +131,7 @@ export async function getAdminShopById(id: number): Promise<SharedShop | null> {
            s.needs_review as "needsReview",
            s.review_data as "reviewData",
            s.social_media as "socialMedia",
+           s.payment_methods as "paymentMethods",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))

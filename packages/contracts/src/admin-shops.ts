@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { socialMediaSchema } from "@lmaa/shared";
+import { PAYMENT_METHOD_KEYS, socialMediaSchema } from "@lmaa/shared";
 
 import {
   defaultRegionArraySchema,
@@ -35,6 +35,8 @@ export const shopCheckNotesSchema = z
   })
   .nullable();
 
+export const paymentMethodsSchema = z.array(z.enum(PAYMENT_METHOD_KEYS));
+
 /**
  * Shop create payload contract for admin routes.
  */
@@ -53,6 +55,7 @@ export const shopBodySchema = z.object({
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.optional(),
   socialMedia: socialMediaSchema,
+  paymentMethods: paymentMethodsSchema.default([]),
 });
 
 /**
@@ -73,6 +76,7 @@ export const shopUpdateSchema = z.object({
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.optional(),
   socialMedia: socialMediaSchema,
+  paymentMethods: paymentMethodsSchema.optional(),
   logoBackgroundColor: logoBackgroundColorSchema,
   needsReview: z.boolean().optional(),
 });
@@ -100,6 +104,7 @@ const shopJsonSchema = z.object({
     })
     .optional(),
   socialMedia: z.record(z.string().nullable()).optional(),
+  paymentMethods: z.array(z.string()).optional(),
   notes: z
     .object({
       focus: z.array(z.string()).optional(),
