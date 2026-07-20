@@ -154,6 +154,17 @@ export type { SocialMediaIconsProps } from "./SocialMediaIcons.tsx";
 /** Social media platform registry (ordered list + O(1) map). */
 export { PLATFORMS, PLATFORM_MAP } from "./social-media-platforms.ts";
 export type { PlatformDef } from "./social-media-platforms.ts";
+/** Shared payment method editor and icon registry. */
+export { PaymentMethodsEditor } from "./PaymentMethodsEditor.tsx";
+export type {
+  PaymentMethodsEditorMessages,
+  PaymentMethodsEditorProps,
+} from "./PaymentMethodsEditor.tsx";
+export { PaymentMethodIcons } from "./PaymentMethodIcons.tsx";
+export type { PaymentMethodIconsProps } from "./PaymentMethodIcons.tsx";
+export { getSelectablePaymentMethods } from "./payment-method-selection.ts";
+export { getPaymentMethodLabel, PAYMENT_METHOD_MAP, PAYMENT_METHODS } from "./payment-methods.ts";
+export type { PaymentMethodDef, PaymentMethodLocale } from "./payment-methods.ts";
 /** Shared tab navigation component. */
 export { Tabs, TabList, TabTrigger, TabContent } from "./Tabs.tsx";
 /** Re-exported props for Tabs. */

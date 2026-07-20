@@ -64,6 +64,7 @@ const submission: Submission = {
   ogImage: null,
   logoBackgroundColor: null,
   socialMedia: {},
+  paymentMethods: [],
   shopCheckNotes: null,
   contactEmail: null,
   submitterEmail: null,

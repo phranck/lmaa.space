@@ -1,4 +1,4 @@
-import { REGION_CODES, type ShopCheckNotes } from "@lmaa/shared";
+import { REGION_CODES, normalizePaymentMethods, type ShopCheckNotes } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE } from "@lmaa/ui/shop-edit-form";
 import type { ShopEditFormValue } from "@lmaa/ui/shop-edit-form";
 
@@ -48,6 +48,7 @@ export function getInitialFormValue(
     shipping: shopData.shipping ?? "",
     contactEmail: shopData.contactEmail ?? "",
     socialMedia: shopData.socialMedia ?? {},
+    paymentMethods: shopData.paymentMethods ?? [],
     shopCheckNotes: shopData.shopCheckNotes ?? null,
     headquartersStreet: shopData.headquarters?.street ?? "",
     headquartersPostalCode: shopData.headquarters?.postalCode ?? "",
@@ -227,6 +228,11 @@ export function applyShopCheckJsonToForm(
       nextForm.socialMedia = { ...nextForm.socialMedia, ...mappedSocialMedia };
       changed = true;
     }
+  }
+
+  if (Array.isArray(payload.paymentMethods)) {
+    nextForm.paymentMethods = normalizePaymentMethods(payload.paymentMethods);
+    changed = true;
   }
 
   const shopCheckNotes = mapShopCheckNotes(payload.notes);

@@ -23,7 +23,7 @@ import type {
   SocialPreviewComposition,
   SocialPreviewFormat,
 } from "@lmaa/contracts";
-import type { MediaFolderColor, MediaKind, ShopCheckNotes } from "@lmaa/shared";
+import type { MediaFolderColor, MediaKind, PaymentMethodKey, ShopCheckNotes } from "@lmaa/shared";
 
 const POSTING_PLATFORM_SQL = sql`'mastodon', 'bluesky'`;
 const SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL = sql`'submission', 'category'`;
@@ -63,6 +63,7 @@ export const shops = pgTable(
     ogImage: text("og_image"),
     logoBackgroundColor: text("logo_background_color"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    paymentMethods: jsonb("payment_methods").$type<PaymentMethodKey[]>().notNull().default([]),
     contactEmail: text("contact_email"),
     shopCheckNotes: jsonb("shop_check_notes").$type<ShopCheckNotes | null>(),
     /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
@@ -259,6 +260,7 @@ export const submissions = pgTable(
     ogImage: text("og_image"),
     logoBackgroundColor: text("logo_background_color"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    paymentMethods: jsonb("payment_methods").$type<PaymentMethodKey[]>().notNull().default([]),
     shopCheckNotes: jsonb("shop_check_notes").$type<ShopCheckNotes | null>(),
     contactEmail: text("contact_email"),
     submitterEmail: text("submitter_email"),

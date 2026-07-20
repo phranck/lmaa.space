@@ -1,4 +1,5 @@
 import type { RegionCode, ShopVisibility } from "../constants/domain.js";
+import type { PaymentMethodKey } from "../constants/payment-methods.js";
 
 /**
  * Normalized headquarters/address snapshot exposed through API models.
@@ -64,6 +65,7 @@ export interface AdminShopListItem extends ShopSummary {
   shipping: string;
   contactEmail?: string | null;
   socialMedia: Record<string, string>;
+  paymentMethods: PaymentMethodKey[];
   shopCheckNotes?: ShopCheckNotes | null;
   ogImage?: string | null;
   logoBackgroundColor: string | null;
@@ -95,6 +97,7 @@ export interface Shop {
   logoBackgroundColor: string | null;
   contactEmail?: string | null;
   socialMedia: Record<string, string>;
+  paymentMethods: PaymentMethodKey[];
   shopCheckNotes?: ShopCheckNotes | null;
   visibility: ShopVisibility;
   /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
@@ -124,6 +127,7 @@ export interface ShopCreate {
   shipping?: string;
   description?: string;
   contactEmail?: string;
+  paymentMethods?: PaymentMethodKey[];
   shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: Partial<ShopHeadquarters> | null;
 }

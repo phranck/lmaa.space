@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { socialMediaSchema } from "@lmaa/shared";
 
-import { shopCheckNotesSchema, shopJsonSchema } from "./admin-shops";
+import { paymentMethodsSchema, shopCheckNotesSchema, shopJsonSchema } from "./admin-shops";
 import {
   defaultRegionArraySchema,
   logoBackgroundColorSchema,
@@ -67,6 +67,7 @@ export const submissionEditSchema = z.object({
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.optional(),
   socialMedia: socialMediaSchema,
+  paymentMethods: paymentMethodsSchema.optional(),
   logoBackgroundColor: logoBackgroundColorSchema,
 });
 

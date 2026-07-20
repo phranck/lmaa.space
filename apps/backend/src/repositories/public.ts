@@ -30,6 +30,7 @@ export type CategoryShopRow = Pick<
   | "ogImage"
   | "logoBackgroundColor"
   | "socialMedia"
+  | "paymentMethods"
   | "likeCount"
 >;
 /**
@@ -177,6 +178,7 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
       ogImage: shops.ogImage,
       logoBackgroundColor: shops.logoBackgroundColor,
       socialMedia: shops.socialMedia,
+      paymentMethods: shops.paymentMethods,
       likeCount: shops.likeCount,
     })
     .from(shops)
@@ -200,6 +202,7 @@ export async function listAllPublicShopsWithCategories() {
            s.logo_background_color as "logoBackgroundColor",
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
+           s.payment_methods as "paymentMethods",
            s.like_count as "likeCount",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
@@ -247,6 +250,7 @@ export async function searchPublicShops(
            s.contact_email as "contactEmail",
            s.is_active as "isActive",
            s.social_media as "socialMedia",
+           s.payment_methods as "paymentMethods",
            s.like_count as "likeCount",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(
@@ -662,6 +666,7 @@ export async function getFullPublicShopById(id: number) {
            s.logo_background_color as "logoBackgroundColor",
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
+           s.payment_methods as "paymentMethods",
            s.like_count as "likeCount",
            s.created_at as "createdAt",
            s.updated_at as "updatedAt",

@@ -1,5 +1,6 @@
 import type { ShopCheckNotes, ShopHeadquarters } from "./shop.js";
 import type { RegionCode, SubmissionReviewStatus, SubmissionStatus } from "../constants/domain.js";
+import type { PaymentMethodKey } from "../constants/payment-methods.js";
 
 /**
  * Re-exported submission status unions from domain constants.
@@ -22,6 +23,7 @@ export interface Submission {
   ogImage: string | null;
   logoBackgroundColor: string | null;
   socialMedia: Record<string, string>;
+  paymentMethods: PaymentMethodKey[];
   shopCheckNotes?: ShopCheckNotes | null;
   contactEmail: string | null;
   submitterEmail: string | null;
@@ -51,6 +53,7 @@ export interface SubmissionCreate {
   pickup?: string;
   shipping?: string;
   description?: string;
+  paymentMethods?: PaymentMethodKey[];
   submitterEmail?: string;
   submitterNote?: string;
 }

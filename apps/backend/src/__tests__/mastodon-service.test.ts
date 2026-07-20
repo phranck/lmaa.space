@@ -18,6 +18,7 @@ function makeSubmission(overrides: Partial<Submission> = {}): Submission {
     ogImage: null,
     logoBackgroundColor: null,
     socialMedia: {},
+    paymentMethods: [],
     shopCheckNotes: null,
     contactEmail: null,
     submitterEmail: null,
