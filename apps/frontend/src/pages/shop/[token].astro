@@ -8,10 +8,11 @@ import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { slugToTitle } from "@/lib/slug";
 import { type Shop, encodeShopToken } from "@lmaa/shared";
-import { SocialMediaIcons } from "@lmaa/ui";
+import { PaymentMethodIcons, SocialMediaIcons } from "@lmaa/ui";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 import {
   ArrowLeftIcon,
+  CreditCardIcon,
   HeartIcon,
   MapPinIcon,
   PackageIcon,
@@ -280,6 +281,22 @@ const metaDescription = shop.description
             <p class="text-xs font-medium text-stone-600 uppercase tracking-wide mb-1">Abholung</p>
             <p class="text-sm text-stone-700">{shop.pickup}</p>
           </div>
+        </div>
+      )}
+
+      {shop.paymentMethods?.length > 0 && (
+        <div class="p-4 rounded-2xl bg-stone-50 border border-stone-100 sm:col-span-2">
+          <div class="mb-3 flex items-center gap-2">
+            <CreditCardIcon weight="duotone" className="size-5 shrink-0 text-stone-400" />
+            <p class="text-xs font-medium text-stone-600 uppercase tracking-wide">Zahlungsarten</p>
+          </div>
+          <PaymentMethodIcons
+            methods={shop.paymentMethods}
+            locale="de"
+            className="gap-3 pl-7 text-stone-400"
+            showLabels={false}
+            iconSize={42}
+          />
         </div>
       )}
     </div>

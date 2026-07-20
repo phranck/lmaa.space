@@ -1,5 +1,7 @@
 /** Domain constants and shared union types. */
 export * from "./constants/domain.js";
+/** Supported payment methods and input normalization. */
+export * from "./constants/payment-methods.js";
 /** App settings keys. */
 export * from "./constants/settings.js";
 /** Shop domain models. */

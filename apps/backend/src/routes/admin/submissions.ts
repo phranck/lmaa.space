@@ -154,6 +154,7 @@ function mapShopJsonToSubmissionEditData(
     headquarters: mapped.headquarters,
     shopCheckNotes: mapped.shopCheckNotes,
     socialMedia: mapped.socialMedia,
+    paymentMethods: mapped.paymentMethods,
   };
 }
 

@@ -1,4 +1,4 @@
-import type { ShopCheckNotes } from "@lmaa/shared";
+import { normalizePaymentMethods, type PaymentMethodKey, type ShopCheckNotes } from "@lmaa/shared";
 
 import type { HeadquartersInput } from "../repositories/headquarters.js";
 
@@ -36,6 +36,7 @@ export interface MappedShopData {
   headquarters?: HeadquartersInput;
   shopCheckNotes?: ShopCheckNotes | null;
   socialMedia: Record<string, string>;
+  paymentMethods?: PaymentMethodKey[];
 }
 
 function normalizeStringArray(value: unknown): string[] | undefined {
@@ -76,6 +77,9 @@ export function mapShopJsonToShopData(
   const description = getString(shopJson.description) ?? "";
   const contactEmail = getString(shopJson.contactEmail) ?? undefined;
   const shopCheckNotes = mapShopCheckNotes(shopJson.notes);
+  const paymentMethods = Array.isArray(shopJson.paymentMethods)
+    ? normalizePaymentMethods(shopJson.paymentMethods)
+    : undefined;
 
   const categoryNames = getStringArray(shopJson.categories);
   const categoryIds: number[] = [];
@@ -126,5 +130,6 @@ export function mapShopJsonToShopData(
     headquarters,
     shopCheckNotes,
     socialMedia,
+    ...(paymentMethods !== undefined ? { paymentMethods } : {}),
   };
 }
