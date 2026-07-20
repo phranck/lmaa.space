@@ -29,6 +29,7 @@ export type ShopCheckJsonPayload = {
   contactEmail?: unknown;
   shippingRegions?: unknown;
   socialMedia?: unknown;
+  paymentMethods?: unknown;
   notes?: unknown;
   headquarters?: unknown;
   geo?: unknown;

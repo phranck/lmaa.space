@@ -1,7 +1,12 @@
 import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDomain } from "tldts";
 
-import type { ShopCheckNotes, SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
+import type {
+  PaymentMethodKey,
+  ShopCheckNotes,
+  SubmissionReviewStatus,
+  SubmissionStatus,
+} from "@lmaa/shared";
 
 import type { HeadquartersInput } from "./headquarters.js";
 import {
@@ -36,6 +41,7 @@ export interface SubmissionEditData {
   shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
+  paymentMethods?: PaymentMethodKey[];
 }
 
 /**
@@ -61,6 +67,24 @@ interface SubmissionReviewResult {
   submission: Submission | null;
   newShop: Pick<Shop, "id" | "url"> | null;
   conflict: { existingShopId: number; existingShopName: string } | null;
+}
+
+/** Maps an approved submission to the canonical shop insert payload. */
+export function buildApprovedShopData(submission: Submission): typeof shops.$inferInsert {
+  return {
+    name: submission.shopName,
+    url: submission.shopUrl,
+    region: submission.region,
+    pickup: submission.pickup,
+    shipping: submission.shipping,
+    description: submission.description,
+    ogImage: submission.ogImage,
+    logoBackgroundColor: submission.logoBackgroundColor,
+    contactEmail: submission.contactEmail,
+    shopCheckNotes: submission.shopCheckNotes,
+    socialMedia: submission.socialMedia,
+    paymentMethods: submission.paymentMethods,
+  };
 }
 
 /**
@@ -177,19 +201,7 @@ export async function reviewSubmission(
           .where(eq(submissionCategories.submissionId, data.id)),
         tx
           .insert(shops)
-          .values({
-            name: submission.shopName,
-            url: submission.shopUrl,
-            region: submission.region,
-            pickup: submission.pickup,
-            shipping: submission.shipping,
-            description: submission.description,
-            ogImage: submission.ogImage,
-            logoBackgroundColor: submission.logoBackgroundColor,
-            contactEmail: submission.contactEmail,
-            shopCheckNotes: submission.shopCheckNotes,
-            socialMedia: submission.socialMedia,
-          })
+          .values(buildApprovedShopData(submission))
           .returning({ id: shops.id, url: shops.url }),
       ]);
 
@@ -274,6 +286,7 @@ export async function editSubmission(
         contactEmail: data.contactEmail || null,
         ...(data.shopCheckNotes !== undefined ? { shopCheckNotes: data.shopCheckNotes } : {}),
         socialMedia: data.socialMedia ?? {},
+        ...(data.paymentMethods !== undefined ? { paymentMethods: data.paymentMethods } : {}),
         updatedAt: new Date(),
       })
       .where(eq(submissions.id, id))

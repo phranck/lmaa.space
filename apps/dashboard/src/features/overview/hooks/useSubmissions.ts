@@ -104,6 +104,7 @@ export function useEditSubmission() {
         headquarters: toHeadquartersPayload(data),
         shopCheckNotes: data.shopCheckNotes,
         socialMedia: data.socialMedia,
+        paymentMethods: data.paymentMethods,
       }),
     onSuccess: (_submission, variables) => {
       qc.invalidateQueries({ queryKey: ["submissions"] });

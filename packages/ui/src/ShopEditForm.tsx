@@ -1,5 +1,6 @@
 import {
   ArrowSquareOutIcon,
+  CreditCardIcon,
   CrosshairIcon,
   MapPinIcon,
   MarkdownLogoIcon,
@@ -29,6 +30,10 @@ import {
 } from "./FormPrimitives.tsx";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
+import {
+  PaymentMethodsEditor,
+  type PaymentMethodsEditorMessages,
+} from "./PaymentMethodsEditor.tsx";
 import type { RegionSelectOption } from "./RegionOptions.ts";
 import { RegionSelect, type RegionSelectMessages } from "./RegionSelect.tsx";
 import type { ShopEditFormValue } from "./ShopEditFormModel.ts";
@@ -82,6 +87,8 @@ export interface ShopEditFormMessages {
   mapSatelliteLabel?: string;
   regionSelect: RegionSelectMessages;
   categorySelect: MultiSelectMessages;
+  paymentMethodsLabel: string;
+  paymentMethods: PaymentMethodsEditorMessages;
   socialMediaLabel?: string;
   socialMedia?: SocialMediaEditorMessages;
   shopCheckNotesSectionLabel: string;
@@ -432,6 +439,21 @@ export function ShopEditForm({
                 {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
               </div>
             </div>
+          </DashboardSection.Body>
+        </DashboardSection>
+
+        <DashboardSection>
+          <DashboardSection.Header
+            icon={<CreditCardIcon weight="duotone" className="size-4" />}
+            title={messages.paymentMethodsLabel}
+          />
+          <DashboardSection.Body>
+            <PaymentMethodsEditor
+              value={value.paymentMethods}
+              onChange={(nextValue) => set("paymentMethods", nextValue)}
+              messages={messages.paymentMethods}
+              error={errors?.paymentMethods}
+            />
           </DashboardSection.Body>
         </DashboardSection>
 

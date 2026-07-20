@@ -41,6 +41,7 @@ function toSubmissionFormData(submission: Submission) {
     shipping: submission.shipping ?? "",
     contactEmail: submission.contactEmail ?? "",
     socialMedia: submission.socialMedia ?? {},
+    paymentMethods: submission.paymentMethods ?? [],
     shopCheckNotes: submission.shopCheckNotes ?? null,
     logoBackgroundColor: submission.logoBackgroundColor ?? null,
     headquartersStreet: submission.headquarters?.street ?? "",
