@@ -1,6 +1,10 @@
 {
   "name": "lmaa-space",
   "private": true,
+  "engines": {
+    "node": ">=22 <23",
+    "npm": ">=10 <11"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"

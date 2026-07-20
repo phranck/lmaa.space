@@ -3740,7 +3740,7 @@
     "semantic_hash": "8aeea624d36ca2b4c7d0e0748b76ba28"
   },
   "apps/frontend/.astro/content.d.ts": {
-    "mtime": 1784536270.204564,
+    "mtime": 1784554582.5359578,
     "ast_hash": "694fbff66ae0bf0e069742b823f8645e",
     "semantic_hash": "694fbff66ae0bf0e069742b823f8645e"
   },
@@ -3755,7 +3755,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/.astro/types.d.ts": {
-    "mtime": 1784536270.2046938,
+    "mtime": 1784554582.536094,
     "ast_hash": "f3d48b2aa569815a445d3509aa161559",
     "semantic_hash": "f3d48b2aa569815a445d3509aa161559"
   },
@@ -3885,8 +3885,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1784536233.786464,
-    "ast_hash": "b02297aa49efadd37327c15c4400b9f4",
+    "mtime": 1784543236.741523,
+    "ast_hash": "ef9a3a62f1aa0b985e3071de6720a7b6",
     "semantic_hash": ""
   },
   "scripts/dbdump": {
@@ -4087,6 +4087,46 @@
   "packages/ui/src/payment-methods.ts": {
     "mtime": 1784536166.867366,
     "ast_hash": "f2c64e983a1334494c2b2c6d7cc077cc",
+    "semantic_hash": ""
+  },
+  ".codex/tmp/apply-payment-method-import.mjs": {
+    "mtime": 1784539499.6266656,
+    "ast_hash": "b2ef7a0c76cd2e8b43a4244cc39b6f10",
+    "semantic_hash": ""
+  },
+  ".codex/tmp/merge-payment-method-overrides.mjs": {
+    "mtime": 1784539286.7753038,
+    "ast_hash": "4af01be5138bae5f8605c9d61ac101db",
+    "semantic_hash": ""
+  },
+  ".codex/tmp/payment-method-batch.mjs": {
+    "mtime": 1784552820.5546722,
+    "ast_hash": "47d5a556458162d1190c9ee0b320838d",
+    "semantic_hash": ""
+  },
+  ".codex/tmp/payment-method-manual-overrides.json": {
+    "mtime": 1784539253.620138,
+    "ast_hash": "7cdc1cf1ac046c2ab354100027f6f07b",
+    "semantic_hash": ""
+  },
+  ".codex/tmp/payment-method-sample-audit.json": {
+    "mtime": 1784538162.1200056,
+    "ast_hash": "1637106e39e6cd9c0d6ac5f28587f384",
+    "semantic_hash": ""
+  },
+  ".codex/tmp/payment-method-sample-v2-audit.json": {
+    "mtime": 1784538285.4007945,
+    "ast_hash": "880c724494314125b93f2aadb564c1e4",
+    "semantic_hash": ""
+  },
+  ".codex/tmp/payment-method-sample-v2.json": {
+    "mtime": 1784538285.4011948,
+    "ast_hash": "72a4b1034eb527aa1a9b9f4a64035cc4",
+    "semantic_hash": ""
+  },
+  ".codex/tmp/payment-method-sample.json": {
+    "mtime": 1784538162.1203957,
+    "ast_hash": "bbedbc5ddb9e8e7db6bbc50f5e693b24",
     "semantic_hash": ""
   }
 }
