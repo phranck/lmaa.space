@@ -1,19 +1,24 @@
-import { BankIcon, CreditCardIcon, ReceiptIcon } from "@phosphor-icons/react";
-import type { ComponentType } from "react";
-import {
-  SiAmazonpay,
-  SiAmericanexpress,
-  SiApplepay,
-  SiGooglepay,
-  SiKlarna,
-  SiMastercard,
-  SiPaypal,
-  SiSepa,
-  SiStripe,
-  SiVisa,
-} from "react-icons/si";
+import { BankIcon } from "@phosphor-icons/react";
+import { createElement, type ComponentType } from "react";
 
 import { PAYMENT_METHOD_KEYS, type PaymentMethodKey } from "@lmaa/shared";
+
+// The explicit `?url` suffix forces the bundler to resolve each SVG to a plain
+// URL string. Without it, Astro's `astro:assets` returns an ImageMetadata object
+// (a component in dev), which is not a valid `<img src>` value and gets dropped
+// by React, leaving the icons blank. `?url` behaves identically in Astro (SSR)
+// and Vite (the dashboard), so both consumers of @lmaa/ui render correctly.
+import amazonPaySvg from "./assets/payment-methods/apm/amazon-pay.svg?url";
+import klarnaSvg from "./assets/payment-methods/apm/klarna.svg?url";
+import paypalSvg from "./assets/payment-methods/apm/paypal.svg?url";
+import sepaSvg from "./assets/payment-methods/apm/sepa.svg?url";
+import americanExpressSvg from "./assets/payment-methods/cards/american-express.svg?url";
+import mastercardSvg from "./assets/payment-methods/cards/mastercard.svg?url";
+import visaSvg from "./assets/payment-methods/cards/visa.svg?url";
+import cardGenericSvg from "./assets/payment-methods/generic/card-generic.svg?url";
+import invoiceSvg from "./assets/payment-methods/generic/invoice.svg?url";
+import applePaySvg from "./assets/payment-methods/wallets/apple-pay.svg?url";
+import googlePaySvg from "./assets/payment-methods/wallets/google-pay.svg?url";
 
 export type PaymentMethodLocale = "de" | "en";
 
@@ -21,50 +26,90 @@ export interface PaymentMethodDef {
   key: PaymentMethodKey;
   labels: Record<PaymentMethodLocale, string>;
   icon: ComponentType<{ className?: string; size?: number; "aria-hidden"?: boolean }>;
-  opticalScale: number;
+}
+
+interface PaymentMethodIconProps {
+  className?: string;
+  size?: number;
+  "aria-hidden"?: boolean;
+}
+
+function createSvgIcon(assetUrl: string) {
+  return function PaymentMethodIcon({ className = "", size = 16, "aria-hidden": ariaHidden = true }: PaymentMethodIconProps) {
+    // All payment logos share a 3:2 (120x80) canvas with their own rounded card
+    // background. Rendering the <img> at that ratio (not a square box) lets the
+    // border and shadow hug the card itself. No `w-auto`/`h-auto`: those CSS
+    // rules would override the width/height attributes and blow the logo up to
+    // its intrinsic size.
+    //
+    // Resting state is a warm-toned monochrome (grayscale + a stone-hued duotone
+    // via sepia/hue-rotate) with reduced contrast so cards of different brand
+    // background lightness — white PayPal, dark Amazon, pink Klarna — read at a
+    // uniform intensity. The hover filter keeps the same function list at neutral
+    // values so `transition-all` interpolates smoothly to full colour, while the
+    // card zooms slightly and the shadow deepens (the `group` lives on the
+    // enclosing <li> in PaymentMethodIcons).
+    const width = size;
+    const height = Math.round((size * 2) / 3);
+    return createElement("img", {
+      src: assetUrl,
+      alt: "",
+      "aria-hidden": ariaHidden,
+      width,
+      height,
+      className: [
+        "rounded border border-black/10 object-contain shadow-sm transition-all duration-200",
+        "[filter:grayscale(1)_contrast(0.5)_brightness(1.15)_sepia(0.3)_hue-rotate(-10deg)_saturate(1.1)]",
+        "group-hover:scale-110 group-hover:shadow-md",
+        "group-hover:[filter:grayscale(0)_contrast(1)_brightness(1)_sepia(0)_hue-rotate(0deg)_saturate(1)]",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    });
+  };
 }
 
 const PAYMENT_METHOD_METADATA: Record<PaymentMethodKey, Omit<PaymentMethodDef, "key">> = {
-  paypal: { labels: { de: "PayPal", en: "PayPal" }, icon: SiPaypal, opticalScale: 0.68 },
+  paypal: { labels: { de: "PayPal", en: "PayPal" }, icon: createSvgIcon(paypalSvg) },
   credit_card: {
     labels: { de: "Kreditkarte", en: "Credit card" },
-    icon: CreditCardIcon,
-    opticalScale: 0.76,
+    icon: createSvgIcon(cardGenericSvg),
   },
-  stripe: { labels: { de: "Stripe", en: "Stripe" }, icon: SiStripe, opticalScale: 0.64 },
+  stripe: { labels: { de: "Stripe", en: "Stripe" }, icon: createSvgIcon(cardGenericSvg) },
   sepa: {
     labels: { de: "SEPA-Lastschrift", en: "SEPA direct debit" },
-    icon: SiSepa,
-    opticalScale: 1,
+    icon: createSvgIcon(sepaSvg),
   },
   bank_transfer: {
     labels: { de: "Überweisung", en: "Bank transfer" },
     icon: BankIcon,
-    opticalScale: 0.76,
   },
-  invoice: { labels: { de: "Rechnung", en: "Invoice" }, icon: ReceiptIcon, opticalScale: 0.76 },
-  klarna: { labels: { de: "Klarna", en: "Klarna" }, icon: SiKlarna, opticalScale: 0.68 },
-  apple_pay: { labels: { de: "Apple Pay", en: "Apple Pay" }, icon: SiApplepay, opticalScale: 1 },
+  invoice: {
+    labels: { de: "Rechnung", en: "Invoice" },
+    icon: createSvgIcon(invoiceSvg),
+  },
+  klarna: { labels: { de: "Klarna", en: "Klarna" }, icon: createSvgIcon(klarnaSvg) },
+  apple_pay: {
+    labels: { de: "Apple Pay", en: "Apple Pay" },
+    icon: createSvgIcon(applePaySvg),
+  },
   google_pay: {
     labels: { de: "Google Pay", en: "Google Pay" },
-    icon: SiGooglepay,
-    opticalScale: 1,
+    icon: createSvgIcon(googlePaySvg),
   },
   amazon_pay: {
     labels: { de: "Amazon Pay", en: "Amazon Pay" },
-    icon: SiAmazonpay,
-    opticalScale: 1,
+    icon: createSvgIcon(amazonPaySvg),
   },
-  visa: { labels: { de: "Visa", en: "Visa" }, icon: SiVisa, opticalScale: 1 },
+  visa: { labels: { de: "Visa", en: "Visa" }, icon: createSvgIcon(visaSvg) },
   mastercard: {
     labels: { de: "Mastercard", en: "Mastercard" },
-    icon: SiMastercard,
-    opticalScale: 0.9,
+    icon: createSvgIcon(mastercardSvg),
   },
   american_express: {
     labels: { de: "American Express", en: "American Express" },
-    icon: SiAmericanexpress,
-    opticalScale: 0.86,
+    icon: createSvgIcon(americanExpressSvg),
   },
 };
 

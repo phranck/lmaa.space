@@ -37,19 +37,18 @@ export function PaymentMethodIcons({
         if (!definition) return [];
         const label = definition.labels[locale];
         const Icon = definition.icon;
-        const renderedIconSize = Math.round(iconSize * definition.opticalScale);
         return (
           <li
             key={method}
             title={label}
             aria-label={label}
-            className="inline-flex min-w-0 cursor-help items-center gap-1.5"
+            className="group inline-flex min-w-0 cursor-help items-center gap-1.5"
           >
             <span
               className="inline-flex shrink-0 items-center justify-center"
               style={{ width: iconSize, height: iconSize }}
             >
-              <Icon className="shrink-0" size={renderedIconSize} aria-hidden />
+              <Icon className="shrink-0" size={iconSize} aria-hidden />
             </span>
             {showLabels && <span>{label}</span>}
           </li>

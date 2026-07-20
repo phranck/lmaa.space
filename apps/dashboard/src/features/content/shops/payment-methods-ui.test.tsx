@@ -65,7 +65,9 @@ describe("PaymentMethodsEditor", () => {
 
     expect(markup).toContain('title="PayPal"');
     expect(markup).toContain('style="width:42px;height:42px"');
-    expect(markup).toMatch(/title="PayPal"[\s\S]*?width="29"/);
+    // All payment icons share the same 120x80 canvas, so they render at one
+    // uniform size (the requested iconSize) — no per-icon optical scaling.
+    expect(markup).toMatch(/title="PayPal"[\s\S]*?width="42"/);
     expect(markup).toMatch(/title="Visa"[\s\S]*?width="42"/);
     expect(markup).not.toContain(">PayPal</span>");
     expect(markup.indexOf('title="PayPal"')).toBeLessThan(markup.indexOf('title="Visa"'));
