@@ -278,7 +278,7 @@ const tokenParam: SchemaObject = {
   name: "token",
   required: true,
   schema: { type: "string" },
-  description: "Public token from the lmaa.space URL. This is not the raw numeric shop id.",
+  description: "Public token from the lmaa.space URL. This is not the raw numeric shop ID.",
 };
 
 const slugParam: SchemaObject = {
@@ -312,7 +312,7 @@ const filterParameters: SchemaObject[] = [
     name: "radius",
     required: false,
     schema: { type: "integer", minimum: 1, maximum: 500, default: 50 },
-    description: "Distance radius in kilometers for `city` filtering.",
+    description: "Distance radius in kilometres for `city` filtering.",
   },
   {
     in: "query",
@@ -662,7 +662,7 @@ const publicOpenApiOperations: OpenApiOperation[] = [
     tags: ["Shops"],
     summary: "List public shops",
     description:
-      "Returns all active, publicly listed shops with their categories, shipping regions, public description, social profiles and like count. Cached for 60 seconds.",
+      "Returns all active, publicly listed shops with their categories, shipping regions, public description, social profiles, and like count. Cached for 60 seconds.",
     operationId: "listPublicShops",
     responses: withCommonErrors({
       "200": jsonResponse("Public shop list.", ref("ShopListEnvelope")),
@@ -721,7 +721,7 @@ const publicOpenApiOperations: OpenApiOperation[] = [
     tags: ["Search"],
     summary: "Search shops and categories",
     description:
-      "Searches public shops and categories. Shop matches are ranked by name, URL, postal-code prefix, imported shop-check notes and description. Category matches are limited to five items.",
+      "Searches public shops and categories. Shop matches are ranked by name, URL, postal-code prefix, imported shop-check notes, and description. Category matches are limited to five items.",
     operationId: "searchPublicCatalog",
     parameters: [searchQueryParam],
     responses: withCommonErrors({
@@ -783,7 +783,7 @@ const publicOpenApiOperations: OpenApiOperation[] = [
     tags: ["Filters"],
     summary: "List filtered public shops",
     description:
-      "Returns public shops filtered by city/radius, headquarters country and shipping region. Results include latitude/longitude when headquarters coordinates are known.",
+      "Returns public shops filtered by city and radius, headquarters country, and shipping region. Results include latitude and longitude when headquarters coordinates are known.",
     operationId: "listFilteredPublicShops",
     parameters: filterParameters,
     responses: withCommonErrors({
@@ -954,7 +954,7 @@ export function buildOpenApiDocument() {
       // responses behave. Each paragraph is one continuous line; the empty
       // entry is the Markdown paragraph break.
       description: [
-        "Public REST API for [lmaa.space](https://lmaa.space), a curated directory of independent online shops in Europe. The document is generated from the backend OpenAPI registry at runtime and shipped with each deployment. Only externally useful public endpoints are listed. Dashboard endpoints, website-internal runtime endpoints and side-effect endpoints are intentionally excluded.",
+        "Public REST API for [lmaa.space](https://lmaa.space), a curated directory of independent online shops in Europe. The backend serves this document itself, so it ships with every deployment. Only externally useful public endpoints are listed, and dashboard endpoints, website-internal runtime endpoints, and side-effect endpoints are deliberately excluded.",
         "",
         'All documented API responses return JSON wrapped in a `{ "data": ... }` envelope. Errors use `{ "error": { "message": "..." } }`. Rate-limited endpoints allow 100 read requests per minute per IP and include `X-RateLimit-*` response headers.',
       ].join("\n"),
@@ -965,9 +965,9 @@ export function buildOpenApiDocument() {
     },
     servers: getOpenApiServers(),
     tags: [
-      { name: "Shops", description: "Public shop catalog endpoints." },
+      { name: "Shops", description: "Public shop catalogue endpoints." },
       { name: "Categories", description: "Public shop category endpoints." },
-      { name: "Search", description: "Catalog search endpoints." },
+      { name: "Search", description: "Catalogue search endpoints." },
       { name: "Filters", description: "Location and shipping filter endpoints." },
       { name: "Submission Checks", description: "Read-only checks for submission forms." },
       { name: "Content", description: "Externally shareable public content endpoints." },

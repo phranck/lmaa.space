@@ -27,8 +27,8 @@ export default defineConfig({
   },
 
   navigation: {
-    // The llama mark is a single-color silhouette, so it is tinted with the
-    // text color and works in both themes from one file.
+    // The llama mark is a single-colour silhouette, so it is tinted with the
+    // text colour and works in both themes from one file.
     logo: "../frontend/src/assets/logo.png",
     logoTint: true,
     github: {
@@ -71,7 +71,7 @@ export default defineConfig({
     rateLimits: [
       "Read endpoints allow 100 requests per minute per IP address.",
       "",
-      "Every rate-limited response carries `X-RateLimit-*` headers with your current allowance. When you exceed it, the API answers with `429 Too Many Requests` — wait for the window to reset before retrying.",
+      "Every rate-limited response carries `X-RateLimit-*` headers with your current allowance. When you exceed it, the API answers with `429 Too Many Requests`, so wait for the window to reset before retrying.",
     ].join("\n"),
 
     versioning: [
@@ -86,6 +86,6 @@ export default defineConfig({
       { label: "lmaa.space", href: "https://lmaa.space" },
       { label: "OpenAPI contract", href: "/openapi.json" },
     ],
-    text: "LMAA — a curated directory of independent online shops in Europe.",
+    text: "LMAA is a curated directory of independent online shops in Europe.",
   },
 });
