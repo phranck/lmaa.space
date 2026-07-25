@@ -108,8 +108,9 @@ app.get(
     },
   }),
 );
-app.get("/", serveApiReference);
-app.get("/docs", serveApiReference);
+app.get("/", (c) => c.redirect("/docs/"));
+app.get("/docs", (c) => c.redirect("/docs/"));
+app.get("/docs/*", serveApiReference);
 app.get("/openapi.json", serveOpenApiJson);
 app.get("/health", async (c) => {
   try {

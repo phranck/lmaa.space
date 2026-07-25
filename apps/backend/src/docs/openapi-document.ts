@@ -982,16 +982,13 @@ export function buildOpenApiDocument() {
     info: {
       title: "LMAA Public API",
       version: "1.1.0",
+      // Two paragraphs: what the API is and what it covers, then how its
+      // responses behave. Each paragraph is one continuous line; the empty
+      // entry is the Markdown paragraph break.
       description: [
-        "Public REST API for [lmaa.space](https://lmaa.space), a curated directory of independent online shops in Europe.",
+        "Public REST API for [lmaa.space](https://lmaa.space), a curated directory of independent online shops in Europe. The document is generated from the backend OpenAPI registry at runtime and shipped with each deployment. Only externally useful public endpoints are listed. Dashboard endpoints, website-internal runtime endpoints and side-effect endpoints are intentionally excluded.",
         "",
-        "The document is generated from the backend OpenAPI registry at runtime and shipped with each deployment.",
-        "",
-        "Only externally useful public endpoints are listed. Dashboard endpoints, website-internal runtime endpoints and side-effect endpoints are intentionally excluded.",
-        "",
-        'All documented API responses return JSON wrapped in a `{ "data": ... }` envelope. Errors use `{ "error": { "message": "..." } }`.',
-        "",
-        "Rate-limited endpoints allow 100 read requests per minute per IP and include `X-RateLimit-*` response headers.",
+        'All documented API responses return JSON wrapped in a `{ "data": ... }` envelope. Errors use `{ "error": { "message": "..." } }`. Rate-limited endpoints allow 100 read requests per minute per IP and include `X-RateLimit-*` response headers.',
       ].join("\n"),
       contact: {
         name: "LMAA",
