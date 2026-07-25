@@ -1,5 +1,7 @@
 node_modules/
 dist/
+apps/backend/docs-dist/
+apps/backend/openapi.generated.json
 **/.astro/
 **/package-lock.json
 !/package-lock.json

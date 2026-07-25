@@ -8,8 +8,10 @@ zerops:
         - npm ci --cache .npm
         - npm run build -w @lmaa/shared
         - npm run build -w @lmaa/backend
+        - npm run docs:build -w @lmaa/backend
       deployFiles:
         - apps/backend/dist
+        - apps/backend/docs-dist
         - apps/backend/drizzle
         - apps/frontend/src/assets/fonts
         - node_modules/sharp
