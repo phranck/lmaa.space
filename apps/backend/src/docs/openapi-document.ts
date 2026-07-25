@@ -93,7 +93,6 @@ const samplePathsByOperationId: Record<string, string> = {
   searchFilteredPublicCatalog:
     "/api/v1/filtered/search?q=kaffee&city=Berlin&radius=50&country=DE&region=EU",
   getPublicFilterOptions: "/api/v1/filter-options",
-  healthCheck: "/health",
 };
 
 function getOperationSampleUrl(operationId: string): string {
@@ -104,20 +103,15 @@ function getOperationSampleUrl(operationId: string): string {
 
 function buildCodeSamples(operationId: string): OpenApiCodeSample[] {
   const url = getOperationSampleUrl(operationId);
-  const logsDataEnvelope = operationId !== "healthCheck";
-  const jsLogStatement = logsDataEnvelope ? "console.log(payload.data);" : "console.log(payload);";
-  const phpLogStatement = logsDataEnvelope ? "print_r($payload['data']);" : "print_r($payload);";
-  const pythonLogStatement = logsDataEnvelope ? 'print(payload["data"])' : "print(payload)";
-  const rubyLogStatement = logsDataEnvelope ? 'puts payload["data"]' : "puts payload";
-  const rustLogStatement = logsDataEnvelope
-    ? 'println!("{}", payload["data"]);'
-    : 'println!("{payload}");';
-  const swiftLogStatement = logsDataEnvelope
-    ? 'print(payload["data"] ?? payload)'
-    : "print(payload)";
-  const objcLogStatement = logsDataEnvelope
-    ? 'NSLog(@"%@", payload[@"data"] ?: payload);'
-    : 'NSLog(@"%@", payload);';
+  // Every documented operation wraps its payload in the `data` envelope, so
+  // each sample reads the payload from there.
+  const jsLogStatement = "console.log(payload.data);";
+  const phpLogStatement = "print_r($payload['data']);";
+  const pythonLogStatement = 'print(payload["data"])';
+  const rubyLogStatement = 'puts payload["data"]';
+  const rustLogStatement = 'println!("{}", payload["data"]);';
+  const swiftLogStatement = 'print(payload["data"] ?? payload)';
+  const objcLogStatement = 'NSLog(@"%@", payload[@"data"] ?: payload);';
 
   return [
     {
@@ -659,19 +653,6 @@ const schemas: Record<string, SchemaObject> = {
   FilteredCategoryDetailEnvelope: envelope(ref("FilteredCategoryDetail")),
   FilteredSearchResultEnvelope: envelope(ref("FilteredSearchResult")),
   FilterOptionsEnvelope: envelope(ref("FilterOptions")),
-  HealthOk: {
-    type: "object",
-    properties: { status: { type: "string", const: "ok" } },
-    required: ["status"],
-  },
-  HealthDegraded: {
-    type: "object",
-    properties: {
-      status: { type: "string", const: "degraded" },
-      reason: { type: "string" },
-    },
-    required: ["status", "reason"],
-  },
 };
 
 const publicOpenApiOperations: OpenApiOperation[] = [
@@ -866,19 +847,6 @@ const publicOpenApiOperations: OpenApiOperation[] = [
       "200": jsonResponse("Available filter options.", ref("FilterOptionsEnvelope")),
     }),
   },
-  {
-    method: "get",
-    path: "/health",
-    tags: ["System"],
-    summary: "Health check",
-    description:
-      "Returns `ok` when the backend and database are reachable. Returns `degraded` with a reason when the database check fails.",
-    operationId: "healthCheck",
-    responses: {
-      "200": jsonResponse("Backend is healthy.", ref("HealthOk")),
-      "503": jsonResponse("Backend is degraded.", ref("HealthDegraded")),
-    },
-  },
 ];
 
 /**
@@ -1003,7 +971,6 @@ export function buildOpenApiDocument() {
       { name: "Filters", description: "Location and shipping filter endpoints." },
       { name: "Submission Checks", description: "Read-only checks for submission forms." },
       { name: "Content", description: "Externally shareable public content endpoints." },
-      { name: "System", description: "Operational health endpoint." },
     ],
     paths,
     components: { schemas: buildPublicSchemas(paths) },

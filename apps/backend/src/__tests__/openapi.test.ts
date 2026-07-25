@@ -98,7 +98,6 @@ const APPROVED_DOCUMENTED_ROUTE_KEYS = [
   "GET /api/v1/filtered/categories/{slug}",
   "GET /api/v1/filtered/search",
   "GET /api/v1/filter-options",
-  "GET /health",
 ].sort();
 
 function normalizeHonoRoutePath(path: string): string {
@@ -203,7 +202,6 @@ describe("OpenAPI document", () => {
   it("adds curated SDK examples to each public operation", () => {
     const doc = buildOpenApiDocument();
     const listShopsOperation = doc.paths["/api/v1/shops"].get as Record<string, unknown>;
-    const healthOperation = doc.paths["/health"].get as Record<string, unknown>;
     const samples = listShopsOperation["x-codeSamples"] as {
       lang: string;
       label: string;
@@ -227,9 +225,9 @@ describe("OpenAPI document", () => {
     expect(samples[2].source).toContain('fetch("https://api.lmaa.space/api/v1/shops"');
     expect(samples[3].source).toContain("GuzzleHttp");
     expect(samples[9].source).toContain("curl_easy_setopt");
-    expect((healthOperation["x-codeSamples"] as typeof samples)[2].source).toContain(
-      "console.log(payload);",
-    );
+    // Every documented operation returns the `data` envelope, so the samples
+    // read the payload from there.
+    expect(samples[2].source).toContain("console.log(payload.data);");
   });
 
   it("serves the generated OpenAPI JSON document without caching", async () => {
