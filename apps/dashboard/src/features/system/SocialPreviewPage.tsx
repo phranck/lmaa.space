@@ -238,6 +238,25 @@ function getImageFilter(layer: SocialPreviewImageLayer) {
   return `brightness(${getImageBrightness(layer)}) contrast(${getImageContrast(layer)})`;
 }
 
+function getImageTintStyle(
+  layer: SocialPreviewImageLayer,
+  imageTransform: string,
+): CSSProperties {
+  return {
+    backgroundColor: getImageTintColor(layer),
+    maskImage: `url(${layer.src})`,
+    maskPosition: "center",
+    maskRepeat: "no-repeat",
+    maskSize: "cover",
+    opacity: getImageTintOpacity(layer),
+    transform: imageTransform,
+    WebkitMaskImage: `url(${layer.src})`,
+    WebkitMaskPosition: "center",
+    WebkitMaskRepeat: "no-repeat",
+    WebkitMaskSize: "cover",
+  };
+}
+
 type TextStylePatch = Partial<
   Pick<
     SocialPreviewTextLayer,
@@ -310,10 +329,30 @@ function getTextSelectionBounds(
   };
 }
 
-function renderTextWithStyleRanges(
-  layer: SocialPreviewTextLayer,
-  textSelection?: TextSelectionRange | null,
-) {
+function getTextCharacterStyle(
+  style: ReturnType<typeof getTextStyleAt>,
+  selected: boolean,
+): CSSProperties {
+  return {
+    fontFamily: style.fontFamily,
+    fontSize: style.fontSize,
+    fontWeight: style.fontWeight,
+    fontStyle: style.fontStyle,
+    textDecoration: style.textDecoration,
+    color: style.color,
+    lineHeight: style.lineHeight,
+    letterSpacing: style.letterSpacing,
+    backgroundColor: selected ? "rgba(56, 189, 248, 0.38)" : undefined,
+  };
+}
+
+function TextWithStyleRanges({
+  layer,
+  textSelection,
+}: {
+  layer: SocialPreviewTextLayer;
+  textSelection?: TextSelectionRange | null;
+}) {
   const selectionBounds = getTextSelectionBounds(layer, textSelection);
 
   return Array.from(layer.text).map((char, index) => {
@@ -321,20 +360,7 @@ function renderTextWithStyleRanges(
     const selected =
       selectionBounds !== null && index >= selectionBounds.start && index < selectionBounds.end;
     return (
-      <span
-        key={`${index}-${char}`}
-        style={{
-          fontFamily: style.fontFamily,
-          fontSize: style.fontSize,
-          fontWeight: style.fontWeight,
-          fontStyle: style.fontStyle,
-          textDecoration: style.textDecoration,
-          color: style.color,
-          lineHeight: style.lineHeight,
-          letterSpacing: style.letterSpacing,
-          backgroundColor: selected ? "rgba(56, 189, 248, 0.38)" : undefined,
-        }}
-      >
+      <span key={`${index}-${char}`} style={getTextCharacterStyle(style, selected)}>
         {char}
       </span>
     );
@@ -1434,6 +1460,15 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
     document.addEventListener("pointerup", handlePointerUp);
   }
 
+  function handleLayerSidebarResizeKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    const delta = event.shiftKey ? 40 : 10;
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    setLayerSidebarWidth((current) =>
+      clamp(current + (event.key === "ArrowLeft" ? delta : -delta), 180, 360),
+    );
+  }
+
   async function handleSaveProject() {
     await updateProject.mutateAsync({
       id: project.id,
@@ -1558,6 +1593,7 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
                 />
 
                 <input
+                  aria-label={t.imageSourceComputer}
                   ref={imageFileInputRef}
                   type="file"
                   accept="image/*"
@@ -1668,6 +1704,7 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
                   layers={composition.layers}
                   selectedLayerId={selection?.type === "layer" ? selection.id : null}
                   width={layerSidebarWidth}
+                  onResizeKeyDown={handleLayerSidebarResizeKeyDown}
                   onResizePointerDown={handleLayerSidebarResizePointerDown}
                   onSelectLayer={selectLayerFromPanel}
                   onRenameLayer={renameLayer}
@@ -1760,11 +1797,17 @@ function getLayerDropPosition(event: React.DragEvent<HTMLElement>) {
   return event.clientY > rect.top + rect.height / 2 ? "after" : "before";
 }
 
+function focusAndSelectInput(element: HTMLInputElement | null) {
+  element?.focus();
+  element?.select();
+}
+
 function LayerSidebar({
   messages,
   layers,
   selectedLayerId,
   width,
+  onResizeKeyDown,
   onResizePointerDown,
   onSelectLayer,
   onRenameLayer,
@@ -1776,6 +1819,7 @@ function LayerSidebar({
   layers: SocialPreviewLayer[];
   selectedLayerId: string | null;
   width: number;
+  onResizeKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   onResizePointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
   onSelectLayer: (layer: SocialPreviewLayer) => void;
   onRenameLayer: (layerId: string, name: string) => void;
@@ -1833,8 +1877,13 @@ function LayerSidebar({
         role="separator"
         aria-orientation="vertical"
         aria-label={messages.resizeLayerSidebar}
+        aria-valuemax={360}
+        aria-valuemin={180}
+        aria-valuenow={Math.round(width)}
         className="absolute -left-2 top-0 z-20 h-full w-3 cursor-col-resize"
+        onKeyDown={onResizeKeyDown}
         onPointerDown={onResizePointerDown}
+        tabIndex={0}
       >
         <span className="absolute left-1 top-2 h-[calc(100%-1rem)] w-px rounded-full bg-[var(--ds-border)]" />
       </div>
@@ -1918,7 +1967,7 @@ function LayerSidebar({
                           aria-label={messages.renameAction}
                           value={editingName}
                           className="h-5 w-full rounded border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-1 text-xs font-medium text-[var(--ds-text)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
-                          autoFocus
+                          ref={focusAndSelectInput}
                           onChange={(event) =>
                             dispatchNameEdit({
                               type: "change",
@@ -2723,17 +2772,7 @@ function NewProjectDialog({
   );
 }
 
-function RenameDialog({
-  open,
-  title,
-  label,
-  initialName,
-  busy,
-  cancelLabel,
-  saveLabel,
-  onClose,
-  onSubmit,
-}: {
+interface RenameDialogProps {
   open: boolean;
   title: string;
   label: string;
@@ -2743,16 +2782,26 @@ function RenameDialog({
   saveLabel: string;
   onClose: () => void;
   onSubmit: (name: string) => void;
-}) {
+}
+
+function RenameDialog({ open, initialName, ...dialogProps }: RenameDialogProps) {
+  if (!open) return null;
+  return <RenameDialogContent key={initialName} initialName={initialName} {...dialogProps} />;
+}
+
+function RenameDialogContent({
+  title,
+  label,
+  initialName,
+  busy,
+  cancelLabel,
+  saveLabel,
+  onClose,
+  onSubmit,
+}: Omit<RenameDialogProps, "open"> & { open?: never }) {
   const [name, setName] = useState(initialName);
   const trimmedName = name.trim();
   const canSubmit = trimmedName.length > 0 && trimmedName !== initialName.trim() && !busy;
-
-  useEffect(() => {
-    if (open) setName(initialName);
-  }, [initialName, open]);
-
-  if (!open) return null;
 
   return (
     <Dialog
@@ -3165,7 +3214,7 @@ function TextLayerRichText({
       style={style}
       onDoubleClick={onDoubleClick}
     >
-      {renderTextWithStyleRanges(layer, textSelection)}
+      <TextWithStyleRanges layer={layer} textSelection={textSelection} />
     </div>
   );
 }
@@ -3297,19 +3346,7 @@ function LayerContent({
       {getImageTintOpacity(layer) > 0 ? (
         <div
           className="pointer-events-none absolute inset-0 size-full"
-          style={{
-            backgroundColor: getImageTintColor(layer),
-            maskImage: `url(${layer.src})`,
-            maskPosition: "center",
-            maskRepeat: "no-repeat",
-            maskSize: "cover",
-            opacity: getImageTintOpacity(layer),
-            transform: imageTransform,
-            WebkitMaskImage: `url(${layer.src})`,
-            WebkitMaskPosition: "center",
-            WebkitMaskRepeat: "no-repeat",
-            WebkitMaskSize: "cover",
-          }}
+          style={getImageTintStyle(layer, imageTransform)}
         />
       ) : null}
     </div>
