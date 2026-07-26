@@ -85,58 +85,55 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      role="button"
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      className={`group/field relative flex w-full items-center px-3 py-2.5 rounded-control border text-sm cursor-pointer text-left ${
-        (field.span ?? 12) <= 2 ? "justify-center" : "justify-start gap-2"
-      } ${
-        isSelected
-          ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
-          : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] hover:border-[var(--color-primary)]"
-      }`}
+      className="group/field relative w-full"
     >
-      {/* Normal layout: label left, badge right */}
-      {(field.span ?? 12) > 2 ? (
-        <>
-          <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
-            {field.label || <span className="opacity-50 italic">Kein Label</span>}
-            {field.required && field.type !== "richtext" && (
-              <SealWarningIcon
-                weight="duotone"
-                className="inline-block ml-1 w-3 h-3 text-red-500 align-middle"
-              />
-            )}
-            {field.type === "richtext" && field.content && (
-              <span className="ml-2 text-xs font-normal opacity-40 truncate">
-                {field.content.slice(0, 40).replace(/[#*_`\n]/g, " ")}…
-              </span>
-            )}
-          </span>
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        onClick={onSelect}
+        className={`flex w-full cursor-pointer items-center rounded-control border px-3 py-2.5 text-left text-sm ${
+          (field.span ?? 12) <= 2 ? "justify-center" : "justify-start gap-2"
+        } ${
+          isSelected
+            ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
+            : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] hover:border-[var(--color-primary)]"
+        }`}
+      >
+        {/* Normal layout: label left, badge right */}
+        {(field.span ?? 12) > 2 ? (
+          <>
+            <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
+              {field.label || <span className="opacity-50 italic">Kein Label</span>}
+              {field.required && field.type !== "richtext" && (
+                <SealWarningIcon
+                  weight="duotone"
+                  className="inline-block ml-1 w-3 h-3 text-red-500 align-middle"
+                />
+              )}
+              {field.type === "richtext" && field.content && (
+                <span className="ml-2 text-xs font-normal opacity-40 truncate">
+                  {field.content.slice(0, 40).replace(/[#*_`\n]/g, " ")}…
+                </span>
+              )}
+            </span>
+            <span
+              title={typeLabels[field.type] ?? field.type}
+              className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60"
+            >
+              {fieldAbbr}
+            </span>
+          </>
+        ) : (
+          /* Narrow layout (1–2/12): only centered badge */
           <span
             title={typeLabels[field.type] ?? field.type}
-            className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60"
+            className="px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60"
           >
             {fieldAbbr}
           </span>
-        </>
-      ) : (
-        /* Narrow layout (1–2/12): only centered badge */
-        <span
-          title={typeLabels[field.type] ?? field.type}
-          className="px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60"
-        >
-          {fieldAbbr}
-        </span>
-      )}
+        )}
+      </button>
 
       {/* Delete button — only visible on hover, positioned at top-right corner */}
       <button
