@@ -852,16 +852,45 @@ export function SocialPreviewPage() {
   return <SocialPreviewEditorPage projectId={numericProjectId} />;
 }
 
+/**
+ * Resolves the project behind the route parameter and only then mounts the
+ * editor.
+ *
+ * The editor keeps the composition and the project name in local state. Mounting
+ * it with the loaded project and keying it by project id lets that state start
+ * from the right values, instead of seeding an empty editor and correcting it
+ * from an effect once the query resolves.
+ */
 function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
+  const { messages } = useI18n();
+  const { data: savedProjects = [], isLoading: isLoadingProjects } = useSocialPreviewProjects();
+  const project = savedProjects.find((entry) => entry.id === projectId) ?? null;
+
+  if (!project) {
+    if (!isLoadingProjects) return <Navigate to="/system/social-preview" replace />;
+    return (
+      <PageLayout>
+        <PageHeader
+          title={messages.system.socialPreview.title}
+          titleContent={
+            <span className="max-w-[16rem] truncate font-serif text-lg font-semibold text-[var(--ds-text-muted)]">
+              {messages.common.loading}
+            </span>
+          }
+        />
+        <PageBody className="min-h-0 overflow-y-auto" />
+      </PageLayout>
+    );
+  }
+
+  return <SocialPreviewEditor key={project.id} project={project} />;
+}
+
+function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }) {
   const { messages } = useI18n();
   const t = messages.system.socialPreview;
   const common = messages.common;
 
-  const { data: savedProjects = [], isLoading: isLoadingProjects } = useSocialPreviewProjects();
-  const project = useMemo(
-    () => savedProjects.find((entry) => entry.id === projectId) ?? null,
-    [projectId, savedProjects],
-  );
   const updateProject = useUpdateSocialPreviewProject();
   const uploadPreview = useUploadSocialPreviewAsset();
   const importRemotePreviewAsset = useImportRemoteSocialPreviewAsset();
@@ -869,7 +898,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   const { data: mediaAssets = [], isLoading: isLoadingMediaAssets } = useAdminMedia();
 
   const [composition, setComposition] = useState<SocialPreviewComposition>(() =>
-    createEmptySocialPreviewComposition(),
+    migrateBaseImageToLayer(project.composition),
   );
   const [selection, setSelection] = useState<SelectionTarget>(null);
   const [activeTool, setActiveTool] = useState<ActiveTool>("image");
@@ -882,7 +911,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   const [format, setFormat] = useState<SocialPreviewFormat>("image/jpeg");
   const [quality, setQuality] = useState(90);
   const targetSizeKb = 350;
-  const [projectName, setProjectName] = useState("");
+  const projectName = project.name;
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [effectiveQuality, setEffectiveQuality] = useState(90);
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -895,7 +924,6 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
 
   const stageRef = useRef<HTMLDivElement>(null);
   const imageFileInputRef = useRef<HTMLInputElement>(null);
-  const loadedProjectIdRef = useRef<number | null>(null);
   const historyRef = useRef<SocialPreviewComposition[]>([]);
   const futureRef = useRef<SocialPreviewComposition[]>([]);
   const textClickRef = useRef<{ id: string; x: number; y: number; at: number } | null>(null);
@@ -1406,27 +1434,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     document.addEventListener("pointerup", handlePointerUp);
   }
 
-  function resetEditorTransientState() {
-    setSelection(null);
-    setEditingTextLayerId(null);
-    setTextSelection(null);
-    setDragState(null);
-    setGuides([]);
-    historyRef.current = [];
-    futureRef.current = [];
-    setHistoryVersion((current) => current + 1);
-  }
-
-  useEffect(() => {
-    if (!project || loadedProjectIdRef.current === project.id) return;
-    loadedProjectIdRef.current = project.id;
-    setComposition(migrateBaseImageToLayer(project.composition));
-    setProjectName(project.name);
-    resetEditorTransientState();
-  }, [projectId, project]);
-
   async function handleSaveProject() {
-    if (!project) return;
     await updateProject.mutateAsync({
       id: project.id,
       data: { name: projectName, composition },
@@ -1461,30 +1469,23 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   const isSaving = uploadPreview.isPending || createPreview.isPending;
   const isSavingProject = updateProject.isPending;
 
-  if (!isLoadingProjects && !project) {
-    return <Navigate to="/system/social-preview" replace />;
-  }
-
   return (
     <PageLayout>
       <PageHeader
         title={t.title}
         titleContent={
           <span
-            className={cx(
-              "max-w-[16rem] truncate font-serif text-lg font-semibold",
-              project ? "text-[var(--ds-text)]" : "text-[var(--ds-text-muted)]",
-            )}
-            title={project ? projectName : common.loading}
+            className="max-w-[16rem] truncate font-serif text-lg font-semibold text-[var(--ds-text)]"
+            title={projectName}
           >
-            {project ? projectName : common.loading}
+            {projectName}
           </span>
         }
       >
         <div className="flex flex-wrap items-center justify-end gap-2">
           <SaveActionButton
             label={isSavingProject ? common.saving : t.saveProject}
-            disabled={!project || isSavingProject || !projectName.trim()}
+            disabled={isSavingProject || !projectName.trim()}
             busy={isSavingProject}
             onClick={() => void handleSaveProject()}
           />
@@ -2023,11 +2024,11 @@ function LivePreviewSection({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const previewSizeBytes = blob?.size ?? null;
 
+  // Without a blob the preview is not rendered at all, because previewSizeBytes
+  // is null as well. Clearing previewUrl here would only sync state to a prop
+  // through an effect and buy nothing.
   useEffect(() => {
-    if (!blob) {
-      setPreviewUrl(null);
-      return;
-    }
+    if (!blob) return;
 
     const objectUrl = URL.createObjectURL(blob);
     setPreviewUrl(objectUrl);
