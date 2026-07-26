@@ -150,6 +150,7 @@ export default function ShopFilterBar({ initialFilters, onFilterChange }: ShopFi
             </select>
             <input
               type="text"
+              aria-label="Individueller Umkreis in Kilometern"
               inputMode="numeric"
               pattern="[0-9]*"
               placeholder="km"
