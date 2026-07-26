@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
 import { cx } from "./classNames";
@@ -98,7 +98,7 @@ export function SegmentedControlPrimitive<T extends string = string>({
   const didMountRef = useRef(false);
   const [pill, setPill] = useState<SegmentPill | null>(null);
 
-  const measurePill = useCallback(() => {
+  const measurePill = useEffectEvent(() => {
     const container = containerRef.current;
     if (!container || activeIndex < 0) {
       setPill((previous) => (previous === null ? previous : null));
@@ -134,11 +134,11 @@ export function SegmentedControlPrimitive<T extends string = string>({
       return nextPill;
     });
     didMountRef.current = true;
-  }, [activeIndex]);
+  });
 
   useLayoutEffect(() => {
     measurePill();
-  }, [measurePill]);
+  }, [activeIndex, options]);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -146,23 +146,20 @@ export function SegmentedControlPrimitive<T extends string = string>({
       return;
     }
 
-    const observer = new ResizeObserver(() => measurePill());
+    const handleResize = () => measurePill();
+    const observer = new ResizeObserver(handleResize);
     observer.observe(container);
     for (const button of getSegmentButtons(container)) {
       observer.observe(button);
     }
 
-    window.addEventListener("resize", measurePill);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("resize", measurePill);
+      window.removeEventListener("resize", handleResize);
       observer.disconnect();
     };
-  }, [measurePill, options]);
-
-  useEffect(() => {
-    measurePill();
-  }, [measurePill]);
+  }, [options]);
 
   return (
     <div
