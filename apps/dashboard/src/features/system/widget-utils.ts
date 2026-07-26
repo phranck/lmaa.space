@@ -1,6 +1,6 @@
 import type { MarkdownWidget } from "@lmaa/contracts";
 
-export const EMPTY_CSP = {
+const EMPTY_CSP = {
   scriptSrc: [] as string[],
   styleSrc: [] as string[],
   imgSrc: [] as string[],
@@ -16,7 +16,7 @@ export const fieldHintClass = "px-1 text-xs leading-5 text-[var(--ds-text-subtle
 export const insetCardClass =
   "space-y-3 rounded-[calc(var(--radius-card)-12px)] border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3";
 
-export function createWidgetKey(widgets: MarkdownWidget[]): string {
+function createWidgetKey(widgets: MarkdownWidget[]): string {
   let index = widgets.length + 1;
   while (widgets.some((widget) => widget.key === `widget-${index}`)) {
     index += 1;
@@ -40,10 +40,10 @@ export function createEmptyWidget(widgets: MarkdownWidget[]): MarkdownWidget {
 }
 
 export function parseOriginsInput(value: string): string[] {
-  return value
-    .split(/\r?\n|,/)
-    .map((entry) => entry.trim())
-    .filter(Boolean);
+  return value.split(/\r?\n|,/).flatMap((entry) => {
+    const trimmedEntry = entry.trim();
+    return trimmedEntry ? [trimmedEntry] : [];
+  });
 }
 
 export function joinOrigins(values: string[]): string {
@@ -52,15 +52,13 @@ export function joinOrigins(values: string[]): string {
 
 function getOriginsFromText(value: string): string[] {
   const matches = value.match(/https?:\/\/[^\s"'`<>)]+/g) ?? [];
-  const origins = matches
-    .map((entry) => {
-      try {
-        return new URL(entry).origin;
-      } catch {
-        return null;
-      }
-    })
-    .filter((entry): entry is string => Boolean(entry));
+  const origins = matches.flatMap((entry) => {
+    try {
+      return [new URL(entry).origin];
+    } catch {
+      return [];
+    }
+  });
 
   return [...new Set(origins)];
 }

@@ -19,7 +19,7 @@ import {
 import type { UmamiMetricType, UmamiPeriod } from "@/features/analytics/hooks/useUmamiStats.ts";
 import type { DashboardLocale } from "@/i18n/messages.ts";
 
-export const PERIOD_VALUES: UmamiPeriod[] = ["today", "7d", "30d", "60d", "90d"];
+const PERIOD_VALUES: UmamiPeriod[] = ["today", "7d", "30d", "60d", "90d"];
 export const COLLAPSIBLE_ROW_LIMIT = 10;
 export const COLLAPSIBLE_ANIMATION_MS = 280;
 
@@ -143,10 +143,10 @@ export function parseLocationDisplay(
   locale: DashboardLocale,
   unknownLabel: string,
 ): { label: string; flag: string | null } {
-  const parts = value
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
+  const parts = value.split(",").flatMap((part) => {
+    const trimmedPart = part.trim();
+    return trimmedPart ? [trimmedPart] : [];
+  });
   const regionPart = parts[0] ?? value.trim();
   const countryPart = parts[parts.length - 1] ?? "";
   const firstLabel = isUnknownValue(regionPart) ? unknownLabel : regionPart;
