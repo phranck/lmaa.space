@@ -456,11 +456,12 @@ export function ShopLocationMap({
 
   const activeLayer = LAYERS.find((l) => l.id === activeLayerId) ?? LAYERS[0];
 
+  // A shop with its own coordinates never needs the visitor's location, and
+  // `markerPosition` below ignores `browserPosition` in that case. Clearing the
+  // state here instead would sync state to a prop through an effect, which
+  // renders one stale frame before the correction lands.
   React.useEffect(() => {
-    if (shopPosition) {
-      setBrowserPosition(null);
-      return;
-    }
+    if (shopPosition) return;
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) return;
 
     let cancelled = false;
