@@ -122,7 +122,7 @@ export const PAYMENT_METHOD_MAP: ReadonlyMap<PaymentMethodKey, PaymentMethodDef>
   PAYMENT_METHODS.map((method) => [method.key, method]),
 );
 
-export const PAYMENT_METHOD_DISPLAY_ORDER: readonly PaymentMethodKey[] = [
+const PAYMENT_METHOD_DISPLAY_ORDER: readonly PaymentMethodKey[] = [
   "paypal",
   "credit_card",
   "visa",
