@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { MarkdownWidget, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
@@ -27,15 +27,11 @@ export function MarkdownWidgetsPage() {
   const [editor, setEditor] = useState<{
     config: MarkdownWidgetsConfig | null;
     selectedKey: string | null;
-  }>({ config: null, selectedKey: null });
-  const [savedOk, setSavedOk] = useState(false);
-  const { config, selectedKey } = editor;
-
-  useEffect(() => {
-    if (data && config === null) {
-      setEditor({ config: data, selectedKey: data.widgets[0]?.key ?? null });
-    }
-  }, [data, config]);
+    savedOk: boolean;
+  }>({ config: null, selectedKey: null, savedOk: false });
+  const config = editor.config ?? data ?? null;
+  const selectedKey = editor.config === null ? (data?.widgets[0]?.key ?? null) : editor.selectedKey;
+  const { savedOk } = editor;
 
   const selectedWidget = useMemo(
     () => config?.widgets.find((widget) => widget.key === selectedKey) ?? null,
@@ -53,17 +49,18 @@ export function MarkdownWidgetsPage() {
 
   function updateWidget(nextKey: string, updater: (widget: MarkdownWidget) => MarkdownWidget) {
     setEditor((current) => {
-      if (!current.config) return current;
+      const currentConfig = current.config ?? data;
+      if (!currentConfig) return current;
       return {
-        ...current,
         config: {
-          widgets: current.config.widgets.map((widget) =>
+          widgets: currentConfig.widgets.map((widget) =>
             widget.key === nextKey ? updater(widget) : widget,
           ),
         },
+        selectedKey,
+        savedOk: false,
       };
     });
-    setSavedOk(false);
   }
 
   function handleAddWidget() {
@@ -72,22 +69,21 @@ export function MarkdownWidgetsPage() {
     setEditor({
       config: { widgets: [...base.widgets, widget] },
       selectedKey: widget.key,
+      savedOk: false,
     });
-    setSavedOk(false);
   }
 
   function handleDeleteWidget(key: string) {
     if (!config) return;
     const widgets = config.widgets.filter((widget) => widget.key !== key);
-    setEditor({ config: { widgets }, selectedKey: widgets[0]?.key ?? null });
-    setSavedOk(false);
+    setEditor({ config: { widgets }, selectedKey: widgets[0]?.key ?? null, savedOk: false });
   }
 
   function handleSave() {
     if (!config) return;
     save.mutate(config, {
       onSuccess: () => {
-        setSavedOk(true);
+        setEditor((current) => ({ ...current, savedOk: true }));
       },
     });
   }
@@ -141,7 +137,11 @@ export function MarkdownWidgetsPage() {
                           key={widget.key}
                           type="button"
                           onClick={() =>
-                            setEditor((current) => ({ ...current, selectedKey: widget.key }))
+                            setEditor((current) => ({
+                              ...current,
+                              config: current.config ?? data ?? null,
+                              selectedKey: widget.key,
+                            }))
                           }
                           className={`w-full rounded-card border px-3 py-3 text-left ${
                             isSelected
@@ -184,7 +184,11 @@ export function MarkdownWidgetsPage() {
                   onUpdate={updateWidget}
                   onDelete={handleDeleteWidget}
                   onKeyChange={(selectedKey) =>
-                    setEditor((current) => ({ ...current, selectedKey }))
+                    setEditor((current) => ({
+                      ...current,
+                      config: current.config ?? data ?? null,
+                      selectedKey,
+                    }))
                   }
                 />
               ) : (
