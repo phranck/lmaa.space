@@ -90,27 +90,11 @@ function usePopoverPosition(triggerRef: React.RefObject<HTMLButtonElement | null
 export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const { locale } = useI18n();
   const isDe = locale === "de";
-  const parts = toLocalParts(value);
-  const [pickerState, setPickerState] = useState<{
-    date: Date | undefined;
-    hours: string;
-    minutes: string;
-  }>({
-    date: parts.date,
-    hours: parts.hours,
-    minutes: parts.minutes,
-  });
+  const { date: selected, hours, minutes } = toLocalParts(value);
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const popoverStyle = usePopoverPosition(triggerRef, open);
-
-  const { date: selected, hours, minutes } = pickerState;
-
-  useEffect(() => {
-    const p = toLocalParts(value);
-    setPickerState({ date: p.date, hours: p.hours, minutes: p.minutes });
-  }, [value]);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -129,12 +113,10 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   }, [open]);
 
   function handleDaySelect(day: Date | undefined) {
-    setPickerState((prev) => ({ ...prev, date: day }));
     emitValue(day, hours, minutes, onChange);
   }
 
   function handleTimeChange(h: string, m: string) {
-    setPickerState((prev) => ({ ...prev, hours: h, minutes: m }));
     emitValue(selected, h, m, onChange);
   }
 
