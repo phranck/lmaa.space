@@ -64,6 +64,31 @@ export default {
         files: ["src/hooks/useMarkdownHtml.ts"],
         rules: ["react-doctor/no-event-handler"],
       },
+      // These field controls intentionally form one small compound primitive module.
+      {
+        files: ["src/FieldPrimitives.tsx"],
+        rules: ["react-doctor/no-multi-comp"],
+      },
+      // The effect subscribes to document-level outside clicks while the popover is open.
+      {
+        files: ["src/SocialMediaEditor.tsx"],
+        rules: ["react-doctor/no-event-handler"],
+      },
+      // Focus belongs to the roving tab triggers, not their tablist container.
+      {
+        files: ["src/TabsPrimitives.tsx"],
+        rules: ["react-doctor/interactive-supports-focus"],
+      },
+      // The icon factory returns named component wrappers consumed through the exported registry.
+      {
+        files: ["src/ButtonIcons.tsx"],
+        rules: ["react-doctor/only-export-components"],
+      },
+      // These custom composites implement the relevant ARIA patterns and keyboard behavior.
+      {
+        files: ["src/ListboxPrimitives.tsx", "src/SegmentedControlPrimitive.tsx"],
+        rules: ["react-doctor/prefer-tag-over-role"],
+      },
     ],
   },
 } satisfies ReactDoctorConfig;
