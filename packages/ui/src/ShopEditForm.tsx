@@ -11,7 +11,7 @@ import {
   TagIcon,
   TruckIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 import type { ShopCheckNotes } from "@lmaa/shared";
@@ -597,20 +597,29 @@ function ShopCheckListTextarea({
   rows,
 }: ShopCheckListTextareaProps) {
   const externalValue = formatTextareaList(value);
-  const [draftValue, setDraftValue] = useState(externalValue);
-
-  useEffect(() => {
-    setDraftValue(externalValue);
-  }, [externalValue]);
+  const [draftState, setDraftState] = useState(() => ({
+    draftValue: externalValue,
+    synchronizedValue: externalValue,
+  }));
+  const draftValue =
+    draftState.synchronizedValue === externalValue ? draftState.draftValue : externalValue;
 
   function handleDraftChange(nextDraftValue: string) {
-    setDraftValue(() => nextDraftValue);
-    onValueChange(parseTextareaList(nextDraftValue));
+    const nextValue = parseTextareaList(nextDraftValue);
+    setDraftState({
+      draftValue: nextDraftValue,
+      synchronizedValue: formatTextareaList(nextValue),
+    });
+    onValueChange(nextValue);
   }
 
   function handleDraftBlur() {
     const nextValue = parseTextareaList(draftValue);
-    setDraftValue(formatTextareaList(nextValue));
+    const normalizedValue = formatTextareaList(nextValue);
+    setDraftState({
+      draftValue: normalizedValue,
+      synchronizedValue: normalizedValue,
+    });
     onValueChange(nextValue);
   }
 
@@ -635,10 +644,10 @@ function formatTextareaList(values: string[] | undefined) {
 }
 
 function parseTextareaList(value: string): string[] | undefined {
-  const entries = value
-    .split(/\r?\n/)
-    .map((entry) => entry.trim())
-    .filter(Boolean);
+  const entries = value.split(/\r?\n/).flatMap((entry) => {
+    const trimmedEntry = entry.trim();
+    return trimmedEntry ? [trimmedEntry] : [];
+  });
 
   return entries.length > 0 ? Array.from(new Set(entries)) : undefined;
 }
