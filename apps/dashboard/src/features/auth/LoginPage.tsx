@@ -110,12 +110,8 @@ export function LoginPage() {
         <div className="text-center mb-8">
           <div className="relative mx-auto size-[120px]">
             <div className="absolute inset-0 rounded-full animate-[auth-glow_8s_ease-in-out_infinite] bg-[var(--color-primary)]" />
-            <div
-              role="img"
-              aria-label={messages.auth.logoAlt}
-              style={LOGO_MASK_STYLE}
-              className="relative size-[120px]"
-            />
+            <div aria-hidden="true" style={LOGO_MASK_STYLE} className="relative size-[120px]" />
+            <img alt={messages.auth.logoAlt} className="sr-only" src="/logo.png" />
           </div>
         </div>
 
