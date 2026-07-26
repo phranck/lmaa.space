@@ -1,4 +1,4 @@
-import { type ReactNode, createContext, useContext, useMemo, useState } from "react";
+import { type ReactNode, createContext, use, useMemo, useState } from "react";
 
 interface TitleState {
   title: string;
@@ -58,5 +58,5 @@ export function PageHeaderProvider({ children }: { children: ReactNode }) {
  * @returns Page header context value.
  */
 export function usePageHeaderContext() {
-  return useContext(PageHeaderContext);
+  return use(PageHeaderContext);
 }

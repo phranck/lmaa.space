@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, createContext, useCallback, useContext, useMemo } from "react";
+import { type ReactNode, createContext, use, useCallback, useMemo } from "react";
 
 import type { AdminUser } from "@lmaa/shared";
 
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  * @throws Error when used outside `AuthProvider`.
  */
 export function useAuth() {
-  const ctx = useContext(AuthContext);
+  const ctx = use(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
