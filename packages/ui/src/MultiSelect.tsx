@@ -48,7 +48,7 @@ export interface MultiSelectMessages {
   clearAllAriaLabel: string;
   clearSelectionAriaLabel: string;
   moreSelected: (count: number) => string;
-  searchPlaceholder?: string;
+  searchPlaceholder: string;
 }
 
 /**
@@ -185,6 +185,7 @@ export function MultiSelect({
       {/* Search */}
       <div className="px-2 pb-1 pt-2">
         <input
+          aria-label={messages.searchPlaceholder}
           ref={searchInputRef}
           type="text"
           value={searchQuery}

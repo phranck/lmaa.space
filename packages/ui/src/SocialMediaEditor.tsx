@@ -306,6 +306,7 @@ export function SocialMediaEditor({
                 </button>
 
                 <input
+                  aria-label={messages.urlPlaceholder}
                   ref={(el) => {
                     if (el) inputRefs.current.set(entry.id, el);
                     else inputRefs.current.delete(entry.id);
