@@ -113,10 +113,11 @@ export function SocialMediaEditor({
   const { entries } = entryState;
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
-  const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
-  const triggerRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
-  const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const triggerRefs = useRef<Map<string, HTMLButtonElement> | null>(null);
+  const inputRefs = useRef<Map<string, HTMLInputElement> | null>(null);
   const portalRef = useRef<HTMLDivElement>(null);
+  triggerRefs.current ??= new Map();
+  inputRefs.current ??= new Map();
 
   useEffect(() => {
     const serialized = JSON.stringify(value);
@@ -129,7 +130,7 @@ export function SocialMediaEditor({
     if (!openDropdownId) return;
     const capturedId = openDropdownId;
     function onMouseDown(e: MouseEvent) {
-      const trigger = triggerRefs.current.get(capturedId);
+      const trigger = triggerRefs.current?.get(capturedId);
       if (portalRef.current?.contains(e.target as Node) || trigger?.contains(e.target as Node)) {
         return;
       }
@@ -140,23 +141,13 @@ export function SocialMediaEditor({
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [openDropdownId]);
 
-  useEffect(() => {
-    if (!pendingFocusId) return;
-    const frameId = requestAnimationFrame(() => {
-      const input = inputRefs.current.get(pendingFocusId);
-      input?.focus();
-      setPendingFocusId(null);
-    });
-    return () => cancelAnimationFrame(frameId);
-  }, [pendingFocusId]);
-
   function toggleDropdown(entryId: string) {
     if (openDropdownId === entryId) {
       setOpenDropdownId(null);
       setDropdownRect(null);
       return;
     }
-    const trigger = triggerRefs.current.get(entryId);
+    const trigger = triggerRefs.current?.get(entryId);
     if (trigger) {
       setDropdownRect(trigger.getBoundingClientRect());
       setOpenDropdownId(() => entryId);
@@ -171,8 +162,8 @@ export function SocialMediaEditor({
 
   function addEntry() {
     const nextEntry = { id: genId(), platform: "", url: "" };
-    setPendingFocusId(nextEntry.id);
     emit([...entries, nextEntry]);
+    requestAnimationFrame(() => inputRefs.current?.get(nextEntry.id)?.focus());
   }
 
   function removeEntry(id: string) {
@@ -295,8 +286,8 @@ export function SocialMediaEditor({
                 <button
                   type="button"
                   ref={(el) => {
-                    if (el) triggerRefs.current.set(entry.id, el);
-                    else triggerRefs.current.delete(entry.id);
+                    if (el) triggerRefs.current?.set(entry.id, el);
+                    else triggerRefs.current?.delete(entry.id);
                   }}
                   onClick={() => toggleDropdown(entry.id)}
                   aria-label={messages.selectPlatformAriaLabel}
@@ -308,8 +299,8 @@ export function SocialMediaEditor({
                 <input
                   aria-label={messages.urlPlaceholder}
                   ref={(el) => {
-                    if (el) inputRefs.current.set(entry.id, el);
-                    else inputRefs.current.delete(entry.id);
+                    if (el) inputRefs.current?.set(entry.id, el);
+                    else inputRefs.current?.delete(entry.id);
                   }}
                   type="text"
                   value={entry.url}
