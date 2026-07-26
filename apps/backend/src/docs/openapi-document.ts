@@ -52,6 +52,20 @@ function envelope(dataSchema: SchemaObject): SchemaObject {
   };
 }
 
+/**
+ * Attaches a description to a schema built by one of the helpers above.
+ *
+ * `nullable()` and `envelope()` return finished schema objects, so the only way
+ * to document their result without repeating the shape is to spread it.
+ *
+ * @param schema The schema to document.
+ * @param description Prose shown next to the field or schema in the reference.
+ * @returns A copy of the schema carrying the description.
+ */
+function described(schema: SchemaObject, description: string): SchemaObject {
+  return { ...schema, description };
+}
+
 function jsonResponse(description: string, schema: SchemaObject): SchemaObject {
   return {
     description,
@@ -333,19 +347,31 @@ const filterParameters: SchemaObject[] = [
 const schemas: Record<string, SchemaObject> = {
   ErrorEnvelope: {
     type: "object",
+    description:
+      "Body of every error response. The HTTP status carries the outcome, this envelope carries the explanation.",
     properties: {
       error: {
         type: "object",
         properties: {
-          message: { type: "string" },
-          code: { type: "string" },
+          message: {
+            type: "string",
+            description:
+              "Human-readable explanation. Treat it as display text only, because its wording can change at any time. Unexpected server faults are reported as \"Internal Server Error\" so that internals never leak.",
+          },
+          code: {
+            type: "string",
+            description:
+              "Stable machine-readable error identifier. Reserved for future use, as no endpoint documented here sets it.",
+          },
           issues: {
             type: "array",
+            description:
+              "Per-field validation failures. Only write endpoints produce these, so no endpoint documented here returns them.",
             items: {
               type: "object",
               properties: {
-                path: { type: "string" },
-                message: { type: "string" },
+                path: { type: "string", description: "Dot-joined path of the offending field." },
+                message: { type: "string", description: "What is wrong with that field." },
               },
               required: ["path", "message"],
             },
@@ -358,23 +384,33 @@ const schemas: Record<string, SchemaObject> = {
   },
   RegionCode: {
     type: "string",
+    description:
+      "Area a shop delivers to, not the area it is based in. DE, AT, and CH are the individual countries, EU is Europe, and WORLD is worldwide delivery.",
     enum: REGION_CODES,
   },
   ShopVisibility: {
     type: "string",
+    description:
+      "Moderation state of a shop. Only shops in state public are served by this API, so the value never appears in a public payload and is documented here as vocabulary.",
     enum: SHOP_VISIBILITIES,
   },
   ShopCategory: {
     type: "object",
+    description: "Category reference embedded in a shop payload.",
     properties: {
       id: { type: "integer" },
-      slug: { type: "string" },
-      name: { type: "string" },
+      slug: {
+        type: "string",
+        description: "URL-safe identifier, and the value to pass to the category endpoints.",
+      },
+      name: { type: "string", description: "Display name, unique across all categories." },
     },
     required: ["id", "slug", "name"],
   },
   SocialMedia: {
     type: "object",
+    description:
+      "Social profiles of the shop, keyed by platform. Every value is a full canonical profile URL rather than a handle, because handles are expanded when a shop is saved. A shop without any profile yields an empty object.",
     properties: Object.fromEntries(
       SOCIAL_PLATFORM_KEYS.map((platform) => [platform, nullable({ type: "string" })]),
     ),
@@ -382,32 +418,88 @@ const schemas: Record<string, SchemaObject> = {
   },
   Headquarters: {
     type: "object",
+    description:
+      "Registered address of the shop. The record exists only when a country is known, so every other part may be missing individually while countryCode is always present.",
     properties: {
       street: nullable({ type: "string" }),
       postalCode: nullable({ type: "string" }),
-      city: nullable({ type: "string" }),
-      state: nullable({ type: "string" }),
-      countryCode: { type: "string" },
-      latitude: nullable({ type: "number" }),
-      longitude: nullable({ type: "number" }),
+      city: described(
+        nullable({ type: "string" }),
+        "City name resolved from the geo reference table, null when no city is linked.",
+      ),
+      state: described(
+        nullable({ type: "string" }),
+        "Region or state name resolved from the geo reference table, null when none is linked.",
+      ),
+      countryCode: {
+        type: "string",
+        description: "ISO 3166-1 alpha-2 country code in upper case.",
+      },
+      latitude: described(
+        nullable({ type: "number" }),
+        "Decimal degrees (WGS 84), null until the address has been geocoded. Used by the radius filter.",
+      ),
+      longitude: described(
+        nullable({ type: "number" }),
+        "Decimal degrees (WGS 84), null until the address has been geocoded.",
+      ),
     },
     required: ["street", "postalCode", "city", "state", "countryCode", "latitude", "longitude"],
   },
   PublicShopListItem: {
     type: "object",
+    description: "A shop as it appears in the public catalogue.",
     properties: {
-      id: { type: "integer" },
-      name: { type: "string" },
-      url: { type: "string", format: "uri" },
-      categories: arrayOf(ref("ShopCategory")),
-      region: arrayOf(ref("RegionCode")),
-      pickup: { type: "string" },
-      shipping: { type: "string" },
-      description: { type: "string" },
-      ogImage: nullable({ type: "string", format: "uri" }),
-      contactEmail: nullable({ type: "string", format: "email" }),
+      id: {
+        type: "integer",
+        description:
+          "Numeric shop identifier. The shop detail endpoint takes the URL token instead, so this is only useful for correlating records.",
+      },
+      name: { type: "string", description: "Shop name. All listings are sorted by it." },
+      url: {
+        type: "string",
+        format: "uri",
+        description:
+          "Shop homepage, normalised when the shop is submitted: tracking parameters, fragments, a leading www, and a trailing slash are all removed.",
+      },
+      categories: described(
+        arrayOf(ref("ShopCategory")),
+        "Categories the shop is filed under. Empty when it has not been categorised yet.",
+      ),
+      region: described(
+        arrayOf(ref("RegionCode")),
+        "Areas the shop delivers to. Empty when the shop has not declared any.",
+      ),
+      pickup: {
+        type: "string",
+        description:
+          "Free-text note about collecting an order in person, written by the operator and usually in German. Frequently an empty string, which means no note rather than no collection.",
+      },
+      shipping: {
+        type: "string",
+        description:
+          "Free-text note about delivery terms, for example a threshold for free shipping. Says nothing about where the shop delivers, which is what region covers. Frequently an empty string.",
+      },
+      description: {
+        type: "string",
+        description:
+          "Public description of the shop, written in Markdown. May be an empty string.",
+      },
+      ogImage: described(
+        nullable({ type: "string", format: "uri" }),
+        "Preview image taken from the shop's own website, discovered automatically from its touch icon, Open Graph tag, manifest, or logo. Hosted by the shop rather than by lmaa.space, so it is not guaranteed to stay reachable. Null when nothing suitable was found.",
+      ),
+      contactEmail: described(
+        nullable({ type: "string", format: "email" }),
+        "Public contact address of the shop, not the address of whoever submitted it.",
+      ),
       socialMedia: ref("SocialMedia"),
-      likeCount: { type: "integer", minimum: 0 },
+      likeCount: {
+        type: "integer",
+        minimum: 0,
+        description:
+          "Number of visitors who have liked the shop. A stored counter, kept in step with the like records, and never negative.",
+      },
     },
     required: [
       "id",
@@ -423,15 +515,32 @@ const schemas: Record<string, SchemaObject> = {
     ],
   },
   PublicShopDetail: {
+    description:
+      "A single shop with the fields that only the detail endpoint returns, on top of everything in the catalogue listing.",
     allOf: [
       ref("PublicShopListItem"),
       {
         type: "object",
         properties: {
-          createdAt: { type: "string", format: "date-time" },
-          updatedAt: { type: "string", format: "date-time" },
-          headquarters: nullable(ref("Headquarters")),
-          likeToken: { type: "string" },
+          createdAt: {
+            type: "string",
+            format: "date-time",
+            description: "When the shop was added to the directory.",
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time",
+            description: "When the shop record last changed for any reason.",
+          },
+          headquarters: described(
+            nullable(ref("Headquarters")),
+            "Registered address of the shop, null when none has been recorded.",
+          ),
+          likeToken: {
+            type: "string",
+            description:
+              "Short-lived challenge for the like endpoint, formatted as signature.timestamp and valid for 30 minutes from the moment this response was produced. It is tied to the shop rather than to a visitor, and a fresh one is issued on every detail request.",
+          },
         },
         required: ["createdAt", "updatedAt", "headquarters", "likeToken"],
       },
@@ -439,6 +548,8 @@ const schemas: Record<string, SchemaObject> = {
   },
   CategoryShopItem: {
     type: "object",
+    description:
+      "A shop inside a category response. Same as the catalogue entry without the category list, which the surrounding response already states, and without the contact address.",
     properties: {
       id: { type: "integer" },
       name: { type: "string" },
@@ -464,37 +575,58 @@ const schemas: Record<string, SchemaObject> = {
     ],
   },
   FilteredShopItem: {
+    description:
+      "A shop returned by the filter endpoints, carrying the coordinates the map needs.",
     allOf: [
       ref("PublicShopListItem"),
       {
         type: "object",
         properties: {
-          latitude: nullable({ type: "number" }),
-          longitude: nullable({ type: "number" }),
+          latitude: described(
+            nullable({ type: "number" }),
+            "Latitude of the shop's registered address in decimal degrees, not of the place searched for. Null when the address is unknown or not yet geocoded.",
+          ),
+          longitude: described(
+            nullable({ type: "number" }),
+            "Longitude of the shop's registered address in decimal degrees.",
+          ),
         },
         required: ["latitude", "longitude"],
       },
     ],
   },
   RankedShopItem: {
+    description: "A search hit, which is a catalogue entry plus the reason it matched.",
     allOf: [
       ref("PublicShopListItem"),
       {
         type: "object",
         properties: {
-          rank: { type: "integer", minimum: 1 },
+          rank: {
+            type: "integer",
+            minimum: 1,
+            maximum: 7,
+            description:
+              "Which part of the shop matched, from 1 for the strongest to 6 for the weakest: 1 the name, 2 the URL, 3 the postcode of the registered address, 4 imported shop-check notes, 5 the description, 6 the name of one of its categories. Results are sorted by this value and then by name. It ranks the match, it does not score it.",
+          },
         },
         required: ["rank"],
       },
     ],
   },
   RankedFilteredShopItem: {
+    description: "A search hit within the active filters, ranked the same way as an unfiltered one.",
     allOf: [
       ref("FilteredShopItem"),
       {
         type: "object",
         properties: {
-          rank: { type: "integer", minimum: 1 },
+          rank: {
+            type: "integer",
+            minimum: 1,
+            maximum: 7,
+            description: "Match class, identical in meaning to the one on RankedShopItem.",
+          },
         },
         required: ["rank"],
       },
@@ -502,37 +634,64 @@ const schemas: Record<string, SchemaObject> = {
   },
   CategorySummary: {
     type: "object",
+    description: "A category with its artwork and the number of public shops filed under it.",
     properties: {
       id: { type: "integer" },
-      name: { type: "string" },
-      slug: { type: "string" },
-      imageUrl: nullable({ type: "string", format: "uri" }),
-      imagePhotographer: nullable({ type: "string" }),
-      imagePhotographerUrl: nullable({ type: "string", format: "uri" }),
-      imageFocalPointY: { type: "number" },
-      shopCount: { type: "integer", minimum: 0 },
+      name: { type: "string", description: "Display name, unique across all categories." },
+      slug: {
+        type: "string",
+        description: "URL-safe identifier, and the value the category endpoints expect.",
+      },
+      imageUrl: described(
+        nullable({ type: "string", format: "uri" }),
+        "Header image of the category, null when none has been chosen.",
+      ),
+      imagePhotographer: described(
+        nullable({ type: "string" }),
+        "Name of the photographer, to be displayed wherever the image is shown.",
+      ),
+      imagePhotographerUrl: described(
+        nullable({ type: "string", format: "uri" }),
+        "Profile of the photographer, to be linked alongside the credit.",
+      ),
+      imageFocalPointY: {
+        type: "number",
+        minimum: 0,
+        maximum: 100,
+        description:
+          "Vertical focal point of the header image as a percentage of its height, where 0 is the top edge and 100 the bottom. Use it when cropping the image so the subject stays visible. The horizontal focal point is always centred.",
+      },
+      shopCount: {
+        type: "integer",
+        minimum: 0,
+        description:
+          "Number of public shops in this category, counted per request rather than stored. On the filter endpoints it counts only the shops matching the active filters, so it can be 0.",
+      },
     },
     required: ["id", "name", "slug", "shopCount"],
   },
   CategoryDetail: {
+    description: "A category together with every public shop filed under it.",
     allOf: [
       ref("CategorySummary"),
       {
         type: "object",
         properties: {
-          shops: arrayOf(ref("CategoryShopItem")),
+          shops: described(arrayOf(ref("CategoryShopItem")), "The shops, sorted by name."),
         },
         required: ["shops"],
       },
     ],
   },
   FilteredCategoryDetail: {
+    description:
+      "A category together with only those of its shops that match the active filters. The category itself is unaffected by the filters.",
     allOf: [
       ref("CategorySummary"),
       {
         type: "object",
         properties: {
-          shops: arrayOf(ref("FilteredShopItem")),
+          shops: described(arrayOf(ref("FilteredShopItem")), "The matching shops, sorted by name."),
         },
         required: ["shops"],
       },
@@ -540,33 +699,64 @@ const schemas: Record<string, SchemaObject> = {
   },
   SearchResult: {
     type: "object",
+    description: "Shops and categories matching a search term.",
     properties: {
-      query: { type: "string" },
-      total: { type: "integer", minimum: 0 },
-      shops: arrayOf(ref("RankedShopItem")),
-      categories: arrayOf(ref("CategorySummary")),
+      query: { type: "string", description: "The search term as it was interpreted, trimmed." },
+      total: {
+        type: "integer",
+        minimum: 0,
+        description:
+          "Number of items in this response, that is shops plus categories. Both lists are capped, at 40 and 5 respectively, so this is not a count of everything that matches and cannot be used for paging.",
+      },
+      shops: described(
+        arrayOf(ref("RankedShopItem")),
+        "Matching shops, best match first, at most 40.",
+      ),
+      categories: described(
+        arrayOf(ref("CategorySummary")),
+        "Categories whose name contains the term, at most 5.",
+      ),
     },
     required: ["query", "total", "shops", "categories"],
   },
   FilteredSearchResult: {
     type: "object",
+    description:
+      "Search results restricted to the active filters. Note that the filters apply to the shops only; the category matches are the same ones an unfiltered search returns.",
     properties: {
-      query: { type: "string" },
-      total: { type: "integer", minimum: 0 },
-      shops: arrayOf(ref("RankedFilteredShopItem")),
-      categories: arrayOf(ref("CategorySummary")),
+      query: { type: "string", description: "The search term as it was interpreted, trimmed." },
+      total: {
+        type: "integer",
+        minimum: 0,
+        description:
+          "Number of items in this response, that is shops plus categories, subject to the same caps of 40 and 5.",
+      },
+      shops: described(
+        arrayOf(ref("RankedFilteredShopItem")),
+        "Matching shops within the filters, best match first, at most 40.",
+      ),
+      categories: described(
+        arrayOf(ref("CategorySummary")),
+        "Categories whose name contains the term, at most 5, not restricted by the filters.",
+      ),
     },
     required: ["query", "total", "shops", "categories"],
   },
   CheckUrlResult: {
+    description:
+      "What the directory already knows about a domain. The variants are checked in a fixed order, so a blocked domain is reported as blocked even when a shop for it exists.",
     oneOf: [
       {
         type: "object",
+        description:
+          "The domain is unknown and can be submitted. Also returned when the url parameter is missing or empty, in which case nothing was checked.",
         properties: { status: { type: "string", const: "available" } },
         required: ["status"],
       },
       {
         type: "object",
+        description:
+          "No registrable domain could be read from the input, so there was nothing to look up.",
         properties: {
           status: { type: "string", const: "invalid" },
         },
@@ -574,35 +764,50 @@ const schemas: Record<string, SchemaObject> = {
       },
       {
         type: "object",
+        description: "The operator has barred this domain from the directory.",
         properties: {
           status: { type: "string", const: "blocked" },
-          messageMarkdown: { type: "string" },
+          messageMarkdown: {
+            type: "string",
+            description:
+              "The operator's explanation for the block, written in Markdown and meant to be shown to whoever tried to submit the shop.",
+          },
         },
         required: ["status", "messageMarkdown"],
       },
       {
         type: "object",
+        description: "The shop is already listed.",
         properties: {
           status: { type: "string", const: "published" },
-          shopName: { type: "string" },
-          shopUrl: { type: "string" },
+          shopName: { type: "string", description: "Name under which the shop is listed." },
+          shopUrl: {
+            type: "string",
+            description:
+              "Path of the shop page on lmaa.space, relative to the site root, for example /shop/ab12cd34. This is not the shop's own address.",
+          },
         },
         required: ["status", "shopName", "shopUrl"],
       },
       {
         type: "object",
+        description: "The shop or an earlier submission for it was turned down.",
         properties: {
           status: { type: "string", const: "rejected" },
           shopName: { type: "string" },
-          rejectionUrl: nullable({ type: "string" }),
+          rejectionUrl: described(
+            nullable({ type: "string" }),
+            "Path of the public notice explaining the decision, relative to the site root, for example /rejected/0123456789abcdef0123456789abcdef. Null for older decisions that were recorded without such a notice.",
+          ),
         },
         required: ["status", "shopName", "rejectionUrl"],
       },
       {
         type: "object",
+        description: "A submission for this domain is waiting to be reviewed or has been put on hold.",
         properties: {
           status: { type: "string", const: "pending" },
-          shopName: { type: "string" },
+          shopName: { type: "string", description: "Name given in the submission." },
         },
         required: ["status", "shopName"],
       },
@@ -610,24 +815,43 @@ const schemas: Record<string, SchemaObject> = {
   },
   RejectionPage: {
     type: "object",
+    description:
+      "Public notice explaining why a shop or a submission was turned down. Published so that decisions stay traceable.",
     properties: {
       shopName: { type: "string" },
-      shopUrl: { type: "string", format: "uri" },
-      rejectionLongText: nullable({ type: "string" }),
-      reviewedAt: nullable({ type: "string", format: "date-time" }),
+      shopUrl: { type: "string", format: "uri", description: "Address of the shop concerned." },
+      rejectionLongText: described(
+        nullable({ type: "string" }),
+        "The reasoning that is meant for the public. Internal review notes are never part of this response. Null when the decision was recorded without a public text.",
+      ),
+      reviewedAt: described(
+        nullable({ type: "string", format: "date-time" }),
+        "When the decision was made. For shops that were listed first and turned down later, this is the time of the last change to the record.",
+      ),
     },
     required: ["shopName", "shopUrl", "rejectionLongText", "reviewedAt"],
   },
   FilteredCategoriesResult: {
     type: "object",
+    description: "Every category with its filtered shop count, plus the overall number of matches.",
     properties: {
-      categories: arrayOf(ref("CategorySummary")),
-      totalShops: { type: "integer", minimum: 0 },
+      categories: described(
+        arrayOf(ref("CategorySummary")),
+        "All categories, including those whose filtered count is 0, sorted by name.",
+      ),
+      totalShops: {
+        type: "integer",
+        minimum: 0,
+        description:
+          "Number of distinct shops matching the filters. This is not the sum of the counts above: a shop in several categories is counted once here but in each of its categories there, and a shop without any category is counted here only.",
+      },
     },
     required: ["categories", "totalShops"],
   },
   FilterOptions: {
     type: "object",
+    description:
+      "Filter values that are worth offering, derived from the shops currently listed. Delivery regions are a fixed vocabulary and are therefore not part of this response.",
     properties: {
       countries: arrayOf(ref("FilterCountry")),
     },
@@ -635,24 +859,67 @@ const schemas: Record<string, SchemaObject> = {
   },
   FilterCountry: {
     type: "object",
+    description:
+      "A country at least one listed shop is based in. Countries without a listed shop never appear.",
     properties: {
-      code: { type: "string", minLength: 2, maxLength: 2 },
-      name: { type: "string" },
+      code: {
+        type: "string",
+        minLength: 2,
+        maxLength: 2,
+        description: "ISO 3166-1 alpha-2 code in upper case, and the value the country filter expects.",
+      },
+      name: {
+        type: "string",
+        description:
+          "Stored country name. It falls back to the code itself where no name has been recorded, so treat it as a hint and localise from the code when you need a proper label.",
+      },
     },
     required: ["code", "name"],
   },
-  ShopListEnvelope: envelope(arrayOf(ref("PublicShopListItem"))),
-  ShopDetailEnvelope: envelope(ref("PublicShopDetail")),
-  CategoryListEnvelope: envelope(arrayOf(ref("CategorySummary"))),
-  CategoryDetailEnvelope: envelope(ref("CategoryDetail")),
-  SearchResultEnvelope: envelope(ref("SearchResult")),
-  CheckUrlEnvelope: envelope(ref("CheckUrlResult")),
-  RejectionPageEnvelope: envelope(ref("RejectionPage")),
-  FilteredShopListEnvelope: envelope(arrayOf(ref("FilteredShopItem"))),
-  FilteredCategoriesEnvelope: envelope(ref("FilteredCategoriesResult")),
-  FilteredCategoryDetailEnvelope: envelope(ref("FilteredCategoryDetail")),
-  FilteredSearchResultEnvelope: envelope(ref("FilteredSearchResult")),
-  FilterOptionsEnvelope: envelope(ref("FilterOptions")),
+  // Every successful response wraps its payload in `data`, so each of these is
+  // the plain envelope around one of the schemas above.
+  ShopListEnvelope: described(
+    envelope(arrayOf(ref("PublicShopListItem"))),
+    "The public shop catalogue, sorted by name.",
+  ),
+  ShopDetailEnvelope: described(envelope(ref("PublicShopDetail")), "One shop with its details."),
+  CategoryListEnvelope: described(
+    envelope(arrayOf(ref("CategorySummary"))),
+    "All categories, sorted by name.",
+  ),
+  CategoryDetailEnvelope: described(
+    envelope(ref("CategoryDetail")),
+    "One category with its shops.",
+  ),
+  SearchResultEnvelope: described(envelope(ref("SearchResult")), "Search results."),
+  CheckUrlEnvelope: described(
+    envelope(ref("CheckUrlResult")),
+    "What the directory knows about the domain that was checked.",
+  ),
+  RejectionPageEnvelope: described(
+    envelope(ref("RejectionPage")),
+    "A public rejection notice.",
+  ),
+  FilteredShopListEnvelope: described(
+    envelope(arrayOf(ref("FilteredShopItem"))),
+    "Shops matching the active filters, sorted by name.",
+  ),
+  FilteredCategoriesEnvelope: described(
+    envelope(ref("FilteredCategoriesResult")),
+    "Categories with filtered shop counts.",
+  ),
+  FilteredCategoryDetailEnvelope: described(
+    envelope(ref("FilteredCategoryDetail")),
+    "One category with the shops matching the active filters.",
+  ),
+  FilteredSearchResultEnvelope: described(
+    envelope(ref("FilteredSearchResult")),
+    "Search results within the active filters.",
+  ),
+  FilterOptionsEnvelope: described(
+    envelope(ref("FilterOptions")),
+    "Filter values currently worth offering.",
+  ),
 };
 
 const publicOpenApiOperations: OpenApiOperation[] = [
