@@ -59,6 +59,7 @@ export function useDeleteSocialPreviewProject() {
 }
 
 export function useUploadSocialPreviewAsset() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({
       blob,
@@ -79,10 +80,15 @@ export function useUploadSocialPreviewAsset() {
       formData.set("overwrite", overwrite ? "true" : "false");
       return api.upload<MediaAsset>("/admin/social-preview-assets", formData);
     },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["media-admin"] });
+      void qc.invalidateQueries({ queryKey: ["media", "folder-contents"] });
+    },
   });
 }
 
 export function useImportRemoteSocialPreviewAsset() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: ({
       imageUrl,
@@ -98,6 +104,10 @@ export function useImportRemoteSocialPreviewAsset() {
         displayName: name.trim() || "Social Media Preview",
         overwrite,
       }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["media-admin"] });
+      void qc.invalidateQueries({ queryKey: ["media", "folder-contents"] });
+    },
   });
 }
 
