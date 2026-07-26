@@ -32,7 +32,7 @@ export type UserEditDraftAction =
   | { type: "setLogoutConfirm"; value: boolean }
   | { type: "setAvatar"; value: AvatarState };
 
-export const EMPTY_AVATAR_STATE: AvatarState = {
+const EMPTY_AVATAR_STATE: AvatarState = {
   previewUrl: null,
   pendingFile: null,
   pendingGravatarUrl: null,

@@ -6,7 +6,7 @@ import { parseTableSortFromSearchParams } from "@/lib/table-sort-storage.ts";
 export type VisibilityFilter = "all" | ShopVisibility;
 
 export const SHOP_SORTABLE_COLUMNS = new Set(["name", "region", "likes"]);
-export const DEFAULT_SHOPS_VISIBILITY_FILTER: VisibilityFilter = "public";
+const DEFAULT_SHOPS_VISIBILITY_FILTER: VisibilityFilter = "public";
 
 const SHOP_VISIBILITY_FILTER_VALUES = new Set<VisibilityFilter>(["all", ...SHOP_VISIBILITIES]);
 

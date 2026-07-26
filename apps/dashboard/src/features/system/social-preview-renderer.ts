@@ -7,8 +7,8 @@ import type {
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
 
-export const SOCIAL_PREVIEW_WIDTH = 1200;
-export const SOCIAL_PREVIEW_HEIGHT = 630;
+const SOCIAL_PREVIEW_WIDTH = 1200;
+const SOCIAL_PREVIEW_HEIGHT = 630;
 
 export function createEmptySocialPreviewComposition(): SocialPreviewComposition {
   return {
@@ -27,7 +27,7 @@ export function createEmptySocialPreviewComposition(): SocialPreviewComposition 
   };
 }
 
-export function createId(prefix: string): string {
+function createId(prefix: string): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `${prefix}-${crypto.randomUUID()}`;
   }
@@ -455,7 +455,7 @@ function drawShapeLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewShape
   });
 }
 
-export async function renderSocialPreviewToCanvas(composition: SocialPreviewComposition) {
+async function renderSocialPreviewToCanvas(composition: SocialPreviewComposition) {
   const canvas = document.createElement("canvas");
   canvas.width = composition.width;
   canvas.height = composition.height;

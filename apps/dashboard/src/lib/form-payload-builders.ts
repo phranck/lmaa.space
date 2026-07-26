@@ -7,7 +7,7 @@ function parseCoordinate(value: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function optionalText(value: string) {
+function optionalText(value: string) {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
 }
