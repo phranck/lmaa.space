@@ -925,8 +925,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/docs/openapi-document.ts": {
-    "mtime": 1785093460.5191503,
-    "ast_hash": "1e527628e1e35e4e51dec9db6e3c833e",
+    "mtime": 1785093479.5743377,
+    "ast_hash": "e10012ddbc0b9a5f597c0f827fb34a18",
     "semantic_hash": ""
   },
   "apps/backend/src/docs/openapi.ts": {
