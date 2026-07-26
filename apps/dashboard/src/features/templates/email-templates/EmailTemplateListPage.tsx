@@ -229,6 +229,7 @@ export function EmailTemplateListPage() {
 
       {/* Hidden file input for import */}
       <input
+        aria-label={m.importTemplate}
         ref={fileInputRef}
         type="file"
         accept=".json"
