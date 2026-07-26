@@ -44,7 +44,7 @@ export function SuggestionsTab({
   onSortChange: (sort: SortState | null) => void;
 }) {
   const { locale, messages } = useI18n();
-  const location = useLocation();
+  const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const statusLabels = useStatusLabels();
   const submissionsMessages = messages.submissions;
@@ -137,7 +137,7 @@ export function SuggestionsTab({
             <TableActionButton
               onClick={() =>
                 navigate(`/reports/suggestions/${submission.id}`, {
-                  state: { returnTo: `${location.pathname}${location.search}` },
+                  state: { returnTo: `${pathname}${search}` },
                 })
               }
               icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
@@ -147,7 +147,7 @@ export function SuggestionsTab({
         ),
       },
     ],
-    [locale, location.pathname, location.search, messages.shops.table.shop, navigate, statusLabels, submissionsMessages],
+    [locale, pathname, search, messages.shops.table.shop, navigate, statusLabels, submissionsMessages],
   );
 
   return (
