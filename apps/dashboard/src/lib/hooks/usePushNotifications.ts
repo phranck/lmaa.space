@@ -4,6 +4,19 @@ import { api } from "@/lib/api.ts";
 
 type PushState = "unsupported" | "prompt" | "denied" | "subscribed" | "unsubscribed";
 
+function getInitialPushState(): PushState {
+  if (
+    typeof navigator === "undefined" ||
+    typeof window === "undefined" ||
+    typeof Notification === "undefined" ||
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window)
+  ) {
+    return "unsupported";
+  }
+  return Notification.permission === "denied" ? "denied" : "prompt";
+}
+
 async function createPushSubscription(vapidPublicKey: string): Promise<PushSubscription> {
   const registration = await navigator.serviceWorker.ready;
   return registration.pushManager.subscribe({
@@ -13,18 +26,16 @@ async function createPushSubscription(vapidPublicKey: string): Promise<PushSubsc
 }
 
 export function usePushNotifications() {
-  const [state, setState] = useState<PushState>("unsupported");
+  const [state, setState] = useState<PushState>(getInitialPushState);
   const registeredRef = useRef(false);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setState("unsupported");
       return;
     }
 
     const permission = Notification.permission;
     if (permission === "denied") {
-      setState("denied");
       return;
     }
 
