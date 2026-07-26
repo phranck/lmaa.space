@@ -67,9 +67,6 @@ function useShopFilterOptions({
   counts?: ShopVisibilityCounts;
   shopsMessages: ShopsMessages;
 }) {
-  const countsKey = counts
-    ? `${counts.all}-${counts.public}-${counts.onhold}-${counts.deleted}-${counts.rejected}`
-    : "";
   const filterOptions = useMemo<DropdownOption<VisibilityFilter>[]>(
     () => [
       {
@@ -103,7 +100,7 @@ function useShopFilterOptions({
         count: counts?.rejected,
       },
     ],
-    [shopsMessages, countsKey, counts],
+    [shopsMessages, counts],
   );
 
   const categoryFilterOptions = useMemo<DropdownOption<string>[]>(
