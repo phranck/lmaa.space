@@ -114,12 +114,13 @@ function NewFormDialog({
     document.getElementById("new-form-name")?.focus();
   }, []);
 
-  // Auto-derive slug from name unless user has manually edited it
-  useEffect(() => {
+  function handleNameChange(value: string) {
+    const nextName = value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    setName(nextName);
     if (!slugEditedRef.current) {
-      setSlug(deriveSlug(name));
+      setSlug(deriveSlug(nextName));
     }
-  }, [name]);
+  }
 
   function handleSlugChange(value: string) {
     slugEditedRef.current = true;
@@ -181,7 +182,7 @@ function NewFormDialog({
               id="new-form-name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+              onChange={(e) => handleNameChange(e.target.value)}
               placeholder="suggestion-form"
               className="font-mono"
             />
@@ -417,6 +418,7 @@ export function FormBuilderListPage() {
 
       {/* Hidden file input for import */}
       <input
+        aria-label={m.importForm}
         ref={fileInputRef}
         type="file"
         accept=".json"
