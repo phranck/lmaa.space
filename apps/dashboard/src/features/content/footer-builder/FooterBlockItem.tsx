@@ -63,29 +63,26 @@ export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelet
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      role="button"
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      className={`group/block relative flex w-full items-center gap-2 px-3 py-2.5 rounded-control border text-sm cursor-pointer ${
-        isSelected
-          ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
-          : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] hover:border-[var(--color-primary)]"
-      }`}
+      className="group/block relative w-full"
     >
-      <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
-        {getBlockLabel(block, labels)}
-      </span>
-      <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60">
-        {BLOCK_ABBR[block.type]}
-      </span>
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        onClick={onSelect}
+        className={`flex w-full cursor-pointer items-center gap-2 rounded-control border px-3 py-2.5 text-sm ${
+          isSelected
+            ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
+            : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] hover:border-[var(--color-primary)]"
+        }`}
+      >
+        <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
+          {getBlockLabel(block, labels)}
+        </span>
+        <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60">
+          {BLOCK_ABBR[block.type]}
+        </span>
+      </button>
 
       <button
         type="button"
