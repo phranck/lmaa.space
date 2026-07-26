@@ -160,6 +160,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   const {
     focalY,
     containerRef: imageContainerRef,
+    handleKeyDown: handleFocalKeyDown,
     startDrag: startFocalDrag,
   } = useFocalPointDrag(category?.imageFocalPointY ?? 50, handleFocalCommit);
 
@@ -292,6 +293,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
           isNew={isNew}
           focalY={focalY}
           labels={categoriesMessages.editCard}
+          onFocalKeyDown={handleFocalKeyDown}
           onFocalMouseDown={startFocalDrag}
           onImageLoadError={() =>
             dispatchEdit((current) => ({
@@ -374,6 +376,7 @@ interface CategoryImagePanelProps {
   isNew: boolean;
   focalY: number;
   labels: CategoryEditLabels;
+  onFocalKeyDown: ComponentProps<typeof FocalPointOverlay>["onKeyDown"];
   onFocalMouseDown: ComponentProps<typeof FocalPointOverlay>["onMouseDown"];
   onImageLoadError: () => void;
   onDeleteImage: () => void;
@@ -389,6 +392,7 @@ function CategoryImagePanel({
   isNew,
   focalY,
   labels,
+  onFocalKeyDown,
   onFocalMouseDown,
   onImageLoadError,
   onDeleteImage,
@@ -409,7 +413,13 @@ function CategoryImagePanel({
             draggable={false}
             onError={onImageLoadError}
           />
-          {!isNew && <FocalPointOverlay focalY={focalY} onMouseDown={onFocalMouseDown} />}
+          {!isNew && (
+            <FocalPointOverlay
+              focalY={focalY}
+              onKeyDown={onFocalKeyDown}
+              onMouseDown={onFocalMouseDown}
+            />
+          )}
         </>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
@@ -447,6 +457,7 @@ function CategoryImagePanel({
       </div>
 
       <input
+        aria-label={labels.upload}
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"

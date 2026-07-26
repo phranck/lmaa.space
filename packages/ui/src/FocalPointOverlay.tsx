@@ -1,5 +1,6 @@
 import { ArrowsVerticalIcon } from "@phosphor-icons/react";
 import { useCallback, useRef, useState } from "react";
+import type { KeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 
 /**
  * Hook that provides focal point Y drag state and persistence.
@@ -14,7 +15,7 @@ export function useFocalPointDrag(initialValue: number, onCommit: (focalPointY: 
   const focalY = dragState.initialValue === initialValue ? dragState.focalY : initialValue;
 
   const startDrag = useCallback(
-    (e: React.MouseEvent) => {
+    (e: ReactMouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
 
@@ -42,14 +43,51 @@ export function useFocalPointDrag(initialValue: number, onCommit: (focalPointY: 
     [initialValue, onCommit],
   );
 
-  return { focalY, containerRef, startDrag };
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      let nextValue: number;
+      switch (event.key) {
+        case "ArrowUp":
+          nextValue = focalY - 1;
+          break;
+        case "ArrowDown":
+          nextValue = focalY + 1;
+          break;
+        case "PageUp":
+          nextValue = focalY - 10;
+          break;
+        case "PageDown":
+          nextValue = focalY + 10;
+          break;
+        case "Home":
+          nextValue = 0;
+          break;
+        case "End":
+          nextValue = 100;
+          break;
+        default:
+          return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      const clampedValue = Math.max(0, Math.min(100, nextValue));
+      setDragState({ initialValue, focalY: clampedValue });
+      onCommit(clampedValue);
+    },
+    [focalY, initialValue, onCommit],
+  );
+
+  return { focalY, containerRef, startDrag, handleKeyDown };
 }
 
 interface FocalPointOverlayProps {
   /** Current focal point Y position (0-100). */
   focalY: number;
   /** Mouse-down handler to start the drag interaction. */
-  onMouseDown: (e: React.MouseEvent) => void;
+  onMouseDown: (e: ReactMouseEvent) => void;
+  /** Keyboard handler for arrow, page, home, and end controls. */
+  onKeyDown: (e: KeyboardEvent) => void;
   /** Optional accessible title for the drag handle. */
   title?: string;
 }
@@ -58,7 +96,7 @@ interface FocalPointOverlayProps {
  * Horizontal line with drag handle that indicates and controls the vertical
  * focal point of an image. Render inside a `position: relative` container.
  */
-export function FocalPointOverlay({ focalY, onMouseDown, title }: FocalPointOverlayProps) {
+export function FocalPointOverlay({ focalY, onKeyDown, onMouseDown, title }: FocalPointOverlayProps) {
   return (
     <div
       role="slider"
@@ -69,6 +107,7 @@ export function FocalPointOverlay({ focalY, onMouseDown, title }: FocalPointOver
       aria-label={title ?? "Focal point"}
       className="absolute inset-x-0 z-20 flex items-center cursor-ns-resize select-none outline-none"
       style={{ top: `${focalY}%`, transform: "translateY(-50%)" }}
+      onKeyDown={onKeyDown}
       onMouseDown={onMouseDown}
       title={title}
     >
