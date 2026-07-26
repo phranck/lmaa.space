@@ -1,6 +1,6 @@
 import {
   type ComponentPropsWithoutRef,
-  forwardRef,
+  type Ref,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -10,6 +10,7 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 interface ResizableDialogCardProps extends ComponentPropsWithoutRef<"div"> {
+  ref?: Ref<HTMLDivElement>;
   /** Base key for localStorage, e.g. "submissions:review-modal-size" */
   storageKey: string;
   /** Default width in px, used when no stored size exists */
@@ -22,21 +23,18 @@ interface ResizableDialogCardProps extends ComponentPropsWithoutRef<"div"> {
   minHeight?: number;
 }
 
-export const ResizableDialogCard = forwardRef<HTMLDivElement, ResizableDialogCardProps>(
-  function ResizableDialogCard(
-    {
-      storageKey,
-      defaultWidth = 448,
-      defaultHeight,
-      minWidth = 320,
-      minHeight = 200,
-      className,
-      style,
-      children,
-      ...rest
-    },
-    forwardedRef,
-  ) {
+export function ResizableDialogCard({
+  storageKey,
+  defaultWidth = 448,
+  defaultHeight,
+  minWidth = 320,
+  minHeight = 200,
+  className,
+  style,
+  children,
+  ref: forwardedRef,
+  ...rest
+}: ResizableDialogCardProps) {
     const innerRef = useRef<HTMLDivElement>(null);
     useImperativeHandle(forwardedRef, () => innerRef.current as HTMLDivElement);
 
@@ -105,5 +103,4 @@ export const ResizableDialogCard = forwardRef<HTMLDivElement, ResizableDialogCar
         {children}
       </div>
     );
-  },
-);
+}
