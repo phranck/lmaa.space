@@ -1,5 +1,5 @@
 import { CaretDownIcon, CaretUpIcon, SealWarningIcon, XCircleIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useEffect, useId, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useController, useForm, useWatch } from "react-hook-form";
 
@@ -403,67 +403,34 @@ function MultiSelectDropdown({
         )}
       </span>
       <div
-        role="combobox"
-        aria-expanded={open}
-        aria-controls={listboxId}
-        aria-haspopup="listbox"
-        tabIndex={0}
-        onClick={() => setOpen((v) => !v)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            setOpen((current) => !current);
-          }
-        }}
-        className={`w-full flex items-center gap-2 px-3 min-h-10 rounded-control border text-sm cursor-pointer text-left ${
+        className={`w-full flex items-stretch rounded-control border text-sm ${
           error ? "border-[var(--ds-danger-border)]" : "border-[var(--ds-border)]"
         } bg-[var(--ds-input-bg)] text-[var(--ds-text)]`}
       >
-        <div className="flex flex-wrap gap-1.5 flex-1 py-1.5">
-          {selected.length === 0 ? (
-            <span className="text-[var(--ds-text-muted)] text-sm leading-6">
-              {placeholder ?? "—"}
-            </span>
-          ) : (
-            selectedOptions.map((o) => (
-              <span
-                key={o.value}
-                className="flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] text-xs text-[var(--ds-text)]"
-              >
-                {o.flag && <span className="leading-none">{o.flag}</span>}
-                {o.label}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggle(o.value);
-                  }}
-                  className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
-                  aria-label={`${o.label} entfernen`}
-                >
-                  <XCircleIcon weight="duotone" width={13} height={13} />
-                </button>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={listboxId}
+          onClick={() => setOpen((current) => !current)}
+          className="flex min-w-0 flex-1 items-center gap-2 px-3 min-h-10 cursor-pointer text-left"
+        >
+          <span className="flex flex-wrap gap-1.5 flex-1 py-1.5">
+            {selected.length === 0 ? (
+              <span className="text-[var(--ds-text-muted)] text-sm leading-6">
+                {placeholder ?? "—"}
               </span>
-            ))
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0 ml-auto self-stretch py-2">
-          {selected.length > 0 && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange([]);
-                }}
-                aria-label="Alle entfernen"
-                className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
-              >
-                <XCircleIcon weight="duotone" width={16} height={16} />
-              </button>
-              <span className="w-px h-4 bg-[var(--ds-border)]" />
-            </>
-          )}
+            ) : (
+              selectedOptions.map((option) => (
+                <span
+                  key={option.value}
+                  className="flex items-center gap-1 px-2.5 py-0.5 rounded-full border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] text-xs text-[var(--ds-text)]"
+                >
+                  {option.flag && <span className="leading-none">{option.flag}</span>}
+                  {option.label}
+                </span>
+              ))
+            )}
+          </span>
           {open ? (
             <CaretUpIcon weight="duotone" className="shrink-0 size-4 text-[var(--ds-text-muted)]" />
           ) : (
@@ -472,15 +439,24 @@ function MultiSelectDropdown({
               className="shrink-0 size-4 text-[var(--ds-text-muted)]"
             />
           )}
-        </div>
+        </button>
+        {selected.length > 0 && (
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            aria-label="Alle entfernen"
+            className="shrink-0 px-3 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
+          >
+            <XCircleIcon weight="duotone" width={16} height={16} />
+          </button>
+        )}
       </div>
       {open && (
-        <div
+        <fieldset
           id={listboxId}
-          role="listbox"
-          aria-multiselectable="true"
           className="absolute z-20 w-full mt-1 bg-white border border-[var(--ds-border)] rounded-xl shadow-lg max-h-64 overflow-y-auto"
         >
+          <legend className="sr-only">{label} Optionen</legend>
           <label className="flex items-center gap-3 px-4 py-1.5 cursor-pointer hover:bg-[var(--ds-surface-alt)] select-none border-b border-[var(--ds-border)]">
             <input type="checkbox" checked={allSelected} onChange={toggleAll} className="sr-only" />
             <CustomCheckbox checked={allSelected} />
@@ -513,7 +489,7 @@ function MultiSelectDropdown({
               </label>
             );
           })}
-        </div>
+        </fieldset>
       )}
       {error && <p className={errorClass}>{error}</p>}
       {subtext && <DynamicFormSubtext>{subtext}</DynamicFormSubtext>}
@@ -561,6 +537,14 @@ interface RegionMultiSelectProps {
 }
 
 function RegionMultiSelect({ field, selected, onChange, error }: RegionMultiSelectProps) {
+  const messages = useMemo(
+    () => ({
+      label: field.label || "Versand-Regionen",
+      placeholder: field.placeholder ?? "Versand-Regionen wählen…",
+    }),
+    [field.label, field.placeholder],
+  );
+
   return (
     <Suspense
       fallback={
@@ -575,10 +559,7 @@ function RegionMultiSelect({ field, selected, onChange, error }: RegionMultiSele
         value={selected}
         onChange={onChange}
         options={REGION_OPTIONS}
-        messages={{
-          label: field.label || "Versand-Regionen",
-          placeholder: field.placeholder ?? "Versand-Regionen wählen…",
-        }}
+        messages={messages}
         error={error}
         variant="frontend"
       />
@@ -764,7 +745,7 @@ function ButtonField({
   return (
     <div className={`flex items-start pt-[1.625rem] min-w-0 ${alignClass}`}>
       <button
-        type={btnType}
+        type={field.buttonType === "submit" ? "submit" : "button"}
         disabled={isDisabled}
         title={displayMode === "icon" && field.label ? field.label : undefined}
         onClick={
