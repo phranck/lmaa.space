@@ -9,8 +9,8 @@ import { removeStoredMediaAsset } from "../lib/media-storage.js";
 
 type MediaFolderRow = typeof mediaFolders.$inferSelect;
 
-export const SOCIAL_MEDIA_FOLDER_SYSTEM_KEY = "social-media";
-export const SOCIAL_MEDIA_FOLDER_NAME = "Social Media";
+const SOCIAL_MEDIA_FOLDER_SYSTEM_KEY = "social-media";
+const SOCIAL_MEDIA_FOLDER_NAME = "Social Media";
 
 function serializeFolder(row: MediaFolderRow): MediaFolder {
   return {
@@ -141,12 +141,12 @@ export async function updateFolder(input: UpdateFolderInput): Promise<MediaFolde
   return updated ? serializeFolder(updated) : null;
 }
 
-export async function getFolderById(id: number): Promise<MediaFolder | null> {
+async function getFolderById(id: number): Promise<MediaFolder | null> {
   const [row] = await db.select().from(mediaFolders).where(eq(mediaFolders.id, id)).limit(1);
   return row ? serializeFolder(row) : null;
 }
 
-export async function getFolderBySystemKey(systemKey: string): Promise<MediaFolder | null> {
+async function getFolderBySystemKey(systemKey: string): Promise<MediaFolder | null> {
   const [row] = await db
     .select()
     .from(mediaFolders)
@@ -155,7 +155,7 @@ export async function getFolderBySystemKey(systemKey: string): Promise<MediaFold
   return row ? serializeFolder(row) : null;
 }
 
-export async function listChildFolders(parentId: number | null): Promise<MediaFolder[]> {
+async function listChildFolders(parentId: number | null): Promise<MediaFolder[]> {
   const rows = await db
     .select()
     .from(mediaFolders)
@@ -284,7 +284,7 @@ function rowFromExecuteResult(row: RecursiveFolderRow): MediaFolder {
   };
 }
 
-export async function listAncestors(folderId: number): Promise<MediaFolder[]> {
+async function listAncestors(folderId: number): Promise<MediaFolder[]> {
   const result = await db.execute<RecursiveFolderRow>(sql`
     WITH RECURSIVE chain AS (
       SELECT f.*, 0 AS depth

@@ -40,7 +40,7 @@ export async function listMediaAssetsByFolder(folderId: number | null) {
     .orderBy(desc(mediaAssets.createdAt), desc(mediaAssets.id));
 }
 
-export async function getMediaAssetById(id: number) {
+async function getMediaAssetById(id: number) {
   const [asset] = await db
     .select(MEDIA_SELECT_FIELDS)
     .from(mediaAssets)

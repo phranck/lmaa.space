@@ -159,7 +159,7 @@ function ipv6ToBytes(ip: string): number[] | null {
  * residual TOCTOU gap remains between this check and the actual connection;
  * closing it fully would require pinning the socket to the validated address.
  */
-export async function resolvesToPublicHost(hostname: string): Promise<boolean> {
+async function resolvesToPublicHost(hostname: string): Promise<boolean> {
   const bare = hostname.replace(/^\[|]$/g, "");
   if (isIP(bare) !== 0) return !isPrivateIp(bare);
   try {
