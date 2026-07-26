@@ -2,8 +2,8 @@ import {
   createContext,
   createElement,
   type ReactNode,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -62,7 +62,7 @@ export function KeyboardSaveProvider({ children }: { children: ReactNode }) {
  * @param enabled - Gate the listener (e.g. only while a modal is open).
  */
 export function useKeyboardSave(handler: () => void, enabled = true) {
-  const context = useContext(KeyboardSaveContext);
+  const context = use(KeyboardSaveContext);
   const handlerRef = useRef(handler);
   const enabledRef = useRef(enabled);
 

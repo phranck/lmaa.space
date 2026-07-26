@@ -1,4 +1,4 @@
-import { type ReactNode, createContext, useContext, useMemo, useState } from "react";
+import { type ReactNode, createContext, use, useMemo, useState } from "react";
 
 interface BodyCardContextValue {
   /** When true, the body card becomes transparent and centers its content. */
@@ -18,5 +18,5 @@ export function BodyCardProvider({ children }: { children: ReactNode }) {
 }
 
 export function useBodyCard() {
-  return useContext(BodyCardContext);
+  return use(BodyCardContext);
 }

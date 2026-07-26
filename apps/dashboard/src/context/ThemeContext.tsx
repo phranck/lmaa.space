@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, use, useCallback, useEffect, useMemo, useState } from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -75,7 +75,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
  * @throws Error when used outside `ThemeProvider`.
  */
 export function useTheme(): ThemeContextValue {
-  const ctx = useContext(ThemeContext);
+  const ctx = use(ThemeContext);
   if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
   return ctx;
 }
