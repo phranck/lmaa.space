@@ -44,6 +44,11 @@ export default {
         ],
         rules: ["react-doctor/async-await-in-loop"],
       },
+      // Migration safety, the Drizzle run, and ownership verification are strict phases.
+      {
+        files: ["src/db/run-migrations.ts"],
+        rules: ["react-doctor/async-parallel"],
+      },
       // React Doctor's dead-code graph does not follow Astro component imports.
       {
         files: ["src/components/Header.astro", "src/components/SupportButton.astro"],
@@ -53,6 +58,11 @@ export default {
       {
         files: ["src/components/islands/ShopFilterBar.tsx", "src/hooks/useMarkdownHtml.ts"],
         rules: ["react-doctor/no-fetch-in-effect"],
+      },
+      // Markdown rendering owns asynchronous DOM synchronization for its source prop.
+      {
+        files: ["src/hooks/useMarkdownHtml.ts"],
+        rules: ["react-doctor/no-event-handler"],
       },
     ],
   },
