@@ -199,6 +199,8 @@ function navLinkClass(href: string, external = false) {
 </header>
 
 <script>
+  import { getLikedShopIds } from "@/lib/liked-shops";
+
   // Click-outside to close mobile menu
   document.addEventListener("click", (e) => {
     const mobile = document.getElementById("mobile-menu-details") as HTMLDetailsElement | null;
@@ -209,9 +211,7 @@ function navLinkClass(href: string, external = false) {
 
   // Show "Meine Shops" nav links when user has liked shops
   try {
-    const raw = localStorage.getItem("lmaa-liked-shops");
-    const liked = raw ? (JSON.parse(raw) as string[]) : [];
-    if (liked.length > 0) {
+    if (getLikedShopIds().size > 0) {
       document.querySelectorAll<HTMLElement>("[data-my-shops-link]").forEach((el) => {
         el.classList.remove("hidden");
         if (el.dataset.myShopsLink === "desktop") {

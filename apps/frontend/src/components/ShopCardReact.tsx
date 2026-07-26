@@ -2,6 +2,7 @@ import { HeartIcon, MapPinLineIcon } from "@phosphor-icons/react";
 
 import { resolveLogoBackground } from "@lmaa/shared";
 
+import { getLikedShopIds } from "@/lib/liked-shops";
 import { shopDomain } from "@/lib/shop";
 
 interface ShopCategory {
@@ -30,12 +31,7 @@ const MAX_PILLS = 2;
  * Used inside filterable island components that need React-controlled rendering.
  */
 function isShopLiked(id: number): boolean {
-  try {
-    const raw = localStorage.getItem("lmaa-liked-shops");
-    return raw ? (JSON.parse(raw) as string[]).includes(String(id)) : false;
-  } catch {
-    return false;
-  }
+  return getLikedShopIds().has(String(id));
 }
 
 export default function ShopCardReact({
