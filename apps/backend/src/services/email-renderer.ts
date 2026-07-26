@@ -37,9 +37,7 @@ const COLOR_SCHEME_CSS = `
 const DARK_MODE_CSS = `${COLOR_SCHEME_CSS}@media (prefers-color-scheme: dark) {${DARK_RULES}}`;
 
 function interpolate(text: string, variables: Record<string, string>): string {
-  return text.replace(new RegExp(VAR_REGEX.source, "g"), (_, name) =>
-    escapeHtml(variables[name] ?? ""),
-  );
+  return text.replace(VAR_REGEX, (_, name) => escapeHtml(variables[name] ?? ""));
 }
 
 // Private-use placeholders that survive Markdown rendering untouched.
@@ -73,7 +71,7 @@ const PLACEHOLDER_CLOSE = String.fromCharCode(0xe001);
  */
 function interpolateMarkdown(text: string, variables: Record<string, string>): string {
   const values: string[] = [];
-  const withPlaceholders = text.replace(new RegExp(VAR_REGEX.source, "g"), (_, name) => {
+  const withPlaceholders = text.replace(VAR_REGEX, (_, name) => {
     const index = values.push(escapeHtml(variables[name] ?? "")) - 1;
     return `${PLACEHOLDER_OPEN}${index}${PLACEHOLDER_CLOSE}`;
   });
@@ -221,7 +219,7 @@ export function sampleVariablesForTemplate(template: EmailTemplate): Record<stri
     .join(" ");
 
   const variables: Record<string, string> = {};
-  for (const match of haystack.matchAll(new RegExp(VAR_REGEX.source, "g"))) {
+  for (const match of haystack.matchAll(VAR_REGEX)) {
     const name = match[1];
     variables[name] = SAMPLE_TEMPLATE_VARIABLES[name] ?? name;
   }
