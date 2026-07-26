@@ -3,6 +3,34 @@
 # and the graph reflects source structure, not docs/assets.
 # Format: gitignore-style glob patterns.
 
+# Local agent state, runtime state, and generated build outputs
+/.agents/
+/.claude/
+/.codex/
+/.grat/
+/.pi/
+/.quay/
+/.serena/
+/test-results/
+**/.astro/
+**/dist/
+apps/backend/docs-dist/
+apps/backend/openapi.generated.json
+apps/backend/uploads/
+apps/frontend/image-originals/
+/affiliate/
+/.gource/
+/memory/
+/papers/
+/plans/
+/skills/
+
+# Only the tracked project scripts belong in the code graph.
+scripts/*
+!scripts/smoke-prod.sh
+!scripts/check-web-fonts.mjs
+!scripts/check-web-fonts.test.mjs
+
 # Documents / markup / text / config
 *.html
 *.md
