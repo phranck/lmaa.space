@@ -66,6 +66,7 @@ export function UserAvatarEditor({
       </div>
 
       <input
+        aria-label={usersMessages.editCard.uploadImage}
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
