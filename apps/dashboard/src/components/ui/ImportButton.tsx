@@ -29,6 +29,7 @@ export function ImportButton({
         title={tooltip}
       />
       <input
+        aria-label={label}
         ref={fileInputRef}
         type="file"
         accept={accept}
