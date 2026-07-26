@@ -4,7 +4,7 @@ import type { SocialMediaPostTemplateScope } from "@lmaa/contracts";
 
 import { api } from "@/lib/api.ts";
 
-export const TEMPLATE_CHOICES_KEY = (scope: SocialMediaPostTemplateScope) =>
+const TEMPLATE_CHOICES_KEY = (scope: SocialMediaPostTemplateScope) =>
   ["me-template-choices", scope] as const;
 
 /**
