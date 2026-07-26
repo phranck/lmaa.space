@@ -7,7 +7,7 @@
     "dev": "node --env-file=.env.local ../../node_modules/astro/astro.js dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check",
+    "check": "astro-check",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "astro check",
     "lint": "eslint .",
