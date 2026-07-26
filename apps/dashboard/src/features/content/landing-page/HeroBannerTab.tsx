@@ -60,7 +60,7 @@ function HeroImageCard({
     (y: number) => setFocalPoint.mutate({ id: image.id, focalPointY: y }),
     [image.id, setFocalPoint],
   );
-  const { focalY, containerRef, startDrag } = useFocalPointDrag(
+  const { focalY, containerRef, handleKeyDown, startDrag } = useFocalPointDrag(
     image.focalPointY ?? 50,
     handleCommit,
   );
@@ -76,7 +76,12 @@ function HeroImageCard({
         draggable={false}
       />
 
-      <FocalPointOverlay focalY={focalY} onMouseDown={startDrag} title={m.focalPointDrag} />
+      <FocalPointOverlay
+        focalY={focalY}
+        onKeyDown={handleKeyDown}
+        onMouseDown={startDrag}
+        title={m.focalPointDrag}
+      />
 
       {/* Active badge */}
       {image.isSelected && (
