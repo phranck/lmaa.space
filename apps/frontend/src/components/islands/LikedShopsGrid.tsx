@@ -35,24 +35,17 @@ function ImportDialog({
   }, [onCancel]);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={onCancel}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onCancel();
-        }
-      }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <button
+        type="button"
+        aria-label="Importdialog schließen"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onCancel}
+      />
       <dialog
         open
         aria-labelledby="liked-shops-import-title"
-        className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
+        className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
       >
         <h2
           id="liked-shops-import-title"
@@ -167,24 +160,17 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClose();
-        }
-      }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <button
+        type="button"
+        aria-label="Synchronisationsdialog schließen"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
       <dialog
         open
         aria-labelledby="liked-shops-sync-title"
-        className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
+        className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
       >
         <h2
           id="liked-shops-sync-title"
