@@ -1,4 +1,4 @@
-import { createContext, useContext, useId } from "react";
+import { createContext, use, useId } from "react";
 import type {
   ButtonHTMLAttributes,
   HTMLAttributes,
@@ -24,7 +24,7 @@ const TabsPrimitiveContext =
   createContext<TabsPrimitiveContextValue | null>(null);
 
 function useTabsPrimitiveContext(componentName: string) {
-  const context = useContext(TabsPrimitiveContext);
+  const context = use(TabsPrimitiveContext);
   if (!context) {
     throw new Error(
       `${componentName} must be used within <TabsPrimitive>.`,
