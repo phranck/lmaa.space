@@ -56,22 +56,30 @@ export function resolveInitialLocale(): DashboardLocale {
  */
 export function I18nProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [localeState, setLocaleState] = useState<DashboardLocale>(resolveInitialLocale);
+  const [localePreference, setLocalePreference] = useState(() => ({
+    locale: resolveInitialLocale(),
+    synchronizedUserLocale: null as DashboardLocale | null,
+  }));
+  const localeState =
+    user?.locale && user.locale !== localePreference.synchronizedUserLocale
+      ? user.locale
+      : localePreference.locale;
 
   useEffect(() => {
-    if (!user?.locale || user.locale === localeState) return;
-    setLocaleState(user.locale);
     try {
-      localStorage.setItem(DASHBOARD_LOCALE_STORAGE_KEY, user.locale);
+      localStorage.setItem(DASHBOARD_LOCALE_STORAGE_KEY, localeState);
     } catch {}
-  }, [localeState, user?.locale]);
+  }, [localeState]);
 
-  const updateLocale = useCallback((next: DashboardLocale) => {
-    setLocaleState(next);
-    try {
-      localStorage.setItem(DASHBOARD_LOCALE_STORAGE_KEY, next);
-    } catch {}
-  }, []);
+  const updateLocale = useCallback(
+    (next: DashboardLocale) => {
+      setLocalePreference({
+        locale: next,
+        synchronizedUserLocale: user?.locale ?? null,
+      });
+    },
+    [user?.locale],
+  );
 
   const value = useMemo<I18nContextValue>(() => {
     const messages = DASHBOARD_MESSAGES[localeState];
