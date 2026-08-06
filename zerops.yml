@@ -13,6 +13,7 @@ zerops:
         - apps/backend/dist
         - apps/backend/docs-dist
         - apps/backend/drizzle
+        - apps/backend/public
         - apps/frontend/src/assets/fonts
         - node_modules/sharp
         - node_modules/@img
