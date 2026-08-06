@@ -6,7 +6,10 @@
  *   /uploads/* – uploaded category images
  *   /sitemap.xml – generated sitemap
  */
+import type { APIContext } from "astro";
 import { defineMiddleware } from "astro:middleware";
+
+import { buildForwardedForHeader } from "./lib/client-address.js";
 
 const STORAGE_CSP_ORIGIN = "https://storage-prg1.zerops.io";
 const YOUTUBE_EMBED_CSP_ORIGIN = "https://www.youtube-nocookie.com";
@@ -96,6 +99,26 @@ function isEmbeddablePreviewPath(pathname: string): boolean {
 }
 
 /**
+ * Passes the client address on to the backend as `X-Forwarded-For`.
+ *
+ * @param headers - Header set being assembled for the proxied request.
+ * @param context - Astro request context for the incoming request.
+ *
+ * @remarks
+ * `context.clientAddress` is read only as the no-header fallback, never to
+ * overwrite an existing header: Astro resolves it from the *first*
+ * `X-Forwarded-For` entry, which is the one a caller can set freely.
+ * {@link buildForwardedForHeader} documents the hop reasoning.
+ */
+function forwardClientAddress(headers: Headers, context: APIContext): void {
+  const value = buildForwardedForHeader(
+    context.request.headers.get("x-forwarded-for"),
+    context.clientAddress,
+  );
+  if (value) headers.set("x-forwarded-for", value);
+}
+
+/**
  * Astro request middleware that proxies API, uploads and sitemap to backend.
  */
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -139,6 +162,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const value = fwd.get(name);
     if (value) headers.set(name, value);
   }
+  forwardClientAddress(headers, context);
 
   const method = context.request.method;
   const hasBody = method !== "GET" && method !== "HEAD";
