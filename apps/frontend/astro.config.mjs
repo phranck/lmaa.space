@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 
 import node from "@astrojs/node";
@@ -6,6 +7,14 @@ import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
 import UnoCSS from "unocss/astro";
 
+import { FOOTER_STYLES_CSS } from "@lmaa/shared";
+
+import {
+  ANALYTICS_CSP_ORIGIN,
+  STORAGE_CSP_ORIGIN,
+  YOUTUBE_EMBED_CSP_ORIGIN,
+} from "./src/lib/csp.js";
+
 function devProxyPlugin() {
   return {
     name: "lmaa-dev-proxy",
@@ -13,9 +22,7 @@ function devProxyPlugin() {
     config() {
       const backendUrl = process.env.BACKEND_URL?.trim();
       if (!backendUrl) {
-        throw new Error(
-          "Missing BACKEND_URL. Define it in .env.local — manually or via pewee.",
-        );
+        throw new Error("Missing BACKEND_URL. Define it in .env.local — manually or via pewee.");
       }
       return {
         server: {
@@ -33,6 +40,51 @@ export default defineConfig({
   site: "https://lmaa.space",
   output: "server",
   adapter: node({ mode: "standalone" }),
+  security: {
+    // Astro hashes every script and style it processes and emits them in a
+    // `<meta http-equiv="content-security-policy">` per page. The header set in
+    // `src/middleware.ts` still carries `'unsafe-inline'`, and that is
+    // deliberate: several policies on one response all have to allow a resource,
+    // so the header stays permissive enough not to block Astro's hashed inline
+    // scripts while the meta element supplies the restriction. Injected script
+    // has no matching hash and is refused by the meta element.
+    //
+    // `resources` replaces Astro's default source list, so `'self'` has to be
+    // named again alongside the analytics origin.
+    // Astro hashes every script and style it processes and emits the policy as
+    // a response header on server-rendered routes. It owns the header outright,
+    // so every directive the site needs has to be configured here: whatever is
+    // missing is simply absent from the response, and the middleware only fills
+    // in a policy when none was set at all.
+    //
+    // `resources` replaces Astro's default source list rather than adding to it,
+    // so `'self'` is named again next to the analytics origin.
+    csp: {
+      scriptDirective: {
+        resources: ["'self'", ANALYTICS_CSP_ORIGIN],
+      },
+      styleDirective: {
+        resources: ["'self'"],
+        // The footer injects this stylesheet through `set:html`, so Astro sees
+        // dynamic content and cannot hash it. Hashing the constant here keeps
+        // the two in step: changing the CSS changes the hash automatically,
+        // which a hard-coded value would not.
+        hashes: [`sha256-${createHash("sha256").update(FOOTER_STYLES_CSS).digest("base64")}`],
+      },
+      directives: [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "object-src 'none'",
+        "frame-ancestors 'none'",
+        `frame-src 'self' ${YOUTUBE_EMBED_CSP_ORIGIN}`,
+        "img-src 'self' data: https:",
+        "font-src 'self' data:",
+        `connect-src 'self' ${ANALYTICS_CSP_ORIGIN} ${STORAGE_CSP_ORIGIN}`,
+        `media-src 'self' ${STORAGE_CSP_ORIGIN} blob:`,
+        "form-action 'self'",
+      ],
+    },
+  },
   server: {
     port: Number(process.env.PORT) || 4321,
   },
@@ -63,7 +115,10 @@ export default defineConfig({
               return "lezer";
             }
 
-            if (id.includes("/node_modules/marked") || id.includes("/node_modules/marked-footnote")) {
+            if (
+              id.includes("/node_modules/marked") ||
+              id.includes("/node_modules/marked-footnote")
+            ) {
               return "markdown";
             }
 
