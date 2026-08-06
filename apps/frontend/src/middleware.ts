@@ -10,47 +10,13 @@ import type { APIContext } from "astro";
 import { defineMiddleware } from "astro:middleware";
 
 import { buildForwardedForHeader } from "./lib/client-address.js";
-
-const STORAGE_CSP_ORIGIN = "https://storage-prg1.zerops.io";
-const YOUTUBE_EMBED_CSP_ORIGIN = "https://www.youtube-nocookie.com";
-
-const WEBSITE_CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  `frame-src 'self' ${YOUTUBE_EMBED_CSP_ORIGIN}`,
-  "script-src 'self' 'unsafe-inline' https://umami.layered.work https://unpkg.com",
-  "style-src 'self' 'unsafe-inline' https://unpkg.com",
-  "img-src 'self' data: https:",
-  "font-src 'self' data:",
-  `connect-src 'self' https://umami.layered.work ${STORAGE_CSP_ORIGIN}`,
-  `media-src 'self' ${STORAGE_CSP_ORIGIN} blob:`,
-  "form-action 'self'",
-].join("; ");
+import { WEBSITE_CONTENT_SECURITY_POLICY, buildFooterPreviewCsp } from "./lib/csp.js";
 
 function resolveDashboardOriginForCsp(): string {
   const explicit = process.env.DASHBOARD_URL?.trim();
   if (explicit) return explicit;
   if (process.env.NODE_ENV === "production") return "https://dashboard.lmaa.space";
   throw new Error("Missing DASHBOARD_URL. Define it in .env.local — manually or via pewee.");
-}
-
-function buildFooterPreviewCsp(): string {
-  const dashboardUrl = resolveDashboardOriginForCsp();
-  return [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    `frame-ancestors ${dashboardUrl}`,
-    "script-src 'self' 'unsafe-inline' https://umami.layered.work",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
-    "font-src 'self' data:",
-    `connect-src 'self' https://umami.layered.work ${STORAGE_CSP_ORIGIN}`,
-    `media-src 'self' ${STORAGE_CSP_ORIGIN} blob:`,
-    "form-action 'self'",
-  ].join("; ");
 }
 
 function normalizeApiBase(input: string): string {
@@ -83,7 +49,9 @@ function resolveBackendOrigin(): string {
 }
 
 const BACKEND_ORIGIN = resolveBackendOrigin();
-const FOOTER_PREVIEW_CONTENT_SECURITY_POLICY = buildFooterPreviewCsp();
+const FOOTER_PREVIEW_CONTENT_SECURITY_POLICY = buildFooterPreviewCsp(
+  resolveDashboardOriginForCsp(),
+);
 
 function shouldProxy(pathname: string): boolean {
   return (
