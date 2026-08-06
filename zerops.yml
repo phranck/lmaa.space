@@ -54,15 +54,21 @@ zerops:
         API_URL: http://backend:3000/api/v1
         PUBLIC_API_URL: /api/v1
       buildCommands:
-        # Build once with full deps, then reinstall only runtime deps for slimmer deploy artifacts.
+        # The installed tree is deployed as-is. It was previously reduced to the
+        # frontend's runtime dependencies, which worked only while the built
+        # server entry needed nothing from node_modules. Astro 7 imports
+        # `es-module-lexer` from it, and the reduced install did not contain
+        # astro at all, so the service died on startup with ERR_MODULE_NOT_FOUND.
         - npm ci --cache .npm
         - npm run build -w @lmaa/shared
         - npm run build -w @lmaa/frontend
-        - rm -rf node_modules
-        - npm ci --omit=dev --omit=optional --workspace @lmaa/frontend --include-workspace-root=false --cache .npm
       deployFiles:
         - apps/frontend/dist
         - node_modules
+        # npm keeps astro and its dependencies in the workspace's own directory
+        # rather than hoisting them, and the built server entry resolves
+        # `es-module-lexer` from there at runtime.
+        - apps/frontend/node_modules
         - package.json
       cache: .npm
     run:
