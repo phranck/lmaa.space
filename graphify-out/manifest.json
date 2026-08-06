@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/index.ts": {
-    "mtime": 1784989815.7347388,
-    "ast_hash": "cc4c29605189dbe4967a89e724f49f2b",
+    "mtime": 1786021288.7663426,
+    "ast_hash": "2d76fe35ff36833add088fcbca73ec0a",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/email-address.ts": {
@@ -3777,6 +3777,11 @@
   "typedoc.json": {
     "mtime": 1784575451.3380082,
     "ast_hash": "3a13ade677a79b2e3f4cce74ef593e86",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/routes/security-txt.ts": {
+    "mtime": 1786021273.409328,
+    "ast_hash": "fe98b78cc6116c579c46a13c324612a8",
     "semantic_hash": ""
   }
 }

@@ -1,0 +1,35 @@
+name: security.txt Check
+
+on:
+  schedule:
+    # Monday mornings, early enough that a finding is waiting at the start of the week.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: security-txt-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check delivered security.txt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check hosts and reconcile the host list
+        uses: phranck/security-txt-action/check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-labels: security
+          hosts: |
+            lmaa.space
+            dashboard.lmaa.space
+            api.lmaa.space
+          domains: |
+            lmaa.space
+          ignore: |
+            status.lmaa.space: Velvet status page living in its own repository
+            link.lmaa.space: SMTP2GO link tracking, no place of ours to put a file
