@@ -8,56 +8,34 @@ export const YOUTUBE_EMBED_CSP_ORIGIN = "https://www.youtube-nocookie.com";
 export const ANALYTICS_CSP_ORIGIN = "https://umami.layered.work";
 
 /**
- * Content Security Policy for the public website.
+ * Rewrites `frame-ancestors` in an existing policy.
+ *
+ * @param policy - Policy as Astro emitted it.
+ * @param frameAncestors - Source list the route should allow, for example an origin or `'none'`.
+ * @returns The policy with `frame-ancestors` replaced, or extended with it when absent.
  *
  * @remarks
- * `script-src` names only origins this site actually loads code from. A general
- * purpose package CDN must never appear here: those serve any package to
- * anyone, so allowing one turns any injection into arbitrary script execution.
- *
- * `'unsafe-inline'` is still present because Astro emits inline scripts for
- * island hydration. Replacing it with per-request nonces or build-time hashes
- * is tracked separately, since it changes how every page is rendered and needs
- * verification in a browser.
+ * The policy is configured once in `astro.config.mjs`, which applies to every
+ * route and therefore denies framing. The footer preview is the one route that
+ * exists to be embedded by the dashboard, so its response needs a different
+ * value. Rewriting the emitted policy keeps a single definition rather than a
+ * second copy that has to be kept in step.
  */
-export const WEBSITE_CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  `frame-src 'self' ${YOUTUBE_EMBED_CSP_ORIGIN}`,
-  `script-src 'self' 'unsafe-inline' ${ANALYTICS_CSP_ORIGIN}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https:",
-  "font-src 'self' data:",
-  `connect-src 'self' ${ANALYTICS_CSP_ORIGIN} ${STORAGE_CSP_ORIGIN}`,
-  `media-src 'self' ${STORAGE_CSP_ORIGIN} blob:`,
-  "form-action 'self'",
-].join("; ");
+export function withFrameAncestors(policy: string, frameAncestors: string): string {
+  const directives = policy
+    .split(";")
+    .map((directive) => directive.trim())
+    .filter(Boolean);
 
-/**
- * Builds the policy for the footer preview, which the dashboard embeds in a frame.
- *
- * @param dashboardOrigin - Origin allowed to frame the preview.
- * @returns The policy string for preview responses.
- *
- * @remarks
- * Differs from the website policy in exactly one way: `frame-ancestors` names
- * the dashboard instead of denying framing outright, because this route exists
- * to be embedded there.
- */
-export function buildFooterPreviewCsp(dashboardOrigin: string): string {
-  return [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    `frame-ancestors ${dashboardOrigin}`,
-    `script-src 'self' 'unsafe-inline' ${ANALYTICS_CSP_ORIGIN}`,
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
-    "font-src 'self' data:",
-    `connect-src 'self' ${ANALYTICS_CSP_ORIGIN} ${STORAGE_CSP_ORIGIN}`,
-    `media-src 'self' ${STORAGE_CSP_ORIGIN} blob:`,
-    "form-action 'self'",
-  ].join("; ");
+  const rewritten = directives.map((directive) =>
+    directive === "frame-ancestors" || directive.startsWith("frame-ancestors ")
+      ? `frame-ancestors ${frameAncestors}`
+      : directive,
+  );
+
+  if (!rewritten.some((directive) => directive.startsWith("frame-ancestors"))) {
+    rewritten.push(`frame-ancestors ${frameAncestors}`);
+  }
+
+  return rewritten.join("; ");
 }

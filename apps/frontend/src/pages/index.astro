@@ -127,9 +127,9 @@ const jsonLd = {
             Suchen
           </button>
         </div>
-        <script is:inline>
+        <script>
           (() => {
-            const input = document.getElementById('hero-search');
+            const input = document.getElementById('hero-search') as HTMLInputElement | null;
             const btn = document.getElementById('hero-search-clear');
             const shortcut = document.getElementById('hero-search-shortcut');
             if (!input || !btn || !shortcut) return;

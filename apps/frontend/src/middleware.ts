@@ -10,7 +10,7 @@ import type { APIContext } from "astro";
 import { defineMiddleware } from "astro:middleware";
 
 import { buildForwardedForHeader } from "./lib/client-address.js";
-import { WEBSITE_CONTENT_SECURITY_POLICY, buildFooterPreviewCsp } from "./lib/csp.js";
+import { withFrameAncestors } from "./lib/csp.js";
 
 function resolveDashboardOriginForCsp(): string {
   const explicit = process.env.DASHBOARD_URL?.trim();
@@ -49,9 +49,6 @@ function resolveBackendOrigin(): string {
 }
 
 const BACKEND_ORIGIN = resolveBackendOrigin();
-const FOOTER_PREVIEW_CONTENT_SECURITY_POLICY = buildFooterPreviewCsp(
-  resolveDashboardOriginForCsp(),
-);
 
 function shouldProxy(pathname: string): boolean {
   return (
@@ -95,13 +92,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!shouldProxy(pathname)) {
     const originalResponse = await next();
     const response = new Response(originalResponse.body, originalResponse);
-    if (!response.headers.has("Content-Security-Policy")) {
-      response.headers.set(
-        "Content-Security-Policy",
-        isEmbeddablePreviewPath(pathname)
-          ? FOOTER_PREVIEW_CONTENT_SECURITY_POLICY
-          : WEBSITE_CONTENT_SECURITY_POLICY,
-      );
+    // Astro builds the policy from the configuration in `astro.config.mjs` and
+    // sets it on server-rendered responses, including the hashes of every script
+    // and style it processed. Only the one route meant to be framed by the
+    // dashboard needs a different `frame-ancestors`.
+    if (isEmbeddablePreviewPath(pathname)) {
+      const policy = response.headers.get("Content-Security-Policy");
+      if (policy) {
+        response.headers.set(
+          "Content-Security-Policy",
+          withFrameAncestors(policy, resolveDashboardOriginForCsp()),
+        );
+      }
     }
     if (!response.headers.has("X-Frame-Options")) {
       if (isEmbeddablePreviewPath(pathname)) {
