@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/index.ts": {
-    "mtime": 1786021465.435596,
-    "ast_hash": "2d76fe35ff36833add088fcbca73ec0a",
+    "mtime": 1786026642.3304129,
+    "ast_hash": "dbef04449162eb19ce250a5293db2046",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/email-address.ts": {
@@ -3075,7 +3075,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/middleware.ts": {
-    "mtime": 1786026514.2152095,
+    "mtime": 1786026596.7296865,
     "ast_hash": "614d601238812c463639303d66c63c14",
     "semantic_hash": ""
   },
@@ -3815,12 +3815,12 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/csp.test.ts": {
-    "mtime": 1786026514.2149599,
+    "mtime": 1786026596.7294166,
     "ast_hash": "d9e32fae1e08c80ed65a71f1ab4492cc",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/csp.ts": {
-    "mtime": 1786026514.2150445,
+    "mtime": 1786026596.7295234,
     "ast_hash": "9be2dbdf683cb5d6a67db507d73eb625",
     "semantic_hash": ""
   }
