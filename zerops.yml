@@ -17,6 +17,11 @@ zerops:
         - apps/frontend/src/assets/fonts
         - node_modules/sharp
         - node_modules/@img
+        # sharp's own runtime dependencies. They used to arrive by accident,
+        # because sharp was being inlined into the backend bundle; now that it is
+        # correctly external, it resolves these itself at runtime.
+        - node_modules/detect-libc
+        - node_modules/semver
       cache: .npm
     run:
       base: nodejs@22
