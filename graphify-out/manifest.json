@@ -605,8 +605,8 @@
     "semantic_hash": ""
   },
   "apps/backend/package.json": {
-    "mtime": 1786032449.8921592,
-    "ast_hash": "67dc0c33ddec53e74b12dc2b6eb9d1e1",
+    "mtime": 1786032841.1982002,
+    "ast_hash": "75349ebafefdfa060c170fa55b446c56",
     "semantic_hash": ""
   },
   "apps/backend/periwinkle.config.ts": {
@@ -1545,8 +1545,8 @@
     "semantic_hash": ""
   },
   "apps/backend/tsup.config.ts": {
-    "mtime": 1786032449.8955638,
-    "ast_hash": "5c5bc7cf932406f91ea493487d9178b3",
+    "mtime": 1786032799.9458997,
+    "ast_hash": "50cc6c2abf4f224ac219ccf4b3dafc7e",
     "semantic_hash": ""
   },
   "apps/backend/vitest.config.ts": {
@@ -1555,8 +1555,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/package.json": {
-    "mtime": 1786030433.0497935,
-    "ast_hash": "daa624b95b94ffdee68248fe78901616",
+    "mtime": 1786032841.1984599,
+    "ast_hash": "47687158f8ede08d470fe9248657f720",
     "semantic_hash": ""
   },
   "apps/dashboard/public/sw.js": {
@@ -2830,8 +2830,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/package.json": {
-    "mtime": 1786030433.0499055,
-    "ast_hash": "9e729f227106173d48dfc78f1f44c743",
+    "mtime": 1786032841.1983457,
+    "ast_hash": "9aa0d68913abbbeeef06b168e931e54b",
     "semantic_hash": ""
   },
   "apps/frontend/src/components/CategoryCard.tsx": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1786032449.926382,
-    "ast_hash": "532eb8b619c1079893be37a939051098",
+    "mtime": 1786032841.197984,
+    "ast_hash": "d1e8512f5b317a5a3a859d6f740e3b06",
     "semantic_hash": ""
   },
   "packages/contracts/package.json": {
