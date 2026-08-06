@@ -1,0 +1,10 @@
+Keeps this directory in the repository.
+
+`zerops.yml` lists `apps/backend/public` under `deployFiles`, and Zerops aborts a
+deploy when a listed target is missing. The directory is otherwise created only
+by the security.txt step of the deploy workflow, so a manual `zcli push` failed
+with "target 'apps/backend/public' specified in deployFiles field is missing" at
+exactly the moment a manual deploy was needed.
+
+The signed security.txt itself is written here during deployment and is not
+committed, because signing needs a key that stays out of the repository.
