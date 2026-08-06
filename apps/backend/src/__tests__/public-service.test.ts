@@ -473,13 +473,28 @@ describe("createManagedDeadLinkReport", () => {
     expect(result).toEqual({ ok: false, reason: "not_found" });
   });
 
-  it("inserts report with hashed IP", async () => {
+  it("inserts report with hashed IP and keeps deduplication on", async () => {
     publicRepoMocks.getPublicShopById.mockResolvedValue({ id: 1 });
     const result = await createManagedDeadLinkReport(1, "1.2.3.4");
     expect(result).toEqual({ ok: true });
     expect(publicRepoMocks.insertDeadLinkReport).toHaveBeenCalledWith(
       1,
       expect.stringMatching(/^[0-9a-f]{64}$/),
+      { deduplicate: true },
+    );
+  });
+
+  // Every reporter without a resolvable address hashes to the same value, so
+  // deduplicating on it would keep the first report for a shop and silently
+  // drop every later one.
+  it("skips deduplication when the client address is unknown", async () => {
+    publicRepoMocks.getPublicShopById.mockResolvedValue({ id: 1 });
+    const result = await createManagedDeadLinkReport(1, "unknown");
+    expect(result).toEqual({ ok: true });
+    expect(publicRepoMocks.insertDeadLinkReport).toHaveBeenCalledWith(
+      1,
+      expect.stringMatching(/^[0-9a-f]{64}$/),
+      { deduplicate: false },
     );
   });
 });

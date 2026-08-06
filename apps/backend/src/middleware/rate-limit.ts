@@ -6,6 +6,7 @@ import { createMiddleware } from "hono/factory";
 import { env } from "../config/env.js";
 import { db } from "../db/client.js";
 import { rateLimitEntries } from "../db/schema.js";
+import { UNKNOWN_CLIENT_IP } from "../lib/client-ip.js";
 import { fail } from "../lib/http.js";
 import { logger } from "../lib/logger.js";
 
@@ -116,23 +117,23 @@ export function resolveClientIp(
     case "cf-connecting-ip": {
       const ip = headers.get("CF-Connecting-IP")?.trim() || "";
       if (ip && isIP(ip)) return ip;
-      return "unknown";
+      return UNKNOWN_CLIENT_IP;
     }
     case "x-real-ip": {
       const ip = headers.get("X-Real-IP")?.trim() || "";
       if (ip && isIP(ip)) return ip;
-      return "unknown";
+      return UNKNOWN_CLIENT_IP;
     }
     case "x-forwarded-for": {
       const xForwardedFor = headers.get("X-Forwarded-For");
-      if (!xForwardedFor) return "unknown";
+      if (!xForwardedFor) return UNKNOWN_CLIENT_IP;
 
       const hops: string[] = [];
       for (const part of xForwardedFor.split(",")) {
         const ip = part.trim();
         if (ip && isIP(ip)) hops.push(ip);
       }
-      if (hops.length === 0) return "unknown";
+      if (hops.length === 0) return UNKNOWN_CLIENT_IP;
 
       // The `trustedHops` right-most entries are appended by our own reverse-proxy
       // chain (e.g. Zerops) and cannot be forged. The real client IP is the entry
@@ -141,7 +142,7 @@ export function resolveClientIp(
       // With a single trusted proxy (trustedHops=1) this selects the right-most
       // entry — a client prepending X-Forwarded-For values cannot influence it.
       const index = hops.length - Math.max(1, config.trustedHops);
-      return hops[index] ?? hops[0] ?? "unknown";
+      return hops[index] ?? hops[0] ?? UNKNOWN_CLIENT_IP;
     }
   }
 }
@@ -208,6 +209,14 @@ export function rateLimit(options: { max: number; windowMs: number; store?: Rate
 
   return createMiddleware(async (c, next) => {
     const ip = resolveClientIp(c.req.raw.headers);
+
+    // Every caller without a resolvable address shares one bucket, so this is a
+    // limit on the sum of them rather than a per-client limit. It is expected
+    // only where nothing sits in front of the service; anywhere else it means a
+    // proxy stopped passing the address on.
+    if (ip === UNKNOWN_CLIENT_IP) {
+      logger.warn({ path: c.req.path }, "rate limit: no client address, using shared bucket");
+    }
 
     const key = `${c.req.path}:${ip}`;
     const now = Date.now();

@@ -11,6 +11,7 @@ import { encodeShopToken } from "@lmaa/shared";
 
 import { findMatchingDomainAlertRule } from "./domain-alert-rules.js";
 import { env } from "../config/env.js";
+import { UNKNOWN_CLIENT_IP } from "../lib/client-ip.js";
 import { extractEuropeanPostalCodePrefix } from "../lib/postal-code.js";
 import { type Result, failure, success } from "../lib/result.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
@@ -368,6 +369,12 @@ export async function validateShopUrl(urlRaw: string | undefined) {
  * @returns
  * - `{ ok: false, reason: "not_found" }` when shop does not exist.
  * - `{ ok: true }` when report is stored.
+ *
+ * @remarks
+ * One report per shop and reporter is kept, which relies on the hash telling
+ * reporters apart. Without a resolvable address every reporter hashes to the
+ * same value, so that check is skipped: it would otherwise keep the first
+ * report for a shop and silently drop every later one.
  */
 export async function createManagedDeadLinkReport(shopId: number, ip: string) {
   const shop = await getPublicShopById(shopId);
@@ -375,7 +382,9 @@ export async function createManagedDeadLinkReport(shopId: number, ip: string) {
     return failure("not_found");
   }
 
-  await insertDeadLinkReport(shopId, hashIp(ip));
+  await insertDeadLinkReport(shopId, hashIp(ip), {
+    deduplicate: ip !== UNKNOWN_CLIENT_IP,
+  });
   return success();
 }
 
