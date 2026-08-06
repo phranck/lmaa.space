@@ -825,7 +825,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/public-service.test.ts": {
-    "mtime": 1786026077.811087,
+    "mtime": 1786026425.35348,
     "ast_hash": "f29262eaa951b551a71b82a83787dcf0",
     "semantic_hash": ""
   },
@@ -975,8 +975,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/lib/og.ts": {
-    "mtime": 1786026075.8825624,
-    "ast_hash": "f4637631fd140551ede9dab44e3475e6",
+    "mtime": 1786026514.4983678,
+    "ast_hash": "1c75f8e743c355f51179f2cf9cd1fbd3",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/postal-code.ts": {
@@ -1015,7 +1015,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/middleware/rate-limit.ts": {
-    "mtime": 1786026077.8117058,
+    "mtime": 1786026425.3538263,
     "ast_hash": "2432de3198c0cb24b4376ae862ad8d8a",
     "semantic_hash": ""
   },
@@ -1135,7 +1135,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/repositories/public.ts": {
-    "mtime": 1786026077.8120685,
+    "mtime": 1786026425.353985,
     "ast_hash": "30054c9f3e6c1707f19342f9dca5250e",
     "semantic_hash": ""
   },
@@ -1485,7 +1485,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/public.ts": {
-    "mtime": 1786026077.812356,
+    "mtime": 1786026425.3541598,
     "ast_hash": "571e9070f916d731a3116c8034f0192e",
     "semantic_hash": ""
   },
@@ -1525,8 +1525,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/social-preview-images.ts": {
-    "mtime": 1786026075.8828225,
-    "ast_hash": "5b52818a550035c7f7426ccedfc86c94",
+    "mtime": 1786026514.4985604,
+    "ast_hash": "ccf9345cf9aa4d351397b22c05f5b9fa",
     "semantic_hash": ""
   },
   "apps/backend/src/services/umami.ts": {
@@ -3075,7 +3075,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/middleware.ts": {
-    "mtime": 1786026192.5977144,
+    "mtime": 1786026514.2152095,
     "ast_hash": "614d601238812c463639303d66c63c14",
     "semantic_hash": ""
   },
@@ -3790,27 +3790,37 @@
     "semantic_hash": ""
   },
   "apps/backend/src/lib/client-ip.ts": {
-    "mtime": 1786026077.8113797,
+    "mtime": 1786026425.3536348,
     "ast_hash": "b3dd2e0d8ee5d54879eaed71192352e1",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/client-address.test.ts": {
-    "mtime": 1786026077.8125937,
+    "mtime": 1786026425.3543215,
     "ast_hash": "0925f27feb447ac6b5472ac29d8163f8",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/client-address.ts": {
-    "mtime": 1786026077.8127897,
+    "mtime": 1786026425.3544092,
     "ast_hash": "e2fc2c47a894310de0c4b93810c108a8",
     "semantic_hash": ""
   },
+  "apps/backend/src/__tests__/http-body.test.ts": {
+    "mtime": 1786026514.4980862,
+    "ast_hash": "2a026fa322bc99a3b5819a7cdf8a5e0b",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/lib/http-body.ts": {
+    "mtime": 1786026514.4981809,
+    "ast_hash": "7e8ca7d5bbfc3b32592f386fddf769ee",
+    "semantic_hash": ""
+  },
   "apps/frontend/src/lib/csp.test.ts": {
-    "mtime": 1786026206.7464616,
+    "mtime": 1786026514.2149599,
     "ast_hash": "d9e32fae1e08c80ed65a71f1ab4492cc",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/csp.ts": {
-    "mtime": 1786026151.185316,
+    "mtime": 1786026514.2150445,
     "ast_hash": "9be2dbdf683cb5d6a67db507d73eb625",
     "semantic_hash": ""
   }

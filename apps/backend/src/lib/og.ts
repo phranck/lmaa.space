@@ -1,3 +1,4 @@
+import { readBodyWithLimit, readJsonWithLimit, readTextWithLimit } from "./http-body.js";
 import { logger } from "./logger.js";
 import { isPublicFetchTarget } from "./validate.js";
 
@@ -16,6 +17,15 @@ const PROBE_TIMEOUT_MS = 4000;
 const HTML_TIMEOUT_MS = 10000;
 const MANIFEST_TIMEOUT_MS = 5000;
 const MAX_INLINE_IMG_CANDIDATES = 12;
+
+// Byte budgets for bodies fetched from sites we do not control. A timeout alone
+// does not bound memory, because a fast server sends a great deal within it.
+/** Enough for the `<head>` of any real shop page, which is all that is parsed. */
+const MAX_HTML_BYTES = 512 * 1024;
+/** Twice what the `Range` header asks for, since a server may ignore it. */
+const MAX_IMAGE_PROBE_BYTES = 64 * 1024;
+/** A web app manifest is a small JSON document. */
+const MAX_MANIFEST_BYTES = 256 * 1024;
 
 const LOGO_NAME_PATTERN = /(^|[^a-z])(logo|brand|wordmark|signet)([^a-z]|$)/i;
 const THEME_ASSET_PATH_PATTERN = /\/(theme|themes|template|templates|skin|skins|assets|static)\//i;
@@ -160,7 +170,12 @@ async function fetchHtml(url: string): Promise<string | null> {
     headers: HEADERS,
   });
   if (!result?.response.ok) return null;
-  return await result.response.text();
+
+  const html = await readTextWithLimit(result.response, MAX_HTML_BYTES);
+  if (html === null) {
+    logger.warn({ url, maxBytes: MAX_HTML_BYTES }, "external HTML exceeded size budget");
+  }
+  return html;
 }
 
 // === Image header probe ===
@@ -298,9 +313,10 @@ export function parseImageDimensions(buf: Uint8Array): { width: number; height: 
  * @returns `{ url, width, height }` when the image was reached and decoded, otherwise `null`.
  *
  * @remarks
- * Uses `Range: bytes=0-32767` to keep the transfer small. Servers that ignore
- * the range header simply send more bytes — only the first frame of the body
- * is consumed regardless.
+ * Asks for `Range: bytes=0-32767` to keep the transfer small. A server may
+ * ignore that and send the whole file, so the read is additionally capped at
+ * {@link MAX_IMAGE_PROBE_BYTES} and the candidate is dropped once the body
+ * passes it. The header bytes needed to size an image sit far below that.
  */
 async function probeImage(
   url: string,
@@ -325,7 +341,11 @@ async function probeImage(
   if (ct && !ct.startsWith("image/")) return null;
 
   try {
-    const buf = new Uint8Array(await result.response.arrayBuffer());
+    const buf = await readBodyWithLimit(result.response, MAX_IMAGE_PROBE_BYTES);
+    if (buf === null) {
+      logger.warn({ url, maxBytes: MAX_IMAGE_PROBE_BYTES }, "image probe exceeded size budget");
+      return null;
+    }
     const dims = parseImageDimensions(buf);
     if (!dims || dims.width <= 0 || dims.height <= 0) return null;
     return { url: result.finalUrl, ...dims };
@@ -492,7 +512,8 @@ async function fetchManifestIcons(manifestUrl: string, base: string): Promise<st
   });
   if (!result?.response.ok) return [];
   try {
-    const json = (await result.response.json()) as { icons?: unknown };
+    const json = await readJsonWithLimit<{ icons?: unknown }>(result.response, MAX_MANIFEST_BYTES);
+    if (!json) return [];
     if (!Array.isArray(json.icons)) return [];
     const out: string[] = [];
     for (const icon of json.icons) {

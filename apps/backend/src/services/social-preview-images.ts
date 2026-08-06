@@ -6,6 +6,7 @@ import type {
 
 import { ensureSocialMediaFolder } from "./admin-folders.js";
 import { deleteManagedMediaAsset, uploadManagedMediaAsset } from "./admin-media.js";
+import { readBodyWithLimit } from "../lib/http-body.js";
 import { deleteSetting, getSetting, putSetting } from "../repositories/app-settings.js";
 import {
   createSocialPreviewImage,
@@ -23,6 +24,13 @@ import {
   type SocialPreviewProjectCreateData,
   type SocialPreviewProjectUpdateData,
 } from "../repositories/social-preview-images.js";
+
+/**
+ * Byte budget for an image pulled in from the remote host. Well above any real
+ * Unsplash asset, and low enough that a body which never ends cannot exhaust
+ * memory.
+ */
+const MAX_REMOTE_IMAGE_BYTES = 25 * 1024 * 1024;
 
 const ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY = "socialPreview.activeImageId";
 const DEFAULT_SOCIAL_PREVIEW_IMAGE_KEY = "socialPreview.defaultImageId";
@@ -185,7 +193,11 @@ export async function importManagedSocialPreviewAssetFromUrl(input: {
     return { ok: false as const, reason: "invalid_file" as const };
   }
 
-  const buffer = await response.arrayBuffer();
+  const buffer = await readBodyWithLimit(response, MAX_REMOTE_IMAGE_BYTES);
+  if (buffer === null) {
+    return { ok: false as const, reason: "download_failed" as const };
+  }
+
   const file = new File(
     [buffer],
     getRemoteImageFilename(input.imageUrl, contentType, input.displayName),
