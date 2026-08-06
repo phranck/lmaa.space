@@ -615,8 +615,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/admin-auth-routes.test.ts": {
-    "mtime": 1774376890.490322,
-    "ast_hash": "eb24f2df23b5fa19b5541d8d5ce547c2",
+    "mtime": 1786026951.4174643,
+    "ast_hash": "c91d0ac8cca7a38ba0ed5d60168850c2",
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/admin-auth.test.ts": {
@@ -935,7 +935,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/index.ts": {
-    "mtime": 1786026642.3304129,
+    "mtime": 1786026765.308904,
     "ast_hash": "dbef04449162eb19ce250a5293db2046",
     "semantic_hash": ""
   },
@@ -1170,8 +1170,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/routes/admin/auth.ts": {
-    "mtime": 1778807490.0105264,
-    "ast_hash": "69bcf30b4067e01f7b7f2e290a9a06f3",
+    "mtime": 1786026933.7399144,
+    "ast_hash": "95200e84345d259c264ec572bf1648f7",
     "semantic_hash": ""
   },
   "apps/backend/src/routes/admin/background-errors.ts": {
