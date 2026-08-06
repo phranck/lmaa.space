@@ -193,9 +193,7 @@ const EXPECTED_TABLES = [
  *
  * @returns `{ ok: true }` when ready, else `{ ok: false, missingTables }`.
  */
-async function checkDbReadiness(): Promise<
-  { ok: true } | { ok: false; missingTables: string[] }
-> {
+async function checkDbReadiness(): Promise<{ ok: true } | { ok: false; missingTables: string[] }> {
   try {
     await db.execute(sql`SELECT 1`);
     const rows = await db.execute(
@@ -208,6 +206,9 @@ async function checkDbReadiness(): Promise<
     if (missing.length > 0) return { ok: false, missingTables: missing };
     return { ok: true };
   } catch (err) {
+    // The readiness response carries no detail, so the cause has to reach the
+    // log or it is lost entirely.
+    logger.error({ err }, "database readiness check failed");
     return { ok: false, missingTables: ["(query failed)"] };
   }
 }
@@ -219,8 +220,16 @@ app.get("/health/backend", async (c) => {
 app.get("/health/db", async (c) => {
   const result = await checkDbReadiness();
   if (result.ok) return c.json({ status: "ok" });
+
+  // The status page only needs to know whether the service is ready. Which
+  // tables are missing is diagnostic detail and goes to the log, where it is
+  // tied to the request id, rather than to an unauthenticated caller.
+  logger.error(
+    { requestId: c.get("requestId"), missingTables: result.missingTables },
+    "database not ready",
+  );
   c.status(503);
-  return c.json({ status: "not_ready", missingTables: result.missingTables });
+  return c.json({ status: "not_ready" });
 });
 
 app.get("/health/website", async (c) => {
