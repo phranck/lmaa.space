@@ -34,7 +34,8 @@
   },
   "devDependencies": {
     "@typescript-eslint/parser": "^8.46.0",
-    "drizzle-kit": "^0.30.4",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
     "eslint": "^9.37.0",
     "eslint-plugin-import": "^2.32.0",
     "prettier": "^3.6.2",
