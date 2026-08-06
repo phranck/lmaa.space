@@ -40,12 +40,18 @@ interface Smtp2goResponse {
  * When the key is unset (e.g. local dev) sending is skipped rather than failing.
  * An empty or malformed recipient is treated as a no-op, not a provider error.
  *
- * @param to - Recipient address.
+ * @param to - Recipient address. Must be a single well-formed address; anything else is refused without contacting the provider.
  * @param subject - Email subject.
  * @param html - Rendered HTML body.
- * @param options.replyTo - Optional Reply-To address, sent as a custom header.
+ * @param options.replyTo - Optional Reply-To address, sent as a custom header. Dropped when it is not a single well-formed address.
  * @param options.errorSource - Tag used when persisting a failure to background errors. Defaults to `"email"`.
  * @returns `true` if SMTP2GO accepted and delivered the message, `false` on error or when mail is disabled.
+ *
+ * @remarks
+ * Both `to` and `replyTo` become mail headers and may carry values submitted
+ * through a public form, so both pass {@link isEmailRecipient} first. An
+ * unusable `to` stops the send; an unusable `replyTo` is dropped and logged so
+ * the message still goes out without it.
  */
 export async function sendMail(
   to: string,
@@ -65,6 +71,15 @@ export async function sendMail(
     return false;
   }
 
+  // A Reply-To that is not a single well-formed address is dropped rather than
+  // sent. The value can come from a public form field, and it would otherwise
+  // reach the provider as a header value.
+  const replyTo = options?.replyTo;
+  const usableReplyTo = isEmailRecipient(replyTo) ? replyTo : undefined;
+  if (replyTo !== undefined && usableReplyTo === undefined) {
+    logger.warn({ subject }, "email reply-to dropped: invalid address");
+  }
+
   const errorSource = options?.errorSource ?? "email";
   logger.info({ to, subject, from: FROM }, "sending email");
 
@@ -81,8 +96,8 @@ export async function sendMail(
         to: [to],
         subject,
         html_body: html,
-        ...(options?.replyTo
-          ? { custom_headers: [{ header: "Reply-To", value: options.replyTo }] }
+        ...(usableReplyTo
+          ? { custom_headers: [{ header: "Reply-To", value: usableReplyTo }] }
           : {}),
       }),
     });
