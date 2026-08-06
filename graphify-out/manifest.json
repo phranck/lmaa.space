@@ -605,7 +605,7 @@
     "semantic_hash": ""
   },
   "apps/backend/package.json": {
-    "mtime": 1786032841.1982002,
+    "mtime": 1786039893.6148832,
     "ast_hash": "75349ebafefdfa060c170fa55b446c56",
     "semantic_hash": ""
   },
@@ -1545,7 +1545,7 @@
     "semantic_hash": ""
   },
   "apps/backend/tsup.config.ts": {
-    "mtime": 1786032799.9458997,
+    "mtime": 1786039893.6152966,
     "ast_hash": "50cc6c2abf4f224ac219ccf4b3dafc7e",
     "semantic_hash": ""
   },
@@ -1555,7 +1555,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/package.json": {
-    "mtime": 1786032841.1984599,
+    "mtime": 1786039893.6155672,
     "ast_hash": "47687158f8ede08d470fe9248657f720",
     "semantic_hash": ""
   },
@@ -2830,7 +2830,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/package.json": {
-    "mtime": 1786032841.1983457,
+    "mtime": 1786039893.6158643,
     "ast_hash": "9aa0d68913abbbeeef06b168e931e54b",
     "semantic_hash": ""
   },
@@ -3250,7 +3250,7 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1786032841.197984,
+    "mtime": 1786039893.6436105,
     "ast_hash": "d1e8512f5b317a5a3a859d6f740e3b06",
     "semantic_hash": ""
   },
