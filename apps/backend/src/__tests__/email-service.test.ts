@@ -71,7 +71,11 @@ describe("sendMail (SMTP2GO)", () => {
   });
 
   it("records a background error and returns false on an HTTP error", async () => {
-    stubFetch({ ok: false, status: 401, json: { data: { error: "Bad key", error_code: "E_UNAUTH" } } });
+    stubFetch({
+      ok: false,
+      status: 401,
+      json: { data: { error: "Bad key", error_code: "E_UNAUTH" } },
+    });
     const { sendMail } = await loadEmailModule();
 
     const result = await sendMail("user@example.com", "Hi", "<p>x</p>");
@@ -103,7 +107,11 @@ describe("sendMail (SMTP2GO)", () => {
   });
 
   it("skips an empty/invalid recipient without calling the provider", async () => {
-    const fetchMock = stubFetch({ ok: true, status: 200, json: { data: { succeeded: 1, failed: 0 } } });
+    const fetchMock = stubFetch({
+      ok: true,
+      status: 200,
+      json: { data: { succeeded: 1, failed: 0 } },
+    });
     const { sendMail } = await loadEmailModule();
 
     const result = await sendMail("", "Hi", "<p>x</p>");
@@ -113,8 +121,44 @@ describe("sendMail (SMTP2GO)", () => {
     expect(recordBackgroundError).not.toHaveBeenCalled();
   });
 
+  it("drops an invalid Reply-To but still sends the message", async () => {
+    const fetchMock = stubFetch({
+      ok: true,
+      status: 200,
+      json: { data: { succeeded: 1, failed: 0 } },
+    });
+    const { sendMail } = await loadEmailModule();
+
+    const result = await sendMail("user@example.com", "Hi", "<p>x</p>", {
+      replyTo: "attacker@example.com\r\nBcc: victim@example.com",
+    });
+
+    expect(result).toBe(true);
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).not.toHaveProperty("custom_headers");
+  });
+
+  it("refuses a recipient carrying a header break without contacting the provider", async () => {
+    const fetchMock = stubFetch({
+      ok: true,
+      status: 200,
+      json: { data: { succeeded: 1, failed: 0 } },
+    });
+    const { sendMail } = await loadEmailModule();
+
+    const result = await sendMail("user@example.com\r\nBcc: victim@example.com", "Hi", "<p>x</p>");
+
+    expect(result).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(recordBackgroundError).not.toHaveBeenCalled();
+  });
+
   it("skips sending when SMTP2GO_API_KEY is not set", async () => {
-    const fetchMock = stubFetch({ ok: true, status: 200, json: { data: { succeeded: 1, failed: 0 } } });
+    const fetchMock = stubFetch({
+      ok: true,
+      status: 200,
+      json: { data: { succeeded: 1, failed: 0 } },
+    });
     const { sendMail } = await loadEmailModule({ SMTP2GO_API_KEY: undefined });
 
     const result = await sendMail("user@example.com", "Hi", "<p>x</p>");
