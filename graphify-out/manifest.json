@@ -740,7 +740,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/email-service.test.ts": {
-    "mtime": 1786024369.891201,
+    "mtime": 1786024712.428651,
     "ast_hash": "49010415f9d39cb06240716d71079865",
     "semantic_hash": ""
   },
@@ -825,8 +825,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/public-service.test.ts": {
-    "mtime": 1780681951.0665839,
-    "ast_hash": "762c727b9f827f014e840f37be37879e",
+    "mtime": 1786025001.8172772,
+    "ast_hash": "f29262eaa951b551a71b82a83787dcf0",
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/public.test.ts": {
@@ -940,7 +940,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/lib/email-address.ts": {
-    "mtime": 1786024352.7701437,
+    "mtime": 1786024712.428774,
     "ast_hash": "077df1771684b1c4da90e0abe755c17f",
     "semantic_hash": ""
   },
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/middleware/rate-limit.ts": {
-    "mtime": 1781120272.3913913,
-    "ast_hash": "c2781ce11a7659a8e6ac5b825a3b1ed4",
+    "mtime": 1786025040.8458354,
+    "ast_hash": "2432de3198c0cb24b4376ae862ad8d8a",
     "semantic_hash": ""
   },
   "apps/backend/src/middleware/request-id.ts": {
@@ -1135,8 +1135,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/repositories/public.ts": {
-    "mtime": 1784575450.2729475,
-    "ast_hash": "9960281569286e7c6b436714c0f34ada",
+    "mtime": 1786024905.7860935,
+    "ast_hash": "30054c9f3e6c1707f19342f9dca5250e",
     "semantic_hash": ""
   },
   "apps/backend/src/repositories/push-subscriptions.ts": {
@@ -1435,7 +1435,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/email.ts": {
-    "mtime": 1786024284.0703804,
+    "mtime": 1786024712.428908,
     "ast_hash": "a42d3ded85bb73a8804d561a5c4818c9",
     "semantic_hash": ""
   },
@@ -1485,8 +1485,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/public.ts": {
-    "mtime": 1783802646.4561183,
-    "ast_hash": "e73079e7f81241fe4ad7c3995d25939b",
+    "mtime": 1786025148.5179048,
+    "ast_hash": "571e9070f916d731a3116c8034f0192e",
     "semantic_hash": ""
   },
   "apps/backend/src/services/push-notifications.ts": {
@@ -3075,8 +3075,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/middleware.ts": {
-    "mtime": 1783251884.7163591,
-    "ast_hash": "a6ad6becafa2888027c98d7a8cb39465",
+    "mtime": 1786025271.155847,
+    "ast_hash": "348287dc8edab631678333201c669063",
     "semantic_hash": ""
   },
   "apps/frontend/src/pages/404.astro": {
@@ -3785,8 +3785,23 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/email-address.test.ts": {
-    "mtime": 1786024259.7652068,
+    "mtime": 1786024712.4284592,
     "ast_hash": "5ced2cbec99fe77dd48b8dc6b39edae6",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/lib/client-ip.ts": {
+    "mtime": 1786025024.4350905,
+    "ast_hash": "b3dd2e0d8ee5d54879eaed71192352e1",
+    "semantic_hash": ""
+  },
+  "apps/frontend/src/lib/client-address.test.ts": {
+    "mtime": 1786024979.6703062,
+    "ast_hash": "0925f27feb447ac6b5472ac29d8163f8",
+    "semantic_hash": ""
+  },
+  "apps/frontend/src/lib/client-address.ts": {
+    "mtime": 1786025146.9112334,
+    "ast_hash": "e2fc2c47a894310de0c4b93810c108a8",
     "semantic_hash": ""
   }
 }
