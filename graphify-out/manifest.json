@@ -740,8 +740,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/email-service.test.ts": {
-    "mtime": 1783637254.9306684,
-    "ast_hash": "186e79f838b440510e45d65ad4498f55",
+    "mtime": 1786024369.891201,
+    "ast_hash": "49010415f9d39cb06240716d71079865",
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/env.test.ts": {
@@ -935,13 +935,13 @@
     "semantic_hash": ""
   },
   "apps/backend/src/index.ts": {
-    "mtime": 1786021288.7663426,
+    "mtime": 1786021465.435596,
     "ast_hash": "2d76fe35ff36833add088fcbca73ec0a",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/email-address.ts": {
-    "mtime": 1783635905.7532382,
-    "ast_hash": "803a22bb5db3b5ee434a6e31e46e574b",
+    "mtime": 1786024352.7701437,
+    "ast_hash": "077df1771684b1c4da90e0abe755c17f",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/geocoding.ts": {
@@ -1435,8 +1435,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/email.ts": {
-    "mtime": 1783637145.562282,
-    "ast_hash": "d4c6a2aca047e6dfb7b09104e77c959a",
+    "mtime": 1786024284.0703804,
+    "ast_hash": "a42d3ded85bb73a8804d561a5c4818c9",
     "semantic_hash": ""
   },
   "apps/backend/src/services/footer-preview-store.ts": {
@@ -3780,8 +3780,13 @@
     "semantic_hash": ""
   },
   "apps/backend/src/routes/security-txt.ts": {
-    "mtime": 1786021273.409328,
+    "mtime": 1786021465.435691,
     "ast_hash": "fe98b78cc6116c579c46a13c324612a8",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/__tests__/email-address.test.ts": {
+    "mtime": 1786024259.7652068,
+    "ast_hash": "5ced2cbec99fe77dd48b8dc6b39edae6",
     "semantic_hash": ""
   }
 }
