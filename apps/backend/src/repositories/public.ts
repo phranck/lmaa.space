@@ -690,18 +690,30 @@ export async function getFullPublicShopById(id: number) {
  *
  * @param shopId - Reported shop id.
  * @param ipHash - Hashed source IP for throttling/abuse checks.
+ * @param options.deduplicate - When `true` (the default), keeps at most one row per shop and hash.
  * @returns Resolves when report row is inserted.
+ *
+ * @remarks
+ * Deduplication is only meaningful while the hash distinguishes reporters. The
+ * caller turns it off when it does not, so a shared hash cannot reduce every
+ * report for a shop to the first one.
  */
-export async function insertDeadLinkReport(shopId: number, ipHash: string): Promise<void> {
-  const [existing] = await db
-    .select({ id: deadLinkReports.id })
-    .from(deadLinkReports)
-    .where(and(eq(deadLinkReports.shopId, shopId), eq(deadLinkReports.ipHash, ipHash)))
-    .limit(1);
+export async function insertDeadLinkReport(
+  shopId: number,
+  ipHash: string,
+  options: { deduplicate?: boolean } = {},
+): Promise<void> {
+  if (options.deduplicate ?? true) {
+    const [existing] = await db
+      .select({ id: deadLinkReports.id })
+      .from(deadLinkReports)
+      .where(and(eq(deadLinkReports.shopId, shopId), eq(deadLinkReports.ipHash, ipHash)))
+      .limit(1);
 
-  if (!existing) {
-    await db.insert(deadLinkReports).values({ shopId, ipHash });
+    if (existing) return;
   }
+
+  await db.insert(deadLinkReports).values({ shopId, ipHash });
 }
 
 /**
