@@ -27,15 +27,37 @@ vi.mock("../services/auth.js", () => authServiceMocks);
 vi.mock("../repositories/admin-auth.js", () => repoMocks);
 vi.mock("../config/env.js", () => envMock);
 vi.mock("../middleware/auth.js", () => ({
-  requireAuth: vi.fn(async (c: { set: (k: string, v: unknown) => void }, next: () => Promise<void>) => {
-    c.set("adminId", 1);
-    c.set("role", "owner");
-    c.set("isOwner", true);
-    await next();
-  }),
+  requireAuth: vi.fn(
+    async (c: { set: (k: string, v: unknown) => void }, next: () => Promise<void>) => {
+      c.set("adminId", 1);
+      c.set("role", "owner");
+      c.set("isOwner", true);
+      await next();
+    },
+  ),
 }));
+// A counting stand-in for the real limiter. Asserting that `rateLimit()` was
+// merely called proves nothing, because the call happens where the limiter is
+// built and would still happen if nobody attached it to a route. Counting per
+// limiter instance and answering 429 past the maximum exercises the attachment
+// itself. Each limiter keeps its own counter, and they reset between tests.
+const rateLimiters = vi.hoisted(() => [] as { count: number }[]);
+
 vi.mock("../middleware/rate-limit.js", () => ({
-  rateLimit: vi.fn(() => (_c: unknown, next: () => Promise<void>) => next()),
+  rateLimit: vi.fn((options: { max: number; windowMs: number }) => {
+    const state = { count: 0 };
+    rateLimiters.push(state);
+    return async (
+      c: { json: (body: unknown, status: number) => unknown },
+      next: () => Promise<void>,
+    ) => {
+      state.count++;
+      if (state.count > options.max) {
+        return c.json({ error: { message: "Too many requests" } }, 429);
+      }
+      await next();
+    };
+  }),
 }));
 
 import { authRoutes } from "../routes/admin/auth.js";
@@ -44,7 +66,46 @@ describe("authRoutes", () => {
   const app = new Hono();
   app.route("/", authRoutes);
 
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    for (const limiter of rateLimiters) limiter.count = 0;
+  });
+
+  // The invite routes are the only ones here reachable without a session apart
+  // from login, and they carried no limit at all.
+  describe("public route rate limits", () => {
+    it("stops invite lookups past the limit", async () => {
+      serviceMocks.getAdminInviteState.mockResolvedValue({
+        ok: true,
+        username: "u",
+        email: "u@example.com",
+      });
+
+      const statuses: number[] = [];
+      for (let i = 0; i < 31; i++) {
+        statuses.push((await app.request("/invite/abc123")).status);
+      }
+
+      expect(statuses.slice(0, 30).every((s) => s === 200)).toBe(true);
+      expect(statuses[30]).toBe(429);
+    });
+
+    it("stops invite redemptions past the limit", async () => {
+      serviceMocks.acceptAdminInvite.mockResolvedValue({ ok: true, sessionId: "s", admin: {} });
+
+      const send = () =>
+        app.request("/invite/accept", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: "abc123", password: "correct-horse-battery" }),
+        });
+
+      const statuses: number[] = [];
+      for (let i = 0; i < 11; i++) statuses.push((await send()).status);
+
+      expect(statuses[10]).toBe(429);
+    });
+  });
 
   describe("GET /setup", () => {
     it("returns setup state in development", async () => {

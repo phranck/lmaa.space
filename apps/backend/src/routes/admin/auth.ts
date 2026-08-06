@@ -39,8 +39,15 @@ authRoutes.get("/setup", async (c) => {
   return ok(c, state);
 });
 
+// Invite routes are public by necessity, since an invite has to be redeemable
+// without an account. Guessing a token is not the concern (32 random bytes,
+// stored as a SHA-256 hash), but every call runs a query, and these were the
+// only public routes here without a limit.
+const inviteLookupLimit = rateLimit({ max: 30, windowMs: 15 * 60 * 1000 });
+const inviteAcceptLimit = rateLimit({ max: 10, windowMs: 15 * 60 * 1000 });
+
 // GET /api/admin/invite/:token – validate invite link and resolve metadata
-authRoutes.get("/invite/:token", async (c) => {
+authRoutes.get("/invite/:token", inviteLookupLimit, async (c) => {
   const token = c.req.param("token");
   const result = await getAdminInviteState(token);
 
@@ -95,20 +102,25 @@ authRoutes.post(
 );
 
 // POST /api/admin/invite/accept
-authRoutes.post("/invite/accept", zValidator("json", acceptInviteSchema), async (c) => {
-  const { token, password } = c.req.valid("json");
-  const result = await acceptAdminInvite({ token, password });
+authRoutes.post(
+  "/invite/accept",
+  inviteAcceptLimit,
+  zValidator("json", acceptInviteSchema),
+  async (c) => {
+    const { token, password } = c.req.valid("json");
+    const result = await acceptAdminInvite({ token, password });
 
-  if (!result.ok && result.reason === "invalid_invite") {
-    return fail(c, 404, "Invite link is invalid");
-  }
-  if (!result.ok && result.reason === "expired_invite") {
-    return fail(c, 410, "Invite link has expired");
-  }
+    if (!result.ok && result.reason === "invalid_invite") {
+      return fail(c, 404, "Invite link is invalid");
+    }
+    if (!result.ok && result.reason === "expired_invite") {
+      return fail(c, 410, "Invite link has expired");
+    }
 
-  setCookie(c, "session", result.sessionId, SESSION_COOKIE_OPTIONS);
-  return ok(c, result.admin);
-});
+    setCookie(c, "session", result.sessionId, SESSION_COOKIE_OPTIONS);
+    return ok(c, result.admin);
+  },
+);
 
 // POST /api/admin/logout
 authRoutes.post("/logout", requireAuth, async (c) => {
