@@ -64,7 +64,21 @@ export default defineConfig({
         resources: ["'self'", ANALYTICS_CSP_ORIGIN],
       },
       styleDirective: {
-        resources: ["'self'"],
+        resources: [
+          "'self'",
+          // Inline `style="..."` attributes fall under `style-src-attr`, which
+          // inherits from `style-src` when unset, so a hash-based `style-src`
+          // blocks every one of them. This site passes CSS custom properties
+          // that way: the footer sets `--footer-cols` for its column count and
+          // `--col-span` per column, the hero sets an object-position, buttons
+          // take their colour from `--accent-base`. Without this the footer
+          // collapsed to a single column and buttons lost their colour.
+          //
+          // The concession is narrow. A style attribute cannot execute script,
+          // and `script-src` stays hash-based, which is where the protection
+          // against injection actually sits.
+          { resource: "'unsafe-inline'", kind: "attribute" },
+        ],
         // The footer injects this stylesheet through `set:html`, so Astro sees
         // dynamic content and cannot hash it. Hashing the constant here keeps
         // the two in step: changing the CSS changes the hash automatically,
