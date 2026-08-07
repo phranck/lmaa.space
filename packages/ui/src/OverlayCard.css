@@ -1,0 +1,50 @@
+/*
+ * Keyframes for the overlay card's open and close animation.
+ *
+ * Kept in a stylesheet rather than injected into the document head at
+ * runtime. The components using this render in the browser, so an injected
+ * element never exists at build time, the Content Security Policy carries no
+ * hash for it, and the browser refuses to apply it. As a file it is bundled
+ * with the other styles and covered by `style-src 'self'`.
+ */
+
+@keyframes lmaa-overlay-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(24px);
+  }
+}
+@keyframes lmaa-overlay-out {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(24px);
+  }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+}
+@keyframes lmaa-card-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes lmaa-card-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+}
