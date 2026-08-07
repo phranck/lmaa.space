@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import "./OverlayCard.css";
 import {
   getOverlayStackSnapshot,
   OverlayLayerZIndexContext,
@@ -17,40 +18,6 @@ import {
   subscribeOverlayStack,
   type OverlayLayerZIndex,
 } from "./overlay-stack.ts";
-
-// ---------------------------------------------------------------------------
-// Injected keyframe styles (inserted once per document)
-// ---------------------------------------------------------------------------
-
-const STYLE_ID = "lmaa-overlay-keyframes";
-
-const KEYFRAMES_CSS = `
-@keyframes lmaa-overlay-in {
-  from { opacity: 0; backdrop-filter: blur(0px); }
-  to { opacity: 1; backdrop-filter: blur(24px); }
-}
-@keyframes lmaa-overlay-out {
-  from { opacity: 1; backdrop-filter: blur(24px); }
-  to { opacity: 0; backdrop-filter: blur(0px); }
-}
-@keyframes lmaa-card-in {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-@keyframes lmaa-card-out {
-  from { opacity: 1; transform: scale(1) translateY(0); }
-  to { opacity: 0; transform: scale(0.96) translateY(8px); }
-}
-`;
-
-function ensureStyles() {
-  if (typeof document === "undefined") return;
-  if (document.getElementById(STYLE_ID)) return;
-  const style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = KEYFRAMES_CSS;
-  document.head.appendChild(style);
-}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -168,9 +135,7 @@ export function OverlayCard({
     setClosing((current) => (current ? current : true));
   }, []);
 
-  useEffect(() => {
-    ensureStyles();
-  }, []);
+  useEffect(() => {}, []);
 
   useLayoutEffect(() => {
     if (!open) return;
