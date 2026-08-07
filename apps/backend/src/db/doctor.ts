@@ -1,5 +1,5 @@
-import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import type { Sql } from "postgres";
 
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
@@ -24,63 +24,48 @@ interface ExistingColumnRow {
   column_name: string;
 }
 
-async function loadAppliedMigrations(databaseUrl: string): Promise<AppliedMigrationRow[]> {
-  const sql = postgres(databaseUrl);
-
-  try {
-    return await sql<AppliedMigrationRow[]>`
-      select id, hash, created_at
-      from drizzle.__drizzle_migrations
-      order by created_at asc
-    `;
-  } finally {
-    await sql.end();
-  }
+async function loadAppliedMigrations(sql: Sql): Promise<AppliedMigrationRow[]> {
+  return await sql<AppliedMigrationRow[]>`
+    select id, hash, created_at
+    from drizzle.__drizzle_migrations
+    order by created_at asc
+  `;
 }
 
 async function loadExistingObjectNames(
-  databaseUrl: string,
+  sql: Sql,
   type: "tables" | "indexes",
   names: string[],
 ): Promise<string[]> {
   if (names.length === 0) return [];
 
-  const sql = postgres(databaseUrl);
-
-  try {
-    const rows =
-      type === "tables"
-        ? await sql<ExistingObjectRow[]>`
+  const rows =
+    type === "tables"
+      ? await sql<ExistingObjectRow[]>`
             select table_name as name
             from information_schema.tables
             where table_schema = 'public'
               and table_name in ${sql(names)}
           `
-        : await sql<ExistingObjectRow[]>`
+      : await sql<ExistingObjectRow[]>`
             select indexname as name
             from pg_indexes
-            where schemaname = 'public'
-              and indexname in ${sql(names)}
-          `;
+          where schemaname = 'public'
+            and indexname in ${sql(names)}
+        `;
 
-    return rows.map((row) => row.name);
-  } finally {
-    await sql.end();
-  }
+  return rows.map((row) => row.name);
 }
 
 async function loadExistingColumns(
-  databaseUrl: string,
+  sql: Sql,
   columns: Array<{ tableName: string; columnName: string }>,
 ): Promise<Array<{ tableName: string; columnName: string }>> {
   if (columns.length === 0) return [];
 
-  const sql = postgres(databaseUrl);
-
-  try {
-    const rows = await Promise.all(
-      columns.map(async ({ tableName, columnName }) => {
-        const [row] = await sql<ExistingColumnRow[]>`
+  const rows = await Promise.all(
+    columns.map(async ({ tableName, columnName }) => {
+      const [row] = await sql<ExistingColumnRow[]>`
           select table_name, column_name
           from information_schema.columns
           where table_schema = 'public'
@@ -89,19 +74,16 @@ async function loadExistingColumns(
           limit 1
         `;
 
-        return row
-          ? {
-              tableName: row.table_name,
-              columnName: row.column_name,
-            }
-          : null;
-      }),
-    );
+      return row
+        ? {
+            tableName: row.table_name,
+            columnName: row.column_name,
+          }
+        : null;
+    }),
+  );
 
-    return rows.filter((row): row is { tableName: string; columnName: string } => row !== null);
-  } finally {
-    await sql.end();
-  }
+  return rows.filter((row): row is { tableName: string; columnName: string } => row !== null);
 }
 
 function formatMigrationRef(tag: string, when: number) {
@@ -114,6 +96,14 @@ async function runDoctor() {
   const databaseUrl = getMigratorDatabaseUrl(env);
 
   logger.info({ folder: migrationsFolder }, "running db doctor");
+
+  // One connection for the whole check rather than a pool per query. This runs
+  // as a Zerops init command while the previous containers are still serving,
+  // so the database is at its busiest exactly when this starts. Four default
+  // pools were enough to exhaust the server's connection slots, and the deploy
+  // failed with "remaining connection slots are reserved for roles with the
+  // SUPERUSER attribute" before the schema was ever inspected.
+  const sql = postgres(databaseUrl, { max: 1 });
 
   for (let index = 1; index < repoMigrations.length; index++) {
     const previous = repoMigrations[index - 1];
@@ -130,7 +120,7 @@ async function runDoctor() {
     }
   }
 
-  const applied = await loadAppliedMigrations(databaseUrl);
+  const applied = await loadAppliedMigrations(sql);
 
   if (applied.length > repoMigrations.length) {
     throw new Error(
@@ -178,9 +168,9 @@ async function runDoctor() {
 
   const [existingPendingTables, existingPendingIndexes, existingPendingColumns] = await Promise.all(
     [
-      loadExistingObjectNames(databaseUrl, "tables", pendingTables),
-      loadExistingObjectNames(databaseUrl, "indexes", pendingIndexes),
-      loadExistingColumns(databaseUrl, pendingColumns),
+      loadExistingObjectNames(sql, "tables", pendingTables),
+      loadExistingObjectNames(sql, "indexes", pendingIndexes),
+      loadExistingColumns(sql, pendingColumns),
     ],
   );
 
@@ -205,6 +195,8 @@ async function runDoctor() {
 
     throw new Error(`schema drift detected: ${details}`);
   }
+
+  await sql.end();
 
   logger.info(
     {
