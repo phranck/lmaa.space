@@ -1,6 +1,7 @@
 import type { LatLngBoundsExpression, LatLngExpression, LatLngLiteral } from "leaflet";
 import { Control, DomEvent, DomUtil, DivIcon } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "./ShopLocationMap.css";
 import * as React from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
@@ -64,116 +65,6 @@ type MapPrefs = {
   zoom: number;
   layer: string;
 };
-
-// ---------------------------------------------------------------------------
-// Scoped CSS
-// ---------------------------------------------------------------------------
-
-const SCOPED_CSS = /* css */ `
-.slm-root .leaflet-bar {
-  border: none !important;
-  border-radius: 10px !important;
-  overflow: hidden !important;
-  box-shadow: none !important;
-}
-.slm-root .leaflet-bar a,
-.slm-root .leaflet-bar a:hover {
-  background-color: rgba(0, 0, 0, 0.4) !important;
-  color: #fff !important;
-  border: none !important;
-}
-.slm-root .leaflet-bar a:hover {
-  background-color: rgba(0, 0, 0, 0.6) !important;
-}
-.slm-root .leaflet-control-attribution {
-  background-color: rgba(0, 0, 0, 0.35) !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-}
-.slm-root .leaflet-control-attribution a {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-.slm-root .leaflet-container {
-  z-index: 0;
-}
-.slm-switcher {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 1000;
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-}
-.slm-toggle {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: none;
-  background-color: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: background-color 0.15s;
-  flex-shrink: 0;
-}
-.slm-toggle:hover {
-  background-color: rgba(0, 0, 0, 0.6);
-}
-.slm-panel {
-  display: flex;
-  gap: 6px;
-  overflow: hidden;
-  max-width: 0;
-  opacity: 0;
-  transition: max-width 0.3s ease, opacity 0.25s ease;
-}
-.slm-panel-open {
-  max-width: 280px;
-  opacity: 1;
-}
-.slm-layer-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  border: 2px solid transparent;
-  overflow: hidden;
-  cursor: pointer;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: border-color 0.15s, transform 0.15s;
-  flex-shrink: 0;
-  padding: 0;
-  background: none;
-}
-.slm-layer-btn:hover {
-  transform: scale(1.05);
-}
-.slm-layer-btn-active {
-  border-color: #fff;
-}
-.slm-layer-btn img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.slm-layer-btn span {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  font-size: 9px;
-  font-weight: 600;
-  text-align: center;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.55);
-  padding: 2px 0;
-  line-height: 1.2;
-}
-`;
 
 function LayersIcon() {
   return (
@@ -497,8 +388,6 @@ export function ShopLocationMap({
       aria-label={name ? `Karte: ${name}` : "Karte"}
       className={`slm-root relative overflow-hidden ${className}`}
     >
-      {/* Scoped CSS for Leaflet map styling -- static trusted content */}
-      <style>{SCOPED_CSS}</style>
       <MapContainer
         center={(shopPosition ?? DACH_CENTER) as LatLngExpression}
         zoom={shopPosition ? prefs.zoom : 6}
