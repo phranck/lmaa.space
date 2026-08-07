@@ -79,14 +79,15 @@ async function verifyService(service) {
   const stagingDir = await mkdtemp(path.join(tmpdir(), `deploy-${service.name}-`));
 
   try {
+    // A path may be absent here and still be deployed, because each service's
+    // `buildCommands` run on the target and produce more than `npm run build`
+    // does locally. `apps/backend/docs-dist` is one of those. Zerops refuses a
+    // deploy whose `deployFiles` names something missing, so that case is
+    // already covered there; what this check adds is whether the entrypoint can
+    // resolve its modules, which is worth answering even from a partial tree.
     const missing = service.deployFiles.filter((entry) => !stagePath(stagingDir, entry));
-    if (missing.length > 0) {
-      return {
-        entry: `${service.name}: ${service.entry}`,
-        ok: false,
-        detail: `deployFiles lists paths that do not exist: ${missing.join(", ")}`,
-      };
-    }
+    const missingNote =
+      missing.length > 0 ? ` (not built locally: ${missing.join(", ")})` : "";
 
     if (!existsSync(path.join(stagingDir, service.entry))) {
       return {
@@ -104,7 +105,11 @@ async function verifyService(service) {
       cwd: stagingDir,
       nodeArgs: ["--preserve-symlinks", "--preserve-symlinks-main"],
     });
-    return { ...result, entry: `${service.name}: ${service.entry}` };
+    return {
+      ...result,
+      entry: `${service.name}: ${service.entry}`,
+      detail: `${result.detail}${missingNote}`,
+    };
   } finally {
     rmSync(stagingDir, { recursive: true, force: true });
   }
