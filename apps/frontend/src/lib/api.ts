@@ -20,6 +20,18 @@ function resolveApiBase(): string {
   return normalizeApiBase(value);
 }
 
+/**
+ * Header that marks a fetch as coming from our own server-side rendering.
+ *
+ * @remarks
+ * These requests hit the same public endpoints a visitor's browser does, but
+ * they arrive at the backend without a client address and would otherwise all
+ * share one rate-limit bucket. The token is optional: without it the requests
+ * are simply counted as before.
+ */
+const INTERNAL_REQUEST_HEADER = "x-internal-request";
+const INTERNAL_API_TOKEN = process.env.INTERNAL_API_TOKEN?.trim() || null;
+
 const API_BASE = resolveApiBase();
 const BACKEND_ORIGIN = new URL(API_BASE).origin;
 
@@ -52,7 +64,10 @@ async function getJson<T>(url: string, label: string, configuredBase: string): P
 
   let res: Response;
   try {
-    res = await fetch(url, { signal: controller.signal });
+    res = await fetch(url, {
+      signal: controller.signal,
+      headers: INTERNAL_API_TOKEN ? { [INTERNAL_REQUEST_HEADER]: INTERNAL_API_TOKEN } : undefined,
+    });
   } catch (err) {
     throw new Error(
       `API fetch failed for ${url} — is API_URL set correctly? (current: ${configuredBase})\n${err}`,
