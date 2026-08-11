@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveClientIp } from "../middleware/rate-limit.js";
+import { matchesInternalToken, resolveClientIp } from "../middleware/rate-limit.js";
 
 describe("resolveClientIp", () => {
   it("reads CF-Connecting-IP when configured", () => {
@@ -66,5 +66,36 @@ describe("resolveClientIp", () => {
     expect(resolveClientIp(headers, { trustedHeader: "x-real-ip", trustedHops: 1 })).toBe(
       "unknown",
     );
+  });
+});
+
+describe("matchesInternalToken", () => {
+  const TOKEN = "internal-token-that-is-long-enough";
+
+  it("accepts the configured token", () => {
+    const headers = new Headers({ "x-internal-request": TOKEN });
+    expect(matchesInternalToken(headers, TOKEN)).toBe(true);
+  });
+
+  // Without a configured token nothing may be exempt, or a missing secret would
+  // silently turn into an open bypass of every rate limit.
+  it("exempts nothing when no token is configured", () => {
+    const headers = new Headers({ "x-internal-request": TOKEN });
+    expect(matchesInternalToken(headers, undefined)).toBe(false);
+    expect(matchesInternalToken(headers, "")).toBe(false);
+  });
+
+  it("rejects a request without the header", () => {
+    expect(matchesInternalToken(new Headers(), TOKEN)).toBe(false);
+  });
+
+  it.each([
+    ["a wrong token of equal length", "internal-token-that-is-different!!"],
+    ["a prefix of the token", TOKEN.slice(0, -1)],
+    ["the token with something appended", `${TOKEN}x`],
+    ["an empty value", ""],
+  ])("rejects %s", (_label, value) => {
+    const headers = new Headers({ "x-internal-request": value });
+    expect(matchesInternalToken(headers, TOKEN)).toBe(false);
   });
 });
