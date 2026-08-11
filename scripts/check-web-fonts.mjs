@@ -205,12 +205,18 @@ export async function verifyRemoteFonts(baseUrl) {
       preloadUrl === fontReferences.get(criticalFile),
       `Preload URL does not match the CSS reference for ${criticalFile}`,
     );
-    const response = await fetchChecked(preloadUrl, { method: "HEAD" });
+    // Deliberately a GET. The Node adapter attaches the immutable cache header
+    // while the file is being streamed, and `send` answers a HEAD before it gets
+    // that far, so a HEAD reports `max-age=0` for an asset that a browser
+    // receives with `immutable`. Checking with HEAD therefore fails on a header
+    // that is correct for every real request.
+    const response = await fetchChecked(preloadUrl);
     invariant(
       (response.headers.get("content-type") ?? "").includes("font/woff2"),
       `${preloadUrl} is not served as font/woff2`,
     );
     verifyImmutableCache(response, preloadUrl);
+    await response.body?.cancel();
   }
 
   return { fontCount: fontReferences.size, preloadCount: preloadReferences.size };

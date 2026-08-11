@@ -119,9 +119,27 @@ async function main() {
     { stdio: "ignore" },
   );
 
-  const cleanup = () => {
-    chrome.kill("SIGKILL");
-    rmSync(profile, { recursive: true, force: true });
+  /**
+   * Stops the browser and removes its profile.
+   *
+   * @remarks
+   * Waits for the process to exit before deleting, because the browser keeps
+   * writing to the profile until it is gone and the removal then fails with
+   * `ENOTEMPTY`. A profile left behind in the temporary directory is not worth
+   * failing a passing check over, so a removal that still does not succeed is
+   * reported and swallowed.
+   */
+  const cleanup = async () => {
+    if (chrome.exitCode === null && chrome.signalCode === null) {
+      const exited = new Promise((resolve) => chrome.once("exit", resolve));
+      chrome.kill("SIGKILL");
+      await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 3000))]);
+    }
+    try {
+      rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    } catch (err) {
+      console.warn(`Could not remove the temporary browser profile ${profile}: ${err.message}`);
+    }
   };
 
   try {
@@ -148,7 +166,7 @@ async function main() {
 
     console.log(`\nNo CSP violations across ${routes.length} pages.`);
   } finally {
-    cleanup();
+    await cleanup();
   }
 }
 
