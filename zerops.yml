@@ -38,10 +38,6 @@ zerops:
         RUN_MIGRATIONS_ON_STARTUP: "true"
         # Secrets (set in Zerops dashboard):
         # IP_HASH_SALT (required in production, min. 16 characters)
-        # INTERNAL_API_TOKEN (optional, min. 16 characters; set the same value on
-        #   the website service so its server-rendered fetches are not counted
-        #   against the rate limit shared by all visitors. Without it those
-        #   fetches are simply limited as before.)
         # SMTP2GO_API_KEY
         # EMAIL_FROM  (default: hallo@lmaa.space)
         # OWNER_EMAIL (recipient for report/submission notifications)
@@ -85,8 +81,6 @@ zerops:
         PORT: "3000"
         NODE_ENV: production
         API_URL: http://backend:3000/api/v1
-        # Secrets (set in Zerops dashboard):
-        # INTERNAL_API_TOKEN (optional; must match the backend's value)
       start: node apps/frontend/dist/server/entry.mjs
 
   # DASHBOARD SERVICE (React + Vite → Static)
