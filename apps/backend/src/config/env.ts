@@ -47,10 +47,6 @@ export const envSchema = z
       .enum(["cf-connecting-ip", "x-real-ip", "x-forwarded-for"])
       .default("x-forwarded-for"),
     TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
-    // Shared with the website so its server-rendered fetches can be told apart
-    // from public traffic. Optional: without it nothing is exempt, which is the
-    // safe direction.
-    INTERNAL_API_TOKEN: z.string().min(16).optional(),
     SMTP2GO_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default("hallo@lmaa.space"),
     DASHBOARD_URL: z.string().url().optional(),

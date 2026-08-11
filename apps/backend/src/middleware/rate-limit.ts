@@ -1,4 +1,3 @@
-import { timingSafeEqual } from "node:crypto";
 import { isIP } from "node:net";
 
 import { eq, lt } from "drizzle-orm";
@@ -106,31 +105,6 @@ class DatabaseRateLimitStore implements RateLimitStore {
 const defaultRateLimitStore =
   env.NODE_ENV === "production" ? new DatabaseRateLimitStore() : new MemoryRateLimitStore();
 
-/** Header the website sets on its server-rendered fetches. */
-const INTERNAL_REQUEST_HEADER = "x-internal-request";
-
-/**
- * Whether a request carries the shared token that marks it as internal.
- *
- * @param headers - Incoming request headers.
- * @param expected - Configured token, or `undefined` when none is set.
- * @returns `true` only when a token is configured and the header matches it.
- *
- * @remarks
- * Fails closed: with no token configured nothing is ever exempt, so a missing
- * secret cannot turn into an open bypass. The comparison is constant-time, and
- * the length is checked first because `timingSafeEqual` throws on differing
- * lengths.
- */
-export function matchesInternalToken(headers: Headers, expected: string | undefined): boolean {
-  if (!expected) return false;
-
-  const provided = headers.get(INTERNAL_REQUEST_HEADER);
-  if (!provided || provided.length !== expected.length) return false;
-
-  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
-}
-
 /** Resolves the trusted client IP from the configured proxy header strategy. */
 export function resolveClientIp(
   headers: Headers,
@@ -234,10 +208,6 @@ export function rateLimit(options: { max: number; windowMs: number; store?: Rate
   const store = options.store ?? defaultRateLimitStore;
 
   return createMiddleware(async (c, next) => {
-    // Our own server-side rendering is not public traffic and must not be
-    // counted against a bucket shared by every visitor.
-    if (matchesInternalToken(c.req.raw.headers, env.INTERNAL_API_TOKEN)) return next();
-
     const ip = resolveClientIp(c.req.raw.headers);
 
     // Every caller without a resolvable address shares one bucket, so this is a
