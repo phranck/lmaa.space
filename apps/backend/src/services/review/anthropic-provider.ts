@@ -13,6 +13,7 @@ import type { ReviewProvider, ReviewProviderOutcome, ReviewProviderRequest } fro
 import { env } from "../../config/env.js";
 import { geocodeAddress } from "../../lib/geocoding.js";
 import { logger } from "../../lib/logger.js";
+import { readPaymentMethodsFromHtml } from "../../lib/payment-methods-from-html.js";
 import { calculateReviewCost, sumReviewUsage } from "../../lib/review-cost.js";
 
 /** Provider name persisted with every job this adapter runs. */
@@ -45,16 +46,22 @@ const MAX_TURNS = 30;
  * Everything a run fetches stays in the conversation and is read again on every
  * later turn, so a page fetched early is paid for once per remaining turn. A
  * measured run read 669 000 cached tokens, roughly half of it accumulated page
- * content. Six thousand tokens is several times what an imprint or an "about"
+ * content. Four thousand tokens is several times what an imprint or an "about"
  * page needs, and it bounds a single oversized page from dominating the rest of
  * the run.
  */
-const MAX_FETCH_CONTENT_TOKENS = 6000;
+const MAX_FETCH_CONTENT_TOKENS = 4000;
 
 /**
  * Most pages one run may fetch.
+ *
+ * @remarks
+ * Lowered from twelve after measuring where a check's money goes: a fetched
+ * page is re-read on every later turn, so the budget multiplies rather than
+ * adds. Eight pages is more than an imprint, an about page, a terms page and a
+ * handful of company records need.
  */
-const MAX_FETCHES = 12;
+const MAX_FETCHES = 8;
 
 /**
  * Most searches one run may make.
@@ -66,6 +73,18 @@ const MAX_FETCHES = 12;
 const MAX_SEARCHES = 8;
 
 const GEOCODE_TOOL_NAME = "geocode";
+
+const PAYMENT_TOOL_NAME = "payment_methods";
+
+/**
+ * Largest page the payment tool reads.
+ *
+ * @remarks
+ * Only the markup is scanned and a short list comes back, so the page never
+ * enters the conversation. The ceiling is there so one oversized page cannot
+ * occupy the worker.
+ */
+const MAX_PAYMENT_PAGE_BYTES = 2_000_000;
 
 interface GeocodeToolInput {
   street?: unknown;
@@ -197,6 +216,11 @@ export function reportProgress(onProgress: (step: string) => void) {
       return;
     }
 
+    if (block.name === PAYMENT_TOOL_NAME) {
+      onProgress("Liest die Zahlungsarten aus der Seite");
+      return;
+    }
+
     // The search and fetch tools filter what they found through the provider's
     // code execution, so these names show up in a run that never asked for code
     // to be run. They are named after what they do here rather than after the
@@ -224,7 +248,22 @@ function readApiMessage(error: { error?: unknown }): string | null {
   return typeof message === "string" ? message : null;
 }
 
-function classifyError(error: unknown): { code: string; message: string; retryable: boolean } {
+export function classifyError(error: unknown): {
+  code: string;
+  message: string;
+  retryable: boolean;
+} {
+  // Checked before the generic API error, because the SDK models a cancelled
+  // request as an API error without a status. Left to the branch below, every
+  // cancellation we caused ourselves was recorded as the provider having
+  // answered with an error, and was retried on top of that.
+  // Checked before the generic API error, because the SDK models a cancelled
+  // request as an API error without a status. Left to the branch below, every
+  // cancellation we caused ourselves was recorded as the provider having
+  // answered with an error, and was retried on top of that.
+  if (error instanceof Anthropic.APIUserAbortError || (error as Error)?.name === "AbortError") {
+    return { code: "PROVIDER_ABORTED", message: "Lauf wurde abgebrochen", retryable: false };
+  }
   if (error instanceof Anthropic.APIConnectionError) {
     return {
       code: "PROVIDER_CONNECTION",
@@ -264,14 +303,16 @@ function classifyError(error: unknown): { code: string; message: string; retryab
     };
   }
   if (error instanceof Anthropic.APIError) {
+    const status = error.status ?? "unbekannt";
+    const detail = readApiMessage(error);
     return {
       code: `PROVIDER_HTTP_${error.status ?? "UNKNOWN"}`,
-      message: "Provider hat mit einem Fehler geantwortet",
+      // The status and the provider's own wording are kept, because without
+      // them the reason for a failure lives only in the log and a moderator is
+      // told nothing beyond that something went wrong.
+      message: `Provider hat mit Status ${status} geantwortet${detail ? `: ${detail}` : ""}`,
       retryable: (error.status ?? 500) >= 500,
     };
-  }
-  if (error instanceof Error && error.name === "AbortError") {
-    return { code: "PROVIDER_ABORTED", message: "Lauf wurde abgebrochen", retryable: true };
   }
   return {
     code: "PROVIDER_UNKNOWN",
@@ -383,6 +424,23 @@ export class AnthropicReviewProvider implements ReviewProvider {
                 max_content_tokens: MAX_FETCH_CONTENT_TOKENS,
               },
               {
+                name: PAYMENT_TOOL_NAME,
+                description:
+                  "Liest die Zahlungsarten aus dem Quelltext einer Seite des geprüften Shops und gibt sie als kanonische Schlüssel zurück. Nötig, weil Shops ihre Zahlungsarten als Bilder zeichnen und der Seitenabruf nur den Text liefert, in dem sie nicht vorkommen. Ohne Adresse wird die Startseite gelesen.",
+                input_schema: {
+                  type: "object",
+                  additionalProperties: false,
+                  properties: {
+                    url: {
+                      type: "string",
+                      description:
+                        "Seite des geprüften Shops, etwa die Startseite, die Zahlungsseite oder die Kasse. Nur Adressen dieses Shops sind erlaubt.",
+                    },
+                  },
+                  required: [],
+                },
+              },
+              {
                 name: GEOCODE_TOOL_NAME,
                 description:
                   "Löst eine Adresse in Koordinaten auf. Führt die Kaskade aus den Aufnahmeregeln selbst aus: vollständige Adresse, dann ohne Straße, dann Postleitzahl und Ort. Gibt Breitengrad, Längengrad, die gefundene Adresse und die Genauigkeit zurück.",
@@ -473,7 +531,9 @@ export class AnthropicReviewProvider implements ReviewProvider {
         }
 
         messages.push({ role: "assistant", content: message.content });
-        const results = await Promise.all(toolUses.map((call) => this.runTool(call)));
+        const results = await Promise.all(
+          toolUses.map((call) => this.runTool(call, request.shopUrl)),
+        );
         executedToolCalls += results.length;
         messages.push({ role: "user", content: results });
         continue;
@@ -524,11 +584,111 @@ export class AnthropicReviewProvider implements ReviewProvider {
    * result rather than throwing. The model can then say so in its result, which
    * is more useful than losing the whole run over one address.
    */
-  private async runTool(call: {
-    id: string;
-    name: string;
-    input: unknown;
-  }): Promise<BetaContentBlockParam> {
+  /**
+   * Reads the payment methods a page of the reviewed shop evidences.
+   *
+   * @param call - The tool call, whose input names the page to read.
+   * @param shopUrl - The shop under review, which bounds where this may look.
+   * @returns The canonical keys and the labels they came from.
+   *
+   * @remarks
+   * The address is checked against the shop's own host before anything is
+   * fetched, so the model cannot point this at a third party and read the
+   * answer back out of the check. Redirects are not followed for the same
+   * reason: a destination checked before a redirect is not the destination.
+   *
+   * Only the extracted list travels back, never the page, so a run pays for a
+   * handful of tokens instead of the hundreds of thousands a shop page holds.
+   */
+  private async runPaymentTool(
+    call: { id: string; name: string; input: unknown },
+    shopUrl: string,
+  ): Promise<BetaContentBlockParam> {
+    const requested = asOptionalString((call.input as { url?: unknown } | null)?.url) ?? shopUrl;
+
+    let target: URL;
+    let shop: URL;
+    try {
+      target = new URL(requested);
+      shop = new URL(shopUrl);
+    } catch {
+      return {
+        type: "tool_result",
+        tool_use_id: call.id,
+        is_error: true,
+        content: "Keine gültige Adresse.",
+      };
+    }
+
+    const sameShop =
+      target.protocol === "https:" &&
+      (target.hostname === shop.hostname ||
+        target.hostname === `www.${shop.hostname}` ||
+        `www.${target.hostname}` === shop.hostname);
+
+    if (!sameShop) {
+      return {
+        type: "tool_result",
+        tool_use_id: call.id,
+        is_error: true,
+        content: `Dieses Werkzeug liest ausschließlich Seiten von ${shop.hostname}.`,
+      };
+    }
+
+    try {
+      const response = await fetch(target, {
+        redirect: "error",
+        headers: { accept: "text/html" },
+        signal: AbortSignal.timeout(20_000),
+      });
+
+      if (!response.ok) {
+        return {
+          type: "tool_result",
+          tool_use_id: call.id,
+          content: `Die Seite antwortete mit Status ${response.status}.`,
+        };
+      }
+
+      const html = (await response.text()).slice(0, MAX_PAYMENT_PAGE_BYTES);
+      const evidence = readPaymentMethodsFromHtml(html);
+
+      return {
+        type: "tool_result",
+        tool_use_id: call.id,
+        content: JSON.stringify({
+          url: target.href,
+          methods: evidence.methods,
+          labels: evidence.labels,
+          note:
+            evidence.methods.length === 0
+              ? "Diese Seite nennt keine Zahlungsart. Kasse, Zahlungsseite oder Fußzeile einer anderen Seite versuchen."
+              : "Die Schlüssel sind bereits kanonisch und können unverändert in paymentMethods übernommen werden.",
+        }),
+      };
+    } catch (error) {
+      logger.warn({ err: error, host: target.hostname }, "review payment tool failed");
+      return {
+        type: "tool_result",
+        tool_use_id: call.id,
+        is_error: true,
+        content: "Die Seite konnte nicht gelesen werden.",
+      };
+    }
+  }
+
+  private async runTool(
+    call: {
+      id: string;
+      name: string;
+      input: unknown;
+    },
+    shopUrl: string,
+  ): Promise<BetaContentBlockParam> {
+    if (call.name === PAYMENT_TOOL_NAME) {
+      return this.runPaymentTool(call, shopUrl);
+    }
+
     if (call.name !== GEOCODE_TOOL_NAME) {
       return {
         type: "tool_result",
