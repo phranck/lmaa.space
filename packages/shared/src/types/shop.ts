@@ -12,6 +12,16 @@ export interface ShopHeadquarters {
   countryCode: string;
   latitude: number | null;
   longitude: number | null;
+  /**
+   * Where the address was read, such as `Impressum` or `Kontaktseite`.
+   *
+   * @remarks
+   * Kept because an address without its origin cannot be checked by whoever
+   * reviews it, and the check that found it is the only place it comes from.
+   */
+  addressSource?: string | null;
+  /** What produced the coordinates, such as `Photon (street-level)`. */
+  geoSource?: string | null;
 }
 
 /**

@@ -21,6 +21,10 @@ export interface HeadquartersInput {
   countryCode?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** Where the address was read, such as `Impressum` or `Kontaktseite`. */
+  addressSource?: string | null;
+  /** What produced the coordinates, such as `Photon (street-level)`. */
+  geoSource?: string | null;
 }
 
 function cleanText(value: string | null | undefined) {
@@ -43,6 +47,8 @@ function normalizeHeadquartersInput(
   const state = cleanText(input?.state);
   const latitude = input?.latitude ?? null;
   const longitude = input?.longitude ?? null;
+  const addressSource = cleanText(input?.addressSource);
+  const geoSource = cleanText(input?.geoSource);
 
   const hasAnyValue =
     countryCode !== null ||
@@ -65,6 +71,8 @@ function normalizeHeadquartersInput(
     countryCode,
     latitude,
     longitude,
+    addressSource,
+    geoSource,
   };
 }
 
@@ -174,6 +182,8 @@ export async function upsertShopHeadquarters(
     postalCode: normalized.postalCode,
     latitude: normalized.latitude,
     longitude: normalized.longitude,
+    addressSource: normalized.addressSource,
+    geoSource: normalized.geoSource,
     updatedAt: new Date(),
   });
 }
@@ -204,6 +214,8 @@ export async function upsertSubmissionHeadquarters(
     postalCode: normalized.postalCode,
     latitude: normalized.latitude,
     longitude: normalized.longitude,
+    addressSource: normalized.addressSource,
+    geoSource: normalized.geoSource,
     updatedAt: new Date(),
   });
 }
