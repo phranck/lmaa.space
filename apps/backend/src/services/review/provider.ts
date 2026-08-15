@@ -42,6 +42,26 @@ export interface ReviewProviderRequest {
 }
 
 /**
+ * A text that has to be rewritten, with the rule it broke.
+ */
+export interface TextRepairRequest {
+  /** Where it sits in the result, used to put the rewritten text back. */
+  path: string;
+  value: string;
+  problem: string;
+}
+
+/**
+ * What a repair produced.
+ */
+export interface TextRepairOutcome {
+  /** The rewritten texts by path, empty where the provider could not help. */
+  texts: Map<string, string>;
+  /** What the repair itself consumed, so it is costed like everything else. */
+  usage: ReviewUsage;
+}
+
+/**
  * How a provider run ended.
  *
  * @remarks
@@ -93,6 +113,19 @@ export interface ReviewProvider {
   readonly model: string;
   /** Reasoning effort the provider requests, or `null` where the model takes none. */
   readonly effort: string | null;
+
+  /**
+   * Rewrites texts that broke a mechanical German rule.
+   *
+   * @param texts - The offending texts with the rule each one broke.
+   * @returns The rewritten texts and what the rewriting consumed.
+   *
+   * @remarks
+   * A separate, tool-free call, because the research behind a result is sound
+   * when only its wording is not, and repeating the research to fix a dash
+   * costs a hundred times what rewriting the sentence does.
+   */
+  repairTexts(texts: TextRepairRequest[]): Promise<TextRepairOutcome>;
   /**
    * Reports whether the provider has everything it needs to run.
    *

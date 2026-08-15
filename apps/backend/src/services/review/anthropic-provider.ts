@@ -8,7 +8,13 @@ import type {
 import type { ReviewEffortLevel, ReviewUsage } from "@lmaa/shared";
 
 import { buildReviewSystemPrompt, buildReviewUserMessage } from "./prompt.js";
-import type { ReviewProvider, ReviewProviderOutcome, ReviewProviderRequest } from "./provider.js";
+import type {
+  ReviewProvider,
+  ReviewProviderOutcome,
+  ReviewProviderRequest,
+  TextRepairOutcome,
+  TextRepairRequest,
+} from "./provider.js";
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
 import { calculateReviewCost, sumReviewUsage } from "../../lib/review-cost.js";
@@ -34,6 +40,32 @@ const BATCH_POLL_INTERVAL_MS = 30_000;
  * retried, which resumes the same batch rather than paying for a second one.
  */
 const MAX_BATCH_WAIT_MS = 90 * 60 * 1000;
+
+/**
+ * Output ceiling for a repair.
+ *
+ * @remarks
+ * A repair rewrites at most three texts, the longest of which is a rejection of
+ * a few hundred words, so this is generous and still a hundredth of a run.
+ */
+const REPAIR_MAX_TOKENS = 8_000;
+
+/**
+ * What a repair is told.
+ *
+ * @remarks
+ * Deliberately narrow. The rewriting must not improve, shorten or extend
+ * anything, because everything else in the text has already been checked
+ * against the rules and against the evidence.
+ */
+const REPAIR_SYSTEM_PROMPT = `Du korrigierst deutsche Texte, die gegen eine mechanische Formregel verstoßen.
+
+Regeln:
+- Geviertstriche und Halbgeviertstriche sind verboten. Formuliere die Stelle in vollständige Sätze um, statt den Strich durch ein Komma, einen Doppelpunkt oder eine Klammer zu ersetzen.
+- Gender-Stern und Gender-Doppelpunkt sind verboten. Nimm eine neutrale Form wie „Mitarbeitende" oder eine Paarform wie „Inhaberinnen und Inhaber".
+- Sonst ändert sich nichts: keine neuen Aussagen, keine gestrichenen Aussagen, keine Kürzung, keine Ausschmückung. Markdown, Fußnoten, Absätze und Zeichenketten wie [REJECT_TOKEN] bleiben unverändert.
+
+Antworte ausschließlich mit einem JSON-Objekt, dessen Schlüssel die genannten Feldnamen sind und dessen Werte die korrigierten Texte. Kein Fließtext davor oder danach.`;
 
 /** Provider name persisted with every job this adapter runs. */
 const ANTHROPIC_PROVIDER_NAME = "anthropic";
@@ -372,6 +404,42 @@ export class AnthropicReviewProvider implements ReviewProvider {
         errorMessage: classified.message,
         retryable: classified.retryable,
       });
+    }
+  }
+
+  async repairTexts(texts: TextRepairRequest[]): Promise<TextRepairOutcome> {
+    const client = this.client;
+    if (!client || texts.length === 0) return { texts: new Map(), usage: {} };
+
+    const task = texts
+      .map(
+        (entry, index) =>
+          `${index + 1}. Feld \`${entry.path}\`\nProblem: ${entry.problem}\nText: ${entry.value}`,
+      )
+      .join("\n\n");
+
+    try {
+      const message = await client.messages.create({
+        model: this.model,
+        max_tokens: REPAIR_MAX_TOKENS,
+        system: REPAIR_SYSTEM_PROMPT,
+        messages: [{ role: "user", content: task }],
+      });
+
+      const parsed = extractJson(message as unknown as BetaMessage);
+      const repaired = new Map<string, string>();
+
+      if (typeof parsed === "object" && parsed !== null) {
+        for (const entry of texts) {
+          const value = (parsed as Record<string, unknown>)[entry.path];
+          if (typeof value === "string" && value.trim() !== "") repaired.set(entry.path, value);
+        }
+      }
+
+      return { texts: repaired, usage: readUsage(message as unknown as BetaMessage) };
+    } catch (error) {
+      logger.warn({ err: error }, "review text repair failed");
+      return { texts: new Map(), usage: {} };
     }
   }
 
