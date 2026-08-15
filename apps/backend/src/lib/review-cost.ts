@@ -95,7 +95,7 @@ function pricesFor(inputPerMillionUsd: number, outputPerMillionUsd: number): Rev
  * they are recorded for the audit trail and never priced a second time. Fetching
  * a page carries no fee of its own beyond the tokens its content occupies.
  */
-export const REVIEW_RATE_CARD_V1: ReviewRateCard = {
+const REVIEW_RATE_CARD_V1: ReviewRateCard = {
   version: "anthropic-2026-08-15",
   currency: "USD",
   effectiveFrom: "2026-08-15",
@@ -144,7 +144,7 @@ export const CURRENT_REVIEW_RATE_CARD = REVIEW_RATE_CARD_V1;
  * the amounts it produced unconvertible, so entries are added and never
  * removed.
  */
-export const REVIEW_RATE_CARDS: Readonly<Record<string, ReviewRateCard>> = {
+const REVIEW_RATE_CARDS: Readonly<Record<string, ReviewRateCard>> = {
   [REVIEW_RATE_CARD_V1.version]: REVIEW_RATE_CARD_V1,
 };
 
@@ -154,7 +154,7 @@ export const REVIEW_RATE_CARDS: Readonly<Record<string, ReviewRateCard>> = {
  * @param version - Version the amount names.
  * @returns The card, or `undefined` when it is not known here.
  */
-export function findReviewRateCard(version: string): ReviewRateCard | undefined {
+function findReviewRateCard(version: string): ReviewRateCard | undefined {
   return REVIEW_RATE_CARDS[version];
 }
 

@@ -1,5 +1,5 @@
 import { CurrencyDollarIcon, EnvelopeIcon, RobotIcon } from "@phosphor-icons/react";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
 import {
   REVIEW_EFFORT_LEVELS,
@@ -121,18 +121,12 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
     [acceptedEfforts],
   );
 
-  // Changing the model can drop the chosen level, and the field would then show
-  // a value that is no longer on offer. The replacement follows the same rule
-  // the worker applies, so what is shown is what will run.
-  useEffect(() => {
-    setDraft((current) => {
-      const configured = current[SETTINGS_KEYS.REVIEW_EFFORT] as ReviewEffortLevel;
-      const resolved = resolveEffortLevel(acceptedEfforts, configured);
-      return resolved === null || resolved === configured
-        ? current
-        : { ...current, [SETTINGS_KEYS.REVIEW_EFFORT]: resolved };
-    });
-  }, [acceptedEfforts]);
+  // Changing the model can drop the chosen level. The level a run would use is
+  // derived here with the same rule the worker applies, rather than written
+  // back into the draft, so the field always shows what will actually run.
+  const effectiveEffort =
+    resolveEffortLevel(acceptedEfforts, draft[SETTINGS_KEYS.REVIEW_EFFORT] as ReviewEffortLevel) ??
+    draft[SETTINGS_KEYS.REVIEW_EFFORT];
 
   // The configured model stays selectable even when the list could not be
   // fetched, so a provider outage never silently rewrites the setting.
@@ -150,19 +144,22 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
   const save = useCallback(async () => {
     setSaving(true);
     try {
+      // What is saved is what the field shows, so a level the chosen model does
+      // not accept is never written back.
+      const pending = { ...draft, [SETTINGS_KEYS.REVIEW_EFFORT]: effectiveEffort };
       await Promise.all(
-        EDITED_KEYS.filter((key) => draft[key] !== savedBaseline[key]).map((key) =>
-          saveSetting.mutateAsync({ key, value: draft[key] }),
+        EDITED_KEYS.filter((key) => pending[key] !== savedBaseline[key]).map((key) =>
+          saveSetting.mutateAsync({ key, value: pending[key] }),
         ),
       );
-      setSavedBaseline(draft);
+      setSavedBaseline(pending);
       setSaveError(null);
     } catch {
       setSaveError(t.saveError);
     } finally {
       setSaving(false);
     }
-  }, [draft, savedBaseline, saveSetting, t.saveError]);
+  }, [draft, effectiveEffort, savedBaseline, saveSetting, t.saveError]);
 
   return (
     <div className="flex max-w-7xl flex-col gap-6">
@@ -216,7 +213,7 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
                   label={t.effortLabel}
                   hint={acceptedEfforts.length === 0 ? t.effortUnsupported : t.effortHint}
                   disabled={saving || acceptedEfforts.length === 0}
-                  value={draft[SETTINGS_KEYS.REVIEW_EFFORT]}
+                  value={effectiveEffort}
                   onValueChange={(value) => set(SETTINGS_KEYS.REVIEW_EFFORT, value)}
                   options={effortOptions}
                 />

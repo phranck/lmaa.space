@@ -16,7 +16,7 @@ import { logger } from "../../lib/logger.js";
 import { calculateReviewCost, sumReviewUsage } from "../../lib/review-cost.js";
 
 /** Provider name persisted with every job this adapter runs. */
-export const ANTHROPIC_PROVIDER_NAME = "anthropic";
+const ANTHROPIC_PROVIDER_NAME = "anthropic";
 
 /**
  * Output ceiling per request.
