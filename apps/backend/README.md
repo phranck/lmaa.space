@@ -35,8 +35,8 @@ Wichtige produktive Variablen:
 - `DATABASE_URL`: Runtime-Verbindung zur PostgreSQL-Datenbank.
 - `DATABASE_URL_MIGRATOR`: optionale Migrations-Verbindung, fällt auf `DATABASE_URL` zurück.
 - `IP_HASH_SALT`: in Production Pflicht, mindestens 16 Zeichen, für serverseitige Besucher-Hashes.
-- `TRUST_PROXY_IP_HEADER`: in Production fest auf `cf-connecting-ip` validiert.
-- `RESEND_API_KEY`, `EMAIL_FROM`, `OWNER_EMAIL`: E-Mail-Versand und Benachrichtigungen.
+- `TRUST_PROXY_IP_HEADER`: welcher Header die echte Client-Adresse trägt, Default `x-forwarded-for`. Zusammen mit `TRUST_PROXY_HOPS` muss der Wert zur tatsächlichen Kette vor dem Backend passen, sonst zählt das Rate-Limit die falsche Adresse.
+- `SMTP2GO_API_KEY`, `EMAIL_FROM`, `OWNER_EMAIL`: E-Mail-Versand über SMTP2GO EU und Benachrichtigungen an die Betreibenden.
 - `DASHBOARD_URL`, `FRONTEND_URL`: externe URLs, in Non-Production Pflicht.
 - `UMAMI_URL`, `UMAMI_USERNAME`, `UMAMI_PASSWORD`, `UMAMI_WEBSITE_ID`: optionale Analytics-Anbindung.
 - `UNSPLASH_ACCESS_KEY`: optionale Medien-/Bildsuche.
@@ -44,6 +44,32 @@ Wichtige produktive Variablen:
 - `RUN_MIGRATIONS_ON_STARTUP`: `true` oder `false`, Default `true`.
 
 Weitere optionale Runtime-Variablen sind in `src/config/env.ts` definiert und werden beim Start validiert.
+
+### Automatisierte Shop-Prüfung
+
+Die automatisierte Prüfung eingehender Shop-Vorschläge läuft als Hintergrund-Job im Backend. Aus der Umgebung kommt nur der Provider-Schlüssel:
+
+| Variable            | Pflicht | Bedeutung                                                                                                    |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| `ANTHROPIC_API_KEY` | ja      | Schlüssel für die Claude-API. Fehlt er, bleibt der Worker stehen und das übrige Backend läuft normal weiter. |
+
+Alles andere sind Systemeinstellungen und stehen im Dashboard unter Einstellungen im Reiter „Automatische Prüfung". Eine Änderung wirkt beim nächsten Durchlauf des Workers, spätestens nach 30 Sekunden, und braucht kein Deployment.
+
+| Einstellung                             | Default         | Bedeutung                                                                                                                                        |
+| --------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Modus                                   | `off`           | `off` nimmt keine Arbeit an. `assist` schreibt das Rechercheergebnis in den Vorschlag und setzt ihn auf „bereit zur Prüfung". |
+| Aufnahmen automatisch freigeben         | aus             | Wirkt nur im Modus `assist`.                                                                                                                     |
+| Ablehnungen automatisch veröffentlichen | aus             | Wirkt nur im Modus `assist`.                                                                                                                     |
+| Modell                                  | `claude-opus-5` | Zur Auswahl stehen die Modelle, die der Anbieter meldet und die eine Prüfung auch ausführen können. Wird an jeder Prüfung mitgeschrieben. |
+| Denktiefe                               | `high`          | Angeboten wird, was das gewählte Modell laut Anbieter annimmt. Claude Sonnet 4.6 kennt zum Beispiel kein `xhigh`. |
+| Versuche je Vorschlag                   | `3`             | Danach endet die Prüfung als zurückgestellt.                                                                                                     |
+| Deckel je Prüfung                       | `2` USD         | Bricht den laufenden Versuch ab.                                                                                                                 |
+| Deckel je Tag                           | `10` USD        | Der Worker nimmt dann keine neuen Vorschläge mehr an.                                                                                            |
+| Bericht nach jeder Prüfung              | aus             | Braucht ein E-Mail-Template und geht an `OWNER_EMAIL`.                                                                                           |
+
+Warum die Trennung: der Schlüssel ist ein Geheimnis und gehört nicht in eine Einstellungstabelle, die im Dashboard lesbar ist. Alles andere ist eine Betriebsentscheidung, die man abends um zehn ändern können muss, ohne zu deployen.
+
+Lokal reicht in `apps/backend/.env.local` der Schlüssel; den Modus stellst du im Dashboard auf `assist`. In Produktion bleibt er so lange auf `off`, bis die Strecke abgenommen ist. Zum Ausprobieren ohne echten Vorschlag gibt es `npm run review:shop -w @lmaa/backend -- <url>`, das eine synthetische Prüfung anlegt und danach wieder entfernt.
 
 ## Datenbank
 

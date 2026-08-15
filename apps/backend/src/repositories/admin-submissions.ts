@@ -14,6 +14,7 @@ import {
   loadSubmissionHeadquartersMap,
   upsertSubmissionHeadquarters,
 } from "./headquarters.js";
+import { enqueueReviewJob } from "./review-jobs.js";
 import { db } from "../db/client.js";
 import {
   type Shop,
@@ -53,7 +54,8 @@ interface SubmissionReviewData {
   adminNote?: string;
   rejectionLongText?: string;
   rejectionToken?: string;
-  adminId: number;
+  /** Moderator who decided, or `null` when the automated reviewer applied the result. */
+  adminId: number | null;
 }
 
 /**
@@ -384,6 +386,14 @@ export async function createSubmissionFromFormData(data: Record<string, unknown>
         .insert(submissionCategories)
         .values(categoryIds.map((categoryId) => ({ submissionId: row.id, categoryId })));
     }
+
+    // The review job is created in the same transaction as the submission, so a
+    // committed submission always has exactly one, and a failure to create it
+    // rolls the submission back rather than leaving a suggestion nobody queued.
+    // The worker only picks the job up once automation is switched on, so this
+    // costs nothing whilst it is off and gives it a backlog to work through
+    // when it is enabled.
+    await enqueueReviewJob(tx, row.id);
 
     return row.id;
   });
