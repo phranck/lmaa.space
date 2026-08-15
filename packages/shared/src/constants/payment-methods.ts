@@ -13,6 +13,8 @@ export const PAYMENT_METHOD_KEYS = [
   "visa",
   "mastercard",
   "american_express",
+  "maestro",
+  "shop_pay",
 ] as const;
 
 export type PaymentMethodKey = (typeof PAYMENT_METHOD_KEYS)[number];
@@ -61,9 +63,19 @@ const PAYMENT_METHOD_ALIASES: Readonly<Record<string, PaymentMethodKey>> = {
   "american-express": "american_express",
   "american express": "american_express",
   amex: "american_express",
+  maestro: "maestro",
+  shop_pay: "shop_pay",
+  "shop pay": "shop_pay",
+  shopify_pay: "shop_pay",
+  "shopify pay": "shop_pay",
 };
 
-const CARD_NETWORKS = new Set<PaymentMethodKey>(["visa", "mastercard", "american_express"]);
+const CARD_NETWORKS = new Set<PaymentMethodKey>([
+  "visa",
+  "mastercard",
+  "american_express",
+  "maestro",
+]);
 
 /** Normalizes untrusted payment method input to stable, deduplicated database keys. */
 export function normalizePaymentMethods(value: unknown): PaymentMethodKey[] {
