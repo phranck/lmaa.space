@@ -38,6 +38,18 @@ const publicUrl = z
   .refine((value) => isSafeConfiguredUrl(value), "URL must be a public http(s) address");
 
 /**
+ * Marks an issue as one of the mechanical rules about the surface of a German
+ * text, rather than about what the check found.
+ *
+ * @remarks
+ * Carried on the issue rather than left to be read out of its message, so a
+ * caller can tell the two apart without matching on wording. A result that
+ * fails only on these can be repaired by rewriting the offending texts, which
+ * costs a fraction of researching the shop again.
+ */
+export const GERMAN_TEXT_RULE = "germanText";
+
+/**
  * Keeps the entries of a source list that are absolute addresses.
  *
  * @param value - What the provider sent, which should be a list of addresses.
@@ -62,15 +74,21 @@ function dropNonUrls(value: unknown): unknown {
  * validator that pretended otherwise would reject good text and pass bad text.
  */
 function assertGermanTextRules(value: string, ctx: z.RefinementCtx, field: string): void {
+  // The field is named in the path as well as in the message, so a caller can
+  // find the text that has to be rewritten instead of parsing the wording.
   if (/[—–]/.test(value)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
+      path: [field],
+      params: { rule: GERMAN_TEXT_RULE },
       message: `${field} must not contain em-dashes or en-dashes`,
     });
   }
   if (/[*:]innen\b/i.test(value)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
+      path: [field],
+      params: { rule: GERMAN_TEXT_RULE },
       message: `${field} must not use gender-star or gender-colon glyphs`,
     });
   }

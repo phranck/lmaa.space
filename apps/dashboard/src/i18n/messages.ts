@@ -569,6 +569,8 @@ export interface DashboardMessages {
         "provider.started": string;
         "provider.submitted": string;
         "result.validated": string;
+        "result.repaired": string;
+        "result.repair_failed": string;
         "result.invalid": string;
         "attempt.failed": string;
         "result.enriched": string;
@@ -2140,6 +2142,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "provider.started": "Recherche beim Anbieter gestartet",
           "provider.submitted": "Beim Anbieter eingereicht, wird verarbeitet",
           "result.validated": "Ergebnis geprüft und angenommen",
+          "result.repaired": "Formfehler im Text korrigiert",
+          "result.repair_failed": "Textkorrektur hat nicht geholfen",
           "result.invalid": "Ergebnis unbrauchbar, neuer Versuch",
           "attempt.failed": "Versuch fehlgeschlagen",
           "result.enriched": "Angaben in den Vorschlag geschrieben",
@@ -3761,6 +3765,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "provider.started": "Research started at the provider",
           "provider.submitted": "Submitted to the provider, being processed",
           "result.validated": "Result checked and accepted",
+          "result.repaired": "Wording corrected",
+          "result.repair_failed": "Correcting the wording did not help",
           "result.invalid": "Result unusable, trying again",
           "attempt.failed": "Attempt failed",
           "result.enriched": "Findings written into the suggestion",

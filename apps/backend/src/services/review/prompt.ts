@@ -145,5 +145,13 @@ export function buildReviewUserMessage(input: ReviewUserMessageInput): string {
     `## Vorhandene Kategorien`,
     ``,
     categories,
+    ``,
+    // Last, because it is about the sentences that are about to be written and
+    // the rules above are thousands of tokens away by the time they are. Said
+    // as an instruction rather than as a prohibition, because a prohibition
+    // leaves the writer to work out what to do instead.
+    `## Bevor du schreibst`,
+    ``,
+    `Schreibe jeden deutschen Text in vollständigen Sätzen. Wo dir ein Gedankenstrich in die Feder käme, mach zwei Sätze daraus oder verbinde sie mit einem Wort wie „weil", „und" oder „das". Für gemischte Gruppen nimm eine Form wie „Mitarbeitende" oder „Inhaberinnen und Inhaber". Diese beiden Punkte werden maschinell geprüft, und ein Verstoß macht die ganze Antwort ungültig.`,
   ].join("\n");
 }
