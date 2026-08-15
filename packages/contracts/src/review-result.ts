@@ -38,6 +38,21 @@ const publicUrl = z
   .refine((value) => isSafeConfiguredUrl(value), "URL must be a public http(s) address");
 
 /**
+ * Keeps the entries of a source list that are absolute addresses.
+ *
+ * @param value - What the provider sent, which should be a list of addresses.
+ * @returns The same list without the entries that are not one.
+ *
+ * @remarks
+ * Written as a preprocessing step rather than a lenient element schema, so
+ * whatever survives is still held to the full URL rules.
+ */
+function dropNonUrls(value: unknown): unknown {
+  if (!Array.isArray(value)) return value;
+  return value.filter((entry) => typeof entry === "string" && /^https?:\/\//i.test(entry.trim()));
+}
+
+/**
  * Rejects the punctuation and glyphs the canonical rules forbid in published
  * German text.
  *
@@ -120,7 +135,18 @@ export const companySizeSchema = z
     revenueEur: z.number().nonnegative().nullable(),
     referenceYear: z.number().int().min(1900).max(2100).nullable(),
     isEstimate: z.boolean(),
-    sources: z.array(publicUrl).max(10),
+    /**
+     * Where the figures came from.
+     *
+     * @remarks
+     * Entries that are not an absolute public address are dropped rather than
+     * voiding the result. A search phrase or a bare company name among the
+     * sources says nothing about whether the size research itself was sound,
+     * and a whole paid run is far too much to throw away for one malformed
+     * line. What the research concluded stands in `assessment`, and the sources
+     * that survive are still checked.
+     */
+    sources: z.preprocess(dropNonUrls, z.array(publicUrl).max(10)),
     assessment: z.string().trim().min(1).max(2000),
   })
   .strict()
@@ -323,7 +349,16 @@ export const reviewRejectSchema = z
   .object({
     comment: z.string().trim().min(50).max(4000),
     longText: z.string().trim().min(1).max(40_000),
-    sources: z.array(publicUrl).min(REJECTION_MIN_SOURCES).max(30),
+    /**
+     * The addresses the rejection rests on.
+     *
+     * @remarks
+     * Malformed entries are dropped before the minimum is counted, so one bad
+     * line cannot void a rejection that has enough real sources. Where too few
+     * survive, the result is refused, because the minimum is what makes a
+     * published rejection defensible.
+     */
+    sources: z.preprocess(dropNonUrls, z.array(publicUrl).min(REJECTION_MIN_SOURCES).max(30)),
   })
   .strict()
   .superRefine((value, ctx) => {
@@ -572,7 +607,12 @@ export const reviewResultJsonSchema: Record<string, unknown> = {
         revenueEur: { type: ["number", "null"] },
         referenceYear: { type: ["integer", "null"] },
         isEstimate: { type: "boolean" },
-        sources: { type: "array", items: { type: "string" } },
+        sources: {
+          type: "array",
+          items: { type: "string", format: "uri" },
+          description:
+            "Absolute http(s)-Adressen der Quellen. Suchbegriffe, Namen oder Hinweise wie „LinkedIn\" gehören nicht hierher, sondern in assessment.",
+        },
         assessment: { type: "string" },
       },
     },
@@ -690,7 +730,11 @@ export const reviewResultJsonSchema: Record<string, unknown> = {
       properties: {
         comment: { type: "string" },
         longText: { type: "string" },
-        sources: { type: "array", items: { type: "string" } },
+        sources: {
+          type: "array",
+          items: { type: "string", format: "uri" },
+          description: "Absolute http(s)-Adressen, keine Suchbegriffe und keine Quellennamen.",
+        },
       },
     },
     onhold: {
