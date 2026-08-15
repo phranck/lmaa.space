@@ -6,7 +6,10 @@ import { describe, expect, it } from "vitest";
 import { isReviewSkillAvailable, loadReviewSkill } from "../services/review/skill.js";
 
 /** Where the canonical rules live, relative to this test file. */
-const CANONICAL_PATH = path.resolve(import.meta.dirname, "../../../../skills/lmaa-shop-check.md");
+const CANONICAL_PATH = path.resolve(
+  import.meta.dirname,
+  "../../../../.claude/skills/lmaa-shop-check/SKILL.md",
+);
 
 describe("loadReviewSkill", () => {
   it("finds the canonical rules from the backend's working directory", () => {

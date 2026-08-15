@@ -242,6 +242,17 @@ export const reviewAcceptSchema = z
     url: publicUrl,
     description: z.string().trim().min(1).max(8000),
     categories: z.array(z.string().trim().min(1).max(120)).max(20),
+    /**
+     * Payment methods the shop evidences, as it names them.
+     *
+     * @remarks
+     * Free text rather than an enum on purpose. The canonical keys live in
+     * `@lmaa/shared`, and `normalizePaymentMethods` already maps what a footer
+     * actually says onto them and drops the rest. Validating against the enum
+     * here means one unfamiliar label voids the whole check, which is what
+     * happened once and cost a full run.
+     */
+    paymentMethods: z.array(z.string().trim().min(1).max(60)).max(20).default([]),
     contactEmail: z.string().trim().email().max(200).nullish(),
     shippingRegions: shippingRegionsSchema,
     legal: z
@@ -579,6 +590,7 @@ export const reviewResultJsonSchema: Record<string, unknown> = {
         "url",
         "description",
         "categories",
+        "paymentMethods",
         "shippingRegions",
         "legal",
         "headquarters",
@@ -591,6 +603,12 @@ export const reviewResultJsonSchema: Record<string, unknown> = {
         url: { type: "string" },
         description: { type: "string" },
         categories: { type: "array", items: { type: "string" } },
+        paymentMethods: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Belegte Zahlungsarten mit den kanonischen Schlüsseln aus Schritt 5 des Ablaufs. Leeres Feld, wenn keine belegbar ist.",
+        },
         contactEmail: { type: "string" },
         shippingRegions: { type: "array", items: { type: "string", enum: [...REGION_CODES] } },
         legal: {
