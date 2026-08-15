@@ -16,12 +16,10 @@ import {
   useDeleteSubmission,
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
+import { readRejectProposal } from "@/features/overview/review-reject-proposal.ts";
 import { EMPTY_REVIEW_STATE, reviewReducer } from "@/features/overview/submission-review-state.ts";
 import { SubmissionDialogs } from "@/features/overview/SubmissionDialogs.tsx";
-import {
-  readRejectProposal,
-  SubmissionReviewPanel,
-} from "@/features/overview/SubmissionReviewPanel.tsx";
+import { SubmissionReviewPanel } from "@/features/overview/SubmissionReviewPanel.tsx";
 import { SubmissionToolbar } from "@/features/overview/SubmissionToolbar.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useSocialMediaPostTemplates } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";

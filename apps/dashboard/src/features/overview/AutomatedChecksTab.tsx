@@ -99,12 +99,18 @@ export function AutomatedChecksTab() {
 
     return [
       {
-        verdict: <span className="text-sm text-[var(--ds-text-muted)]">{t.todayLabel}</span>,
-        cost: <CostAmount amount={format(todayUnits)} incomplete={!spend?.today.complete} />,
+        id: "today",
+        cells: {
+          verdict: <span className="text-sm text-[var(--ds-text-muted)]">{t.todayLabel}</span>,
+          cost: <CostAmount amount={format(todayUnits)} incomplete={!spend?.today.complete} />,
+        },
       },
       {
-        verdict: <span className="text-sm text-[var(--ds-text-muted)]">{t.totalLabel}</span>,
-        cost: <CostAmount amount={format(totalUnits)} incomplete={!spend?.total.complete} />,
+        id: "total",
+        cells: {
+          verdict: <span className="text-sm text-[var(--ds-text-muted)]">{t.totalLabel}</span>,
+          cost: <CostAmount amount={format(totalUnits)} incomplete={!spend?.total.complete} />,
+        },
       },
     ];
   }, [currency, locale, spend, t.todayLabel, t.totalLabel, todayUnits, totalUnits]);

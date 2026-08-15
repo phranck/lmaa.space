@@ -99,7 +99,7 @@ export function toReviewJobListItem(entry: {
  * @param row - The stored entry.
  * @returns The entry with timestamps as ISO strings.
  */
-export function toReviewEvent(row: ReviewEventRow): ReviewEvent {
+function toReviewEvent(row: ReviewEventRow): ReviewEvent {
   return {
     id: row.id,
     jobId: row.jobId,
