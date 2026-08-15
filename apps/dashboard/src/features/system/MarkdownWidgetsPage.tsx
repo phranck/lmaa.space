@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import type { MarkdownWidget, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { Card } from "@/components/ui/Card.tsx";
 import { CreateActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -153,15 +154,16 @@ export function MarkdownWidgetsPage() {
                             <span className="truncate text-sm font-medium text-[var(--ds-text)]">
                               {widget.label}
                             </span>
-                            <span
-                              className={`shrink-0 rounded-full px-2 py-0.5 text-[0.625rem] font-semibold ${
+                            <Badge
+                              className="shrink-0"
+                              colorClass={
                                 widget.enabled
                                   ? "bg-emerald-500/10 text-emerald-400"
                                   : "bg-stone-500/10 text-stone-400"
-                              }`}
+                              }
                             >
                               {widget.enabled ? widgetMessages.active : widgetMessages.inactive}
-                            </span>
+                            </Badge>
                           </div>
                           <div className="mt-1 truncate font-mono text-[0.6875rem] text-[var(--ds-text-muted)]">
                             [[widget:{widget.key}]]

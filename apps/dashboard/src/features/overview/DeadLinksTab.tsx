@@ -1,6 +1,7 @@
 import { ArrowSquareUpRightIcon, CheckIcon, LinkIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
@@ -50,10 +51,10 @@ export function DeadLinksTab() {
         className: "w-44",
         sortKey: (report) => report.reportCount,
         cell: (report) => (
-          <span className="inline-flex px-2.5 py-1 rounded-full bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)] text-xs font-semibold">
+          <Badge colorClass="bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
             {report.reportCount}
             {submissionsMessages.deadLinks.reportedSuffix}
-          </span>
+          </Badge>
         ),
       },
       {

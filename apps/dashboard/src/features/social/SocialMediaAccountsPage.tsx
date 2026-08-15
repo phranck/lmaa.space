@@ -11,6 +11,7 @@ import type { SocialMediaAccount } from "@lmaa/contracts";
 import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
@@ -105,15 +106,15 @@ export function SocialMediaAccountsPage(): React.ReactElement {
         header: t.columns.posting,
         sortKey: (row) => Number(row.canPost),
         cell: (row) => (
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+          <Badge
+            colorClass={
               row.canPost
                 ? "bg-green-500/10 text-green-600 dark:text-green-400"
                 : "bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]"
-            }`}
+            }
           >
             {row.canPost ? t.badges.yes : t.badges.no}
-          </span>
+          </Badge>
         ),
       },
       {
@@ -121,15 +122,15 @@ export function SocialMediaAccountsPage(): React.ReactElement {
         header: t.columns.footer,
         sortKey: (row) => Number(row.showInFooter),
         cell: (row) => (
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+          <Badge
+            colorClass={
               row.showInFooter
                 ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
                 : "bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]"
-            }`}
+            }
           >
             {row.showInFooter ? t.badges.yes : t.badges.no}
-          </span>
+          </Badge>
         ),
       },
       {
