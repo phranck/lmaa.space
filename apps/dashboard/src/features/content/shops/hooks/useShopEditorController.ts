@@ -39,6 +39,7 @@ export function useShopEditorController({
   initialData,
   initialOgImage,
   initialShop,
+  dataRevision,
 }: ShopEditorModeProps) {
   const { locale, messages } = useI18n();
   const common = messages.common;
@@ -78,6 +79,17 @@ export function useShopEditorController({
   );
   const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
   const showLoadingSkeleton = isLoadingShop && !hasImmediateFormData;
+
+  // The automated check writes into the suggestion whilst this page may be
+  // open. Its findings win over whatever the form is holding, so a new revision
+  // reseeds the form rather than being merged into it.
+  const seededRevisionRef = useRef(dataRevision);
+  useEffect(() => {
+    if (dataRevision === undefined || seededRevisionRef.current === dataRevision) return;
+    seededRevisionRef.current = dataRevision;
+    setForm(getInitialFormValue(initialData, shopData));
+    setImageState(getInitialImageState(initialData, initialOgImage, isSubmissionMode));
+  }, [dataRevision, initialData, initialOgImage, isSubmissionMode, shopData]);
 
   const formInitializedRef = useRef(false);
   useEffect(() => {
