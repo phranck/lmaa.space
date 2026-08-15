@@ -312,3 +312,33 @@ describe("reviewResultJsonSchema", () => {
     expect(required).toContain("criteria");
   });
 });
+
+describe("source lists", () => {
+  it("drops a company-size source that is not an address instead of voiding the run", () => {
+    // A live check on cudgel.de came back with a search phrase among the
+    // sources and the whole paid run was thrown away for it.
+    const parsed = reviewResultSchema.safeParse(
+      acceptResult({
+        companySize: {
+          ...companySize,
+          sources: ["Cudgel die-deutsche-wirtschaft.de", "https://northdata.de/cudgel"],
+        },
+      }),
+    );
+
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.companySize.sources).toEqual([
+      "https://northdata.de/cudgel",
+    ]);
+  });
+
+  it("still refuses a rejection whose remaining sources fall below the minimum", () => {
+    const base = rejectResult();
+    const parsed = reviewResultSchema.safeParse({
+      ...base,
+      reject: { ...base.reject, sources: ["Handelsregister", "https://beispiel.de/impressum"] },
+    });
+
+    expect(parsed.success).toBe(false);
+  });
+});

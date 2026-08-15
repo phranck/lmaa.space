@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 
 import type { ReviewJobDetail } from "@lmaa/shared";
 
-import { CancelActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import {
+  CancelActionButton,
+  DashboardActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -171,12 +174,15 @@ export function ReviewProgressDialog({
         ) : null}
       </OverlayCard.Body>
 
-      {/* Stopping whilst it runs, acknowledging once it is done. There is
-          nothing to offer in between, so the footer is absent then. */}
+      {/* Whilst it runs there are two things to offer: leaving the dialog, which
+          changes nothing, and ending the run, which cannot be taken back and is
+          therefore the danger-coloured one. Once it is done, only the
+          acknowledgement is left. */}
       {active && detail ? (
         <OverlayCard.Footer className="flex justify-end gap-2">
-          <CancelActionButton
-            label={progress.stopCheck}
+          <CancelActionButton label={messages.common.close} onClick={onClose} />
+          <DashboardActionButton
+            action="stopCheck"
             onClick={() => cancel.mutate(detail.id)}
             busy={cancel.isPending}
             disabled={cancel.isPending}

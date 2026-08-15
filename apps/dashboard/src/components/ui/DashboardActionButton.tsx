@@ -13,6 +13,7 @@ import {
   PlayIcon,
   PlusIcon,
   SkipForwardIcon,
+  StopCircleIcon,
   TrashIcon,
   UploadSimpleIcon,
   XCircleIcon,
@@ -190,6 +191,15 @@ const DASHBOARD_ACTIONS = {
     colorRole: "neutral",
     icon: ArrowClockwiseIcon,
     labelKey: "common.retryCheck",
+    size: "action",
+  },
+  stopCheck: {
+    ariaBehavior: "visible-label",
+    // Danger, because it ends work that has already been paid for and cannot be
+    // resumed, which is the same weight as a deletion.
+    colorRole: "danger",
+    icon: StopCircleIcon,
+    labelKey: "common.stopCheck",
     size: "action",
   },
 } as const satisfies Record<string, DashboardActionDefinition>;
