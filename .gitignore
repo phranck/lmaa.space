@@ -38,6 +38,12 @@ shop-geo-data.json
 .gource/*.mp4
 .gource/lmaa-history/
 .gource/lmaa-history-hls/
+# Local working directories of editor assistants, which belong to a machine
+# rather than to the project.
+.continue/
+.kiro/
+.vibe/
+
 # The canonical shop-check rules are read at runtime by the automated review and
 # are deployed with the backend, so that one file is tracked. Everything else in
 # here is local working material.
