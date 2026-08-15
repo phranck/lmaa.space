@@ -34,6 +34,11 @@ import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortabl
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/system/hooks/useAdminNav.ts";
+import {
+  navColumnReducer,
+  NO_NAV_ITEMS,
+  type NavItemState,
+} from "@/features/system/nav-column-state.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
 
 const NAV_TEXT = {
@@ -100,15 +105,6 @@ const NAV_TEXT = {
 } as const;
 
 type NavText = (typeof NAV_TEXT)[keyof typeof NAV_TEXT];
-
-interface NavItemState {
-  id: number;
-  pageSlug: string | null;
-  pageTitle: string | null;
-  url: string | null;
-  target: "_self" | "_blank";
-  label: string;
-}
 
 function SortableNavItem({
   item,
@@ -187,36 +183,23 @@ function NavColumn({ navId, onDirtyChange, ref }: NavColumnProps) {
   const { locale } = useI18n();
   const text = NAV_TEXT[locale];
   const staticRoutes = text.staticRoutes;
-  const { data: serverItems = [], isLoading } = useAdminNav(navId);
+  // Defaulted to a constant rather than to a fresh `[]`, which would be a new
+  // array on every render whilst the query has no data, and therefore a
+  // dependency that changes on every render.
+  const { data: serverItems = NO_NAV_ITEMS, isLoading } = useAdminNav(navId);
   const { data: allPages = [] } = useContentPages();
   const { data: allForms = [] } = useFormConfigs();
   const saveNav = useSaveNav(navId);
 
-  interface NavColumnState {
-    items: NavItemState[];
-    dirty: boolean;
-    addType: "page" | "url" | "form";
-    addPageSlug: string;
-    addUrl: string;
-    addLabel: string;
-    addTarget: "_self" | "_blank";
-  }
-
-  const [state, dispatch] = useReducer(
-    (prev: NavColumnState, action: Partial<NavColumnState>): NavColumnState => ({
-      ...prev,
-      ...action,
-    }),
-    {
-      items: [],
-      dirty: false,
-      addType: "page",
-      addPageSlug: "",
-      addUrl: "",
-      addLabel: "",
-      addTarget: "_self",
-    },
-  );
+  const [state, dispatch] = useReducer(navColumnReducer, {
+    items: [],
+    dirty: false,
+    addType: "page",
+    addPageSlug: "",
+    addUrl: "",
+    addLabel: "",
+    addTarget: "_self",
+  });
   const { items, dirty, addType, addPageSlug, addUrl, addLabel, addTarget } = state;
 
   const setItems = (updater: NavItemState[] | ((prev: NavItemState[]) => NavItemState[])) => {
