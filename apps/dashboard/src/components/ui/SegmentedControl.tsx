@@ -67,11 +67,5 @@ export function SegmentedControl<T extends string>({
     } catch {}
   }, [options, storageKey, value]);
 
-  return (
-    <DashboardSegmentedControl
-      onValueChange={onChange}
-      options={options}
-      value={value}
-    />
-  );
+  return <DashboardSegmentedControl onValueChange={onChange} options={options} value={value} />;
 }

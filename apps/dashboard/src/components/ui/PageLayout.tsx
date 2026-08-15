@@ -16,11 +16,7 @@ type PageSplitLayoutProps = HTMLAttributes<HTMLDivElement> & {
   columnsClassName?: string;
 };
 
-export function PageSplitLayout({
-  className,
-  columnsClassName,
-  ...props
-}: PageSplitLayoutProps) {
+export function PageSplitLayout({ className, columnsClassName, ...props }: PageSplitLayoutProps) {
   return (
     <div
       className={cx(

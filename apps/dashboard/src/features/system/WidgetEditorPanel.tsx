@@ -31,7 +31,9 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="px-1 text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)]">{label}</span>
+      <span className="px-1 text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)]">
+        {label}
+      </span>
       {children}
       {hint ? <p className={fieldHintClass}>{hint}</p> : null}
     </label>
@@ -45,7 +47,12 @@ interface WidgetEditorPanelProps {
   onKeyChange: (newKey: string) => void;
 }
 
-export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: WidgetEditorPanelProps) {
+export function WidgetEditorPanel({
+  widget,
+  onUpdate,
+  onDelete,
+  onKeyChange,
+}: WidgetEditorPanelProps) {
   const { messages } = useI18n();
   const widgetMessages = messages.content.markdownWidgets;
 
@@ -72,9 +79,7 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
       <Card className="p-4 space-y-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--ds-text)]">
-              {widget.label}
-            </h2>
+            <h2 className="text-lg font-semibold text-[var(--ds-text)]">{widget.label}</h2>
             <p className="mt-1 text-sm text-[var(--ds-text-muted)]">
               {widgetMessages.markdownLabel}:
               <span className="ml-2 rounded bg-[var(--ds-bg-elevated)] px-2 py-1 font-mono text-xs">
@@ -143,9 +148,7 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
 
         <DashboardCheckboxField
           checked={widget.enabled}
-          onCheckedChange={(checked) =>
-            onUpdate(widget.key, (w) => ({ ...w, enabled: checked }))
-          }
+          onCheckedChange={(checked) => onUpdate(widget.key, (w) => ({ ...w, enabled: checked }))}
           label={widgetMessages.enabledLabel}
           className="items-center rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2"
           boxClassName="mt-0"
@@ -239,18 +242,14 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
       </Card>
 
       <Card className="p-4 space-y-2">
-        <h3 className="text-sm font-semibold text-[var(--ds-text)]">
-          {widgetMessages.usageTitle}
-        </h3>
+        <h3 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.usageTitle}</h3>
         <p className={`${fieldHintClass} leading-5`}>
           {widgetMessages.widgetUsage}:
           <span className="ml-2 font-mono">[[widget:{widget.key}]]</span>
         </p>
         <p className={`${fieldHintClass} leading-5`}>
           {widgetMessages.imageUsage}:
-          <span className="ml-2 font-mono">
-            [[image:/uploads/datei.jpg alt="Alt" width=320]]
-          </span>
+          <span className="ml-2 font-mono">[[image:/uploads/datei.jpg alt="Alt" width=320]]</span>
         </p>
         <p className={`${fieldHintClass} leading-5`}>
           {widgetMessages.pdfUsage}:
@@ -263,7 +262,14 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
   );
 }
 
-type CspField = "scriptSrc" | "styleSrc" | "imgSrc" | "connectSrc" | "frameSrc" | "formAction" | "fontSrc";
+type CspField =
+  | "scriptSrc"
+  | "styleSrc"
+  | "imgSrc"
+  | "connectSrc"
+  | "frameSrc"
+  | "formAction"
+  | "fontSrc";
 
 function CspExpertSection({
   widget,

@@ -6,10 +6,7 @@ import {
   type MastodonVisibility,
 } from "@lmaa/contracts";
 
-import {
-  DashboardInput,
-  DashboardNumberInput,
-} from "@/components/ui/DashboardControls.tsx";
+import { DashboardInput, DashboardNumberInput } from "@/components/ui/DashboardControls.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 
 export interface MastodonAccountFormInput {
@@ -97,8 +94,7 @@ export function MastodonAccountForm({
         onChange={(event) =>
           onChange({
             ...form,
-            maxPostCharacters:
-              Number(event.target.value) || MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+            maxPostCharacters: Number(event.target.value) || MASTODON_DEFAULT_MAX_POST_CHARACTERS,
           })
         }
       />

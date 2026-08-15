@@ -1,9 +1,6 @@
 import { TrashIcon } from "@phosphor-icons/react";
 
-import {
-  CancelActionButton,
-  DeleteActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
+import { CancelActionButton, DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 
 interface DeleteConfirmDialogProps {

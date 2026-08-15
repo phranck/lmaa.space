@@ -16,7 +16,10 @@ import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useDeleteShop, useSetShopVisibility } from "@/features/content/shops/hooks/useAdminShops.ts";
+import {
+  useDeleteShop,
+  useSetShopVisibility,
+} from "@/features/content/shops/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/content/shops/ShopEditCard.tsx";
 import {
@@ -51,10 +54,21 @@ export function ShopReportsTab() {
   }
 
   const [state, dispatch] = useReducer(
-    (prev: ShopReportsState, action: Partial<ShopReportsState>): ShopReportsState => ({ ...prev, ...action }),
-    { editShopId: null, deleteTarget: null, rejectTarget: null, rejectReason: "", rejectLongText: "", rejectToken: null },
+    (prev: ShopReportsState, action: Partial<ShopReportsState>): ShopReportsState => ({
+      ...prev,
+      ...action,
+    }),
+    {
+      editShopId: null,
+      deleteTarget: null,
+      rejectTarget: null,
+      rejectReason: "",
+      rejectLongText: "",
+      rejectToken: null,
+    },
   );
-  const { editShopId, deleteTarget, rejectTarget, rejectReason, rejectLongText, rejectToken } = state;
+  const { editShopId, deleteTarget, rejectTarget, rejectReason, rejectLongText, rejectToken } =
+    state;
   const columns = useMemo<ColumnDef<(typeof reports)[number]>[]>(
     () => [
       {
@@ -135,11 +149,13 @@ export function ShopReportsTab() {
             <TableActionButton
               variant="danger"
               onClick={() =>
-                dispatch({ deleteTarget: {
-                  reportId: report.id,
-                  shopId: report.shopId,
-                  shopName: report.shopName,
-                } })
+                dispatch({
+                  deleteTarget: {
+                    reportId: report.id,
+                    shopId: report.shopId,
+                    shopName: report.shopName,
+                  },
+                })
               }
               icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
               label={submissionsMessages.shopReports.delete}
@@ -160,7 +176,12 @@ export function ShopReportsTab() {
   );
 
   function openRejectDialog(report: RejectTarget) {
-    dispatch({ rejectTarget: report, rejectReason: "", rejectLongText: "", rejectToken: generateRejectionToken() });
+    dispatch({
+      rejectTarget: report,
+      rejectReason: "",
+      rejectLongText: "",
+      rejectToken: generateRejectionToken(),
+    });
   }
 
   function closeRejectDialog() {
@@ -209,7 +230,12 @@ export function ShopReportsTab() {
   return (
     <>
       <div className="-mx-3 -mt-3">
-        <DataTable columns={columns} data={reports} getRowKey={(report) => report.id} stickyHeader />
+        <DataTable
+          columns={columns}
+          data={reports}
+          getRowKey={(report) => report.id}
+          stickyHeader
+        />
       </div>
 
       {editShopId !== null && (

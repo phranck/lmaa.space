@@ -47,9 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex min-h-screen items-center justify-center bg-[var(--ds-bg)] p-4">
           <div className="max-w-md rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] p-8 text-center shadow-[var(--ds-overlay-shadow)]">
-            <div className="mb-4 text-4xl font-semibold text-[var(--ds-danger-text)]">
-              ⚠️
-            </div>
+            <div className="mb-4 text-4xl font-semibold text-[var(--ds-danger-text)]">⚠️</div>
             <h1 className="mb-2 text-2xl font-semibold text-[var(--ds-text)]">
               {boundaryMessages.title}
             </h1>
