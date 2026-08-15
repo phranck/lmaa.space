@@ -12,6 +12,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 
 import { DomainAlertsTab } from "./DomainAlertsTab.tsx";
 import { NotificationsTab } from "./NotificationsTab.tsx";
+import { ReviewTab } from "./ReviewTab.tsx";
 
 export function SystemSettingsPage() {
   const { messages } = useI18n();
@@ -25,12 +26,9 @@ export function SystemSettingsPage() {
 
       <DashboardTabs value={activeTab} onValueChange={setActiveTab}>
         <DashboardTabList>
-          <DashboardTabTrigger value="notifications">
-            {t.notificationsTab}
-          </DashboardTabTrigger>
-          <DashboardTabTrigger value="domainAlerts">
-            {t.domainAlertsTab}
-          </DashboardTabTrigger>
+          <DashboardTabTrigger value="notifications">{t.notificationsTab}</DashboardTabTrigger>
+          <DashboardTabTrigger value="domainAlerts">{t.domainAlertsTab}</DashboardTabTrigger>
+          <DashboardTabTrigger value="review">{t.reviewTab}</DashboardTabTrigger>
         </DashboardTabList>
 
         <DashboardTabPanel className="pt-6" forceMount value="notifications">
@@ -39,6 +37,10 @@ export function SystemSettingsPage() {
 
         <DashboardTabPanel className="pt-6" forceMount value="domainAlerts">
           <DomainAlertsTab active={activeTab === "domainAlerts"} />
+        </DashboardTabPanel>
+
+        <DashboardTabPanel className="pt-6" forceMount value="review">
+          <ReviewTab active={activeTab === "review"} />
         </DashboardTabPanel>
       </DashboardTabs>
     </PageLayout>

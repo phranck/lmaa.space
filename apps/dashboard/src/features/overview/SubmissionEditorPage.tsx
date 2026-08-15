@@ -1,6 +1,7 @@
 import { useReducer, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
+import { REJECT_TOKEN_PLACEHOLDER } from "@lmaa/contracts";
 import { type Submission, generateRejectionToken } from "@lmaa/shared";
 
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
@@ -9,6 +10,7 @@ import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotif
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useShopEditorController } from "@/features/content/shops/hooks/useShopEditorController.ts";
 import { ShopEditorFormContent } from "@/features/content/shops/ShopEditorFormContent.tsx";
+import { useReviewJob } from "@/features/overview/hooks/useReviewJob.ts";
 import {
   useAdminSubmission,
   useDeleteSubmission,
@@ -16,6 +18,10 @@ import {
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { EMPTY_REVIEW_STATE, reviewReducer } from "@/features/overview/submission-review-state.ts";
 import { SubmissionDialogs } from "@/features/overview/SubmissionDialogs.tsx";
+import {
+  readRejectProposal,
+  SubmissionReviewPanel,
+} from "@/features/overview/SubmissionReviewPanel.tsx";
 import { SubmissionToolbar } from "@/features/overview/SubmissionToolbar.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useSocialMediaPostTemplates } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
@@ -130,6 +136,7 @@ function LoadedSubmissionEditorPage({
   const { phase: reviewSavedPhase, show: showReviewSaved } = useSaveNotification();
   const common = messages.common;
   const submissionsMessages = messages.submissions;
+  const { data: reviewJob } = useReviewJob(submission.id);
   const reviewMutation = useReviewSubmission();
   const deleteMutation = useDeleteSubmission();
   const emailTemplatesQuery = useEmailTemplates();
@@ -141,6 +148,7 @@ function LoadedSubmissionEditorPage({
     submissionId: submission.id,
     initialData: toSubmissionFormData(submission),
     initialOgImage: submission.ogImage,
+    dataRevision: submission.updatedAt,
   });
 
   usePersistedTextareaHeight(
@@ -186,14 +194,27 @@ function LoadedSubmissionEditorPage({
   }
 
   function openRejectReview(editingRejection: boolean) {
+    const token = editingRejection ? (submission.rejectionToken ?? null) : generateRejectionToken();
+
+    // A new rejection starts from the automated proposal where one exists, with
+    // the token already substituted. Copying it across by hand was the step the
+    // automation is meant to remove, and the texts are only a proposal until
+    // this dialog is confirmed.
+    const proposal =
+      editingRejection || token === null ? null : readRejectProposal(reviewJob?.result);
+
     dispatchReview({
       type: "openReject",
-      adminNote: editingRejection ? (submission.adminNote ?? "") : "",
+      adminNote: editingRejection
+        ? (submission.adminNote ?? "")
+        : proposal && token !== null
+          ? proposal.comment.split(REJECT_TOKEN_PLACEHOLDER).join(token)
+          : "",
       editingRejection,
-      rejectionLongText: editingRejection ? (submission.rejectionLongText ?? "") : "",
-      rejectionToken: editingRejection
-        ? (submission.rejectionToken ?? null)
-        : generateRejectionToken(),
+      rejectionLongText: editingRejection
+        ? (submission.rejectionLongText ?? "")
+        : (proposal?.longText ?? ""),
+      rejectionToken: token,
     });
   }
 
@@ -300,7 +321,10 @@ function LoadedSubmissionEditorPage({
           />
         }
       >
-        <ShopEditorFormContent controller={controller} />
+        <div className="flex flex-col gap-6">
+          <SubmissionReviewPanel submissionId={submission.id} />
+          <ShopEditorFormContent controller={controller} />
+        </div>
       </EditorPageShell>
 
       <SubmissionDialogs

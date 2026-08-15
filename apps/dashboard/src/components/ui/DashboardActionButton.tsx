@@ -1,5 +1,6 @@
 import type { IconProps } from "@phosphor-icons/react";
 import {
+  ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
   ArrowsClockwiseIcon,
   CheckCircleIcon,
@@ -9,6 +10,7 @@ import {
   PaperPlaneTiltIcon,
   PauseCircleIcon,
   PencilSimpleIcon,
+  PlayIcon,
   PlusIcon,
   SkipForwardIcon,
   TrashIcon,
@@ -174,6 +176,20 @@ const DASHBOARD_ACTIONS = {
     colorRole: "neutral",
     icon: SkipForwardIcon,
     labelKey: "common.skip",
+    size: "action",
+  },
+  startCheck: {
+    ariaBehavior: "visible-label",
+    colorRole: "primary",
+    icon: PlayIcon,
+    labelKey: "common.startCheck",
+    size: "action",
+  },
+  retryCheck: {
+    ariaBehavior: "visible-label",
+    colorRole: "neutral",
+    icon: ArrowClockwiseIcon,
+    labelKey: "common.retryCheck",
     size: "action",
   },
 } as const satisfies Record<string, DashboardActionDefinition>;

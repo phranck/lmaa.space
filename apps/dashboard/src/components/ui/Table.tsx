@@ -104,6 +104,15 @@ interface DataTableProps<T> {
   stickyHeader?: boolean;
   /** Optional default sort applied on first render. */
   initialSort?: SortState | null;
+  /**
+   * Rows under the body, each keyed by column id.
+   *
+   * @remarks
+   * Rendered inside the table so a summed column lines up with the values it
+   * sums. A total written under the table instead only lines up by accident,
+   * and stops doing so as soon as a column width changes.
+   */
+  footerRows?: Array<Record<string, ReactNode>>;
   /** Optional controlled sort state. */
   sort?: SortState | null;
   /** Called when the sort state changes. */
@@ -129,6 +138,7 @@ export function DataTable<T>({
   getRowClassName,
   getRowProps,
   stickyHeader = false,
+  footerRows,
   initialSort = null,
   sort: controlledSort,
   onSortChange,
@@ -266,6 +276,22 @@ export function DataTable<T>({
               );
             })}
       </TableBody>
+      {footerRows && footerRows.length > 0 ? (
+        <tfoot className="border-t border-[var(--ds-border)] bg-[var(--ds-surface)]">
+          {footerRows.map((row, index) => (
+            // The rows are a fixed list given by the caller, so their position
+            // is the only thing that identifies them.
+            // biome-ignore lint/suspicious/noArrayIndexKey: static, caller-provided rows
+            <tr key={index}>
+              {columns.map((col) => (
+                <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>
+                  {row[col.id] ?? null}
+                </Td>
+              ))}
+            </tr>
+          ))}
+        </tfoot>
+      ) : null}
     </Table>
   );
 }
