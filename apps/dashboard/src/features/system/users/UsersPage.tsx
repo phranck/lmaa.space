@@ -1,6 +1,7 @@
 import { TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ItemCard } from "@/components/ui/Card.tsx";
 import {
   CancelActionButton,
@@ -8,10 +9,7 @@ import {
   EditActionButton,
   RemoveActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  Dialog,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -44,10 +42,7 @@ export function UsersPage() {
   return (
     <PageLayout>
       <PageHeader title={usersMessages.title}>
-        <CreateActionButton
-          onClick={() => setShowCreate(true)}
-          label={usersMessages.inviteUser}
-        />
+        <CreateActionButton onClick={() => setShowCreate(true)} label={usersMessages.inviteUser} />
       </PageHeader>
 
       <PageBody>
@@ -66,25 +61,25 @@ export function UsersPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium text-[var(--ds-text)]">{user.username}</p>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  <Badge
+                    colorClass={
                       user.role === "owner"
                         ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
                         : user.role === "admin"
                           ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
                           : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                    }`}
+                    }
                   >
                     {user.role === "owner"
                       ? usersMessages.role.owner
                       : user.role === "admin"
                         ? usersMessages.role.admin
                         : usersMessages.role.moderator}
-                  </span>
+                  </Badge>
                   {user.id === me?.id && (
-                    <span className="text-xs bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] px-2 py-0.5 rounded-full">
+                    <Badge colorClass="bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]">
                       {usersMessages.you}
-                    </span>
+                    </Badge>
                   )}
                 </div>
                 <p className="text-sm text-[var(--ds-text-subtle)]">{user.email}</p>

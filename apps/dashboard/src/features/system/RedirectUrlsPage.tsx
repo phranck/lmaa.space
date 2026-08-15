@@ -10,6 +10,7 @@ import {
 } from "@lmaa/contracts";
 import { SETTINGS_KEYS } from "@lmaa/shared";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
@@ -416,13 +417,13 @@ export const RedirectUrlsPage = memo(function RedirectUrlsPage() {
         id: "status",
         header: t.tableColumnStatus,
         cell: (row) => (
-          <span
-            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+          <Badge
+            colorClass={
               row.isActive ? "bg-emerald-500/10 text-emerald-400" : "bg-stone-500/10 text-stone-400"
-            }`}
+            }
           >
             {row.isActive ? t.active : t.inactive}
-          </span>
+          </Badge>
         ),
       },
       {
