@@ -6,6 +6,7 @@ import {
   eq,
   gte,
   inArray,
+  isNull,
   lt,
   lte,
   max,
@@ -510,6 +511,12 @@ export async function finalizeExhaustedReviewJobs(): Promise<ReviewJobRow[]> {
         and(
           notInArray(reviewJobs.state, ["completed", "failed", "cancelled"]),
           gte(reviewJobs.attempt, reviewJobs.maxAttempts),
+          // A job another worker still holds is left alone. Finishing it here
+          // would clear that worker's lease, its heartbeat would notice, and
+          // the run it is in the middle of would be aborted mid-request. That
+          // happened in production with two instances: one finished the job as
+          // exhausted whilst the other was still waiting on the provider.
+          or(isNull(reviewJobs.leaseExpiresAt), lt(reviewJobs.leaseExpiresAt, new Date())),
         ),
       )
       .for("update", { skipLocked: true });
