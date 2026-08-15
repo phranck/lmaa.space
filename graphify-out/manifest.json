@@ -880,8 +880,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/db/client.ts": {
-    "mtime": 1772837057.0897183,
-    "ast_hash": "e3eb0d956097c85b92618e435069a82e",
+    "mtime": 1786802438.0655017,
+    "ast_hash": "55997c682823b877429a78ea0db999eb",
     "semantic_hash": ""
   },
   "apps/backend/src/db/doctor.ts": {
@@ -1635,7 +1635,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/components/ui/DashboardActionButton.tsx": {
-    "mtime": 1786801162.948181,
+    "mtime": 1786801480.7938526,
     "ast_hash": "e3645c985d94c1852fa074132ad0e34c",
     "semantic_hash": ""
   },
@@ -2705,8 +2705,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/i18n/messages.ts": {
-    "mtime": 1786801194.7241929,
-    "ast_hash": "beed9a174e8a2d80800d673f9a6585b7",
+    "mtime": 1786817552.2358136,
+    "ast_hash": "e9ef86d45aaf80c18ecb2cdf9f9a9d9f",
     "semantic_hash": ""
   },
   "apps/dashboard/src/lib/api.ts": {
@@ -3890,7 +3890,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-contract.test.ts": {
-    "mtime": 1786801285.76615,
+    "mtime": 1786801480.7936194,
     "ast_hash": "890b05c42cf7e15a0747faf4915cfd25",
     "semantic_hash": ""
   },
@@ -3910,8 +3910,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-worker.test.ts": {
-    "mtime": 1786788906.931445,
-    "ast_hash": "b93fd9ea344a746f702013c5df446154",
+    "mtime": 1786817411.361346,
+    "ast_hash": "ea23e2f03cb26992005a7c0dc7e89747",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/review-cost.ts": {
@@ -3940,8 +3940,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/anthropic-provider.ts": {
-    "mtime": 1786798359.4703753,
-    "ast_hash": "9938ea502c400b5d87a9d937ff5178a9",
+    "mtime": 1786817352.1369615,
+    "ast_hash": "c95f0a0ecce6806cd075fe226db866e3",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/apply.ts": {
@@ -3960,13 +3960,13 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/prompt.ts": {
-    "mtime": 1786798359.4707766,
-    "ast_hash": "b6d1419d190e43e539c980115d43ecb5",
+    "mtime": 1786817653.0570748,
+    "ast_hash": "ec83f7c4ba653b0683f871e624bbe683",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/provider.ts": {
-    "mtime": 1786798359.4709086,
-    "ast_hash": "397b10b226788e43d7a5b761713a1cbc",
+    "mtime": 1786817331.3228621,
+    "ast_hash": "dfce0655df26a1ad66aa72fd7dc3e439",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/read-model.ts": {
@@ -3990,8 +3990,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/worker.ts": {
-    "mtime": 1786798359.4710426,
-    "ast_hash": "43695b78e4cb706d81b77d43dfeb090d",
+    "mtime": 1786817633.3871584,
+    "ast_hash": "218fad3beb70c113a6cf230f813e65d9",
     "semantic_hash": ""
   },
   "apps/dashboard/src/components/ui/Badge.tsx": {
@@ -4010,7 +4010,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/overview/ReviewProgressDialog.tsx": {
-    "mtime": 1786801194.724709,
+    "mtime": 1786801480.7940347,
     "ast_hash": "4daf0ee79cae6952d0c8e0f9b7693309",
     "semantic_hash": ""
   },
@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "packages/contracts/src/review-result.ts": {
-    "mtime": 1786801297.660988,
-    "ast_hash": "b1ab2264d61d612d3c22984bdd33b5b4",
+    "mtime": 1786817483.3727531,
+    "ast_hash": "c09e665a16ff6c4aa73b08abd3560ba0",
     "semantic_hash": ""
   },
   "packages/shared/src/constants/review-jobs.ts": {
@@ -4072,6 +4072,16 @@
   "apps/backend/src/__tests__/headquarters-source.test.ts": {
     "mtime": 1786800084.4094968,
     "ast_hash": "a5864663b7e9ac61b91c85bf97d41150",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/__tests__/review-text-repair.test.ts": {
+    "mtime": 1786817436.5128608,
+    "ast_hash": "5c1fd595dd199055282e2436cc86b3ce",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/services/review/text-repair.ts": {
+    "mtime": 1786817512.546633,
+    "ast_hash": "39a454d9cd5841e935aa26fbd39d3525",
     "semantic_hash": ""
   }
 }
