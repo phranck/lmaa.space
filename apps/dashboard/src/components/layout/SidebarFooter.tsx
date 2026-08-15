@@ -5,10 +5,7 @@ import type { AdminRole } from "@lmaa/shared";
 
 import { CancelActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
-import {
-  Dialog,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { UserAvatar } from "@/features/system/users/UserAvatar.tsx";
 

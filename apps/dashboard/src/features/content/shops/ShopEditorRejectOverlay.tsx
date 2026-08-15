@@ -1,8 +1,4 @@
-import {
-  DownloadIcon,
-  FileTextIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
+import { DownloadIcon, FileTextIcon, XCircleIcon } from "@phosphor-icons/react";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";

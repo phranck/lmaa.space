@@ -71,7 +71,9 @@ export function DashboardPage() {
           label={dashboardMessages.cards.backgroundErrors}
           value={unresolvedBgErrors}
           accent={unresolvedBgErrors > 0}
-          sub={unresolvedBgErrors > 0 ? dashboardMessages.cards.backgroundErrorsUnresolved : undefined}
+          sub={
+            unresolvedBgErrors > 0 ? dashboardMessages.cards.backgroundErrorsUnresolved : undefined
+          }
           href={unresolvedBgErrors > 0 ? "/system/background-errors" : undefined}
         />
       </div>

@@ -15,10 +15,7 @@ const BLOCK_ABBR: Record<FooterBlock["type"], string> = {
   "social-media": "SM",
 };
 
-function getBlockLabel(
-  block: FooterBlock,
-  labels: Record<FooterBlock["type"], string>,
-): string {
+function getBlockLabel(block: FooterBlock, labels: Record<FooterBlock["type"], string>): string {
   if (block.type === "headline") return block.text || labels.headline;
   if (block.type === "button") return block.label || labels.button;
   return labels[block.type];
@@ -60,11 +57,7 @@ export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelet
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="group/block relative w-full"
-    >
+    <div ref={setNodeRef} style={style} className="group/block relative w-full">
       <button
         type="button"
         {...attributes}

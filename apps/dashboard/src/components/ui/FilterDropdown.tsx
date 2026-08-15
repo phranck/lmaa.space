@@ -53,5 +53,14 @@ export function FilterDropdown<T extends string = string>({
     } catch {}
   }, [options, storageKey, value]);
 
-  return <Dropdown value={value} onChange={onChange} options={options} className={className ?? "w-52"} searchable={searchable} searchPlaceholder={searchPlaceholder} />;
+  return (
+    <Dropdown
+      value={value}
+      onChange={onChange}
+      options={options}
+      className={className ?? "w-52"}
+      searchable={searchable}
+      searchPlaceholder={searchPlaceholder}
+    />
+  );
 }

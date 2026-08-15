@@ -152,7 +152,9 @@ export function InvitePage() {
             {inviteState && (
               <DashboardButton
                 type="button"
-                disabled={form.isSubmitting || form.password.length < 8 || form.confirmPassword.length < 8}
+                disabled={
+                  form.isSubmitting || form.password.length < 8 || form.confirmPassword.length < 8
+                }
                 onClick={handleSubmit}
                 size="large"
                 variant="primary"
