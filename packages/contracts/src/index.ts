@@ -6,6 +6,8 @@ export * from "./public";
 export * from "./admin-shops";
 /** Admin submission-related payload schemas. */
 export * from "./admin-submissions";
+/** Automated review result contract. */
+export * from "./review-result";
 /** Form builder type definitions. */
 export * from "./form-builder";
 /** Admin email template schemas. */

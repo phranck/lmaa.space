@@ -11,11 +11,10 @@ import {
 import { db } from "../../db/client.js";
 import { categories } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
-import { mapShopJsonToShopData } from "../../lib/shopjson-mapper.js";
+import { mapShopJsonToSubmissionEditData } from "../../lib/shopjson-mapper.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
-  type SubmissionEditData,
   editSubmission,
   getAdminSubmissionById,
   listAdminSubmissions,
@@ -136,27 +135,6 @@ submissionsRoutes.delete("/submissions/:id", requireAdmin, async (c) => {
 
   return ok(c, { message: "Submission deleted" });
 });
-
-// -- Import helpers ----------------------------------------------------------
-
-function mapShopJsonToSubmissionEditData(
-  shopJson: Record<string, unknown>,
-  categoryNameToId: Map<string, number>,
-): SubmissionEditData {
-  const mapped = mapShopJsonToShopData(shopJson, categoryNameToId);
-  return {
-    shopName: mapped.name,
-    shopUrl: mapped.url,
-    description: mapped.description,
-    region: mapped.region,
-    categoryIds: mapped.categoryIds,
-    contactEmail: mapped.contactEmail,
-    headquarters: mapped.headquarters,
-    shopCheckNotes: mapped.shopCheckNotes,
-    socialMedia: mapped.socialMedia,
-    paymentMethods: mapped.paymentMethods,
-  };
-}
 
 // POST /api/admin/submissions/import – import review results
 submissionsRoutes.post(

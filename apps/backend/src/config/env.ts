@@ -3,12 +3,6 @@ import { z } from "zod";
 /** Fallback IP hash salt used in development. Never used in production (validated by `envSchema`). */
 export const DEFAULT_IP_HASH_SALT = "local-dev-salt-not-for-production";
 
-/**
- * Environment schema for backend runtime configuration.
- *
- * @remarks
- * Parsing happens at startup. Missing/invalid required variables fail fast.
- */
 export const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -62,6 +56,16 @@ export const envSchema = z
     VAPID_SUBJECT: z.string().default("mailto:hallo@lmaa.space"),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
     RUN_MIGRATIONS_ON_STARTUP: z.enum(["true", "false"]).default("true"),
+    // ── Automated shop review ────────────────────────────────────────────────
+    // The provider key is the only piece of review configuration that lives in
+    // the environment, because it is a secret. Everything else is a system
+    // setting, so it can be changed in the dashboard and takes effect on the
+    // next worker tick rather than on the next deployment.
+    //
+    // The key is optional so the site keeps running without it. The review
+    // worker checks for it and stays idle when it is missing, which keeps a
+    // missing provider credential from taking the website down.
+    ANTHROPIC_API_KEY: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.IP_HASH_SALT && data.IP_HASH_SALT.length < 16) {

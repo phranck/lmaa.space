@@ -25,6 +25,7 @@ import { publicRoutes } from "./routes/public.js";
 import { redirectUrlRoutes } from "./routes/redirect-urls.js";
 import { securityTxtRoutes } from "./routes/security-txt.js";
 import { sitemapRoutes } from "./routes/sitemap.js";
+import { startReviewWorker } from "./services/review/worker.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
 import { startReminderScheduler } from "./services/shop-reminders.js";
 
@@ -169,6 +170,8 @@ const EXPECTED_TABLES = [
   "media_folders",
   "nav_items",
   "rate_limit_entries",
+  "review_events",
+  "review_jobs",
   "sessions",
   "shop_categories",
   "shop_concern_reports",
@@ -281,6 +284,7 @@ async function startServer() {
     startRateLimitCleanupJob(),
     startCacheCleanupJob(),
     startReminderScheduler(),
+    startReviewWorker(),
   ];
 
   const port = env.PORT;

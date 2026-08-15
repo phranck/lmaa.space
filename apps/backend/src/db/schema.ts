@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   doublePrecision,
@@ -23,7 +24,19 @@ import type {
   SocialPreviewComposition,
   SocialPreviewFormat,
 } from "@lmaa/contracts";
-import type { MediaFolderColor, MediaKind, PaymentMethodKey, ShopCheckNotes } from "@lmaa/shared";
+import type {
+  MediaFolderColor,
+  MediaKind,
+  PaymentMethodKey,
+  ReviewAttemptRecord,
+  ReviewAutomationMode,
+  ReviewEvidenceSource,
+  ReviewJobState,
+  ReviewReportState,
+  ReviewUsage,
+  ReviewVerdict,
+  ShopCheckNotes,
+} from "@lmaa/shared";
 
 const POSTING_PLATFORM_SQL = sql`'mastodon', 'bluesky'`;
 const SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL = sql`'submission', 'category'`;
@@ -1010,3 +1023,192 @@ export const adminUserAccountTemplateChoice = pgTable(
 export type AdminUserAccountTemplateChoice = typeof adminUserAccountTemplateChoice.$inferSelect;
 export type AdminUserAccountTemplateChoiceInsert =
   typeof adminUserAccountTemplateChoice.$inferInsert;
+
+// ---------------------------------------------------------------------------
+// Automated Shop Review
+// ---------------------------------------------------------------------------
+
+const REVIEW_JOB_STATE_SQL = sql`'queued', 'running', 'provider_waiting', 'applying', 'completed', 'failed', 'cancelled'`;
+const REVIEW_JOB_ACTIVE_STATE_SQL = sql`'queued', 'running', 'provider_waiting', 'applying'`;
+const REVIEW_VERDICT_SQL = sql`'accept', 'reject', 'onhold'`;
+const REVIEW_MODE_SQL = sql`'off', 'assist'`;
+const REVIEW_REPORT_STATE_SQL = sql`'pending', 'sending', 'sent', 'failed', 'skipped'`;
+
+/**
+ * One automated review run per shop submission.
+ *
+ * @remarks
+ * The execution state lives here and the moderation outcome stays in
+ * `submissions.status`, so neither column has to carry the other's meaning.
+ *
+ * Per-attempt usage and cost sit in `attempts` rather than in a second table.
+ * A retry belongs to the same check, and splitting it off would mean joining
+ * two rows back together everywhere the cost of a check is needed.
+ *
+ * Money is a `bigint` count of nano-units of `cost_currency`, so one euro is
+ * 1 000 000 000. Provider rates are fractions of a cent per token and binary
+ * floating point cannot represent them exactly.
+ */
+export const reviewJobs = pgTable(
+  "review_jobs",
+  {
+    id: serial("id").primaryKey(),
+    submissionId: integer("submission_id")
+      .notNull()
+      .references(() => submissions.id, { onDelete: "cascade" }),
+    state: text("state").$type<ReviewJobState>().notNull().default("queued"),
+    attempt: integer("attempt").notNull().default(0),
+    maxAttempts: integer("max_attempts").notNull().default(3),
+    mode: text("mode").$type<ReviewAutomationMode>().notNull().default("off"),
+    synthetic: boolean("synthetic").notNull().default(false),
+    verdict: text("verdict").$type<ReviewVerdict>(),
+    provider: text("provider"),
+    model: text("model"),
+    reasoningEffort: text("reasoning_effort"),
+    skillVersion: text("skill_version"),
+    schemaVersion: text("schema_version"),
+    providerResponseId: text("provider_response_id"),
+    result: jsonb("result").$type<unknown>(),
+    evidence: jsonb("evidence").$type<ReviewEvidenceSource[]>().notNull().default([]),
+    attempts: jsonb("attempts").$type<ReviewAttemptRecord[]>().notNull().default([]),
+    usage: jsonb("usage").$type<ReviewUsage | null>(),
+    // The default is written as SQL rather than as a JavaScript `0n`, because
+    // the migration snapshot is JSON and cannot serialise a BigInt.
+    costNano: bigint("cost_nano", { mode: "bigint" })
+      .notNull()
+      .default(sql`0`),
+    costCurrency: text("cost_currency"),
+    costRateCardVersion: text("cost_rate_card_version"),
+    costComplete: boolean("cost_complete").notNull().default(false),
+    costMissingDimensions: jsonb("cost_missing_dimensions").$type<string[]>().notNull().default([]),
+    onholdReason: text("onhold_reason"),
+    /** What the run is doing right now, overwritten as it proceeds. */
+    progress: text("progress"),
+    leaseOwner: text("lease_owner"),
+    leaseExpiresAt: timestamp("lease_expires_at"),
+    nextRunAt: timestamp("next_run_at").defaultNow().notNull(),
+    reportState: text("report_state").$type<ReviewReportState>().notNull().default("pending"),
+    reportAttempts: integer("report_attempts").notNull().default(0),
+    reportLastAttemptAt: timestamp("report_last_attempt_at"),
+    reportError: text("report_error"),
+    errorCode: text("error_code"),
+    errorId: text("error_id"),
+    startedAt: timestamp("started_at"),
+    finishedAt: timestamp("finished_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    // Enforced by the database rather than by the enqueueing code, because two
+    // concurrent enqueues both read "no active job" before either writes one.
+    uniqueIndex("uidx_review_jobs_active_submission")
+      .on(table.submissionId)
+      .where(sql`${table.state} IN (${REVIEW_JOB_ACTIVE_STATE_SQL})`),
+    index("idx_review_jobs_claim").on(table.state, table.nextRunAt),
+    index("idx_review_jobs_lease").on(table.leaseExpiresAt),
+    index("idx_review_jobs_submission").on(table.submissionId),
+    index("idx_review_jobs_report").on(table.reportState),
+    check("review_jobs_state_valid", sql`${table.state} IN (${REVIEW_JOB_STATE_SQL})`),
+    check(
+      "review_jobs_verdict_valid",
+      sql`${table.verdict} IS NULL OR ${table.verdict} IN (${REVIEW_VERDICT_SQL})`,
+    ),
+    check("review_jobs_mode_valid", sql`${table.mode} IN (${REVIEW_MODE_SQL})`),
+    check(
+      "review_jobs_report_state_valid",
+      sql`${table.reportState} IN (${REVIEW_REPORT_STATE_SQL})`,
+    ),
+    check("review_jobs_cost_nonnegative", sql`${table.costNano} >= 0`),
+  ],
+);
+
+/**
+ * Inferred select type for `review_jobs`.
+ */
+export type ReviewJobRow = typeof reviewJobs.$inferSelect;
+/**
+ * Inferred insert type for `review_jobs`.
+ */
+export type ReviewJobInsert = typeof reviewJobs.$inferInsert;
+
+/**
+ * Append-only audit trail for automated review runs.
+ *
+ * @remarks
+ * Rows are never updated or deleted while their job exists, so the sequence of
+ * entries reconstructs every state a job passed through. `detail` is written
+ * through the redaction helper in the repository and never carries provider
+ * payloads, headers or connection strings.
+ */
+export const reviewEvents = pgTable(
+  "review_events",
+  {
+    id: serial("id").primaryKey(),
+    jobId: integer("job_id")
+      .notNull()
+      .references(() => reviewJobs.id, { onDelete: "cascade" }),
+    attempt: integer("attempt").notNull().default(0),
+    state: text("state").$type<ReviewJobState>().notNull(),
+    event: text("event").notNull(),
+    detail: text("detail"),
+    errorId: text("error_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_review_events_job").on(table.jobId, table.id),
+    check("review_events_state_valid", sql`${table.state} IN (${REVIEW_JOB_STATE_SQL})`),
+  ],
+);
+
+/**
+ * What every finished attempt of an automated review actually cost.
+ *
+ * @remarks
+ * A ledger rather than a view over the jobs, and deliberately without a foreign
+ * key. Money that has been spent stays spent when the suggestion it was spent
+ * on is deleted, and the jobs table cascades with its submission, so a total
+ * read from there understates what the provider billed. The daily ceiling reads
+ * this table for the same reason.
+ *
+ * Rows are only ever inserted. An amount is corrected by writing a new row, so
+ * the ledger can be replayed.
+ */
+export const reviewSpend = pgTable(
+  "review_spend",
+  {
+    id: serial("id").primaryKey(),
+    /** Job the attempt belonged to, kept as a number and not as a reference. */
+    jobId: integer("job_id").notNull(),
+    /** Submission the job belonged to, which may since have been deleted. */
+    submissionId: integer("submission_id"),
+    attempt: integer("attempt").notNull(),
+    model: text("model").notNull(),
+    /** `true` for probe runs, so real spend can be told apart from test spend. */
+    synthetic: boolean("synthetic").notNull().default(false),
+    costNano: bigint("cost_nano", { mode: "bigint" }).notNull(),
+    costCurrency: text("cost_currency").notNull(),
+    costRateCardVersion: text("cost_rate_card_version").notNull(),
+    /** `false` when a billable dimension was missing, so the amount is a floor. */
+    costComplete: boolean("cost_complete").notNull().default(true),
+    spentAt: timestamp("spent_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_review_spend_day").on(table.spentAt),
+    index("idx_review_spend_job").on(table.jobId),
+    check("review_spend_cost_nonnegative", sql`${table.costNano} >= 0`),
+  ],
+);
+
+/**
+ * Inferred select type for `review_spend`.
+ */
+export type ReviewSpendRow = typeof reviewSpend.$inferSelect;
+
+/**
+ * Inferred select type for `review_events`.
+ */
+export type ReviewEventRow = typeof reviewEvents.$inferSelect;
+/**
+ * Inferred insert type for `review_events`.
+ */
+export type ReviewEventInsert = typeof reviewEvents.$inferInsert;

@@ -16,9 +16,12 @@
     "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "email:preview": "npx react-email dev --dir src/emails --port 3001"
+    "email:preview": "npx react-email dev --dir src/emails --port 3001",
+    "review:shop": "tsx --env-file=.env.local src/scripts/review-shop.ts",
+    "review:recost": "tsx --env-file=.env.local src/scripts/recost-review-spend.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.117.1",
     "@atproto/api": "^0.19.15",
     "@aws-sdk/client-s3": "^3.1009.0",
     "@hono/node-server": "^1.19.14",
