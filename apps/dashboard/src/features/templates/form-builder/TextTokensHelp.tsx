@@ -70,10 +70,18 @@ export function TextTokensHelp({ open, onClose }: TextTokensHelpProps) {
             <table className="w-full text-sm">
               <thead className="bg-[var(--ds-surface-inset)] text-left">
                 <tr>
-                  <th className="px-3 py-1 font-medium text-[var(--ds-text-muted)]">{t.cols.token}</th>
-                  <th className="px-3 py-1 font-medium text-[var(--ds-text-muted)]">{t.cols.symbol}</th>
-                  <th className="px-3 py-1 font-medium text-[var(--ds-text-muted)]">{t.cols.codepoint}</th>
-                  <th className="px-3 py-1 font-medium text-[var(--ds-text-muted)]">{t.cols.description}</th>
+                  <th className="px-3 py-1 font-medium text-[var(--ds-text-muted)]">
+                    {t.cols.token}
+                  </th>
+                  <th className="px-3 py-1 font-medium text-[var(--ds-text-muted)]">
+                    {t.cols.symbol}
+                  </th>
+                  <th className="px-3 py-1 font-medium text-[var(--ds-text-muted)]">
+                    {t.cols.codepoint}
+                  </th>
+                  <th className="px-3 py-1 font-medium text-[var(--ds-text-muted)]">
+                    {t.cols.description}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -106,21 +114,14 @@ export function TextTokensHelp({ open, onClose }: TextTokensHelpProps) {
             <div className="text-xs uppercase tracking-wide text-[var(--ds-text-muted)] pt-2">
               {t.exampleOutputLabel}
             </div>
-            <p className="text-sm text-[var(--ds-text)]">
-              Vorschlagsannahme oder ‑ablehnung.
-            </p>
+            <p className="text-sm text-[var(--ds-text)]">Vorschlagsannahme oder ‑ablehnung.</p>
           </div>
           <p className="text-xs text-[var(--ds-text-muted)]">{t.exampleNote}</p>
         </section>
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end">
-        <CloseActionButton
-          iconOnly={false}
-          label={t.close}
-          onClick={onClose}
-          variant="neutral"
-        />
+        <CloseActionButton iconOnly={false} label={t.close} onClick={onClose} variant="neutral" />
       </OverlayCard.Footer>
     </OverlayCard>
   );

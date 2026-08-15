@@ -66,13 +66,9 @@ export function Dropdown<T extends string = string>({
   );
 }
 
-function toComboboxOption<T extends string>(
-  option: DropdownOption<T>,
-): DashboardComboboxOption {
+function toComboboxOption<T extends string>(option: DropdownOption<T>): DashboardComboboxOption {
   return {
-    addOn: hasPositiveCount(option.count) ? (
-      <DropdownCountBadge count={option.count} />
-    ) : undefined,
+    addOn: hasPositiveCount(option.count) ? <DropdownCountBadge count={option.count} /> : undefined,
     label: option.label,
     leadingIcon: option.icon,
     triggerLabel: hasPositiveCount(option.count) ? (
@@ -84,13 +80,7 @@ function toComboboxOption<T extends string>(
   };
 }
 
-function DropdownTriggerLabel({
-  count,
-  label,
-}: {
-  count: number;
-  label: string;
-}) {
+function DropdownTriggerLabel({ count, label }: { count: number; label: string }) {
   return (
     <span className="flex min-w-0 items-center gap-2">
       <span className="min-w-0 truncate">{label}</span>

@@ -17,7 +17,5 @@ export function SystemTemplateCheckbox({
   label,
   hint,
 }: SystemTemplateCheckboxProps) {
-  return (
-    <SubtextCheckbox checked={checked} onChange={onChange} label={label} description={hint} />
-  );
+  return <SubtextCheckbox checked={checked} onChange={onChange} label={label} description={hint} />;
 }

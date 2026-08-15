@@ -13,10 +13,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
-import {
-  DashboardCombobox,
-  DashboardInput,
-} from "@/components/ui/DashboardControls.tsx";
+import { DashboardCombobox, DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { ExportButton } from "@/components/ui/ExportButton.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
@@ -43,10 +40,7 @@ import {
 } from "@/features/content/shops/shop-filter-state.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import {
-  readStoredTableSort,
-  writeStoredTableSort,
-} from "@/lib/table-sort-storage.ts";
+import { readStoredTableSort, writeStoredTableSort } from "@/lib/table-sort-storage.ts";
 
 import {
   useAdminShops,
@@ -228,8 +222,12 @@ function ShopsFooterSearch({
             </DashboardIconButton>
           ) : (
             <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] text-[var(--ds-text-subtle)]">
-              <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">&#8984;</kbd>
-              <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">K</kbd>
+              <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">
+                &#8984;
+              </kbd>
+              <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">
+                K
+              </kbd>
             </span>
           )}
         </div>
@@ -313,10 +311,9 @@ export function ShopsPage() {
   function handleVisibilityFilterChange(nextVisibilityFilter: VisibilityFilter) {
     dispatch({ type: "setVisibilityFilter", value: nextVisibilityFilter });
     writeStoredShopsVisibilityFilter(visibilityStorageKey, nextVisibilityFilter);
-    setSearchParams(
-      applyShopsVisibilityFilterSearchParam(searchParams, nextVisibilityFilter),
-      { replace: true },
-    );
+    setSearchParams(applyShopsVisibilityFilterSearchParam(searchParams, nextVisibilityFilter), {
+      replace: true,
+    });
   }
 
   const { data: shops = [], isLoading } = useAdminShops(
@@ -339,10 +336,7 @@ export function ShopsPage() {
     [shops, searchLower, categoryFilter],
   );
 
-  const {
-    categoryFilterOptions,
-    filterOptions,
-  } = useShopFilterOptions({
+  const { categoryFilterOptions, filterOptions } = useShopFilterOptions({
     categories,
     counts,
     shopsMessages,
@@ -391,9 +385,7 @@ export function ShopsPage() {
   }
 
   function handleExport() {
-    const rows = filtered
-      .slice(0, exportLimit)
-      .map((s) => ({ shopId: s.id, shopUrl: s.url }));
+    const rows = filtered.slice(0, exportLimit).map((s) => ({ shopId: s.id, shopUrl: s.url }));
     const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

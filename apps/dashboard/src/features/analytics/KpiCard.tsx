@@ -20,10 +20,15 @@ export function KpiCard({ label, value, trend, invertTrendColor = false, sub }: 
       : "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]";
 
   return (
-    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm px-4 py-3 min-w-0" style={{ containerType: "inline-size" }}>
+    <div
+      className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm px-4 py-3 min-w-0"
+      style={{ containerType: "inline-size" }}
+    >
       <p className="text-sm text-[var(--ds-text-subtle)] mb-1 truncate">{label}</p>
       <div className="kpi-layout">
-        <p className="text-2xl font-semibold text-[var(--ds-text)] whitespace-nowrap min-w-0 kpi-value">{value}</p>
+        <p className="text-2xl font-semibold text-[var(--ds-text)] whitespace-nowrap min-w-0 kpi-value">
+          {value}
+        </p>
         <p
           className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-sm font-semibold tabular-nums shrink-0 ${trendTone}`}
         >

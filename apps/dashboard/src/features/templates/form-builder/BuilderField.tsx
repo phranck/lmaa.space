@@ -82,11 +82,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
       : (FIELD_TYPE_ABBREVIATIONS[field.type] ?? field.type.slice(0, 3));
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="group/field relative w-full"
-    >
+    <div ref={setNodeRef} style={style} className="group/field relative w-full">
       <button
         type="button"
         {...attributes}

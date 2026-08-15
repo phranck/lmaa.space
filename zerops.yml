@@ -14,6 +14,9 @@ zerops:
         - apps/backend/docs-dist
         - apps/backend/drizzle
         - apps/backend/public
+        # The automated review sends these rules to the provider on every run
+        # and refuses to run without them, so they ship with the backend.
+        - skills/lmaa-shop-check.md
         - apps/frontend/src/assets/fonts
         - node_modules/sharp
         - node_modules/@img

@@ -59,11 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ]);
   }, [queryClient]);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const me = await api.post<AdminUser>("/admin/login", { username, password });
-    queryClient.setQueryData(authMeQueryKey, me);
-    queryClient.setQueryData(authSetupQueryKey, { needsSetup: false });
-  }, [queryClient]);
+  const login = useCallback(
+    async (username: string, password: string) => {
+      const me = await api.post<AdminUser>("/admin/login", { username, password });
+      queryClient.setQueryData(authMeQueryKey, me);
+      queryClient.setQueryData(authSetupQueryKey, { needsSetup: false });
+    },
+    [queryClient],
+  );
 
   const logout = useCallback(async () => {
     await api.post("/admin/logout").catch(() => {});

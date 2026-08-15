@@ -1,5 +1,6 @@
 import { normalizePaymentMethods, type PaymentMethodKey, type ShopCheckNotes } from "@lmaa/shared";
 
+import type { SubmissionEditData } from "../repositories/admin-submissions.js";
 import type { HeadquartersInput } from "../repositories/headquarters.js";
 
 const REGION_CODES = ["DE", "AT", "CH", "EU", "WORLD"] as const;
@@ -131,5 +132,36 @@ export function mapShopJsonToShopData(
     shopCheckNotes,
     socialMedia,
     ...(paymentMethods !== undefined ? { paymentMethods } : {}),
+  };
+}
+
+/**
+ * Maps shop-check JSON onto the fields of a submission edit.
+ *
+ * @param shopJson - Raw shop-check JSON, from the import route or an automated review.
+ * @param categoryNameToId - Lowercased category names to their ids.
+ * @returns The submission fields the mapping produced.
+ *
+ * @remarks
+ * Both the manual import and the automated reviewer write the same researched
+ * data into a submission, so they share this mapping. A second copy would drift
+ * the first time a field is added on one path only.
+ */
+export function mapShopJsonToSubmissionEditData(
+  shopJson: Record<string, unknown>,
+  categoryNameToId: Map<string, number>,
+): SubmissionEditData {
+  const mapped = mapShopJsonToShopData(shopJson, categoryNameToId);
+  return {
+    shopName: mapped.name,
+    shopUrl: mapped.url,
+    description: mapped.description,
+    region: mapped.region,
+    categoryIds: mapped.categoryIds,
+    contactEmail: mapped.contactEmail,
+    headquarters: mapped.headquarters,
+    shopCheckNotes: mapped.shopCheckNotes,
+    socialMedia: mapped.socialMedia,
+    paymentMethods: mapped.paymentMethods,
   };
 }

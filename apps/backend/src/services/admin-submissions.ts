@@ -28,7 +28,8 @@ interface ReviewAdminSubmissionInput {
   adminNote?: string;
   rejectionLongText?: string;
   rejectionToken?: string;
-  adminId: number;
+  /** Moderator who decided, or `null` when the automated reviewer applied the result. */
+  adminId: number | null;
   notificationTemplateId?: number;
   templateAssignments?: TemplateAssignment[];
 }
@@ -89,7 +90,16 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     });
   }
 
-  if (input.status === "approved" && newShop && input.templateAssignments?.length) {
+  // Social posts are dispatched on behalf of the moderator who approved, so an
+  // automated approval publishes nothing. Enabling that is a separate rollout
+  // decision and would need an account to post as.
+  if (
+    input.status === "approved" &&
+    newShop &&
+    input.adminId !== null &&
+    input.templateAssignments?.length
+  ) {
+    const adminId = input.adminId;
     const categoryNames = await getSubmissionCategoryNames(input.id);
     const context: PostContext = {
       kind: "submission",
@@ -98,7 +108,7 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
       adminNote: input.adminNote ?? "",
       categoryNames,
     };
-    void dispatchTemplateAssignments(input.adminId, "submission", input.templateAssignments, context);
+    void dispatchTemplateAssignments(adminId, "submission", input.templateAssignments, context);
   }
 
   return success({ submission });

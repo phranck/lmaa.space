@@ -13,6 +13,7 @@ import { DashboardSection } from "@lmaa/ui/dashboard-section";
 import { FocalPointOverlay, useFocalPointDrag } from "@lmaa/ui/focal-point-overlay";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
@@ -83,12 +84,14 @@ function HeroImageCard({
         title={m.focalPointDrag}
       />
 
-      {/* Active badge */}
       {image.isSelected && (
-        <div className="absolute top-2 left-2 flex items-center gap-1 bg-[var(--color-primary)] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full z-10">
-          <CheckCircleIcon weight="fill" className="size-3" />
+        <Badge
+          colorClass="bg-[var(--color-primary)] text-white"
+          className="absolute top-2 left-2 z-10"
+          icon={<CheckCircleIcon weight="fill" className="size-3.5" />}
+        >
           {m.selectedBadge}
-        </div>
+        </Badge>
       )}
 
       {/* Photographer credit */}

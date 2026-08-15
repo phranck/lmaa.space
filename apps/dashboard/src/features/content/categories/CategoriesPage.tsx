@@ -1,7 +1,4 @@
-import {
-  TagIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
+import { TagIcon, TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -10,10 +7,7 @@ import {
   CreateActionButton,
   DeleteActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  Dialog,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";

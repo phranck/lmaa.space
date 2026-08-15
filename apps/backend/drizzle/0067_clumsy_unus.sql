@@ -1,0 +1,1 @@
+ALTER TABLE "review_jobs" ADD COLUMN "progress" text;

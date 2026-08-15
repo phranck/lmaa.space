@@ -12,6 +12,7 @@ import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { type SortState } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { AutomatedChecksTab } from "@/features/overview/AutomatedChecksTab.tsx";
 import { DeadLinksTab } from "@/features/overview/DeadLinksTab.tsx";
 import {
   useAdminSubmissions,
@@ -33,19 +34,24 @@ import {
   writeStoredTableSort,
 } from "@/lib/table-sort-storage.ts";
 
-type Tab = "suggestions" | "dead-links" | "shop-reports";
+type Tab = "suggestions" | "dead-links" | "shop-reports" | "automated-checks";
 type ReportTabParam = Tab | undefined;
 const SUGGESTIONS_SORTABLE_COLUMNS = new Set(["shop", "submitted", "rejectedAt"]);
 const DEFAULT_SUGGESTIONS_SORT: SortState = { id: "shop", dir: "asc" };
 
 function resolveInitialTab(tabParam: ReportTabParam, search: string): Tab {
-  if (tabParam === "dead-links" || tabParam === "shop-reports" || tabParam === "suggestions") {
+  if (
+    tabParam === "dead-links" ||
+    tabParam === "shop-reports" ||
+    tabParam === "automated-checks" ||
+    tabParam === "suggestions"
+  ) {
     return tabParam;
   }
 
   const params = new URLSearchParams(search);
   const t = params.get("tab");
-  if (t === "dead-links" || t === "shop-reports") return t;
+  if (t === "dead-links" || t === "shop-reports" || t === "automated-checks") return t;
   return "suggestions";
 }
 
@@ -223,6 +229,7 @@ export function SubmissionsPage() {
       )}
       {tab === "dead-links" && <DeadLinksTab />}
       {tab === "shop-reports" && <ShopReportsTab />}
+      {tab === "automated-checks" && <AutomatedChecksTab />}
     </PageLayout>
   );
 }

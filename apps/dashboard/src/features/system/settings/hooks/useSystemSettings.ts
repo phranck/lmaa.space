@@ -24,3 +24,30 @@ export function useSaveSystemSetting() {
     onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
   });
 }
+
+/**
+ * A model the automated review can be configured to run on.
+ */
+export interface ReviewModelOption {
+  id: string;
+  displayName: string;
+  /** Reasoning efforts this model accepts, as the provider reports them. */
+  efforts: string[];
+}
+
+/**
+ * Loads the models the provider currently offers.
+ *
+ * @returns The query, whose data is empty when no list could be fetched.
+ *
+ * @remarks
+ * Kept for a session rather than refetched, because the list changes when a
+ * model is released and not while somebody edits a form.
+ */
+export function useReviewModels() {
+  return useQuery({
+    queryKey: ["review-models"] as const,
+    queryFn: () => api.get<ReviewModelOption[]>("/admin/review/models"),
+    staleTime: 60 * 60 * 1000,
+  });
+}

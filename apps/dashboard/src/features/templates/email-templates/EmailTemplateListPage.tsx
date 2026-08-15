@@ -19,10 +19,7 @@ import {
   ExportActionButton,
   ImportActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  Dialog,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
@@ -69,7 +66,6 @@ export function EmailTemplateListPage() {
     });
   }
 
-
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
@@ -105,7 +101,6 @@ export function EmailTemplateListPage() {
     });
   }
 
-
   const columns = useMemo<ColumnDef<EmailTemplate>[]>(
     () => [
       {
@@ -129,7 +124,9 @@ export function EmailTemplateListPage() {
         id: "subject",
         header: m.templateSubject,
         cell: (tpl) => (
-          <span className="text-[var(--ds-text-muted)] truncate max-w-xs">{tpl.subject || "-"}</span>
+          <span className="text-[var(--ds-text-muted)] truncate max-w-xs">
+            {tpl.subject || "-"}
+          </span>
         ),
       },
       {
@@ -247,8 +244,7 @@ export function EmailTemplateListPage() {
           onClose={() => setDeleteTarget(null)}
         >
           <div className="px-6 py-4 text-sm text-[var(--ds-text-muted)]">
-            {m.deleteTemplateConfirm}{" "}
-            <span className="font-medium">({deleteTarget.name})</span>
+            {m.deleteTemplateConfirm} <span className="font-medium">({deleteTarget.name})</span>
           </div>
           <Dialog.Footer>
             <CancelActionButton label={common.cancel} onClick={() => setDeleteTarget(null)} />

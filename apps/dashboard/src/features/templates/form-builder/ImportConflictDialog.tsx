@@ -1,10 +1,7 @@
 import { DownloadIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
-import {
-  OverwriteActionButton,
-  SkipActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
+import { OverwriteActionButton, SkipActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
