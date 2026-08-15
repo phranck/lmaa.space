@@ -17,7 +17,12 @@ apps/backend/openapi.generated.json
 /app.config
 /test-results/
 .agents/
-.claude/
+.claude/*
+# The shop-check skill is what the automated review builds its prompt from, so
+# that one skill is tracked and deployed with the backend.
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/lmaa-shop-check/
 .codex/
 .serena/
 .pi/
@@ -44,8 +49,4 @@ shop-geo-data.json
 .kiro/
 .vibe/
 
-# The canonical shop-check rules are read at runtime by the automated review and
-# are deployed with the backend, so that one file is tracked. Everything else in
-# here is local working material.
-skills/*
-!skills/lmaa-shop-check.md
+/skills
