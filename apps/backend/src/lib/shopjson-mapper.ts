@@ -118,6 +118,11 @@ export function mapShopJsonToShopData(
       countryCode: hqRaw ? (getString(hqRaw.countryCode)?.toUpperCase() ?? undefined) : undefined,
       latitude: geoRaw && typeof geoRaw.latitude === "number" ? geoRaw.latitude : undefined,
       longitude: geoRaw && typeof geoRaw.longitude === "number" ? geoRaw.longitude : undefined,
+      // Where each of the two came from. An address without its origin cannot
+      // be checked by whoever reviews it, and the check is the only place that
+      // knows it.
+      addressSource: hqRaw ? (getString(hqRaw.source) ?? undefined) : undefined,
+      geoSource: geoRaw ? (getString(geoRaw.source) ?? undefined) : undefined,
     };
   }
 
