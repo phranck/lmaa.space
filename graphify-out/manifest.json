@@ -2705,7 +2705,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/i18n/messages.ts": {
-    "mtime": 1786817552.2358136,
+    "mtime": 1786817831.2252197,
     "ast_hash": "e9ef86d45aaf80c18ecb2cdf9f9a9d9f",
     "semantic_hash": ""
   },
@@ -3910,7 +3910,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-worker.test.ts": {
-    "mtime": 1786817411.361346,
+    "mtime": 1786817831.2233646,
     "ast_hash": "ea23e2f03cb26992005a7c0dc7e89747",
     "semantic_hash": ""
   },
@@ -3940,8 +3940,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/anthropic-provider.ts": {
-    "mtime": 1786817352.1369615,
-    "ast_hash": "c95f0a0ecce6806cd075fe226db866e3",
+    "mtime": 1786819358.841279,
+    "ast_hash": "119747c0ea3c110ec48a017945810579",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/apply.ts": {
@@ -3960,12 +3960,12 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/prompt.ts": {
-    "mtime": 1786817653.0570748,
+    "mtime": 1786817831.2240055,
     "ast_hash": "ec83f7c4ba653b0683f871e624bbe683",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/provider.ts": {
-    "mtime": 1786817331.3228621,
+    "mtime": 1786817831.2242568,
     "ast_hash": "dfce0655df26a1ad66aa72fd7dc3e439",
     "semantic_hash": ""
   },
@@ -3990,7 +3990,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/worker.ts": {
-    "mtime": 1786817633.3871584,
+    "mtime": 1786817831.2247202,
     "ast_hash": "218fad3beb70c113a6cf230f813e65d9",
     "semantic_hash": ""
   },
@@ -4035,7 +4035,7 @@
     "semantic_hash": ""
   },
   "packages/contracts/src/review-result.ts": {
-    "mtime": 1786817483.3727531,
+    "mtime": 1786817831.2416818,
     "ast_hash": "c09e665a16ff6c4aa73b08abd3560ba0",
     "semantic_hash": ""
   },
@@ -4075,13 +4075,18 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-text-repair.test.ts": {
-    "mtime": 1786817436.5128608,
+    "mtime": 1786817831.223136,
     "ast_hash": "5c1fd595dd199055282e2436cc86b3ce",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/text-repair.ts": {
-    "mtime": 1786817512.546633,
+    "mtime": 1786817831.2244575,
     "ast_hash": "39a454d9cd5841e935aa26fbd39d3525",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/__tests__/review-provider-pause.test.ts": {
+    "mtime": 1786819335.2353313,
+    "ast_hash": "aa00e1fb13cca6bc83b3d5a44b66dd48",
     "semantic_hash": ""
   }
 }
