@@ -73,7 +73,10 @@ describe("loadReviewSkill", () => {
     // replaces the shape it describes.
     expect(text).toContain("inhabergeführt");
     expect(text).toContain("Langbegründung");
-    expect(text).toContain("Gender-neutral");
+    // The glyphs rather than the heading above them, because a heading is
+    // wording and these two are the rule.
+    expect(text).toContain("*innen");
+    expect(text).toContain(":innen");
   });
 
   it("hashes what is sent rather than the file on disk", () => {
