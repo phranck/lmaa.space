@@ -19,6 +19,7 @@ export interface DashboardMessages {
     sending: string;
     sendTestEmail: string;
     startCheck: string;
+    stopCheck: string;
     retryCheck: string;
     edit: string;
     create: string;
@@ -562,7 +563,6 @@ export interface DashboardMessages {
         queuedHint: string;
         runningHint: string;
         doneHint: string;
-        stopCheck: string;
         show: string;
       };
       events: {
@@ -1572,6 +1572,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       sending: "Wird gesendet…",
       sendTestEmail: "Test Email senden",
       startCheck: "Prüfung starten",
+      stopCheck: "Prüfung abbrechen",
       retryCheck: "Erneut prüfen",
       edit: "Bearbeiten",
       create: "Erstellen",
@@ -2133,7 +2134,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           runningHint:
             "Die Recherche läuft beim Anbieter. Je nach Modell und Denktiefe dauert das einige Minuten. Du kannst das Fenster schließen, die Prüfung läuft weiter.",
           doneHint: "Die Prüfung ist beendet.",
-          stopCheck: "Prüfung abbrechen",
           show: "Fortschritt",
         },
         events: {
@@ -3196,6 +3196,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       sending: "Sending…",
       sendTestEmail: "Send test email",
       startCheck: "Start check",
+      stopCheck: "Stop the check",
       retryCheck: "Check again",
       edit: "Edit",
       create: "Create",
@@ -3754,7 +3755,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           runningHint:
             "The research is running at the provider. Depending on the model and the reasoning effort this takes a few minutes. You can close this window, the check keeps running.",
           doneHint: "The check has finished.",
-          stopCheck: "Stop the check",
           show: "Progress",
         },
         events: {

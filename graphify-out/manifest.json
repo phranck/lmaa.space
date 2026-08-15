@@ -995,7 +995,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/lib/shopjson-mapper.ts": {
-    "mtime": 1786799892.7143204,
+    "mtime": 1786800084.4097407,
     "ast_hash": "2e40da19205caa2421e3d54f3e9ac6bf",
     "semantic_hash": ""
   },
@@ -1115,7 +1115,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/repositories/headquarters.ts": {
-    "mtime": 1786799842.209552,
+    "mtime": 1786800084.4099011,
     "ast_hash": "98f86c73a8df5f437a5469f70d27eb03",
     "semantic_hash": ""
   },
@@ -1635,8 +1635,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/components/ui/DashboardActionButton.tsx": {
-    "mtime": 1786788906.9355748,
-    "ast_hash": "2ac832232630fd52886fb6b5531f7ead",
+    "mtime": 1786801162.948181,
+    "ast_hash": "e3645c985d94c1852fa074132ad0e34c",
     "semantic_hash": ""
   },
   "apps/dashboard/src/components/ui/DashboardButton.tsx": {
@@ -2705,8 +2705,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/i18n/messages.ts": {
-    "mtime": 1786798359.4714189,
-    "ast_hash": "58b5fe7deec686f6d3ec427e7eb92d08",
+    "mtime": 1786801194.7241929,
+    "ast_hash": "beed9a174e8a2d80800d673f9a6585b7",
     "semantic_hash": ""
   },
   "apps/dashboard/src/lib/api.ts": {
@@ -3440,7 +3440,7 @@
     "semantic_hash": ""
   },
   "packages/shared/src/types/shop.ts": {
-    "mtime": 1786799855.105134,
+    "mtime": 1786800084.4268756,
     "ast_hash": "41ab5ba355b88726e7b8b2f9434a960f",
     "semantic_hash": ""
   },
@@ -3890,8 +3890,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-contract.test.ts": {
-    "mtime": 1786792943.8117416,
-    "ast_hash": "bd5f6859bf89f7000938eeda4e3a11b7",
+    "mtime": 1786801285.76615,
+    "ast_hash": "890b05c42cf7e15a0747faf4915cfd25",
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-cost.test.ts": {
@@ -4010,8 +4010,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/overview/ReviewProgressDialog.tsx": {
-    "mtime": 1786788906.9397397,
-    "ast_hash": "c9192daabe697297ec312ef71c30eb5f",
+    "mtime": 1786801194.724709,
+    "ast_hash": "4daf0ee79cae6952d0c8e0f9b7693309",
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/overview/SubmissionReviewPanel.tsx": {
@@ -4035,8 +4035,8 @@
     "semantic_hash": ""
   },
   "packages/contracts/src/review-result.ts": {
-    "mtime": 1786798359.4946945,
-    "ast_hash": "83b86fd94084b23f1bd661104f03f759",
+    "mtime": 1786801297.660988,
+    "ast_hash": "b1ab2264d61d612d3c22984bdd33b5b4",
     "semantic_hash": ""
   },
   "packages/shared/src/constants/review-jobs.ts": {
@@ -4070,7 +4070,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/headquarters-source.test.ts": {
-    "mtime": 1786799883.765221,
+    "mtime": 1786800084.4094968,
     "ast_hash": "a5864663b7e9ac61b91c85bf97d41150",
     "semantic_hash": ""
   }
