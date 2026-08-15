@@ -995,8 +995,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/lib/shopjson-mapper.ts": {
-    "mtime": 1786788906.9322777,
-    "ast_hash": "63a118281b96518ad56a805ca899d04e",
+    "mtime": 1786799892.7143204,
+    "ast_hash": "2e40da19205caa2421e3d54f3e9ac6bf",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/validate.ts": {
@@ -1115,8 +1115,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/repositories/headquarters.ts": {
-    "mtime": 1778807489.9685972,
-    "ast_hash": "559cbc6fc2693e8377d5e7b8d7369749",
+    "mtime": 1786799842.209552,
+    "ast_hash": "98f86c73a8df5f437a5469f70d27eb03",
     "semantic_hash": ""
   },
   "apps/backend/src/repositories/hero.ts": {
@@ -3440,8 +3440,8 @@
     "semantic_hash": ""
   },
   "packages/shared/src/types/shop.ts": {
-    "mtime": 1784575450.2972364,
-    "ast_hash": "e61004393186128ccc4f9b9289cc5e49",
+    "mtime": 1786799855.105134,
+    "ast_hash": "41ab5ba355b88726e7b8b2f9434a960f",
     "semantic_hash": ""
   },
   "packages/shared/src/types/submission.ts": {
@@ -3905,7 +3905,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-skill.test.ts": {
-    "mtime": 1786798792.1326158,
+    "mtime": 1786799212.6578128,
     "ast_hash": "e246da4ec6e919eb63a2f7544035279f",
     "semantic_hash": ""
   },
@@ -4067,6 +4067,11 @@
   "apps/backend/src/services/review/payment-evidence.ts": {
     "mtime": 1786798359.4706333,
     "ast_hash": "d78072cf00da2911a34f9811229f52fa",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/__tests__/headquarters-source.test.ts": {
+    "mtime": 1786799883.765221,
+    "ast_hash": "a5864663b7e9ac61b91c85bf97d41150",
     "semantic_hash": ""
   }
 }
