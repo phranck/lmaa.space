@@ -14,6 +14,7 @@ import { sendReviewReport } from "./report.js";
 import { loadReviewSettings } from "./settings.js";
 import type { ReviewSettings } from "./settings.js";
 import { loadReviewSkill } from "./skill.js";
+import { applyRepairedTexts, collectRepairableTexts } from "./text-repair.js";
 import { env } from "../../config/env.js";
 import { db } from "../../db/client.js";
 import type { ReviewJobRow } from "../../db/schema.js";
@@ -89,6 +90,21 @@ function buildAttemptRecord(
     startedAt: startedAt.toISOString(),
     finishedAt: new Date().toISOString(),
   };
+}
+
+/**
+ * Reduces a list of validation issues to something two attempts can be compared on.
+ *
+ * @param issues - The issues as they were recorded, already joined.
+ * @returns A short, stable identifier of what went wrong.
+ *
+ * @remarks
+ * The wording carries the field and the rule, which is exactly what has to
+ * match for two failures to count as the same. It is truncated because it is
+ * stored in a column meant for a code, not for prose.
+ */
+function issueSignature(issues: string): string {
+  return `REVIEW_RESULT_INVALID:${issues.slice(0, 120)}`;
 }
 
 /**
@@ -380,7 +396,38 @@ export class ReviewWorker {
     attemptRecord: ReviewAttemptRecord,
     settings: ReviewSettings,
   ): Promise<void> {
-    const parsed = reviewResultSchema.safeParse(outcome.raw);
+    let parsed = reviewResultSchema.safeParse(outcome.raw);
+    let usage = outcome.usage;
+    let attempt = attemptRecord;
+
+    // Where a result fails only on the mechanical rules about the surface of a
+    // German text, the research behind it is sound and only its wording is not.
+    // Rewriting those texts costs about a hundredth of researching the shop
+    // again, so it is tried once before the attempt is given up on.
+    if (!parsed.success) {
+      const repairable = collectRepairableTexts(parsed.error, outcome.raw);
+      if (repairable.length > 0) {
+        const repair = await provider.repairTexts(repairable);
+        if (repair.texts.size > 0) {
+          const rewritten = applyRepairedTexts(outcome.raw, repair.texts);
+          const reparsed = reviewResultSchema.safeParse(rewritten);
+
+          usage = sumReviewUsage([outcome.usage, repair.usage]);
+          const cost = calculateReviewCost(usage, outcome.model, undefined, "batch");
+          attempt = { ...attemptRecord, usage, cost };
+
+          await recordReviewEvent(db, {
+            jobId: job.id,
+            attempt: job.attempt,
+            state: "applying",
+            event: reparsed.success ? "result.repaired" : "result.repair_failed",
+            detail: repairable.map((entry) => entry.path).join(", "),
+          });
+
+          if (reparsed.success) parsed = reparsed;
+        }
+      }
+    }
 
     if (!parsed.success) {
       const issues = parsed.error.issues
@@ -388,13 +435,22 @@ export class ReviewWorker {
         .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`)
         .join("; ");
 
-      if (job.attempt < job.maxAttempts) {
+      // A result that breaks the same rule twice will not pass on a third
+      // research run, and each run costs what a whole check costs. One
+      // repetition is enough to stop.
+      const repeated = job.attempts.some((entry) => entry.errorCode === issueSignature(issues));
+
+      if (job.attempt < job.maxAttempts && !repeated) {
         await transitionReviewJob(
           job.id,
           "queued",
           {
-            appendAttempt: { ...attemptRecord, outcome: "invalid_output" },
-            cost: aggregateCost(job, attemptRecord),
+            appendAttempt: {
+              ...attempt,
+              outcome: "invalid_output",
+              errorCode: issueSignature(issues),
+            },
+            cost: aggregateCost(job, attempt),
             providerResponseId: outcome.providerResponseId,
             errorCode: "REVIEW_RESULT_INVALID",
             nextRunAt: new Date(Date.now() + retryDelayMs(job.attempt)),
@@ -405,21 +461,15 @@ export class ReviewWorker {
         return;
       }
 
-      await this.finishJob(
-        job,
-        provider,
-        { ...attemptRecord, outcome: "invalid_output" },
-        settings,
-        {
-          state: "failed",
-          verdict: "onhold",
-          onholdReason:
-            "Das Ergebnis der automatischen Prüfung entsprach nicht dem vereinbarten Format.",
-          errorCode: "REVIEW_RESULT_INVALID",
-          event: "job.failed",
-          detail: issues,
-        },
-      );
+      await this.finishJob(job, provider, { ...attempt, outcome: "invalid_output" }, settings, {
+        state: "failed",
+        verdict: "onhold",
+        onholdReason:
+          "Das Ergebnis der automatischen Prüfung entsprach nicht dem vereinbarten Format.",
+        errorCode: "REVIEW_RESULT_INVALID",
+        event: "job.failed",
+        detail: issues,
+      });
       return;
     }
 
@@ -449,7 +499,7 @@ export class ReviewWorker {
           ? application.reason
           : null;
 
-    await this.finishJob(job, provider, attemptRecord, settings, {
+    await this.finishJob(job, provider, attempt, settings, {
       state: "completed",
       verdict: application.kind === "conflict" ? "onhold" : result.verdict,
       onholdReason,

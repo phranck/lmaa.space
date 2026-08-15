@@ -115,6 +115,7 @@ function fakeProvider(result: ReviewProviderOutcome, configured = true): ReviewP
     model: "claude-opus-5",
     effort: "high",
     isConfigured: () => configured,
+    repairTexts: vi.fn(async () => ({ texts: new Map(), usage: {} })),
     runReview: vi.fn().mockResolvedValue(result),
   };
 }
@@ -415,7 +416,8 @@ describe("review worker", () => {
       model: "claude-opus-5",
       effort: "high",
       isConfigured: () => true,
-      runReview: vi.fn(
+      repairTexts: vi.fn(async () => ({ texts: new Map(), usage: {} })),
+    runReview: vi.fn(
         () =>
           new Promise<ReviewProviderOutcome>((resolve) => {
             release = () => {
