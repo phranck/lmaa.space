@@ -55,11 +55,7 @@ export function SetupPage() {
         <div className="text-center mb-8">
           <div className="relative mx-auto size-[120px]">
             <div className="absolute inset-0 rounded-full animate-[auth-glow_8s_ease-in-out_infinite] bg-[var(--color-primary)]" />
-            <img
-              src="/logo.png"
-              alt={messages.auth.logoAlt}
-              className="relative size-[120px]"
-            />
+            <img src="/logo.png" alt={messages.auth.logoAlt} className="relative size-[120px]" />
           </div>
         </div>
 

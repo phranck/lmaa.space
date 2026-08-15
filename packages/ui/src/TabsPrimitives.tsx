@@ -1,10 +1,5 @@
 import { createContext, use, useId } from "react";
-import type {
-  ButtonHTMLAttributes,
-  HTMLAttributes,
-  KeyboardEvent,
-  ReactNode,
-} from "react";
+import type { ButtonHTMLAttributes, HTMLAttributes, KeyboardEvent, ReactNode } from "react";
 
 import { cx } from "./classNames";
 
@@ -20,21 +15,17 @@ interface TabsPrimitiveContextValue {
   value: string;
 }
 
-const TabsPrimitiveContext =
-  createContext<TabsPrimitiveContextValue | null>(null);
+const TabsPrimitiveContext = createContext<TabsPrimitiveContextValue | null>(null);
 
 function useTabsPrimitiveContext(componentName: string) {
   const context = use(TabsPrimitiveContext);
   if (!context) {
-    throw new Error(
-      `${componentName} must be used within <TabsPrimitive>.`,
-    );
+    throw new Error(`${componentName} must be used within <TabsPrimitive>.`);
   }
   return context;
 }
 
-export interface TabsPrimitiveProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, "onChange"> {
+export interface TabsPrimitiveProps extends Omit<HTMLAttributes<HTMLDivElement>, "onChange"> {
   activationMode?: TabsActivationMode;
   children: ReactNode;
   idBase?: string;
@@ -58,8 +49,7 @@ export function TabsPrimitive({
   const contextValue: TabsPrimitiveContextValue = {
     activationMode,
     getPanelId: (tabValue) => `${resolvedIdBase}-panel-${toIdPart(tabValue)}`,
-    getTriggerId: (tabValue) =>
-      `${resolvedIdBase}-trigger-${toIdPart(tabValue)}`,
+    getTriggerId: (tabValue) => `${resolvedIdBase}-trigger-${toIdPart(tabValue)}`,
     onValueChange,
     orientation,
     value,
@@ -74,8 +64,7 @@ export function TabsPrimitive({
   );
 }
 
-export interface TabListPrimitiveProps
-  extends HTMLAttributes<HTMLDivElement> {
+export interface TabListPrimitiveProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
 }
 
@@ -85,8 +74,7 @@ export function TabListPrimitive({
   onKeyDown,
   ...listProps
 }: TabListPrimitiveProps) {
-  const { activationMode, orientation } =
-    useTabsPrimitiveContext("TabListPrimitive");
+  const { activationMode, orientation } = useTabsPrimitiveContext("TabListPrimitive");
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event);
@@ -146,8 +134,10 @@ export function TabListPrimitive({
   );
 }
 
-export interface TabTriggerPrimitiveProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "value"> {
+export interface TabTriggerPrimitiveProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "value"
+> {
   value: string;
 }
 
@@ -169,7 +159,9 @@ export function TabTriggerPrimitive({
       aria-selected={isSelected}
       className={cx(
         "inline-flex items-center justify-center whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium transition-colors",
-        "focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
+        // `focus-visible` rather than `focus`: clicking a tab should not leave a
+        // ring behind, whilst tabbing to it still has to show where focus is.
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
         "disabled:pointer-events-none disabled:opacity-[var(--ds-control-disabled-opacity)]",
         isSelected
           ? "border-[var(--color-primary)] text-[var(--color-primary)]"
@@ -197,8 +189,7 @@ export function TabTriggerPrimitive({
   );
 }
 
-export interface TabPanelPrimitiveProps
-  extends HTMLAttributes<HTMLDivElement> {
+export interface TabPanelPrimitiveProps extends HTMLAttributes<HTMLDivElement> {
   forceMount?: boolean;
   value: string;
 }
@@ -234,9 +225,7 @@ export function TabPanelPrimitive({
 
 function getEnabledTabTriggers(root: HTMLElement) {
   return Array.from(
-    root.querySelectorAll<HTMLButtonElement>(
-      "[data-tabs-trigger='true']:not(:disabled)",
-    ),
+    root.querySelectorAll<HTMLButtonElement>("[data-tabs-trigger='true']:not(:disabled)"),
   );
 }
 

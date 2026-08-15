@@ -35,72 +35,72 @@ export function ResizableDialogCard({
   ref: forwardedRef,
   ...rest
 }: ResizableDialogCardProps) {
-    const innerRef = useRef<HTMLDivElement>(null);
-    useImperativeHandle(forwardedRef, () => innerRef.current as HTMLDivElement);
+  const innerRef = useRef<HTMLDivElement>(null);
+  useImperativeHandle(forwardedRef, () => innerRef.current as HTMLDivElement);
 
-    const { user } = useAuth();
-    const fullKey = getSegmentedStorageKey(user?.id, storageKey);
+  const { user } = useAuth();
+  const fullKey = getSegmentedStorageKey(user?.id, storageKey);
 
-    const storedSize = (() => {
-      try {
-        const raw = localStorage.getItem(fullKey);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (typeof parsed.w === "number" && typeof parsed.h === "number") {
-            return parsed as { w: number; h: number };
-          }
+  const storedSize = (() => {
+    try {
+      const raw = localStorage.getItem(fullKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.w === "number" && typeof parsed.h === "number") {
+          return parsed as { w: number; h: number };
         }
-      } catch {
-        // ignore
       }
-      return null;
-    })();
+    } catch {
+      // ignore
+    }
+    return null;
+  })();
 
-    useEffect(() => {
-      const el = innerRef.current;
-      if (!el) return;
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
 
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const box = entry.borderBoxSize?.[0];
-          if (!box || box.inlineSize < minWidth || box.blockSize < minHeight) return;
-          try {
-            localStorage.setItem(
-              fullKey,
-              JSON.stringify({ w: Math.round(box.inlineSize), h: Math.round(box.blockSize) }),
-            );
-          } catch {
-            // ignore
-          }
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const box = entry.borderBoxSize?.[0];
+        if (!box || box.inlineSize < minWidth || box.blockSize < minHeight) return;
+        try {
+          localStorage.setItem(
+            fullKey,
+            JSON.stringify({ w: Math.round(box.inlineSize), h: Math.round(box.blockSize) }),
+          );
+        } catch {
+          // ignore
         }
-      });
+      }
+    });
 
-      observer.observe(el);
-      return () => observer.disconnect();
-    }, [fullKey, minWidth, minHeight]);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fullKey, minWidth, minHeight]);
 
-    const mergedStyle: React.CSSProperties = {
-      resize: "both",
-      width: storedSize?.w ?? defaultWidth,
-      minWidth,
-      minHeight,
-      ...(storedSize ? { height: storedSize.h } : defaultHeight ? { height: defaultHeight } : {}),
-      ...style,
-    };
+  const mergedStyle: React.CSSProperties = {
+    resize: "both",
+    width: storedSize?.w ?? defaultWidth,
+    minWidth,
+    minHeight,
+    ...(storedSize ? { height: storedSize.h } : defaultHeight ? { height: defaultHeight } : {}),
+    ...style,
+  };
 
-    return (
-      <div
-        ref={innerRef}
-        className={[
-          "relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] max-w-[calc(100vw-2rem)] overflow-hidden",
-          className,
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        style={mergedStyle}
-        {...rest}
-      >
-        {children}
-      </div>
-    );
+  return (
+    <div
+      ref={innerRef}
+      className={[
+        "relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] max-w-[calc(100vw-2rem)] overflow-hidden",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={mergedStyle}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
 }

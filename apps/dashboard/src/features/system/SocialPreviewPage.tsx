@@ -238,10 +238,7 @@ function getImageFilter(layer: SocialPreviewImageLayer) {
   return `brightness(${getImageBrightness(layer)}) contrast(${getImageContrast(layer)})`;
 }
 
-function getImageTintStyle(
-  layer: SocialPreviewImageLayer,
-  imageTransform: string,
-): CSSProperties {
+function getImageTintStyle(layer: SocialPreviewImageLayer, imageTransform: string): CSSProperties {
   return {
     backgroundColor: getImageTintColor(layer),
     maskImage: `url(${layer.src})`,

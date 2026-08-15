@@ -1,10 +1,22 @@
 import type { FieldControlSize } from "./FieldPrimitives.tsx";
 
 export const fieldShellClass = "space-y-1";
-export const fieldLabelClass = "block px-[5px] text-xs font-medium text-[var(--ds-text-subtle)]";
+
+/**
+ * Horizontal inset shared by a field's label, hint and error.
+ *
+ * @remarks
+ * Stated once and referenced by all three, because they sit above and below the
+ * same control and have to start on the same vertical line. The label carried
+ * this value whilst the hint and the error did not, so every field in the
+ * dashboard had its help text five pixels to the left of its label.
+ */
+export const fieldTextInsetClass = "px-[5px]";
+
+export const fieldLabelClass = `block ${fieldTextInsetClass} text-xs font-medium text-[var(--ds-text-subtle)]`;
 export const fieldOptionalClass = "font-normal text-[var(--ds-text-subtle)]";
-export const fieldHelpClass = "text-xs text-[var(--ds-text-subtle)]";
-export const fieldErrorClass = "text-xs text-red-500";
+export const fieldHelpClass = `${fieldTextInsetClass} text-xs text-[var(--ds-text-subtle)]`;
+export const fieldErrorClass = `${fieldTextInsetClass} text-xs text-red-500`;
 export const fieldControlBaseClass =
   "box-border rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)] transition-colors placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-focus)] focus:ring-2 focus:ring-[var(--ds-focus-ring)] disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]";
 export const fieldControlInvalidClass =

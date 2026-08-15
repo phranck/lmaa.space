@@ -27,11 +27,7 @@ export function UserAvatarEditor({
     <div className="flex flex-col items-center gap-3 shrink-0">
       <div className="size-24 rounded-full overflow-hidden ring-2 ring-[var(--ds-border)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
         {currentAvatarUrl ? (
-          <img
-            src={currentAvatarUrl}
-            alt={displayUsername}
-            className="size-full object-cover"
-          />
+          <img src={currentAvatarUrl} alt={displayUsername} className="size-full object-cover" />
         ) : (
           <span className="text-3xl font-semibold text-[var(--ds-text-subtle)] select-none">
             {displayUsername[0]?.toUpperCase()}

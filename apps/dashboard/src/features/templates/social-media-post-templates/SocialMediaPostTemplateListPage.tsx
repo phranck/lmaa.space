@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import type { SocialMediaPostTemplate } from "@lmaa/contracts";
 import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
@@ -189,9 +190,11 @@ function PlatformBadge({ platform }: { platform: string }) {
   if (!def) return null;
   const Icon = def.icon;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ds-surface-hover)] px-2 py-0.5 text-xs">
-      <Icon size={10} />
-      <span>{def.label}</span>
-    </span>
+    <Badge
+      colorClass="bg-[var(--ds-surface-hover)] text-[var(--ds-text)]"
+      icon={<Icon size={14} />}
+    >
+      {def.label}
+    </Badge>
   );
 }

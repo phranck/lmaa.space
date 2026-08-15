@@ -62,13 +62,13 @@ export function BlueskyAccountForm({
         }
         label={
           <>
-          {labels.appPassword}
-          {!requirePassword && hasStoredPassword && (
-            <span className="ml-2 text-[var(--ds-text-muted)]">
-              ({labels.appPasswordKeepHint})
-            </span>
-          )}
-        </>
+            {labels.appPassword}
+            {!requirePassword && hasStoredPassword && (
+              <span className="ml-2 text-[var(--ds-text-muted)]">
+                ({labels.appPasswordKeepHint})
+              </span>
+            )}
+          </>
         }
         onChange={(event) => onChange({ ...form, appPassword: event.target.value })}
         placeholder="xxxx-xxxx-xxxx-xxxx"

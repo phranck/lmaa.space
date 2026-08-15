@@ -31,6 +31,7 @@ import {
   NotebookIcon,
   PaperPlaneTiltIcon,
   PauseCircleIcon,
+  RobotIcon,
   SlidersHorizontalIcon,
   ShareNetworkIcon,
   SquareHalfBottomIcon,
@@ -599,6 +600,14 @@ function ReportsGroup({
         <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
         <span className="flex-1">{submissions.tabs.shopReports}</span>
         <SidebarSubItemBadge count={shopReportsCount} />
+      </NavLink>
+      <NavLink
+        to="/reports/automated-checks"
+        onClick={onItemClick}
+        className={sidebarGroupItemClass}
+      >
+        <RobotIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+        <span className="flex-1">{submissions.tabs.automatedChecks}</span>
       </NavLink>
     </CollapsibleSidebarGroup>
   );

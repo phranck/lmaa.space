@@ -1,19 +1,17 @@
-import {
-  FileTextIcon,
-  SealWarningIcon,
-  TrayIcon,
-} from "@phosphor-icons/react";
+import { FileTextIcon, RobotIcon, SealWarningIcon, TrayIcon } from "@phosphor-icons/react";
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { type SubmissionStatus } from "@lmaa/shared";
+import { type ReviewVerdict, type SubmissionStatus } from "@lmaa/shared";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { StatusBadge } from "@/components/ui/StatusBadge.tsx";
 import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useReviewVerdictBySubmission } from "@/features/overview/hooks/useReviewJob.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
@@ -21,6 +19,20 @@ const STATUS_COLORS: Record<SubmissionStatus, string> = {
   onhold: "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]",
   approved: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
   rejected: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
+};
+
+/**
+ * The colour each recommendation carries.
+ *
+ * @remarks
+ * A recommendation to admit and one to reject are opposite answers, so they
+ * take the same colours the resulting status takes further down the table
+ * rather than one shared accent that makes the reader stop and read the word.
+ */
+const VERDICT_COLORS: Record<ReviewVerdict, string> = {
+  accept: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
+  reject: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
+  onhold: "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]",
 };
 
 function useStatusLabels() {
@@ -47,6 +59,7 @@ export function SuggestionsTab({
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const statusLabels = useStatusLabels();
+  const reviewBySubmission = useReviewVerdictBySubmission();
   const submissionsMessages = messages.submissions;
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
@@ -57,32 +70,45 @@ export function SuggestionsTab({
         header: messages.shops.table.shop,
         className: "max-w-[30rem]",
         sortKey: (submission) => submission.shopName.toLowerCase(),
-        cell: (submission) => (
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-medium truncate text-[var(--ds-text)]">{submission.shopName}</p>
-              <StatusBadge
-                value={submission.status}
-                label={statusLabels[submission.status]}
-                colorMap={STATUS_COLORS}
-              />
-              {submission.readyForReview && (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
-                  <SealWarningIcon weight="duotone" className="w-3 h-3" />
-                  {submissionsMessages.suggestions.reviewBadge}
-                </span>
-              )}
+        cell: (submission) => {
+          const verdict = reviewBySubmission.get(submission.id)?.verdict ?? null;
+          return (
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-medium truncate text-[var(--ds-text)]">{submission.shopName}</p>
+                <StatusBadge
+                  value={submission.status}
+                  label={statusLabels[submission.status]}
+                  colorMap={STATUS_COLORS}
+                />
+                {verdict ? (
+                  <Badge
+                    colorClass={VERDICT_COLORS[verdict]}
+                    icon={<RobotIcon weight="duotone" className="size-3.5" />}
+                  >
+                    {messages.submissions.review.verdicts[verdict]}
+                  </Badge>
+                ) : null}
+                {submission.readyForReview && (
+                  <Badge
+                    colorClass="bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]"
+                    icon={<SealWarningIcon weight="duotone" className="size-3.5" />}
+                  >
+                    {submissionsMessages.suggestions.reviewBadge}
+                  </Badge>
+                )}
+              </div>
+              <a
+                href={submission.shopUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[var(--color-primary)] hover:underline truncate block"
+              >
+                {submission.shopUrl}
+              </a>
             </div>
-            <a
-              href={submission.shopUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-[var(--color-primary)] hover:underline truncate block"
-            >
-              {submission.shopUrl}
-            </a>
-          </div>
-        ),
+          );
+        },
       },
       {
         id: "submitted",
@@ -100,9 +126,7 @@ export function SuggestionsTab({
                 minute: "2-digit",
               })}
             </div>
-            {submission.submitterEmail && (
-              <div>{submission.submitterEmail}</div>
-            )}
+            {submission.submitterEmail && <div>{submission.submitterEmail}</div>}
           </div>
         ),
       },
@@ -147,7 +171,16 @@ export function SuggestionsTab({
         ),
       },
     ],
-    [locale, pathname, search, messages.shops.table.shop, navigate, statusLabels, submissionsMessages],
+    [
+      locale,
+      pathname,
+      search,
+      messages,
+      navigate,
+      reviewBySubmission,
+      statusLabels,
+      submissionsMessages,
+    ],
   );
 
   return (

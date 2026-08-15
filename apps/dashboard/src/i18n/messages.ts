@@ -18,6 +18,8 @@ export interface DashboardMessages {
     saved: string;
     sending: string;
     sendTestEmail: string;
+    startCheck: string;
+    retryCheck: string;
     edit: string;
     create: string;
     delete: string;
@@ -509,6 +511,75 @@ export interface DashboardMessages {
       suggestions: string;
       deadLinks: string;
       shopReports: string;
+      automatedChecks: string;
+    };
+    automatedChecks: {
+      columnShop: string;
+      columnState: string;
+      columnVerdict: string;
+      columnModel: string;
+      columnCost: string;
+      columnFinished: string;
+      costIncomplete: string;
+      totalLabel: string;
+      todayLabel: string;
+      emptyTitle: string;
+      emptyHint: string;
+    };
+    review: {
+      title: string;
+      none: string;
+      noneHint: string;
+      stateLabel: string;
+      verdictLabel: string;
+      modelLabel: string;
+      costLabel: string;
+      attemptLabel: string;
+      onholdLabel: string;
+      proposalPrefilled: string;
+      acceptPrefilled: string;
+      timelineLabel: string;
+      reportLabel: string;
+      checkedAtLabel: string;
+      resendReport: string;
+      states: {
+        queued: string;
+        running: string;
+        provider_waiting: string;
+        applying: string;
+        completed: string;
+        failed: string;
+        cancelled: string;
+      };
+      verdicts: {
+        accept: string;
+        reject: string;
+        onhold: string;
+      };
+      progress: {
+        title: string;
+        elapsedLabel: string;
+        queuedHint: string;
+        runningHint: string;
+        doneHint: string;
+        stopCheck: string;
+        show: string;
+      };
+      events: {
+        "provider.started": string;
+        "result.validated": string;
+        "result.invalid": string;
+        "attempt.failed": string;
+        "result.enriched": string;
+        "result.flagged": string;
+        "result.applied": string;
+        "result.conflict": string;
+        "result.none": string;
+        "job.cancelled": string;
+        "job.failed": string;
+        "report.sent": string;
+        "report.failed": string;
+      };
     };
     status: {
       pending: string;
@@ -1220,6 +1291,41 @@ export interface DashboardMessages {
       title: string;
       notificationsTab: string;
       domainAlertsTab: string;
+      reviewTab: string;
+      review: {
+        title: string;
+        subtitle: string;
+        keyMissing: string;
+        modeLabel: string;
+        modeOff: string;
+        modeAssist: string;
+        modeHintOff: string;
+        modeHintAssist: string;
+        autoApplyTitle: string;
+        autoApplyHint: string;
+        autoApplyAccept: string;
+        autoApplyReject: string;
+        autoApplyBlocked: string;
+        modelLabel: string;
+        modelHint: string;
+        modelLoading: string;
+        effortLabel: string;
+        effortHint: string;
+        effortUnsupported: string;
+        maxAttemptsLabel: string;
+        maxAttemptsHint: string;
+        costTitle: string;
+        costPerCheckLabel: string;
+        costPerCheckHint: string;
+        costPerDayLabel: string;
+        costPerDayHint: string;
+        costHint: string;
+        reportTitle: string;
+        reportTemplateLabel: string;
+        reportHint: string;
+        reportRequireTemplate: string;
+        saveError: string;
+      };
       newShopSubmission: {
         title: string;
         recipientLabel: string;
@@ -1464,6 +1570,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saved: "Gespeichert",
       sending: "Wird gesendet…",
       sendTestEmail: "Test Email senden",
+      startCheck: "Prüfung starten",
+      retryCheck: "Erneut prüfen",
       edit: "Bearbeiten",
       create: "Erstellen",
       delete: "Löschen",
@@ -1968,6 +2076,80 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         suggestions: "Vorschläge",
         deadLinks: "Defekte Links",
         shopReports: "Shop-Meldungen",
+        automatedChecks: "Automatische Prüfungen",
+      },
+      automatedChecks: {
+        columnShop: "Shop",
+        columnState: "Zustand",
+        columnVerdict: "Ergebnis",
+        columnModel: "Modell",
+        columnCost: "Kosten",
+        columnFinished: "Abgeschlossen",
+        costIncomplete:
+          "Für einen Versuch dieser Prüfung fehlte eine abrechenbare Größe. Der Betrag ist deshalb eine Untergrenze, tatsächlich abgerechnet wurde mindestens so viel.",
+        totalLabel: "Gesamt",
+        todayLabel: "Heute",
+        emptyTitle: "Noch keine automatische Prüfung",
+        emptyHint: "Sobald die Automatik läuft, erscheint hier jede Prüfung mit ihren Kosten.",
+      },
+      review: {
+        title: "Automatische Prüfung",
+        none: "Für diesen Vorschlag läuft keine automatische Prüfung.",
+        noneHint: "Du kannst eine anstoßen, sobald der Modus nicht mehr auf Aus steht.",
+        stateLabel: "Zustand",
+        verdictLabel: "Ergebnis",
+        modelLabel: "Geprüft mit",
+        costLabel: "Kosten",
+        attemptLabel: "Versuch",
+        onholdLabel: "Grund für die Zurückstellung",
+        proposalPrefilled:
+          "Die automatische Prüfung empfiehlt eine Ablehnung. Kommentar und Langbegründung stehen im Ablehnen-Dialog bereits in den Feldern, das Token ist eingesetzt.",
+        acceptPrefilled:
+          "Die automatische Prüfung empfiehlt die Aufnahme. Alle recherchierten Angaben stehen bereits in den Feldern dieser Seite.",
+        timelineLabel: "Verlauf",
+        reportLabel: "Bericht",
+        checkedAtLabel: "Geprüft am",
+        resendReport: "Erneut senden",
+        states: {
+          queued: "Wartet",
+          running: "Läuft",
+          provider_waiting: "Beim Provider",
+          applying: "Wird angewendet",
+          completed: "Abgeschlossen",
+          failed: "Fehlgeschlagen",
+          cancelled: "Abgebrochen",
+        },
+        verdicts: {
+          accept: "Aufnahme empfohlen",
+          reject: "Ablehnung empfohlen",
+          onhold: "Zurückgestellt",
+        },
+        progress: {
+          title: "Automatische Prüfung",
+          elapsedLabel: "Laufzeit",
+          queuedHint:
+            "Der Auftrag steht in der Warteschlange. Der Worker holt ihn sich innerhalb von 30 Sekunden.",
+          runningHint:
+            "Die Recherche läuft beim Anbieter. Je nach Modell und Denktiefe dauert das einige Minuten. Du kannst das Fenster schließen, die Prüfung läuft weiter.",
+          doneHint: "Die Prüfung ist beendet.",
+          stopCheck: "Prüfung abbrechen",
+          show: "Fortschritt",
+        },
+        events: {
+          "provider.started": "Recherche beim Anbieter gestartet",
+          "result.validated": "Ergebnis geprüft und angenommen",
+          "result.invalid": "Ergebnis unbrauchbar, neuer Versuch",
+          "attempt.failed": "Versuch fehlgeschlagen",
+          "result.enriched": "Angaben in den Vorschlag geschrieben",
+          "result.flagged": "Vorschlag auf bereit zur Prüfung gesetzt",
+          "result.applied": "Entscheidung angewendet",
+          "result.conflict": "Konflikt mit einem bestehenden Shop",
+          "result.none": "Keine Änderung am Vorschlag",
+          "job.cancelled": "Abgebrochen",
+          "job.failed": "Fehlgeschlagen",
+          "report.sent": "Bericht versendet",
+          "report.failed": "Bericht konnte nicht versendet werden",
+        },
       },
       status: {
         pending: "Offen",
@@ -2720,6 +2902,50 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         title: "Einstellungen",
         notificationsTab: "Benachrichtigungen",
         domainAlertsTab: "Domain-Alerts",
+        reviewTab: "Automatische Prüfung",
+        review: {
+          title: "Automatische Prüfung von Shop-Vorschlägen",
+          subtitle:
+            "Änderungen wirken beim nächsten Durchlauf des Workers, spätestens nach 30 Sekunden.",
+          keyMissing:
+            "ANTHROPIC_API_KEY ist nicht gesetzt. Der Worker bleibt stehen, bis der Schlüssel in der Umgebung liegt.",
+          modeLabel: "Modus",
+          modeOff: "Aus",
+          modeAssist: "Unterstützend",
+          modeHintOff:
+            "Es wird nichts geprüft und nichts abgerechnet. Eingehende Vorschläge reihen sich trotzdem ein, sodass beim Einschalten der Rückstand abgearbeitet wird.",
+          modeHintAssist:
+            "Das Rechercheergebnis wird in den Vorschlag geschrieben und er wird auf bereit zur Prüfung gesetzt. Bei einer empfohlenen Ablehnung stehen Kommentar und Langbegründung im Ablehnen-Dialog bereit. Die Entscheidung triffst weiterhin du, sofern du unten nichts anderes freigibst.",
+          autoApplyTitle: "Ohne Rückfrage anwenden",
+          autoApplyHint:
+            "Wirkt nur im Modus Unterstützend. Ohne diese Schalter entscheidest weiterhin du, die Automatik bereitet nur vor.",
+          autoApplyAccept: "Aufnahmen automatisch freigeben",
+          autoApplyReject: "Ablehnungen automatisch veröffentlichen",
+          autoApplyBlocked: "Nur im Modus Unterstützend verfügbar.",
+          modelLabel: "Modell",
+          modelHint:
+            "Auswahl aus den Modellen, die der Anbieter derzeit anbietet. Das gewählte Modell wird bei jeder Prüfung mitgeschrieben, damit ein Ergebnis seinem Modell zuzuordnen bleibt, und es bestimmt den Preis je Million Token.",
+          modelLoading: "Modelle werden geladen…",
+          effortLabel: "Denktiefe",
+          effortHint: "Höhere Stufen recherchieren gründlicher und kosten mehr.",
+          effortUnsupported: "Dieses Modell kennt keine Denktiefe.",
+          maxAttemptsLabel: "Versuche je Vorschlag",
+          maxAttemptsHint: "Danach endet die Prüfung als zurückgestellt.",
+          costTitle: "Kostenbremse",
+          costPerCheckLabel: "Je Prüfung (EUR)",
+          costPerCheckHint:
+            "Erreicht ein einzelner Lauf diesen Betrag, wird er abgebrochen und der Vorschlag zurückgestellt.",
+          costPerDayLabel: "Je Tag (EUR)",
+          costPerDayHint:
+            "Summe aller an einem Tag abgeschlossenen Prüfungen. Ist sie erreicht, nimmt der Worker bis zum nächsten Tag keine neuen Vorschläge mehr an.",
+          costHint:
+            "Der Deckel je Prüfung bricht den laufenden Versuch ab. Ist der Tagesdeckel erreicht, nimmt der Worker keine neuen Vorschläge mehr an.",
+          reportTitle: "Bericht nach jeder Prüfung",
+          reportTemplateLabel: "E-Mail-Template",
+          reportHint: "Geht an OWNER_EMAIL, sobald eine Prüfung abgeschlossen ist.",
+          reportRequireTemplate: "Bitte zuerst ein Template wählen, um den Bericht zu aktivieren.",
+          saveError: "Die Einstellungen konnten nicht gespeichert werden.",
+        },
         newShopSubmission: {
           title: "Neuer Shop-Vorschlag",
           recipientLabel: "Empfänger",
@@ -2967,6 +3193,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saved: "Saved",
       sending: "Sending…",
       sendTestEmail: "Send test email",
+      startCheck: "Start check",
+      retryCheck: "Check again",
       edit: "Edit",
       create: "Create",
       delete: "Delete",
@@ -3469,6 +3697,79 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         suggestions: "Suggestions",
         deadLinks: "Dead links",
         shopReports: "Shop reports",
+        automatedChecks: "Automated checks",
+      },
+      automatedChecks: {
+        columnShop: "Shop",
+        columnState: "State",
+        columnVerdict: "Result",
+        columnModel: "Model",
+        columnCost: "Cost",
+        columnFinished: "Finished",
+        costIncomplete:
+          "One attempt of this check was missing a billable dimension. The amount is therefore a floor: at least this much was billed.",
+        totalLabel: "Total",
+        todayLabel: "Today",
+        emptyTitle: "No automated check yet",
+        emptyHint: "Once automation runs, every check appears here with what it cost.",
+      },
+      review: {
+        title: "Automated review",
+        none: "No automated review is running for this suggestion.",
+        noneHint: "You can start one as soon as the mode is no longer Off.",
+        stateLabel: "State",
+        verdictLabel: "Result",
+        modelLabel: "Checked with",
+        costLabel: "Cost",
+        attemptLabel: "Attempt",
+        onholdLabel: "Reason for holding it back",
+        proposalPrefilled:
+          "The automated check recommends a rejection. The comment and the full reasoning are already in the fields of the reject dialog, with the token substituted.",
+        acceptPrefilled:
+          "The automated check recommends admitting this shop. Everything it researched is already in the fields on this page.",
+        timelineLabel: "History",
+        reportLabel: "Report",
+        checkedAtLabel: "Checked on",
+        resendReport: "Send again",
+        states: {
+          queued: "Queued",
+          running: "Running",
+          provider_waiting: "With the provider",
+          applying: "Applying",
+          completed: "Completed",
+          failed: "Failed",
+          cancelled: "Cancelled",
+        },
+        verdicts: {
+          accept: "Acceptance recommended",
+          reject: "Rejection recommended",
+          onhold: "On hold",
+        },
+        progress: {
+          title: "Automated check",
+          elapsedLabel: "Running for",
+          queuedHint: "The job is queued. The worker picks it up within 30 seconds.",
+          runningHint:
+            "The research is running at the provider. Depending on the model and the reasoning effort this takes a few minutes. You can close this window, the check keeps running.",
+          doneHint: "The check has finished.",
+          stopCheck: "Stop the check",
+          show: "Progress",
+        },
+        events: {
+          "provider.started": "Research started at the provider",
+          "result.validated": "Result checked and accepted",
+          "result.invalid": "Result unusable, trying again",
+          "attempt.failed": "Attempt failed",
+          "result.enriched": "Findings written into the suggestion",
+          "result.flagged": "Suggestion marked ready for review",
+          "result.applied": "Decision applied",
+          "result.conflict": "Conflict with an existing shop",
+          "result.none": "Suggestion left unchanged",
+          "job.cancelled": "Cancelled",
+          "job.failed": "Failed",
+          "report.sent": "Report sent",
+          "report.failed": "Report could not be sent",
+        },
       },
       status: {
         pending: "Open",
@@ -4215,6 +4516,49 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       settings: {
         title: "Settings",
         notificationsTab: "Notifications",
+        reviewTab: "Automated review",
+        review: {
+          title: "Automated review of shop suggestions",
+          subtitle: "Changes take effect on the worker's next run, within thirty seconds.",
+          keyMissing:
+            "ANTHROPIC_API_KEY is not set. The worker stays idle until the key is present in the environment.",
+          modeLabel: "Mode",
+          modeOff: "Off",
+          modeAssist: "Assist",
+          modeHintOff:
+            "Nothing is checked and nothing is billed. Incoming suggestions still queue up, so switching it on works through the backlog.",
+          modeHintAssist:
+            "The research is written into the suggestion and it is marked ready for review. For a recommended rejection, the comment and full reasoning are waiting in the reject dialog. You still decide, unless you allow otherwise below.",
+          autoApplyTitle: "Apply without asking",
+          autoApplyHint:
+            "Only has an effect in Assist mode. Without these switches you still decide, and the automation only prepares.",
+          autoApplyAccept: "Publish acceptances automatically",
+          autoApplyReject: "Publish rejections automatically",
+          autoApplyBlocked: "Available in Assist mode only.",
+          modelLabel: "Model",
+          modelHint:
+            "Chosen from the models the provider currently offers. The choice is recorded with every check, so a result stays tied to the model that produced it, and it sets the price per million tokens.",
+          modelLoading: "Loading models…",
+          effortLabel: "Reasoning effort",
+          effortHint: "Higher levels research more thoroughly and cost more.",
+          effortUnsupported: "This model has no reasoning effort.",
+          maxAttemptsLabel: "Attempts per suggestion",
+          maxAttemptsHint: "After these, the check ends as on hold.",
+          costTitle: "Cost ceiling",
+          costPerCheckLabel: "Per check (EUR)",
+          costPerCheckHint:
+            "When a single run reaches this amount it is stopped and the suggestion is put on hold.",
+          costPerDayLabel: "Per day (EUR)",
+          costPerDayHint:
+            "Total of every check finished on one day. Once it is reached, the worker takes on no further suggestions until the next day.",
+          costHint:
+            "The per-check ceiling stops the running attempt. Once the daily ceiling is reached, the worker takes on no further suggestions.",
+          reportTitle: "Report after every check",
+          reportTemplateLabel: "Email template",
+          reportHint: "Goes to OWNER_EMAIL as soon as a check finishes.",
+          reportRequireTemplate: "Choose a template first to enable the report.",
+          saveError: "The settings could not be saved.",
+        },
         domainAlertsTab: "Domain Alerts",
         newShopSubmission: {
           title: "New shop suggestion",

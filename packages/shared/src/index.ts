@@ -10,6 +10,10 @@ export * from "./types/shop.js";
 export * from "./types/category.js";
 /** Submission and moderation domain models. */
 export * from "./types/submission.js";
+/** Automated review job states, verdicts and automation modes. */
+export * from "./constants/review-jobs.js";
+/** Automated review job, usage, cost and audit models. */
+export * from "./types/review-job.js";
 /** Admin/auth domain models. */
 export * from "./types/admin.js";
 /** Generic API envelope and pagination models. */

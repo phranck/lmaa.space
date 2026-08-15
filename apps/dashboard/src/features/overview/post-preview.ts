@@ -21,10 +21,7 @@ interface PostPreviewContext {
  * generated server-side at approval time, but its length matches the 8-char
  * `encodeShopToken` output so the count is realistic.
  */
-export function renderPostPreview(
-  body: string | null,
-  context: PostPreviewContext,
-): string {
+export function renderPostPreview(body: string | null, context: PostPreviewContext): string {
   if (!body) return "";
   const variables = buildPreviewVariables(context);
   return body.replace(VAR_REGEX, (_, name: string) => variables[name] ?? "");
@@ -35,8 +32,7 @@ function buildPreviewVariables(context: PostPreviewContext): Record<string, stri
   const categoryNames = submission.categoryIds
     .map((id) => categories.find((c) => c.id === id)?.name)
     .filter((name): name is string => Boolean(name));
-  const dashboardUrl =
-    typeof window !== "undefined" ? window.location.origin : "";
+  const dashboardUrl = typeof window !== "undefined" ? window.location.origin : "";
   return {
     shopName: submission.shopName,
     shopUrl: submission.shopUrl,

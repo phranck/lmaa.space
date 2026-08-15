@@ -13,6 +13,7 @@ import { memo, useMemo } from "react";
 
 import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/shared";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
 import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
@@ -37,26 +38,35 @@ const VisibilityBadge = memo(function VisibilityBadge({
 
   if (visibility === "onhold") {
     return (
-      <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400">
-        <PauseCircleIcon weight="duotone" className="size-3" />
+      <Badge
+        colorClass="bg-amber-500/10 text-amber-400"
+        className="shrink-0"
+        icon={<PauseCircleIcon weight="duotone" className="size-3.5" />}
+      >
         {shopsMessages.table.statusOnhold}
-      </span>
+      </Badge>
     );
   }
   if (visibility === "deleted") {
     return (
-      <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400">
-        <TrashIcon weight="duotone" className="size-3" />
+      <Badge
+        colorClass="bg-red-500/10 text-red-400"
+        className="shrink-0"
+        icon={<TrashIcon weight="duotone" className="size-3.5" />}
+      >
         {shopsMessages.table.statusDeleted}
-      </span>
+      </Badge>
     );
   }
   if (visibility === "rejected") {
     return (
-      <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-500/10 text-orange-400">
-        <XCircleIcon weight="duotone" className="size-3" />
+      <Badge
+        colorClass="bg-orange-500/10 text-orange-400"
+        className="shrink-0"
+        icon={<XCircleIcon weight="duotone" className="size-3.5" />}
+      >
         {shopsMessages.table.statusRejected}
-      </span>
+      </Badge>
     );
   }
   return null;
@@ -101,10 +111,13 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
                 {shop.name}
               </p>
               {shop.needsReview && (
-                <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
-                  <SealWarningIcon weight="duotone" className="size-3" />
+                <Badge
+                  colorClass="bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]"
+                  className="shrink-0"
+                  icon={<SealWarningIcon weight="duotone" className="size-3.5" />}
+                >
                   {shopsMessages.table.needsReview}
-                </span>
+                </Badge>
               )}
               {shop.reminder && (
                 <span
@@ -138,9 +151,9 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
             <div className="flex flex-wrap items-center gap-1">
               <ShopCategoryBadges categories={visibleCategories} emptyLabel="–" />
               {remainingCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-[color-mix(in_oklab,var(--ds-surface-hover)_65%,var(--ds-border)_35%)] text-[var(--ds-text-muted)] text-xs">
+                <Badge colorClass="bg-[color-mix(in_oklab,var(--ds-surface-hover)_65%,var(--ds-border)_35%)] text-[var(--ds-text-muted)]">
                   {shopsMessages.table.categoriesMore.replace("{n}", String(remainingCount))}
-                </span>
+                </Badge>
               )}
             </div>
           );
