@@ -264,7 +264,15 @@ export const reviewAcceptSchema = z
       })
       .strict(),
     headquarters: acceptHeadquartersSchema,
-    geo: acceptGeoSchema,
+    /**
+     * Coordinates of the headquarters.
+     *
+     * @remarks
+     * Optional, because the automation resolves them itself from the address
+     * rather than letting the model geocode. A pasted manual check still
+     * carries them, which is why the field stays.
+     */
+    geo: acceptGeoSchema.optional(),
     socialMedia: z.preprocess((raw) => {
       // The provider lists only the profiles it found, as `[{platform, url}]`.
       // The rest of the code works with a record, so the list is folded into
@@ -594,7 +602,6 @@ export const reviewResultJsonSchema: Record<string, unknown> = {
         "shippingRegions",
         "legal",
         "headquarters",
-        "geo",
         "socialMedia",
         "notes",
       ],

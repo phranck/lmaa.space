@@ -200,3 +200,17 @@ describe("costLimitToNano", () => {
     expect(backToEuros.currency).toBe("EUR");
   });
 });
+
+describe("batch billing", () => {
+  it("prices a batched run at half", () => {
+    // The provider charges 50% of the standard prices for batched usage, so a
+    // check recorded at the standard rate would overstate what was spent and
+    // stop the worker at half the daily ceiling it was given.
+    const usage = { inputTokens: 1_000_000, outputTokens: 0 };
+    const standard = calculateReviewCost(usage, "claude-opus-5");
+    const batched = calculateReviewCost(usage, "claude-opus-5", undefined, "batch");
+
+    expect(BigInt(standard.totalNano)).toBe(5_000_000_000n);
+    expect(BigInt(batched.totalNano)).toBe(BigInt(standard.totalNano) / 2n);
+  });
+});

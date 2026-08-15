@@ -14,6 +14,8 @@ export interface ReviewProviderRequest {
   context: ReviewRunContext;
   /** Ceiling for this attempt, in nano-units of the rate card currency. */
   costLimitNano: bigint;
+  /** Payment methods read from the shop's markup before the run, as canonical keys. */
+  paymentMethods?: readonly string[];
   /** Cancels the run when the worker shuts down or the job is cancelled. */
   signal?: AbortSignal;
   /**
@@ -26,6 +28,17 @@ export interface ReviewProviderRequest {
    * already fit to be read by a moderator.
    */
   onProgress?: (step: string) => void;
+  /**
+   * The batch a previous attempt already submitted this check as.
+   *
+   * @remarks
+   * A worker that restarts, or an attempt that gave up waiting, resumes that
+   * batch instead of submitting a second one. The provider bills what it
+   * processed either way, so resubmitting would pay for the same check twice.
+   */
+  resumeBatchId?: string;
+  /** Called once the check has been submitted, so the batch survives a restart. */
+  onBatchCreated?: (batchId: string) => void;
 }
 
 /**
