@@ -1,7 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type {
   BetaContentBlock,
-  BetaContentBlockParam,
   BetaMessage,
   BetaMessageParam,
 } from "@anthropic-ai/sdk/resources/beta/messages";
@@ -11,10 +10,30 @@ import type { ReviewEffortLevel, ReviewUsage } from "@lmaa/shared";
 import { buildReviewSystemPrompt, buildReviewUserMessage } from "./prompt.js";
 import type { ReviewProvider, ReviewProviderOutcome, ReviewProviderRequest } from "./provider.js";
 import { env } from "../../config/env.js";
-import { geocodeAddress } from "../../lib/geocoding.js";
 import { logger } from "../../lib/logger.js";
-import { readPaymentMethodsFromHtml } from "../../lib/payment-methods-from-html.js";
 import { calculateReviewCost, sumReviewUsage } from "../../lib/review-cost.js";
+
+/** Beta flag for the one-hour cache duration. */
+const EXTENDED_CACHE_BETA = "extended-cache-ttl-2025-04-11";
+
+/**
+ * How often a submitted batch is asked whether it has finished.
+ *
+ * @remarks
+ * Most batches end well inside an hour. Asking every half minute costs one
+ * cheap request and keeps a finished check from sitting around unnoticed.
+ */
+const BATCH_POLL_INTERVAL_MS = 30_000;
+
+/**
+ * How long one attempt waits for its batch.
+ *
+ * @remarks
+ * The provider gives a batch up to 24 hours. Waiting that long would hold a
+ * lease and a worker for a day, so an attempt gives up earlier and the job is
+ * retried, which resumes the same batch rather than paying for a second one.
+ */
+const MAX_BATCH_WAIT_MS = 90 * 60 * 1000;
 
 /** Provider name persisted with every job this adapter runs. */
 const ANTHROPIC_PROVIDER_NAME = "anthropic";
@@ -28,16 +47,6 @@ const ANTHROPIC_PROVIDER_NAME = "anthropic";
  * because a non-streamed one of this size runs into the SDK's HTTP timeout.
  */
 const MAX_TOKENS = 64_000;
-
-/**
- * Most rounds of tool use one attempt may take.
- *
- * @remarks
- * A shop check reads a handful of pages and geocodes one address, so a run that
- * passes this has stopped making progress. The cost ceiling would catch it too,
- * but later and more expensively.
- */
-const MAX_TURNS = 30;
 
 /**
  * Largest slice of one fetched page that may enter the conversation.
@@ -71,31 +80,6 @@ const MAX_FETCHES = 8;
  * as well, so this bounds both.
  */
 const MAX_SEARCHES = 8;
-
-const GEOCODE_TOOL_NAME = "geocode";
-
-const PAYMENT_TOOL_NAME = "payment_methods";
-
-/**
- * Largest page the payment tool reads.
- *
- * @remarks
- * Only the markup is scanned and a short list comes back, so the page never
- * enters the conversation. The ceiling is there so one oversized page cannot
- * occupy the worker.
- */
-const MAX_PAYMENT_PAGE_BYTES = 2_000_000;
-
-interface GeocodeToolInput {
-  street?: unknown;
-  postalCode?: unknown;
-  city?: unknown;
-  countryCode?: unknown;
-}
-
-function asOptionalString(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
-}
 
 /**
  * Reads the token counts out of one provider response.
@@ -168,77 +152,6 @@ function extractJson(message: BetaMessage): unknown {
  * error type reach the database. The full cause goes to the log, where it is
  * tied to the job through the error id.
  */
-/**
- * Turns a finished content block into a line about what the run does next.
- *
- * @param onProgress - Where the line goes.
- * @returns A listener for the stream's completed blocks.
- *
- * @remarks
- * A block completes as its input finishes streaming, so a tool block is
- * reported just before the tool runs, which is exactly the step somebody
- * waiting wants to see. Blocks that say nothing about progress produce no line
- * rather than a vague one.
- */
-export function reportProgress(onProgress: (step: string) => void) {
-  return (block: BetaContentBlock): void => {
-    if (block.type === "thinking") {
-      onProgress("Denkt nach");
-      return;
-    }
-
-    if (block.type !== "server_tool_use" && block.type !== "tool_use") return;
-
-    const input = (block.input ?? {}) as Record<string, unknown>;
-
-    if (block.name === "web_search") {
-      const query = typeof input.query === "string" ? input.query : null;
-      onProgress(query ? `Sucht nach „${query}"` : "Sucht");
-      return;
-    }
-
-    if (block.name === "web_fetch") {
-      const url = typeof input.url === "string" ? input.url : null;
-      let host: string | null = null;
-      if (url) {
-        try {
-          host = new URL(url).hostname;
-        } catch {
-          host = null;
-        }
-      }
-      onProgress(host ? `Liest ${host}` : "Liest eine Seite");
-      return;
-    }
-
-    if (block.name === GEOCODE_TOOL_NAME) {
-      onProgress("Prüft die Adresse");
-      return;
-    }
-
-    if (block.name === PAYMENT_TOOL_NAME) {
-      onProgress("Liest die Zahlungsarten aus der Seite");
-      return;
-    }
-
-    // The search and fetch tools filter what they found through the provider's
-    // code execution, so these names show up in a run that never asked for code
-    // to be run. They are named after what they do here rather than after the
-    // tool, which would tell a moderator nothing.
-    if (block.name === "code_execution" || block.name === "bash_code_execution") {
-      onProgress("Wertet die Fundstellen aus");
-      return;
-    }
-
-    if (block.name === "text_editor_code_execution") {
-      onProgress("Bereitet die Fundstellen auf");
-      return;
-    }
-
-    onProgress(`Führt ${block.name} aus`);
-  };
-}
-
 function readApiMessage(error: { error?: unknown }): string | null {
   const body = error.error;
   if (typeof body !== "object" || body === null) return null;
@@ -368,373 +281,210 @@ export class AnthropicReviewProvider implements ReviewProvider {
       });
     }
 
-    const messages: BetaMessageParam[] = [
-      { role: "user", content: buildReviewUserMessage(request) },
-    ];
+    let batchId = request.resumeBatchId ?? null;
 
-    const usages: ReviewUsage[] = [];
-    let providerResponseId: string | null = null;
-    // The search and fetch tools filter their results through code execution,
-    // which runs in a container. A follow-up request that carries pending tool
-    // uses from such a turn is refused unless it names that container, so the
-    // identifier is carried forward once the provider has opened one.
-    let containerId: string | null = null;
-    let executedToolCalls = 0;
-
-    for (let turn = 0; turn < MAX_TURNS; turn += 1) {
-      let message: BetaMessage;
-      // The usage of the turn in flight, kept as the stream reports it. A run
-      // that is cancelled mid-turn is billed for what it had already produced,
-      // so the last snapshot is what makes that spend bookable.
-      let pendingUsage: ReviewUsage | null = null;
-      try {
-        const stream = client.beta.messages.stream(
-          {
-            model: this.model,
-            max_tokens: MAX_TOKENS,
-            ...(containerId ? { container: containerId } : {}),
-            thinking: { type: "adaptive" },
-            // The result shape is given in the system prompt rather than through
-            // `output_config.format`. The provider compiles a response schema
-            // into a grammar together with the tool schemas, and the three
-            // tools this run needs already exhaust that budget: a request
-            // carrying both is refused before generation with "the compiled
-            // grammar is too large". The contract in `@lmaa/contracts` decides
-            // whether an answer may be applied either way, so nothing about
-            // validation changes.
-            // Sent only where the model takes it. A model that reports no
-            // effort refuses the whole request over the parameter alone.
-            ...(this.effort ? { output_config: { effort: this.effort } } : {}),
-            system: [
-              {
-                type: "text",
-                text: buildReviewSystemPrompt(request.skill),
-                // The rules are identical on every run, so they are read back
-                // from the cache at a tenth of the input rate instead of being
-                // paid for in full each time.
-                cache_control: { type: "ephemeral" },
-              },
-            ],
-            tools: [
-              { type: "web_search_20260209", name: "web_search", max_uses: MAX_SEARCHES },
-              {
-                type: "web_fetch_20260209",
-                name: "web_fetch",
-                max_uses: MAX_FETCHES,
-                max_content_tokens: MAX_FETCH_CONTENT_TOKENS,
-              },
-              {
-                name: PAYMENT_TOOL_NAME,
-                description:
-                  "Liest die Zahlungsarten aus dem Quelltext einer Seite des geprüften Shops und gibt sie als kanonische Schlüssel zurück. Nötig, weil Shops ihre Zahlungsarten als Bilder zeichnen und der Seitenabruf nur den Text liefert, in dem sie nicht vorkommen. Ohne Adresse wird die Startseite gelesen.",
-                input_schema: {
-                  type: "object",
-                  additionalProperties: false,
-                  properties: {
-                    url: {
-                      type: "string",
-                      description:
-                        "Seite des geprüften Shops, etwa die Startseite, die Zahlungsseite oder die Kasse. Nur Adressen dieses Shops sind erlaubt.",
-                    },
+    try {
+      if (!batchId) {
+        const batch = await client.beta.messages.batches.create({
+          betas: [EXTENDED_CACHE_BETA],
+          requests: [
+            {
+              custom_id: `review-${request.submissionId}`,
+              params: {
+                model: this.model,
+                max_tokens: MAX_TOKENS,
+                thinking: { type: "adaptive" },
+                ...(this.effort ? { output_config: { effort: this.effort } } : {}),
+                system: [
+                  {
+                    type: "text",
+                    text: buildReviewSystemPrompt(request.skill),
+                    // Held for an hour rather than the default five minutes, so
+                    // a batch that waits in the queue and the checks that
+                    // follow it read the rules back instead of writing them
+                    // again. The write is a fifth of what a check costs.
+                    cache_control: { type: "ephemeral", ttl: "1h" },
                   },
-                  required: [],
-                },
-              },
-              {
-                name: GEOCODE_TOOL_NAME,
-                description:
-                  "Löst eine Adresse in Koordinaten auf. Führt die Kaskade aus den Aufnahmeregeln selbst aus: vollständige Adresse, dann ohne Straße, dann Postleitzahl und Ort. Gibt Breitengrad, Längengrad, die gefundene Adresse und die Genauigkeit zurück.",
-                input_schema: {
-                  type: "object",
-                  additionalProperties: false,
-                  properties: {
-                    street: { type: "string", description: "Straße mit Hausnummer" },
-                    postalCode: { type: "string", description: "Postleitzahl" },
-                    city: { type: "string", description: "Ort" },
-                    countryCode: {
-                      type: "string",
-                      description: "Ländercode nach ISO 3166-1 alpha-2, etwa DE",
-                    },
+                ],
+                tools: [
+                  { type: "web_search_20260209", name: "web_search", max_uses: MAX_SEARCHES },
+                  {
+                    type: "web_fetch_20260209",
+                    name: "web_fetch",
+                    max_uses: MAX_FETCHES,
+                    max_content_tokens: MAX_FETCH_CONTENT_TOKENS,
                   },
-                  required: ["city"],
-                },
+                ],
+                messages: [{ role: "user", content: buildReviewUserMessage(request) }],
               },
-            ],
-            messages,
-          },
-          { signal: request.signal },
-        );
-        if (request.onProgress) stream.on("contentBlock", reportProgress(request.onProgress));
-        stream.on("streamEvent", (_event, snapshot) => {
-          pendingUsage = readUsage(snapshot);
+            },
+          ],
         });
-        message = await stream.finalMessage();
-      } catch (error) {
-        const classified = classifyError(error);
-        logger.error({ err: error, submissionId: request.submissionId }, "review provider failed");
-        return this.outcome("failed", {
-          usage: sumReviewUsage(pendingUsage ? [...usages, pendingUsage] : usages),
-          providerResponseId,
-          errorCode: classified.code,
-          errorMessage: classified.message,
-          retryable: classified.retryable,
-        });
+
+        batchId = batch.id;
+        request.onBatchCreated?.(batch.id);
+        request.onProgress?.("Prüfung eingereicht, wartet auf den Anbieter");
+      } else {
+        request.onProgress?.("Setzt die eingereichte Prüfung fort");
       }
 
-      providerResponseId = message.id;
-      containerId = message.container?.id ?? containerId;
-      usages.push(readUsage(message));
+      const finished = await this.awaitBatch(client, batchId, request);
+      if (finished.kind !== "ended") return finished.outcome;
 
-      const spent = BigInt(calculateReviewCost(sumReviewUsage(usages), this.model).totalNano);
-      if (spent > request.costLimitNano) {
-        return this.outcome("budget_exceeded", {
-          usage: sumReviewUsage(usages),
-          providerResponseId,
-          stopReason: message.stop_reason,
-          errorCode: "REVIEW_COST_LIMIT",
-          errorMessage: "Der Kostendeckel für diese Prüfung wurde erreicht",
-        });
-      }
+      const results = await client.beta.messages.batches.results(batchId);
+      for await (const entry of results) {
+        if (entry.custom_id !== `review-${request.submissionId}`) continue;
 
-      if (message.stop_reason === "refusal") {
-        return this.outcome("refused", {
-          usage: sumReviewUsage(usages),
-          providerResponseId,
-          stopReason: message.stop_reason,
-          errorCode: "PROVIDER_REFUSED",
-          errorMessage: "Der Provider hat die Bearbeitung abgelehnt",
-        });
-      }
-
-      // A server-side tool loop that hits its own iteration ceiling pauses. The
-      // conversation continues by sending it back unchanged; adding a nudge
-      // would be read as a new instruction.
-      if (message.stop_reason === "pause_turn") {
-        messages.push({ role: "assistant", content: message.content });
-        continue;
-      }
-
-      if (message.stop_reason === "tool_use") {
-        const toolUses = message.content.filter(
-          (block): block is Extract<typeof block, { type: "tool_use" }> =>
-            block.type === "tool_use",
-        );
-        if (toolUses.length === 0) {
-          return this.outcome("invalid_output", {
-            usage: sumReviewUsage(usages),
-            providerResponseId,
-            stopReason: message.stop_reason,
-            errorCode: "PROVIDER_EMPTY_TOOL_USE",
-            errorMessage: "Der Provider meldete Werkzeugnutzung ohne Aufruf",
-            retryable: true,
+        if (entry.result.type === "errored") {
+          const message = entry.result.error.error.message;
+          return this.outcome("failed", {
+            providerResponseId: batchId,
+            errorCode: "PROVIDER_BATCH_ERROR",
+            errorMessage: `Provider hat die Anfrage abgelehnt: ${message}`,
+            retryable: false,
           });
         }
 
-        messages.push({ role: "assistant", content: message.content });
-        const results = await Promise.all(
-          toolUses.map((call) => this.runTool(call, request.shopUrl)),
-        );
-        executedToolCalls += results.length;
-        messages.push({ role: "user", content: results });
-        continue;
+        if (entry.result.type !== "succeeded") {
+          return this.outcome("failed", {
+            providerResponseId: batchId,
+            errorCode: `PROVIDER_BATCH_${entry.result.type.toUpperCase()}`,
+            errorMessage: `Die eingereichte Prüfung wurde ${entry.result.type === "canceled" ? "abgebrochen" : "nicht rechtzeitig bearbeitet"}.`,
+            retryable: entry.result.type === "expired",
+          });
+        }
+
+        return this.readMessage(entry.result.message, request, batchId);
       }
 
-      const raw = extractJson(message);
-      if (raw === null) {
-        return this.outcome("invalid_output", {
-          usage: sumReviewUsage(usages),
-          providerResponseId,
-          stopReason: message.stop_reason,
-          errorCode:
-            message.stop_reason === "max_tokens" ? "PROVIDER_TRUNCATED" : "PROVIDER_NOT_JSON",
-          errorMessage:
-            message.stop_reason === "max_tokens"
-              ? "Die Antwort wurde abgeschnitten, bevor das Ergebnis vollständig war"
-              : "Die Antwort enthielt kein auswertbares JSON",
-          retryable: true,
-        });
+      return this.outcome("failed", {
+        providerResponseId: batchId,
+        errorCode: "PROVIDER_BATCH_EMPTY",
+        errorMessage: "Der Anbieter hat kein Ergebnis zu dieser Prüfung zurückgegeben.",
+        retryable: true,
+      });
+    } catch (error) {
+      const classified = classifyError(error);
+      logger.error({ err: error, submissionId: request.submissionId }, "review provider failed");
+      return this.outcome("failed", {
+        providerResponseId: batchId,
+        errorCode: classified.code,
+        errorMessage: classified.message,
+        retryable: classified.retryable,
+      });
+    }
+  }
+
+  /**
+   * Waits for a submitted batch to finish.
+   *
+   * @param client - The provider client.
+   * @param batchId - The batch this check was submitted as.
+   * @param request - The run, for its cancellation signal and its progress.
+   * @returns That the batch ended, or the outcome that ends the attempt.
+   *
+   * @remarks
+   * A cancelled run cancels the batch as well, so a check somebody stopped does
+   * not go on being processed and billed.
+   */
+  private async awaitBatch(
+    client: Anthropic,
+    batchId: string,
+    request: ReviewProviderRequest,
+  ): Promise<{ kind: "ended" } | { kind: "other"; outcome: ReviewProviderOutcome }> {
+    const deadline = Date.now() + MAX_BATCH_WAIT_MS;
+
+    for (;;) {
+      if (request.signal?.aborted) {
+        await client.beta.messages.batches.cancel(batchId).catch(() => undefined);
+        return {
+          kind: "other",
+          outcome: this.outcome("failed", {
+            providerResponseId: batchId,
+            errorCode: "PROVIDER_ABORTED",
+            errorMessage: "Lauf wurde abgebrochen",
+            retryable: false,
+          }),
+        };
       }
 
-      const usage = sumReviewUsage(usages);
-      usage.toolCalls = executedToolCalls;
-      return this.outcome("result", {
-        raw,
+      const batch = await client.beta.messages.batches.retrieve(batchId);
+      if (batch.processing_status === "ended") return { kind: "ended" };
+
+      if (Date.now() > deadline) {
+        return {
+          kind: "other",
+          outcome: this.outcome("failed", {
+            providerResponseId: batchId,
+            errorCode: "PROVIDER_BATCH_TIMEOUT",
+            errorMessage:
+              "Der Anbieter hat die Prüfung nicht innerhalb des Zeitfensters bearbeitet.",
+            retryable: true,
+          }),
+        };
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, BATCH_POLL_INTERVAL_MS));
+    }
+  }
+
+  /**
+   * Turns a finished provider message into the outcome of one attempt.
+   *
+   * @param message - What the provider answered.
+   * @param request - The run, for its cost ceiling.
+   * @param batchId - The batch this came from, kept for correlation.
+   * @returns The parsed result, or why it could not be used.
+   */
+  private readMessage(
+    message: BetaMessage,
+    request: ReviewProviderRequest,
+    batchId: string,
+  ): ReviewProviderOutcome {
+    const usage = readUsage(message);
+    // Priced as a batch, because that is how it was submitted and therefore how
+    // it is billed. Pricing it at the standard rate would trip the ceiling at
+    // half the spending the operator allowed.
+    const spent = BigInt(calculateReviewCost(usage, this.model, undefined, "batch").totalNano);
+
+    if (message.stop_reason === "refusal") {
+      return this.outcome("refused", {
         usage,
-        providerResponseId,
+        providerResponseId: batchId,
         stopReason: message.stop_reason,
+        errorCode: "PROVIDER_REFUSED",
+        errorMessage: "Der Provider hat die Bearbeitung abgelehnt",
       });
     }
 
-    return this.outcome("failed", {
-      usage: sumReviewUsage(usages),
-      providerResponseId,
-      errorCode: "PROVIDER_TURN_LIMIT",
-      errorMessage: "Der Lauf hat die zulässige Anzahl an Werkzeugrunden überschritten",
+    if (spent > request.costLimitNano) {
+      return this.outcome("budget_exceeded", {
+        usage,
+        providerResponseId: batchId,
+        stopReason: message.stop_reason,
+        errorCode: "REVIEW_COST_LIMIT",
+        errorMessage: "Der Kostendeckel für diese Prüfung wurde überschritten",
+      });
+    }
+
+    const parsed = extractJson(message);
+    if (!parsed) {
+      return this.outcome("invalid_output", {
+        usage,
+        providerResponseId: batchId,
+        stopReason: message.stop_reason,
+        errorCode: "PROVIDER_NO_JSON",
+        errorMessage: "Die Antwort enthielt kein auswertbares JSON-Objekt",
+        retryable: true,
+      });
+    }
+
+    return this.outcome("result", {
+      raw: parsed,
+      usage,
+      providerResponseId: batchId,
+      stopReason: message.stop_reason,
     });
-  }
-
-  /**
-   * Executes one tool call on the model's behalf.
-   *
-   * @param call - The tool-use block the provider produced.
-   * @returns A tool result block to send back.
-   *
-   * @remarks
-   * An unknown tool name and a failed geocoding both come back as an error
-   * result rather than throwing. The model can then say so in its result, which
-   * is more useful than losing the whole run over one address.
-   */
-  /**
-   * Reads the payment methods a page of the reviewed shop evidences.
-   *
-   * @param call - The tool call, whose input names the page to read.
-   * @param shopUrl - The shop under review, which bounds where this may look.
-   * @returns The canonical keys and the labels they came from.
-   *
-   * @remarks
-   * The address is checked against the shop's own host before anything is
-   * fetched, so the model cannot point this at a third party and read the
-   * answer back out of the check. Redirects are not followed for the same
-   * reason: a destination checked before a redirect is not the destination.
-   *
-   * Only the extracted list travels back, never the page, so a run pays for a
-   * handful of tokens instead of the hundreds of thousands a shop page holds.
-   */
-  private async runPaymentTool(
-    call: { id: string; name: string; input: unknown },
-    shopUrl: string,
-  ): Promise<BetaContentBlockParam> {
-    const requested = asOptionalString((call.input as { url?: unknown } | null)?.url) ?? shopUrl;
-
-    let target: URL;
-    let shop: URL;
-    try {
-      target = new URL(requested);
-      shop = new URL(shopUrl);
-    } catch {
-      return {
-        type: "tool_result",
-        tool_use_id: call.id,
-        is_error: true,
-        content: "Keine gültige Adresse.",
-      };
-    }
-
-    const sameShop =
-      target.protocol === "https:" &&
-      (target.hostname === shop.hostname ||
-        target.hostname === `www.${shop.hostname}` ||
-        `www.${target.hostname}` === shop.hostname);
-
-    if (!sameShop) {
-      return {
-        type: "tool_result",
-        tool_use_id: call.id,
-        is_error: true,
-        content: `Dieses Werkzeug liest ausschließlich Seiten von ${shop.hostname}.`,
-      };
-    }
-
-    try {
-      const response = await fetch(target, {
-        redirect: "error",
-        headers: { accept: "text/html" },
-        signal: AbortSignal.timeout(20_000),
-      });
-
-      if (!response.ok) {
-        return {
-          type: "tool_result",
-          tool_use_id: call.id,
-          content: `Die Seite antwortete mit Status ${response.status}.`,
-        };
-      }
-
-      const html = (await response.text()).slice(0, MAX_PAYMENT_PAGE_BYTES);
-      const evidence = readPaymentMethodsFromHtml(html);
-
-      return {
-        type: "tool_result",
-        tool_use_id: call.id,
-        content: JSON.stringify({
-          url: target.href,
-          methods: evidence.methods,
-          labels: evidence.labels,
-          note:
-            evidence.methods.length === 0
-              ? "Diese Seite nennt keine Zahlungsart. Kasse, Zahlungsseite oder Fußzeile einer anderen Seite versuchen."
-              : "Die Schlüssel sind bereits kanonisch und können unverändert in paymentMethods übernommen werden.",
-        }),
-      };
-    } catch (error) {
-      logger.warn({ err: error, host: target.hostname }, "review payment tool failed");
-      return {
-        type: "tool_result",
-        tool_use_id: call.id,
-        is_error: true,
-        content: "Die Seite konnte nicht gelesen werden.",
-      };
-    }
-  }
-
-  private async runTool(
-    call: {
-      id: string;
-      name: string;
-      input: unknown;
-    },
-    shopUrl: string,
-  ): Promise<BetaContentBlockParam> {
-    if (call.name === PAYMENT_TOOL_NAME) {
-      return this.runPaymentTool(call, shopUrl);
-    }
-
-    if (call.name !== GEOCODE_TOOL_NAME) {
-      return {
-        type: "tool_result",
-        tool_use_id: call.id,
-        is_error: true,
-        content: `Unbekanntes Werkzeug: ${call.name}`,
-      };
-    }
-
-    const input = (call.input ?? {}) as GeocodeToolInput;
-    try {
-      const result = await geocodeAddress({
-        street: asOptionalString(input.street),
-        postalCode: asOptionalString(input.postalCode),
-        city: asOptionalString(input.city),
-        countryCode: asOptionalString(input.countryCode),
-      });
-
-      if (!result) {
-        return {
-          type: "tool_result",
-          tool_use_id: call.id,
-          content:
-            "Für diese Adresse konnten auch über die gesamte Kaskade keine Koordinaten ermittelt werden.",
-        };
-      }
-
-      return {
-        type: "tool_result",
-        tool_use_id: call.id,
-        content: JSON.stringify({
-          latitude: result.latitude,
-          longitude: result.longitude,
-          matchedAddress: result.displayName,
-          source: result.source,
-        }),
-      };
-    } catch (error) {
-      logger.warn({ err: error }, "review geocode tool failed");
-      return {
-        type: "tool_result",
-        tool_use_id: call.id,
-        is_error: true,
-        content: "Die Geokodierung ist fehlgeschlagen.",
-      };
-    }
   }
 
   private outcome(
