@@ -115,9 +115,12 @@ Format numbers with thousand separators (e.g. `12,345`) when ≥ 1000. If the tr
    - `visa`
    - `mastercard`
    - `american_express`
+   - `maestro`
+   - `shop_pay`
    - Use `credit_card` only when card acceptance is evidenced but no concrete card network can be identified.
    - If Visa, Mastercard, or American Express is evidenced, output the concrete network key and omit `credit_card`.
    - If no accepted payment method can be evidenced, output an empty array. Do not infer methods from an ecommerce platform alone.
+   - Shops usually draw their payment methods as icons, so the names are in the markup and not in the text of a page. Where a tool for reading payment methods from a page is available, use it on the start page and, if that yields nothing, on the payment or checkout page, and take the canonical keys it returns.
 6. For acceptance candidates, determine the headquarters address as completely as possible:
    - `street`
    - `postalCode`

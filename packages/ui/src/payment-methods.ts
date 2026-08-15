@@ -107,6 +107,10 @@ const PAYMENT_METHOD_METADATA: Record<PaymentMethodKey, Omit<PaymentMethodDef, "
     labels: { de: "Mastercard", en: "Mastercard" },
     icon: createSvgIcon(mastercardSvg),
   },
+  // Both carry the generic card until their own logo is licensed and added,
+  // which is the same placeholder Stripe uses.
+  maestro: { labels: { de: "Maestro", en: "Maestro" }, icon: createSvgIcon(cardGenericSvg) },
+  shop_pay: { labels: { de: "Shop Pay", en: "Shop Pay" }, icon: createSvgIcon(cardGenericSvg) },
   american_express: {
     labels: { de: "American Express", en: "American Express" },
     icon: createSvgIcon(americanExpressSvg),
