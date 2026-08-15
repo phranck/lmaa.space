@@ -1,16 +1,16 @@
 # Graph Report - WebApp  (2026-08-15)
 
 ## Corpus Check
-- 817 files · ~622,234 words
+- 818 files · ~623,077 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 30405 nodes · 34899 edges · 1571 communities (1474 shown, 97 thin omitted)
+- 30414 nodes · 34911 edges · 1595 communities (1496 shown, 99 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 397 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c1aa5d9a`
+- Built from commit: `4f1d2965`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1535,6 +1535,8 @@
 - [[_COMMUNITY_Community 1553|Community 1553]]
 - [[_COMMUNITY_Community 1554|Community 1554]]
 - [[_COMMUNITY_Community 1555|Community 1555]]
+- [[_COMMUNITY_Community 1556|Community 1556]]
+- [[_COMMUNITY_Community 1557|Community 1557]]
 - [[_COMMUNITY_Community 1558|Community 1558]]
 - [[_COMMUNITY_Community 1559|Community 1559]]
 - [[_COMMUNITY_Community 1560|Community 1560]]
@@ -1544,10 +1546,32 @@
 - [[_COMMUNITY_Community 1564|Community 1564]]
 - [[_COMMUNITY_Community 1567|Community 1567]]
 - [[_COMMUNITY_Community 1568|Community 1568]]
+- [[_COMMUNITY_Community 1569|Community 1569]]
+- [[_COMMUNITY_Community 1570|Community 1570]]
+- [[_COMMUNITY_Community 1571|Community 1571]]
+- [[_COMMUNITY_Community 1572|Community 1572]]
+- [[_COMMUNITY_Community 1573|Community 1573]]
+- [[_COMMUNITY_Community 1574|Community 1574]]
+- [[_COMMUNITY_Community 1575|Community 1575]]
+- [[_COMMUNITY_Community 1576|Community 1576]]
+- [[_COMMUNITY_Community 1577|Community 1577]]
+- [[_COMMUNITY_Community 1578|Community 1578]]
+- [[_COMMUNITY_Community 1579|Community 1579]]
+- [[_COMMUNITY_Community 1580|Community 1580]]
+- [[_COMMUNITY_Community 1581|Community 1581]]
+- [[_COMMUNITY_Community 1582|Community 1582]]
 - [[_COMMUNITY_Community 1583|Community 1583]]
+- [[_COMMUNITY_Community 1584|Community 1584]]
 - [[_COMMUNITY_Community 1585|Community 1585]]
+- [[_COMMUNITY_Community 1586|Community 1586]]
+- [[_COMMUNITY_Community 1587|Community 1587]]
+- [[_COMMUNITY_Community 1588|Community 1588]]
+- [[_COMMUNITY_Community 1589|Community 1589]]
 - [[_COMMUNITY_Community 1590|Community 1590]]
 - [[_COMMUNITY_Community 1591|Community 1591]]
+- [[_COMMUNITY_Community 1592|Community 1592]]
+- [[_COMMUNITY_Community 1593|Community 1593]]
+- [[_COMMUNITY_Community 1594|Community 1594]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `useI18n()` - 105 edges
@@ -1562,8 +1586,8 @@
 10. `columns` - 24 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `OverlayCard()` --calls--> `resolveOverlayZIndex()`  [INFERRED]
-  apps/dashboard/src/components/ui/OverlayCard.tsx → packages/ui/src/overlay-stack.ts
+- `readPaymentMethodsFromHtml()` --calls--> `normalizePaymentMethods()`  [INFERRED]
+  apps/backend/src/lib/payment-methods-from-html.ts → packages/shared/src/constants/payment-methods.ts
 - `mapShopJsonToShopData()` --calls--> `normalizePaymentMethods()`  [INFERRED]
   apps/backend/src/lib/shopjson-mapper.ts → packages/shared/src/constants/payment-methods.ts
 - `matchesDomainAlertRule()` --calls--> `parseDomainAlertDomains()`  [INFERRED]
@@ -1576,31 +1600,31 @@
 ## Import Cycles
 - None detected.
 
-## Communities (1571 total, 97 thin omitted)
+## Communities (1595 total, 99 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.03
-Nodes (113): shopLikes, extractEuropeanPostalCodePrefix(), normalizePostalQuery(), POSTAL_PATTERNS, PostalPattern, parseCountryFilter(), parseRegionFilter(), ShopFilterParams (+105 more)
+Cohesion: 0.06
+Nodes (55): cache, CacheEntry, getCacheEntry(), getCacheStats(), setCacheEntry(), startCacheCleanupJob(), countPendingSubmissions(), countPublicShops() (+47 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.09
-Nodes (23): ImportResult, useAdminSubmission(), useDeleteSubmission(), useEditSubmission(), useImportSubmissions(), useReviewSubmission(), applySuggestionsStatusFilterSearchParam(), parseSuggestionsStatusFilter() (+15 more)
+Nodes (24): ImportResult, useAdminSubmission(), useAdminSubmissions(), useDeleteSubmission(), useEditSubmission(), useImportSubmissions(), useReviewSubmission(), applySuggestionsStatusFilterSearchParam() (+16 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (91): emailTemplateRoutes, EmailTemplateInsert, extractRecipientAddress(), isEmailRecipient(), ESCAPE_MAP, escapeHtml(), createSubmissionFromFormData(), deleteSubmission() (+83 more)
+Nodes (93): emailTemplateRoutes, env, envSchema, EmailTemplateInsert, extractRecipientAddress(), isEmailRecipient(), ESCAPE_MAP, escapeHtml() (+85 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.05
-Nodes (67): backgroundErrorsRoutes, deadLinkReportsRoutes, folderRoutes, footerConfigRoutes, markdownWidgetsRoutes, meTemplateChoicesRoutes, querySchema, hlsBundleCompleteSchema (+59 more)
+Cohesion: 0.06
+Nodes (58): backgroundErrorsRoutes, deadLinkReportsRoutes, folderRoutes, footerConfigRoutes, formConfigRoutes, markdownWidgetsRoutes, meTemplateChoicesRoutes, querySchema (+50 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.02
 Nodes (57): EventListCard(), EventListCardProps, AnalyticsPage(), AnalyticsSection, CollapsibleList(), CollapsibleListProps, MetricList(), MetricListProps (+49 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.07
-Nodes (36): @/components/HeroLogo.astro, @/layouts/BaseLayout.astro, apiGet(), buildContentDescription(), ContentPageView, emptyRejectedShopsResponse(), getContentWidthClass(), loadInitialRejectedShopsData() (+28 more)
+Cohesion: 0.06
+Nodes (44): @/components/HeroLogo.astro, @/layouts/BaseLayout.astro, apiGet(), buildContentDescription(), ContentPageView, emptyRejectedShopsResponse(), getContentWidthClass(), loadInitialRejectedShopsData() (+36 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.06
@@ -1608,11 +1632,11 @@ Nodes (43): buildDynamicFormPayload(), DynamicFormMultiSelectState, fieldKey(), 
 
 ### Community 7 - "Community 7"
 Cohesion: 0.04
-Nodes (52): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+44 more)
+Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.05
-Nodes (68): authRoutes, inviteAcceptLimit, inviteLookupLimit, uiPreferencesSchema, adminUsers, failure, Result, success (+60 more)
+Nodes (69): authRoutes, inviteAcceptLimit, inviteLookupLimit, uiPreferencesSchema, usersRoutes, adminUsers, failure, Result (+61 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.04
@@ -1623,16 +1647,16 @@ Cohesion: 0.08
 Nodes (44): getAdminShopQueryFn(), getAdminShopQueryKey(), ShopReviewImportResult, ShopVisibilityCounts, useAcceptShopReview(), useAdminShop(), useDeleteShop(), useFetchPreviewImage() (+36 more)
 
 ### Community 11 - "Community 11"
-Cohesion: 0.08
-Nodes (32): CategoryCardProps, FilterToggleButtonProps, useDebouncedCallback(), useGridAnimation(), FilterableCategoryGrid(), FilterableCategoryGridProps, FilteredCategory, FilterGridAction (+24 more)
+Cohesion: 0.07
+Nodes (33): CategoryCardProps, FilterToggleButtonProps, useDebouncedCallback(), useGridAnimation(), CountryMultiSelectProps, FilterCountry, REGION_NAMES, FilterableCategoryGrid() (+25 more)
 
 ### Community 12 - "Community 12"
-Cohesion: 0.11
-Nodes (27): AddressParts, describePhotonFeature(), geocode(), geocodeAddress(), GeocodingResult, NominatimEntry, PhotonResponse, queryNominatim() (+19 more)
+Cohesion: 0.08
+Nodes (36): AddressParts, describePhotonFeature(), geocode(), geocodeAddress(), GeocodingResult, NominatimEntry, PhotonResponse, queryNominatim() (+28 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.07
-Nodes (49): @/components/UnsplashAttribution.astro, @/components/Footer.astro, @/components/Header.astro, safeProfileUrl, UnsplashAttribution(), UnsplashAttributionProps, PublishedShopName(), escapeHtml() (+41 more)
+Cohesion: 0.14
+Nodes (29): escapeHtml(), extractRenderableShortcodes(), getMediaAliasPosterUrl(), getMediaAliasUrl(), getSafeAspectRatio(), getYoutubeVideoId(), injectShortcodes(), isHlsManifestPath() (+21 more)
 
 ### Community 14 - "Community 14"
 Cohesion: 0.08
@@ -1652,7 +1676,7 @@ Nodes (53): name, notNull, primaryKey, type, avatar_url, email, first_name, invi
 
 ### Community 18 - "Community 18"
 Cohesion: 0.04
-Nodes (49): name, notNull, primaryKey, type, avatar_url, email, invite_expires_at, is_owner (+41 more)
+Nodes (53): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+45 more)
 
 ### Community 19 - "Community 19"
 Cohesion: 0.04
@@ -1660,15 +1684,15 @@ Nodes (53): name, notNull, primaryKey, type, avatar_url, email, first_name, invi
 
 ### Community 20 - "Community 20"
 Cohesion: 0.04
-Nodes (53): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+45 more)
+Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
 
 ### Community 21 - "Community 21"
 Cohesion: 0.04
-Nodes (53): email, first_name, invite_expires_at, invite_token_hash, is_owner, last_login_at, last_name, password_hash (+45 more)
+Nodes (53): email, first_name, invite_expires_at, invite_token_hash, is_owner, last_login_at, last_name, role (+45 more)
 
 ### Community 22 - "Community 22"
 Cohesion: 0.04
-Nodes (52): email, first_name, invite_expires_at, invite_token_hash, is_owner, last_login_at, last_name, password_hash (+44 more)
+Nodes (53): email, first_name, invite_expires_at, invite_token_hash, is_owner, last_login_at, last_name, role (+45 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.04
@@ -1688,39 +1712,39 @@ Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invi
 
 ### Community 27 - "Community 27"
 Cohesion: 0.04
-Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
+Nodes (49): name, notNull, primaryKey, type, avatar_url, email, invite_expires_at, is_owner (+41 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.04
-Nodes (49): name, notNull, primaryKey, type, avatar_url, created_at, first_name, invite_token_hash (+41 more)
+Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.04
-Nodes (48): first_name, invite_token_hash, is_owner, last_login_at, last_name, password_hash, role, ui_preferences (+40 more)
+Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_token_hash (+44 more)
 
 ### Community 30 - "Community 30"
 Cohesion: 0.04
 Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
 
 ### Community 31 - "Community 31"
-Cohesion: 0.08
-Nodes (30): formatDuration(), intTicks(), previousValueFromChange(), relativeChange(), AnalyticsSection(), TrafficAreaChart, RealtimeBarsChart, RealtimeCard() (+22 more)
+Cohesion: 0.10
+Nodes (24): formatDuration(), previousValueFromChange(), relativeChange(), AnalyticsSection(), TrafficAreaChart, UmamiActive, UmamiEventTotal, UmamiEventValueRow (+16 more)
 
 ### Community 32 - "Community 32"
 Cohesion: 0.04
 Nodes (27): ActiveTool, DragState, FONT_OPTIONS, FORMAT_OPTIONS, formatRotation(), getPointerAngle(), getPointerPosition(), getShapeSvgPoints() (+19 more)
 
 ### Community 33 - "Community 33"
-Cohesion: 0.09
-Nodes (51): socialPreviewImageRoutes, socialPreviewRemoteAssetImportSchema, appSettings, deleteSetting(), getSetting(), putSetting(), countSocialPreviewImagesByMediaAssetId(), createSocialPreviewImage() (+43 more)
+Cohesion: 0.11
+Nodes (44): socialPreviewImageRoutes, socialPreviewRemoteAssetImportSchema, deleteSetting(), getSetting(), putSetting(), countSocialPreviewImagesByMediaAssetId(), createSocialPreviewImage(), createSocialPreviewProject() (+36 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.04
-Nodes (50): description, icon, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, sort_order (+42 more)
+Nodes (50): created_at, description, icon, image_focal_point_y, image_photographer, image_photographer_url, image_url, name (+42 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.04
-Nodes (50): created_at, description, icon, image_focal_point_y, image_photographer, image_photographer_url, image_url, name (+42 more)
+Cohesion: 0.05
+Nodes (44): created_at, icon, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, unsplash_image_id (+36 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.05
@@ -1731,12 +1755,12 @@ Cohesion: 0.04
 Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
 
 ### Community 38 - "Community 38"
-Cohesion: 0.10
-Nodes (21): FormLabelText(), MarkdownEditor(), MarkdownEditorCore, MarkdownEditorProps, MultiSelectMessages, PaymentMethodsEditorMessages, createDefaultRegionOptions(), createRegionOptions() (+13 more)
+Cohesion: 0.08
+Nodes (33): COUNTRY_DISPLAY_NAMES, CountryCodeOption, EUROPEAN_COUNTRY_CODES, CountryCodeSelect(), CountryCodeSelectProps, FormField(), FormFieldProps, FormErrorText() (+25 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.04
-Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
+Nodes (53): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+45 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.04
@@ -1744,15 +1768,15 @@ Nodes (49): name, notNull, primaryKey, type, avatar_url, first_name, invite_expi
 
 ### Community 41 - "Community 41"
 Cohesion: 0.04
-Nodes (49): name, notNull, primaryKey, type, avatar_url, invite_expires_at, invite_token_hash, is_owner (+41 more)
+Nodes (49): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+41 more)
 
 ### Community 42 - "Community 42"
 Cohesion: 0.04
-Nodes (49): invite_expires_at, invite_token_hash, is_owner, last_login_at, last_name, locale, password_hash, role (+41 more)
+Nodes (49): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+41 more)
 
 ### Community 43 - "Community 43"
 Cohesion: 0.04
-Nodes (49): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+41 more)
+Nodes (49): invite_expires_at, invite_token_hash, is_owner, last_login_at, last_name, locale, password_hash, role (+41 more)
 
 ### Community 44 - "Community 44"
 Cohesion: 0.04
@@ -1772,7 +1796,7 @@ Nodes (49): name, notNull, primaryKey, type, avatar_url, first_name, invite_expi
 
 ### Community 48 - "Community 48"
 Cohesion: 0.04
-Nodes (49): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+41 more)
+Nodes (49): name, notNull, primaryKey, type, avatar_url, invite_expires_at, invite_token_hash, is_owner (+41 more)
 
 ### Community 49 - "Community 49"
 Cohesion: 0.05
@@ -1828,11 +1852,11 @@ Nodes (48): name, notNull, primaryKey, type, avatar_url, email, first_name, is_o
 
 ### Community 62 - "Community 62"
 Cohesion: 0.04
-Nodes (47): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+39 more)
+Nodes (48): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+40 more)
 
 ### Community 63 - "Community 63"
 Cohesion: 0.04
-Nodes (47): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+39 more)
+Nodes (48): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+40 more)
 
 ### Community 64 - "Community 64"
 Cohesion: 0.04
@@ -1840,19 +1864,19 @@ Nodes (48): name, notNull, primaryKey, type, application_url, commission, contac
 
 ### Community 65 - "Community 65"
 Cohesion: 0.04
-Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
+Nodes (48): name, notNull, primaryKey, type, avatar_url, email, invite_expires_at, invite_token_hash (+40 more)
 
 ### Community 66 - "Community 66"
 Cohesion: 0.04
-Nodes (46): name, notNull, primaryKey, type, application_url, commission, cookie_duration, notes (+38 more)
+Nodes (48): name, notNull, primaryKey, type, application_url, commission, contact_email, payout_threshold (+40 more)
 
 ### Community 67 - "Community 67"
 Cohesion: 0.04
-Nodes (48): commission, compensation_model, cookie_duration, network_program_id, program_found, program_url, recommendation, scanned_at (+40 more)
+Nodes (47): commission, compensation_model, cookie_duration, notes, recommendation, requirements, scanned_at, scanned_by (+39 more)
 
 ### Community 68 - "Community 68"
 Cohesion: 0.04
-Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_token_hash (+44 more)
+Nodes (48): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+40 more)
 
 ### Community 69 - "Community 69"
 Cohesion: 0.04
@@ -1860,19 +1884,19 @@ Nodes (47): name, notNull, primaryKey, type, avatar_url, email, first_name, invi
 
 ### Community 70 - "Community 70"
 Cohesion: 0.04
-Nodes (48): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+40 more)
+Nodes (47): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+39 more)
 
 ### Community 71 - "Community 71"
 Cohesion: 0.04
-Nodes (47): name, notNull, primaryKey, type, application_url, commission, contact_email, notes (+39 more)
+Nodes (48): name, notNull, primaryKey, type, application_url, commission, compensation_model, program_found (+40 more)
 
 ### Community 72 - "Community 72"
 Cohesion: 0.04
-Nodes (48): name, notNull, primaryKey, type, application_url, commission, contact_email, notes (+40 more)
+Nodes (47): name, notNull, primaryKey, type, application_url, commission, compensation_model, contact_email (+39 more)
 
 ### Community 73 - "Community 73"
 Cohesion: 0.04
-Nodes (47): name, notNull, primaryKey, type, application_url, commission, cookie_duration, program_found (+39 more)
+Nodes (48): name, notNull, primaryKey, type, application_url, commission, contact_email, payout_threshold (+40 more)
 
 ### Community 74 - "Community 74"
 Cohesion: 0.04
@@ -1884,11 +1908,11 @@ Nodes (47): name, notNull, primaryKey, type, application_url, contact_email, coo
 
 ### Community 76 - "Community 76"
 Cohesion: 0.04
-Nodes (48): commission, compensation_model, cookie_duration, network_program_id, program_found, program_url, recommendation, scanned_at (+40 more)
+Nodes (48): commission, compensation_model, cookie_duration, network_program_url, program_found, program_url, recommendation, scanned_at (+40 more)
 
 ### Community 77 - "Community 77"
-Cohesion: 0.05
-Nodes (44): compensation_model, network_program_url, program_found, program_url, recommendation, scanned_at, shop_id, tracking_status (+36 more)
+Cohesion: 0.04
+Nodes (47): commission, compensation_model, cookie_duration, notes, recommendation, requirements, scanned_at, shop_id (+39 more)
 
 ### Community 78 - "Community 78"
 Cohesion: 0.04
@@ -1896,11 +1920,11 @@ Nodes (47): name, notNull, primaryKey, type, application_url, commission, cookie
 
 ### Community 79 - "Community 79"
 Cohesion: 0.04
-Nodes (48): name, notNull, primaryKey, type, application_url, commission, compensation_model, cookie_duration (+40 more)
+Nodes (47): name, notNull, primaryKey, type, application_url, commission, compensation_model, contact_email (+39 more)
 
 ### Community 80 - "Community 80"
 Cohesion: 0.04
-Nodes (46): name, notNull, primaryKey, type, application_url, commission, cookie_duration, network_program_id (+38 more)
+Nodes (46): name, notNull, primaryKey, type, application_url, commission, contact_email, cookie_duration (+38 more)
 
 ### Community 81 - "Community 81"
 Cohesion: 0.07
@@ -1952,11 +1976,11 @@ Nodes (44): created_at, icon, id, image_photographer, image_photographer_url, im
 
 ### Community 93 - "Community 93"
 Cohesion: 0.04
-Nodes (47): name, notNull, primaryKey, type, application_url, commission, contact_email, cookie_duration (+39 more)
+Nodes (48): name, notNull, primaryKey, type, application_url, commission, contact_email, notes (+40 more)
 
 ### Community 94 - "Community 94"
 Cohesion: 0.05
-Nodes (44): description, icon, id, image_photographer, image_photographer_url, image_url, name, sort_order (+36 more)
+Nodes (39): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, default (+31 more)
 
 ### Community 95 - "Community 95"
 Cohesion: 0.05
@@ -1979,8 +2003,8 @@ Cohesion: 0.05
 Nodes (44): default, name, notNull, primaryKey, type, body_text, footer_banner_url, footer_text (+36 more)
 
 ### Community 100 - "Community 100"
-Cohesion: 0.04
-Nodes (50): description, icon, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, sort_order (+42 more)
+Cohesion: 0.05
+Nodes (44): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
 
 ### Community 101 - "Community 101"
 Cohesion: 0.05
@@ -1988,15 +2012,15 @@ Nodes (44): description, icon, image_photographer, image_photographer_url, image
 
 ### Community 102 - "Community 102"
 Cohesion: 0.05
-Nodes (44): description, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
+Nodes (44): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
 
 ### Community 103 - "Community 103"
 Cohesion: 0.05
-Nodes (44): description, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
+Nodes (44): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
 
 ### Community 104 - "Community 104"
 Cohesion: 0.05
-Nodes (44): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
+Nodes (44): description, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
 
 ### Community 105 - "Community 105"
 Cohesion: 0.05
@@ -2016,7 +2040,7 @@ Nodes (44): description, icon, image_photographer, image_photographer_url, image
 
 ### Community 109 - "Community 109"
 Cohesion: 0.05
-Nodes (44): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
+Nodes (44): description, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, sort_order, unsplash_image_id (+36 more)
 
 ### Community 110 - "Community 110"
 Cohesion: 0.13
@@ -2035,8 +2059,8 @@ Cohesion: 0.06
 Nodes (30): AdminLayout, AnalyticsPage, BackgroundErrorsPage, CategoriesPage, ContentEditorPage, DashboardPage, EmailTemplateEditPage, EmailTemplateListPage (+22 more)
 
 ### Community 114 - "Community 114"
-Cohesion: 0.04
-Nodes (48): name, notNull, primaryKey, type, avatar_url, email, first_name, is_owner (+40 more)
+Cohesion: 0.05
+Nodes (42): name, notNull, primaryKey, type, avatar_url, email, first_name, is_owner (+34 more)
 
 ### Community 115 - "Community 115"
 Cohesion: 0.04
@@ -2056,7 +2080,7 @@ Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, sta
 
 ### Community 119 - "Community 119"
 Cohesion: 0.05
-Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, started_by, total_shops, name (+33 more)
+Nodes (40): completed_at, completed_shops, errors, id, started_at, started_by, total_shops, name (+32 more)
 
 ### Community 120 - "Community 120"
 Cohesion: 0.05
@@ -2068,15 +2092,15 @@ Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, sta
 
 ### Community 122 - "Community 122"
 Cohesion: 0.05
-Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, started_by, total_shops, name (+33 more)
+Nodes (41): completed_at, errors, failed_shops, started_at, started_by, status, total_shops, name (+33 more)
 
 ### Community 123 - "Community 123"
 Cohesion: 0.05
-Nodes (39): description, icon, image_photographer, image_photographer_url, image_url, slug, sort_order, default (+31 more)
+Nodes (40): description, icon, image_photographer, image_photographer_url, image_url, sort_order, updated_at, default (+32 more)
 
 ### Community 124 - "Community 124"
 Cohesion: 0.05
-Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, started_by, total_shops, name (+33 more)
+Nodes (40): completed_at, completed_shops, errors, failed_shops, id, started_by, total_shops, name (+32 more)
 
 ### Community 125 - "Community 125"
 Cohesion: 0.05
@@ -2084,15 +2108,15 @@ Nodes (40): content, created_at, created_by, show_title, slug, status, title, de
 
 ### Community 126 - "Community 126"
 Cohesion: 0.05
-Nodes (40): completed_at, completed_shops, errors, id, started_at, started_by, total_shops, name (+32 more)
+Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, started_by, total_shops, name (+33 more)
 
 ### Community 127 - "Community 127"
 Cohesion: 0.05
 Nodes (40): content, created_at, created_by, show_title, slug, status, title, default (+32 more)
 
 ### Community 128 - "Community 128"
-Cohesion: 0.05
-Nodes (40): content, created_at, created_by, show_title, slug, status, title, default (+32 more)
+Cohesion: 0.06
+Nodes (34): content, created_by, show_title, slug, status, title, default, name (+26 more)
 
 ### Community 129 - "Community 129"
 Cohesion: 0.05
@@ -2104,23 +2128,23 @@ Nodes (40): content, created_at, created_by, show_title, slug, status, title, de
 
 ### Community 131 - "Community 131"
 Cohesion: 0.05
-Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, started_by, total_shops, name (+33 more)
+Nodes (41): completed_at, completed_shops, errors, failed_shops, started_by, status, total_shops, name (+33 more)
 
 ### Community 132 - "Community 132"
-Cohesion: 0.05
-Nodes (40): content, created_at, created_by, show_title, slug, status, title, default (+32 more)
+Cohesion: 0.06
+Nodes (34): content, created_at, created_by, show_title, slug, title, default, name (+26 more)
 
 ### Community 133 - "Community 133"
 Cohesion: 0.05
-Nodes (40): completed_at, completed_shops, errors, id, started_at, started_by, total_shops, name (+32 more)
+Nodes (40): completed_at, completed_shops, failed_shops, id, started_at, started_by, total_shops, name (+32 more)
 
 ### Community 134 - "Community 134"
 Cohesion: 0.05
-Nodes (40): completed_at, completed_shops, errors, id, started_at, started_by, total_shops, name (+32 more)
+Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, started_by, total_shops, name (+33 more)
 
 ### Community 135 - "Community 135"
 Cohesion: 0.05
-Nodes (41): completed_at, completed_shops, errors, failed_shops, started_at, started_by, total_shops, name (+33 more)
+Nodes (40): completed_at, completed_shops, errors, failed_shops, id, started_by, total_shops, name (+32 more)
 
 ### Community 136 - "Community 136"
 Cohesion: 0.05
@@ -2139,16 +2163,16 @@ Cohesion: 0.05
 Nodes (40): content_width, created_at, created_by, show_title, status, title, updated_by, default (+32 more)
 
 ### Community 140 - "Community 140"
-Cohesion: 0.11
-Nodes (31): contentRoutes, CONTENT_PAGE_SUMMARY_FIELDS, ContentPageDetailRow, contentPageSlugExists(), ContentPageStatus, ContentPageSummaryRow, ContentPageWidth, createContentPage() (+23 more)
+Cohesion: 0.14
+Nodes (26): contentRoutes, CONTENT_PAGE_SUMMARY_FIELDS, ContentPageDetailRow, contentPageSlugExists(), ContentPageStatus, ContentPageSummaryRow, ContentPageWidth, createContentPage() (+18 more)
 
 ### Community 141 - "Community 141"
-Cohesion: 0.07
-Nodes (26): dateFormatter, FormSubmitEvent, PAGE_SIZE_OPTIONS, RejectedShopsTableDataAction, RejectedShopsTableDataState, RejectedShopsTableProps, RejectedShopsTableState, SORT_COLUMN_WIDTHS (+18 more)
+Cohesion: 0.09
+Nodes (17): dateFormatter, FormSubmitEvent, PAGE_SIZE_OPTIONS, RejectedShopsTableDataAction, RejectedShopsTableDataState, RejectedShopsTableProps, RejectedShopsTableState, SORT_COLUMN_WIDTHS (+9 more)
 
 ### Community 142 - "Community 142"
 Cohesion: 0.05
-Nodes (40): content, created_at, created_by, status, title, updated_at, updated_by, default (+32 more)
+Nodes (39): content, created_at, created_by, slug, status, title, updated_by, default (+31 more)
 
 ### Community 143 - "Community 143"
 Cohesion: 0.05
@@ -2264,7 +2288,7 @@ Nodes (39): content, created_by, show_title, slug, title, updated_at, updated_by
 
 ### Community 171 - "Community 171"
 Cohesion: 0.05
-Nodes (38): icon, id, image_photographer, image_photographer_url, image_url, name, sort_order, default (+30 more)
+Nodes (39): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, default (+31 more)
 
 ### Community 172 - "Community 172"
 Cohesion: 0.05
@@ -2284,19 +2308,19 @@ Nodes (39): description, icon, image_photographer, image_photographer_url, image
 
 ### Community 176 - "Community 176"
 Cohesion: 0.05
-Nodes (39): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, default (+31 more)
+Nodes (44): description, icon, id, image_photographer, image_photographer_url, image_url, name, sort_order (+36 more)
 
 ### Community 177 - "Community 177"
 Cohesion: 0.05
-Nodes (44): description, icon, id, image_photographer, image_photographer_url, image_url, name, sort_order (+36 more)
+Nodes (39): description, icon, image_photographer, image_photographer_url, image_url, name, sort_order, default (+31 more)
 
 ### Community 178 - "Community 178"
 Cohesion: 0.05
 Nodes (39): content, created_by, show_title, slug, status, title, updated_by, default (+31 more)
 
 ### Community 179 - "Community 179"
-Cohesion: 0.04
-Nodes (45): description, icon, image_focal_point_y, image_photographer, image_photographer_url, image_url, sort_order, unsplash_image_id (+37 more)
+Cohesion: 0.05
+Nodes (39): description, icon, image_focal_point_y, image_photographer, image_photographer_url, image_url, unsplash_image_id, default (+31 more)
 
 ### Community 180 - "Community 180"
 Cohesion: 0.05
@@ -2311,16 +2335,16 @@ Cohesion: 0.05
 Nodes (39): content, created_by, show_title, slug, status, title, updated_by, default (+31 more)
 
 ### Community 183 - "Community 183"
-Cohesion: 0.04
-Nodes (45): content, created_at, created_by, show_title, slug, status, title, updated_by (+37 more)
-
-### Community 184 - "Community 184"
-Cohesion: 0.04
-Nodes (45): content, created_at, created_by, show_title, slug, status, title, updated_by (+37 more)
-
-### Community 185 - "Community 185"
 Cohesion: 0.05
 Nodes (39): content, created_by, show_title, slug, status, title, updated_by, default (+31 more)
+
+### Community 184 - "Community 184"
+Cohesion: 0.05
+Nodes (39): content, created_by, show_title, slug, status, title, updated_by, default (+31 more)
+
+### Community 185 - "Community 185"
+Cohesion: 0.04
+Nodes (45): content, created_at, created_by, show_title, slug, status, title, updated_by (+37 more)
 
 ### Community 186 - "Community 186"
 Cohesion: 0.05
@@ -2331,24 +2355,24 @@ Cohesion: 0.05
 Nodes (39): content, created_by, show_title, slug, status, title, updated_by, default (+31 more)
 
 ### Community 188 - "Community 188"
-Cohesion: 0.05
-Nodes (39): content, created_by, show_title, slug, status, title, updated_by, default (+31 more)
+Cohesion: 0.04
+Nodes (45): content, created_at, created_by, show_title, slug, status, title, updated_by (+37 more)
 
 ### Community 189 - "Community 189"
 Cohesion: 0.09
 Nodes (24): ControlTrigger(), ControlTriggerProps, ControlTriggerSize, EMPTY_DISABLED_VALUES, ListboxContext, ListboxContextValue, ListboxDismissalParams, ListboxKeyboardNavigationParams (+16 more)
 
 ### Community 190 - "Community 190"
-Cohesion: 0.17
-Nodes (38): detectPlatformFromUrl(), DOMAIN_TO_PLATFORM, extractPathUser(), isFacebookHost(), isLinkedinHost(), isPinterestHost(), isThreadsHost(), isTumblrHost() (+30 more)
+Cohesion: 0.14
+Nodes (44): getEntryError(), getOpenUrl(), canonicalizePlatformKey(), detectPlatformFromUrl(), DOMAIN_TO_PLATFORM, extractPathUser(), isFacebookHost(), isLinkedinHost() (+36 more)
 
 ### Community 191 - "Community 191"
 Cohesion: 0.05
-Nodes (76): Shop, shopGeoCities, shopGeoCountries, shopGeoRegions, shopHeadquarters, submissionCategories, submissionHeadquarters, getRecord() (+68 more)
+Nodes (39): LABEL_PATTERNS, PaymentMethodEvidence, readPaymentMethodsFromHtml(), AnthropicReviewProvider, classifyError(), extractJson(), readApiMessage(), readUsage() (+31 more)
 
 ### Community 192 - "Community 192"
-Cohesion: 0.08
-Nodes (14): observePersistedElementHeightById(), MockMutationObserver, MockResizeObserver, usePersistedTextareaHeight(), MarkdownEditor, ShopDeleteMode, ShopDeleteReasonCard(), ShopDeleteReasonCardProps (+6 more)
+Cohesion: 0.06
+Nodes (19): observePersistedElementHeightById(), MockMutationObserver, MockResizeObserver, usePersistedTextareaHeight(), getSegmentedStorageKey(), MarkdownEditor, ShopDeleteMode, ShopDeleteReasonCard() (+11 more)
 
 ### Community 193 - "Community 193"
 Cohesion: 0.06
@@ -2363,20 +2387,20 @@ Cohesion: 0.06
 Nodes (36): content, created_at, created_by, show_title, slug, status, title, default (+28 more)
 
 ### Community 196 - "Community 196"
-Cohesion: 0.04
-Nodes (48): name, notNull, primaryKey, type, application_url, contact_email, cookie_duration, network_program_id (+40 more)
+Cohesion: 0.06
+Nodes (36): name, notNull, primaryKey, type, application_url, cookie_duration, payout_threshold, program_type (+28 more)
 
 ### Community 197 - "Community 197"
 Cohesion: 0.08
-Nodes (26): MenuContext, MenuContextValue, MenuItemPrimitive(), MenuItemPrimitiveProps, MenuItemPrimitiveSize, MenuItemPrimitiveVariant, MenuOrigin, MenuPosition (+18 more)
+Nodes (27): MenuContext, MenuContextValue, MenuItemPrimitive(), MenuItemPrimitiveProps, MenuItemPrimitiveSize, MenuItemPrimitiveVariant, MenuOrigin, MenuPosition (+19 more)
 
 ### Community 198 - "Community 198"
-Cohesion: 0.04
-Nodes (53): adminRoutes, env, envSchema, AppliedMigrationRow, ExistingColumnRow, ExistingObjectRow, formatMigrationRef(), loadAppliedMigrations() (+45 more)
+Cohesion: 0.06
+Nodes (27): adminRoutes, rateLimitEntries, sessions, DatabaseRateLimitStore, MemoryRateLimitStore, rateLimit(), RateLimitEntry, RateLimitStore (+19 more)
 
 ### Community 199 - "Community 199"
-Cohesion: 0.08
-Nodes (23): columns, name, nullsNotDistinct, name, value, name, value, affiliate_scans_status_check (+15 more)
+Cohesion: 0.06
+Nodes (35): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+27 more)
 
 ### Community 200 - "Community 200"
 Cohesion: 0.06
@@ -2504,27 +2528,27 @@ Nodes (34): description, icon, image_photographer, image_photographer_url, image
 
 ### Community 231 - "Community 231"
 Cohesion: 0.06
-Nodes (35): description, icon, image_url, name, slug, sort_order, unsplash_image_id, default (+27 more)
+Nodes (34): description, id, image_url, name, slug, sort_order, unsplash_image_id, default (+26 more)
 
 ### Community 232 - "Community 232"
-Cohesion: 0.13
-Nodes (16): cx(), COUNTRY_DISPLAY_NAMES, CountryCodeOption, EUROPEAN_COUNTRY_CODES, CountryCodeSelect(), CountryCodeSelectProps, FormField(), FormFieldProps (+8 more)
+Cohesion: 0.09
+Nodes (27): deadLinkReports, shopLikes, categoryNameMatch(), countPublicRejectedShops(), findPendingSubmissionByDomain(), findRejectedSubmissionByDomain(), findShopByDomain(), listPublicRejectedShops() (+19 more)
 
 ### Community 233 - "Community 233"
-Cohesion: 0.07
-Nodes (16): DashboardActionAriaBehavior, DashboardActionButton(), DashboardActionColorRole, DashboardActionIcon, DashboardActionId, DashboardActionLabelKey, DashboardActionStatus, ExportActionButton() (+8 more)
+Cohesion: 0.09
+Nodes (12): DashboardActionAriaBehavior, DashboardActionButton(), DashboardActionColorRole, DashboardActionIcon, DashboardActionId, DashboardActionLabelKey, DashboardActionStatus, getActionLabelKey() (+4 more)
 
 ### Community 234 - "Community 234"
-Cohesion: 0.10
-Nodes (16): fieldTypeLabel(), BuilderActiveDrag, BuilderDragOverlayContent(), BuilderHeaderActionsProps, BuilderSlugBarProps, BuilderSubmissionConfigPanel(), BuilderUIState, BuilderWorkspace() (+8 more)
+Cohesion: 0.06
+Nodes (28): FooterBuilderWorkspace(), fieldTypeLabel(), BuilderActiveDrag, BuilderDragOverlayContent(), BuilderHeaderActionsProps, BuilderSlugBarProps, BuilderSubmissionConfigPanel(), BuilderUIState (+20 more)
 
 ### Community 235 - "Community 235"
 Cohesion: 0.13
 Nodes (20): CreateUserFormData, EMPTY_CREATE_USER_FORM, UpdateUserFormData, useAdminUsers(), useCreateUser(), useDeleteUser(), useDeleteUserAvatar(), useSaveUserAvatar() (+12 more)
 
 ### Community 236 - "Community 236"
-Cohesion: 0.10
-Nodes (29): readBodyWithLimit(), readJsonWithLimit(), readTextWithLimit(), Candidate, CandidateKind, collectInlineImages(), collectJsonLdBlocks(), collectJsonLdImages() (+21 more)
+Cohesion: 0.05
+Nodes (65): readBodyWithLimit(), readJsonWithLimit(), readTextWithLimit(), Candidate, CandidateKind, collectInlineImages(), collectJsonLdBlocks(), collectJsonLdImages() (+57 more)
 
 ### Community 237 - "Community 237"
 Cohesion: 0.06
@@ -2591,28 +2615,28 @@ Cohesion: 0.06
 Nodes (33): label, nav_id, page_slug, position, target, url, name, notNull (+25 more)
 
 ### Community 253 - "Community 253"
-Cohesion: 0.12
-Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+9 more)
+Cohesion: 0.06
+Nodes (33): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+25 more)
 
 ### Community 254 - "Community 254"
-Cohesion: 0.12
-Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+9 more)
+Cohesion: 0.06
+Nodes (33): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+25 more)
 
 ### Community 255 - "Community 255"
 Cohesion: 0.06
 Nodes (33): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+25 more)
 
 ### Community 256 - "Community 256"
-Cohesion: 0.12
-Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+9 more)
-
-### Community 257 - "Community 257"
-Cohesion: 0.12
-Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+9 more)
-
-### Community 258 - "Community 258"
 Cohesion: 0.06
 Nodes (33): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+25 more)
+
+### Community 257 - "Community 257"
+Cohesion: 0.06
+Nodes (33): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+25 more)
+
+### Community 258 - "Community 258"
+Cohesion: 0.12
+Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+9 more)
 
 ### Community 259 - "Community 259"
 Cohesion: 0.06
@@ -2623,16 +2647,16 @@ Cohesion: 0.06
 Nodes (33): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+25 more)
 
 ### Community 261 - "Community 261"
-Cohesion: 0.06
-Nodes (33): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+25 more)
+Cohesion: 0.12
+Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+9 more)
 
 ### Community 262 - "Community 262"
 Cohesion: 0.04
 Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
 
 ### Community 263 - "Community 263"
-Cohesion: 0.05
-Nodes (37): context, id, message, occurred_at, resolved_at, resolved_by, source, name (+29 more)
+Cohesion: 0.06
+Nodes (32): context, message, occurred_at, resolved_at, resolved_by, source, name, notNull (+24 more)
 
 ### Community 264 - "Community 264"
 Cohesion: 0.06
@@ -2695,12 +2719,12 @@ Cohesion: 0.06
 Nodes (31): import, require, types, dependencies, sqids, zod, devDependencies, tsup (+23 more)
 
 ### Community 279 - "Community 279"
-Cohesion: 0.17
-Nodes (6): getSegmentedStorageKey(), OverlayCard(), OverlayCardProps, ResizableSize, ResizableDialogCard(), ResizableDialogCardProps
+Cohesion: 0.13
+Nodes (22): AppliedMigrationRow, ExistingColumnRow, ExistingObjectRow, formatMigrationRef(), loadAppliedMigrations(), loadExistingColumns(), loadExistingObjectNames(), runDoctor() (+14 more)
 
 ### Community 280 - "Community 280"
-Cohesion: 0.07
-Nodes (31): name, notNull, primaryKey, type, category_id, id, ip_hash, reason (+23 more)
+Cohesion: 0.08
+Nodes (25): id, ip_hash, reason, reported_at, shop_id, name, notNull, primaryKey (+17 more)
 
 ### Community 281 - "Community 281"
 Cohesion: 0.07
@@ -2739,8 +2763,8 @@ Cohesion: 0.04
 Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
 
 ### Community 290 - "Community 290"
-Cohesion: 0.09
-Nodes (19): TemplateAssignmentsSection(), TemplateAssignmentsSectionProps, usePostingAccount(), SOCIAL_MEDIA_POST_TEMPLATES_KEY, useCreateSocialMediaPostTemplate(), useDeleteSocialMediaPostTemplate(), useSocialMediaPostTemplate(), useSocialMediaPostTemplates() (+11 more)
+Cohesion: 0.07
+Nodes (23): SOCIAL_MEDIA_POST_TEMPLATES_KEY, useCreateSocialMediaPostTemplate(), useDeleteSocialMediaPostTemplate(), useSocialMediaPostTemplate(), useSocialMediaPostTemplates(), useUpdateSocialMediaPostTemplate(), ADMIN_ONLY_SECTIONS, ReportsGroup() (+15 more)
 
 ### Community 291 - "Community 291"
 Cohesion: 0.07
@@ -2751,12 +2775,12 @@ Cohesion: 0.11
 Nodes (25): buildShapePath(), canvasToBlob(), createId(), createImageLayer(), createShapeLayer(), createTextLayer(), drawImageLayer(), drawLayerFrame() (+17 more)
 
 ### Community 293 - "Community 293"
-Cohesion: 0.11
-Nodes (30): ADMIN_ROLES, REGION_CODES, RegionCode, SHOP_MUTABLE_VISIBILITIES, SHOP_VISIBILITIES, ShopMutableVisibility, ShopVisibility, SUBMISSION_REVIEW_STATUSES (+22 more)
+Cohesion: 0.14
+Nodes (24): RegionCode, ShopVisibility, SubmissionReviewStatus, SubmissionStatus, CARD_NETWORKS, normalizePaymentMethods(), PAYMENT_METHOD_ALIASES, PAYMENT_METHOD_KEYS (+16 more)
 
 ### Community 294 - "Community 294"
-Cohesion: 0.09
-Nodes (21): buildCodeSamples(), buildPaths(), buildPublicSchemas(), collectComponentSchemaRefs(), errorResponse(), filterParameters, getOperationSampleUrl(), HttpMethod (+13 more)
+Cohesion: 0.06
+Nodes (39): outputPath, apiReferenceContentSecurityPolicy, buildCodeSamples(), buildOpenApiDocument(), buildPaths(), buildPublicSchemas(), collectComponentSchemaRefs(), documentedRouteKeys() (+31 more)
 
 ### Community 295 - "Community 295"
 Cohesion: 0.16
@@ -2768,7 +2792,7 @@ Nodes (23): handleMediaDrop(), HandleMediaDropOptions, hasDraggedFiles(), Browse
 
 ### Community 297 - "Community 297"
 Cohesion: 0.07
-Nodes (19): likedShops, saveLikedShopsAndUpdateNav(), updateMyShopsNavVisibility(), isShopLiked(), ShopCardProps, ShopCardReact(), ShopCategory, LikedShopsAction (+11 more)
+Nodes (21): likedShops, saveLikedShopsAndUpdateNav(), updateMyShopsNavVisibility(), isShopLiked(), ShopCardProps, ShopCardReact(), ShopCategory, LikedShopsAction (+13 more)
 
 ### Community 298 - "Community 298"
 Cohesion: 0.07
@@ -2868,15 +2892,15 @@ Nodes (28): config, is_active, name, slug, updated_at, name, notNull, primaryKey
 
 ### Community 322 - "Community 322"
 Cohesion: 0.10
-Nodes (25): deleteReasonUpdateSchema, headquartersSchema, ogImageUpdateSchema, paymentMethodsSchema, previewImageSchema, safeShopUrl, shopBodySchema, shopcheckImportSchema (+17 more)
+Nodes (26): deleteReasonUpdateSchema, headquartersSchema, ogImageUpdateSchema, paymentMethodsSchema, previewImageSchema, safeShopUrl, shopBodySchema, shopcheckImportSchema (+18 more)
 
 ### Community 323 - "Community 323"
 Cohesion: 0.07
 Nodes (27): SOCIAL_PREVIEW_FORMATS, socialPreviewActiveSchema, socialPreviewBaseLayerSchema, SocialPreviewComposition, socialPreviewCompositionSchema, socialPreviewCreateSchema, socialPreviewDefaultSchema, SocialPreviewFormat (+19 more)
 
 ### Community 324 - "Community 324"
-Cohesion: 0.06
-Nodes (52): CharCounter(), CharCounterProps, Checkbox(), CheckboxProps, checkboxBoxSizeClass, checkboxIconSizeClass, CheckboxPrimitive(), CheckboxPrimitiveProps (+44 more)
+Cohesion: 0.07
+Nodes (42): CharCounter(), CharCounterProps, Checkbox(), CheckboxProps, MarkdownEditor(), MarkdownEditorCore, MarkdownEditorProps, dialogFooterAlignClass (+34 more)
 
 ### Community 325 - "Community 325"
 Cohesion: 0.11
@@ -2884,7 +2908,7 @@ Nodes (23): MARKDOWN_SHORTCODE_TOKENS, MarkdownShortcodeDefinition, MarkdownShor
 
 ### Community 326 - "Community 326"
 Cohesion: 0.19
-Nodes (24): formConfigRoutes, FormConfigRow, formConfigs, createFormConfig(), deleteFormConfig(), getActiveFormConfigByName(), getActiveFormConfigBySlug(), getFormConfigByName() (+16 more)
+Nodes (23): FormConfigRow, formConfigs, createFormConfig(), deleteFormConfig(), getActiveFormConfigByName(), getActiveFormConfigBySlug(), getFormConfigByName(), getFormConfigBySlug() (+15 more)
 
 ### Community 327 - "Community 327"
 Cohesion: 0.05
@@ -2903,16 +2927,16 @@ Cohesion: 0.12
 Nodes (17): key, updated_at, value, name, notNull, primaryKey, type, columns (+9 more)
 
 ### Community 331 - "Community 331"
-Cohesion: 0.11
-Nodes (18): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, affiliate_scan_jobs_started_by_admin_users_id_fk (+10 more)
+Cohesion: 0.07
+Nodes (26): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, dialect (+18 more)
 
 ### Community 332 - "Community 332"
-Cohesion: 0.12
-Nodes (17): key, updated_at, value, name, notNull, primaryKey, type, columns (+9 more)
+Cohesion: 0.07
+Nodes (27): key, updated_at, value, name, notNull, primaryKey, type, checkConstraints (+19 more)
 
 ### Community 333 - "Community 333"
-Cohesion: 0.12
-Nodes (17): key, updated_at, value, name, notNull, primaryKey, type, columns (+9 more)
+Cohesion: 0.07
+Nodes (27): key, updated_at, value, name, notNull, primaryKey, type, checkConstraints (+19 more)
 
 ### Community 334 - "Community 334"
 Cohesion: 0.12
@@ -2923,8 +2947,8 @@ Cohesion: 0.07
 Nodes (27): key, updated_at, value, name, notNull, primaryKey, type, checkConstraints (+19 more)
 
 ### Community 336 - "Community 336"
-Cohesion: 0.10
-Nodes (19): REVIEW_EFFORT_LEVELS, REVIEW_SETTING_DEFAULTS, ReviewEffortLevel, SETTINGS_KEYS, SettingsKey, SYSTEM_NOTIFICATION_SETTINGS_KEYS, SYSTEM_REDIRECT_SETTINGS_KEYS, SYSTEM_REVIEW_SETTINGS_KEYS (+11 more)
+Cohesion: 0.11
+Nodes (16): FOOTER_HEIGHTS_PX, FOOTER_PADDING_Y, FOOTER_PADDING_Y_PX, FooterStyle, footerStyleVars(), resolveFooterHeightPx(), Category, CategoryWithShops (+8 more)
 
 ### Community 337 - "Community 337"
 Cohesion: 0.05
@@ -2975,8 +2999,8 @@ Cohesion: 0.08
 Nodes (26): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+18 more)
 
 ### Community 349 - "Community 349"
-Cohesion: 0.12
-Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+9 more)
+Cohesion: 0.08
+Nodes (26): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+18 more)
 
 ### Community 350 - "Community 350"
 Cohesion: 0.08
@@ -3007,8 +3031,8 @@ Cohesion: 0.08
 Nodes (26): content, show_title, slug, status, title, default, name, notNull (+18 more)
 
 ### Community 357 - "Community 357"
-Cohesion: 0.12
-Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+9 more)
+Cohesion: 0.08
+Nodes (25): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, dialect (+17 more)
 
 ### Community 358 - "Community 358"
 Cohesion: 0.08
@@ -3275,8 +3299,8 @@ Cohesion: 0.09
 Nodes (23): SOCIAL_MEDIA_POST_TEMPLATE_SCOPES, SocialMediaPlatform, SocialMediaPostTemplate, socialMediaPostTemplateCreateSchema, SocialMediaPostTemplateInput, SocialMediaPostTemplateScope, SocialMediaPostTemplateVariable, accountInputBase (+15 more)
 
 ### Community 424 - "Community 424"
-Cohesion: 0.04
-Nodes (38): AuthContext, authMeQueryKey, authSetupQueryKey, AuthState, useAuth(), FormState, InvitePage(), FIELD_IDS (+30 more)
+Cohesion: 0.05
+Nodes (37): AuthContext, authMeQueryKey, authSetupQueryKey, AuthState, useAuth(), FormState, InvitePage(), FIELD_IDS (+29 more)
 
 ### Community 425 - "Community 425"
 Cohesion: 0.10
@@ -3287,8 +3311,8 @@ Cohesion: 0.09
 Nodes (23): config, is_active, name, updated_at, name, notNull, primaryKey, type (+15 more)
 
 ### Community 427 - "Community 427"
-Cohesion: 0.12
-Nodes (17): columns, name, nullsNotDistinct, columns, name, nullsNotDistinct, checkConstraints, compositePrimaryKeys (+9 more)
+Cohesion: 0.09
+Nodes (22): columns, name, nullsNotDistinct, columns, name, nullsNotDistinct, dialect, id (+14 more)
 
 ### Community 428 - "Community 428"
 Cohesion: 0.09
@@ -3359,8 +3383,8 @@ Cohesion: 0.09
 Nodes (21): dialect, form_submissions_form_config_id_form_configs_id_fk, id, prevId, checkConstraints, compositePrimaryKeys, foreignKeys, indexes (+13 more)
 
 ### Community 445 - "Community 445"
-Cohesion: 0.10
-Nodes (20): dialect, form_submissions_form_config_id_form_configs_id_fk, id, prevId, checkConstraints, compositePrimaryKeys, indexes, isRLSEnabled (+12 more)
+Cohesion: 0.09
+Nodes (21): dialect, form_submissions_form_config_id_form_configs_id_fk, id, prevId, checkConstraints, compositePrimaryKeys, foreignKeys, indexes (+13 more)
 
 ### Community 446 - "Community 446"
 Cohesion: 0.09
@@ -3511,8 +3535,8 @@ Cohesion: 0.09
 Nodes (22): id, ip_hash, reported_at, shop_id, name, notNull, primaryKey, type (+14 more)
 
 ### Community 483 - "Community 483"
-Cohesion: 0.07
-Nodes (26): FormBuilderEditPage(), FormBuilderListPage(), ImportFormData, NewFormDialog(), CreateFormConfigInput, ImportFormConfigInput, useCreateFormConfig(), useDeleteFormConfig() (+18 more)
+Cohesion: 0.12
+Nodes (17): FormBuilderEditPage(), FormBuilderListPage(), ImportFormData, NewFormDialog(), CreateFormConfigInput, ImportFormConfigInput, useCreateFormConfig(), useDeleteFormConfig() (+9 more)
 
 ### Community 484 - "Community 484"
 Cohesion: 0.12
@@ -3539,8 +3563,8 @@ Cohesion: 0.10
 Nodes (19): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, lib, module, moduleDetection, moduleResolution, noEmit (+11 more)
 
 ### Community 490 - "Community 490"
-Cohesion: 0.07
-Nodes (22): FooterBuilderWorkspace(), ensureConfig(), MarkdownEditor, StepRow(), StepRowProps, SubmissionConfigPanel(), SubmissionConfigPanelProps, useAdminNav() (+14 more)
+Cohesion: 0.13
+Nodes (10): NAV_TEXT, NavColumnAddSectionProps, NavColumnHandle, NavColumnProps, NavItemState, NavManagerPage(), NavText, Phase (+2 more)
 
 ### Community 491 - "Community 491"
 Cohesion: 0.10
@@ -3596,15 +3620,15 @@ Nodes (19): name, dialect, dead_link_reports_shop_id_shops_id_fk, id, columns, c
 
 ### Community 504 - "Community 504"
 Cohesion: 0.04
-Nodes (53): email, first_name, invite_expires_at, last_login_at, last_name, locale, password_hash, role (+45 more)
+Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
 
 ### Community 505 - "Community 505"
 Cohesion: 0.16
 Nodes (21): useAdminMedia(), PROJECT_QUERY_KEY, QUERY_KEY, useCreateSocialPreviewImage(), useCreateSocialPreviewProject(), useDeleteSocialPreviewImage(), useDeleteSocialPreviewProject(), useImportRemoteSocialPreviewAsset() (+13 more)
 
 ### Community 506 - "Community 506"
-Cohesion: 0.11
-Nodes (19): shop_categories_shop_id_category_id_pk, columns, concurrently, isUnique, method, name, with, idx_sc_category (+11 more)
+Cohesion: 0.08
+Nodes (25): name, notNull, primaryKey, type, category_id, shop_categories_shop_id_category_id_pk, columns, concurrently (+17 more)
 
 ### Community 507 - "Community 507"
 Cohesion: 0.11
@@ -4139,8 +4163,8 @@ Cohesion: 0.11
 Nodes (18): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, affiliate_scan_jobs_started_by_admin_users_id_fk (+10 more)
 
 ### Community 640 - "Community 640"
-Cohesion: 0.06
-Nodes (33): columns, name, nullsNotDistinct, name, value, name, value, affiliate_scans_status_check (+25 more)
+Cohesion: 0.11
+Nodes (18): columns, name, nullsNotDistinct, name, value, name, value, affiliate_scans_status_check (+10 more)
 
 ### Community 641 - "Community 641"
 Cohesion: 0.11
@@ -4516,7 +4540,7 @@ Nodes (17): columns, concurrently, isUnique, method, name, where, with, columns 
 
 ### Community 734 - "Community 734"
 Cohesion: 0.09
-Nodes (20): UiPreferences, useUpdateUiPreferences(), useAdminShops(), useImportShopReviewResults(), useShopVisibilityCounts(), useDeadLinkReports(), useDeleteShopFromDeadLinks(), useDismissDeadLink() (+12 more)
+Nodes (19): UiPreferences, useUpdateUiPreferences(), useAdminShops(), useImportShopReviewResults(), useShopVisibilityCounts(), useDeadLinkReports(), useDeleteShopFromDeadLinks(), useDismissDeadLink() (+11 more)
 
 ### Community 735 - "Community 735"
 Cohesion: 0.12
@@ -4532,7 +4556,7 @@ Nodes (17): columns, concurrently, isUnique, method, name, where, with, columns 
 
 ### Community 738 - "Community 738"
 Cohesion: 0.11
-Nodes (18): dialect, id, prevId, checkConstraints, compositePrimaryKeys, foreignKeys, indexes, isRLSEnabled (+10 more)
+Nodes (20): @/components/UnsplashAttribution.astro, @/components/Footer.astro, @/components/Header.astro, safeProfileUrl, UnsplashAttribution(), UnsplashAttributionProps, PublishedShopName(), escapeHtml() (+12 more)
 
 ### Community 739 - "Community 739"
 Cohesion: 0.12
@@ -4687,8 +4711,8 @@ Cohesion: 0.12
 Nodes (17): columns, concurrently, isUnique, method, name, where, with, columns (+9 more)
 
 ### Community 777 - "Community 777"
-Cohesion: 0.06
-Nodes (33): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+25 more)
+Cohesion: 0.12
+Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, background_errors_resolved_by_admin_users_id_fk (+9 more)
 
 ### Community 778 - "Community 778"
 Cohesion: 0.12
@@ -4852,7 +4876,7 @@ Nodes (16): compilerOptions, declaration, declarationMap, esModuleInterop, force
 
 ### Community 818 - "Community 818"
 Cohesion: 0.04
-Nodes (52): name, notNull, primaryKey, type, avatar_url, email, first_name, invite_expires_at (+44 more)
+Nodes (52): name, notNull, primaryKey, type, avatar_url, first_name, invite_expires_at, invite_token_hash (+44 more)
 
 ### Community 819 - "Community 819"
 Cohesion: 0.12
@@ -4868,7 +4892,7 @@ Nodes (16): columns, concurrently, isUnique, method, name, with, columns, concur
 
 ### Community 822 - "Community 822"
 Cohesion: 0.05
-Nodes (40): content, content_width, created_at, created_by, show_title, title, updated_by, default (+32 more)
+Nodes (40): content_width, created_at, created_by, show_title, status, title, updated_by, default (+32 more)
 
 ### Community 823 - "Community 823"
 Cohesion: 0.16
@@ -4887,12 +4911,12 @@ Cohesion: 0.11
 Nodes (18): dialect, id, prevId, checkConstraints, compositePrimaryKeys, foreignKeys, indexes, isRLSEnabled (+10 more)
 
 ### Community 827 - "Community 827"
-Cohesion: 0.11
-Nodes (18): SocialMediaOrderEditor(), SOCIAL_MEDIA_ACCOUNTS_KEY, useCreateSocialMediaAccount(), useDeleteSocialMediaAccount(), useFooterEligibleAccounts(), useSocialMediaAccounts(), useUpdateSocialMediaAccount(), AccountFormDialog() (+10 more)
+Cohesion: 0.08
+Nodes (23): TemplateAssignmentsSection(), TemplateAssignmentsSectionProps, SocialMediaOrderEditor(), SOCIAL_MEDIA_ACCOUNTS_KEY, useCreateSocialMediaAccount(), useDeleteSocialMediaAccount(), useFooterEligibleAccounts(), usePostingAccount() (+15 more)
 
 ### Community 828 - "Community 828"
-Cohesion: 0.11
-Nodes (18): dialect, id, prevId, checkConstraints, compositePrimaryKeys, foreignKeys, indexes, isRLSEnabled (+10 more)
+Cohesion: 0.20
+Nodes (20): parseCountryFilter(), parseRegionFilter(), ShopFilterParams, shopFilterSchema, CategoryShopRow, buildConditions(), categoryNameMatch(), countFilteredPublicShops() (+12 more)
 
 ### Community 829 - "Community 829"
 Cohesion: 0.17
@@ -4911,8 +4935,8 @@ Cohesion: 0.07
 Nodes (27): key, updated_at, value, name, notNull, primaryKey, type, checkConstraints (+19 more)
 
 ### Community 833 - "Community 833"
-Cohesion: 0.22
-Nodes (5): ErrorBoundary, Props, State, queryClient, rootEl
+Cohesion: 0.18
+Nodes (6): ErrorBoundary, Props, State, resolveInitialLocale(), queryClient, rootEl
 
 ### Community 834 - "Community 834"
 Cohesion: 0.12
@@ -4920,7 +4944,7 @@ Nodes (16): columns, concurrently, isUnique, method, name, with, columns, concur
 
 ### Community 835 - "Community 835"
 Cohesion: 0.05
-Nodes (43): image_focal_point_y, image_photographer, image_photographer_url, image_url, name, slug, sort_order, unsplash_image_id (+35 more)
+Nodes (43): description, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, slug, unsplash_image_id (+35 more)
 
 ### Community 836 - "Community 836"
 Cohesion: 0.12
@@ -4931,8 +4955,8 @@ Cohesion: 0.08
 Nodes (26): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+18 more)
 
 ### Community 838 - "Community 838"
-Cohesion: 0.14
-Nodes (19): outputPath, apiReferenceContentSecurityPolicy, buildOpenApiDocument(), documentedRouteKeys(), excludedPublicRouteKeys, getOpenApiServers(), hasBuiltApiReference(), serveApiReference() (+11 more)
+Cohesion: 0.12
+Nodes (16): columns, concurrently, isUnique, method, name, with, columns, concurrently (+8 more)
 
 ### Community 839 - "Community 839"
 Cohesion: 0.09
@@ -5176,11 +5200,11 @@ Nodes (8): ButtonIconProps, LazyButtonIcon(), LazyButtonIconProps, BUTTON_ICON_L
 
 ### Community 899 - "Community 899"
 Cohesion: 0.05
-Nodes (44): created_at, description, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, unsplash_image_id (+36 more)
+Nodes (43): description, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, slug, unsplash_image_id (+35 more)
 
 ### Community 900 - "Community 900"
 Cohesion: 0.05
-Nodes (43): description, image_focal_point_y, image_photographer, image_photographer_url, image_url, name, slug, unsplash_image_id (+35 more)
+Nodes (43): image_focal_point_y, image_photographer, image_photographer_url, image_url, name, slug, sort_order, unsplash_image_id (+35 more)
 
 ### Community 901 - "Community 901"
 Cohesion: 0.05
@@ -5191,20 +5215,20 @@ Cohesion: 0.27
 Nodes (9): cx(), isSeparatorItem(), SubMenu, SubMenuActionItemProps, SubMenuItem(), SubMenuItemProps, SubMenuRoot(), SubMenuRootProps (+1 more)
 
 ### Community 903 - "Community 903"
-Cohesion: 0.25
-Nodes (8): AdminRole, AdminInviteState, AdminLocale, AdminLogin, AdminSetup, AdminStats, AdminUser, AdminUserInvite
+Cohesion: 0.13
+Nodes (15): ADMIN_ROLES, AdminRole, REGION_CODES, SHOP_MUTABLE_VISIBILITIES, SHOP_VISIBILITIES, ShopMutableVisibility, SUBMISSION_REVIEW_STATUSES, SUBMISSION_STATUSES (+7 more)
 
 ### Community 904 - "Community 904"
 Cohesion: 0.28
 Nodes (6): AnalyticsPrimitive, normalizeSearchQuery(), trackWebsiteEvent(), WebsiteAnalyticsEventName, WebsiteAnalyticsPayload, Window
 
 ### Community 905 - "Community 905"
-Cohesion: 0.12
-Nodes (17): columns, name, nullsNotDistinct, columns, name, nullsNotDistinct, checkConstraints, compositePrimaryKeys (+9 more)
+Cohesion: 0.22
+Nodes (9): columns, name, nullsNotDistinct, columns, name, nullsNotDistinct, uniqueConstraints, admin_users_email_unique (+1 more)
 
 ### Community 906 - "Community 906"
-Cohesion: 0.12
-Nodes (17): columns, concurrently, isUnique, method, name, where, with, columns (+9 more)
+Cohesion: 0.22
+Nodes (9): columns, concurrently, isUnique, method, name, where, with, admin_users_single_owner_idx (+1 more)
 
 ### Community 907 - "Community 907"
 Cohesion: 0.33
@@ -5212,7 +5236,7 @@ Nodes (6): EMPTY_REVIEW_STATE, loadPersistedTemplateId(), persistTemplateId(), R
 
 ### Community 908 - "Community 908"
 Cohesion: 0.05
-Nodes (56): Category, SocialMediaAccount, SocialMediaPostTemplate, SocialMediaPostTemplateInsert, socialMediaPostTemplates, Submission, upsertChoice(), getAccountById() (+48 more)
+Nodes (55): Category, SocialMediaAccount, SocialMediaPostTemplate, SocialMediaPostTemplateInsert, socialMediaPostTemplates, Submission, upsertChoice(), getAccountById() (+47 more)
 
 ### Community 909 - "Community 909"
 Cohesion: 0.12
@@ -5235,8 +5259,8 @@ Cohesion: 0.12
 Nodes (15): dialect, id, prevId, checkConstraints, compositePrimaryKeys, foreignKeys, indexes, isRLSEnabled (+7 more)
 
 ### Community 914 - "Community 914"
-Cohesion: 0.04
-Nodes (45): content, content_width, created_by, show_title, slug, status, title, updated_by (+37 more)
+Cohesion: 0.05
+Nodes (40): content_width, created_at, created_by, show_title, status, title, updated_by, default (+32 more)
 
 ### Community 915 - "Community 915"
 Cohesion: 0.29
@@ -5244,7 +5268,7 @@ Nodes (6): DomainAlertRule, domainAlertRuleSchema, DomainAlertRulesConfig, domai
 
 ### Community 916 - "Community 916"
 Cohesion: 0.05
-Nodes (40): content_width, created_at, created_by, show_title, status, title, updated_by, default (+32 more)
+Nodes (40): content, content_width, created_at, created_by, show_title, title, updated_by, default (+32 more)
 
 ### Community 917 - "Community 917"
 Cohesion: 0.29
@@ -5275,8 +5299,8 @@ Cohesion: 0.05
 Nodes (37): ReviewModelOption, SETTINGS_KEY, useReviewModels(), useSaveSystemSetting(), useSystemSettings(), DomainAlertDialogTarget, DomainAlertRuleDialog(), DomainAlertRuleDialogProps (+29 more)
 
 ### Community 924 - "Community 924"
-Cohesion: 0.06
-Nodes (59): categoriesRoutes, focalPointSchema, unsplashImageSchema, updateCategoryHandler, addHeroImageSchema, focalPointSchema, heroRoutes, rotationIntervalSchema (+51 more)
+Cohesion: 0.05
+Nodes (69): categoriesRoutes, focalPointSchema, unsplashImageSchema, updateCategoryHandler, addHeroImageSchema, focalPointSchema, heroRoutes, rotationIntervalSchema (+61 more)
 
 ### Community 925 - "Community 925"
 Cohesion: 0.33
@@ -5307,8 +5331,8 @@ Cohesion: 0.09
 Nodes (22): columns, name, name, value, admin_user_account_template_choice_scope_valid, admin_user_account_template_choice_admin_user_id_social_media_account_id_scope_pk, columns, concurrently (+14 more)
 
 ### Community 932 - "Community 932"
-Cohesion: 0.12
-Nodes (10): BodyCardContext, BodyCardContextValue, useBodyCard(), PushState, usePushNotifications(), AdminLayoutInner(), ThemeToggle(), useSidebarWidth() (+2 more)
+Cohesion: 0.06
+Nodes (23): BodyCardContext, BodyCardContextValue, useBodyCard(), PageFooterContext, PageFooterContextValue, usePageFooterContext(), PageHeaderContext, PageHeaderContextValue (+15 more)
 
 ### Community 933 - "Community 933"
 Cohesion: 0.09
@@ -5379,8 +5403,8 @@ Cohesion: 0.12
 Nodes (17): columns, name, nullsNotDistinct, columns, name, nullsNotDistinct, checkConstraints, compositePrimaryKeys (+9 more)
 
 ### Community 950 - "Community 950"
-Cohesion: 0.09
-Nodes (17): loginSchema, setupSchema, categoryBodySchema, categoryCreateSchema, categoryUpdateSchema, TemplateAssignment, templateAssignmentSchema, MarkdownWidget (+9 more)
+Cohesion: 0.12
+Nodes (12): loginSchema, setupSchema, MarkdownWidget, markdownWidgetSchema, MarkdownWidgetsConfig, markdownWidgetsConfigSchema, markdownWidgetTypeSchema, widgetCspOriginsSchema (+4 more)
 
 ### Community 951 - "Community 951"
 Cohesion: 0.12
@@ -5407,8 +5431,8 @@ Cohesion: 0.10
 Nodes (19): name, dialect, dead_link_reports_shop_id_shops_id_fk, id, columns, concurrently, isUnique, method (+11 more)
 
 ### Community 957 - "Community 957"
-Cohesion: 0.03
-Nodes (102): Ne(), db, AdminUser, AdminUserAccountTemplateChoice, AdminUserAccountTemplateChoiceInsert, AdminUserInsert, AppSetting, BackgroundError (+94 more)
+Cohesion: 0.02
+Nodes (129): Ne(), db, AdminUser, AdminUserAccountTemplateChoice, AdminUserAccountTemplateChoiceInsert, AdminUserInsert, AppSetting, appSettings (+121 more)
 
 ### Community 958 - "Community 958"
 Cohesion: 0.14
@@ -5456,7 +5480,7 @@ Nodes (27): key, updated_at, value, name, notNull, primaryKey, type, checkConstr
 
 ### Community 969 - "Community 969"
 Cohesion: 0.03
-Nodes (60): bgColor, letter, useDeleteShopReminder(), useSetShopReminder(), useShopReminder(), DASHBOARD_MESSAGES, DashboardLocale, DashboardMessages (+52 more)
+Nodes (54): bgColor, letter, useDeleteShopReminder(), useSetShopReminder(), useShopReminder(), DASHBOARD_MESSAGES, DashboardLocale, DashboardMessages (+46 more)
 
 ### Community 970 - "Community 970"
 Cohesion: 0.12
@@ -5467,8 +5491,8 @@ Cohesion: 0.29
 Nodes (6): mediaFolderColorSchema, MediaFolderCreateInput, mediaFolderCreateSchema, MediaFolderUpdateInput, mediaFolderUpdateSchema, mediaUpdateSchema
 
 ### Community 972 - "Community 972"
-Cohesion: 0.18
-Nodes (12): containerSizeClass, getSegmentButtons(), getSegmentKeyDirection(), handleSegmentedControlKeyDown(), iconOnlySizeClass, SegmentedControlPrimitive(), SegmentedControlPrimitiveOption, SegmentedControlPrimitiveProps (+4 more)
+Cohesion: 0.08
+Nodes (26): checkboxBoxSizeClass, checkboxIconSizeClass, CheckboxPrimitive(), CheckboxPrimitiveProps, CheckboxPrimitiveSize, SwitchPrimitive(), SwitchPrimitiveProps, SwitchPrimitiveSize (+18 more)
 
 ### Community 973 - "Community 973"
 Cohesion: 0.15
@@ -5539,8 +5563,8 @@ Cohesion: 0.08
 Nodes (26): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+18 more)
 
 ### Community 990 - "Community 990"
-Cohesion: 0.12
-Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+9 more)
+Cohesion: 0.13
+Nodes (15): columns, concurrently, isUnique, method, name, with, columns, concurrently (+7 more)
 
 ### Community 991 - "Community 991"
 Cohesion: 0.08
@@ -5559,16 +5583,16 @@ Cohesion: 0.48
 Nodes (6): DateTimePicker(), DateTimePickerProps, emitValue(), pad(), toLocalParts(), usePopoverPosition()
 
 ### Community 995 - "Community 995"
-Cohesion: 0.04
-Nodes (54): name, notNull, primaryKey, type, avatar_url, created_at, email, first_name (+46 more)
+Cohesion: 0.33
+Nodes (6): created_at, default, name, notNull, primaryKey, type
 
 ### Community 996 - "Community 996"
 Cohesion: 0.12
 Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+9 more)
 
 ### Community 997 - "Community 997"
-Cohesion: 0.12
-Nodes (17): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+9 more)
+Cohesion: 0.08
+Nodes (26): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+18 more)
 
 ### Community 998 - "Community 998"
 Cohesion: 0.15
@@ -5603,8 +5627,8 @@ Cohesion: 0.08
 Nodes (25): columnsFrom, columnsTo, name, onDelete, onUpdate, tableFrom, tableTo, columnsFrom (+17 more)
 
 ### Community 1006 - "Community 1006"
-Cohesion: 0.29
-Nodes (3): CountryMultiSelectProps, FilterCountry, REGION_NAMES
+Cohesion: 0.17
+Nodes (10): intTicks(), RealtimeBarsChart, RealtimeCard(), useTheme(), EmailPreview(), EmailPreviewProps, useUmamiActive(), useUmamiRealtime() (+2 more)
 
 ### Community 1007 - "Community 1007"
 Cohesion: 0.08
@@ -5619,8 +5643,8 @@ Cohesion: 0.13
 Nodes (19): REVIEW_AUTO_APPLY_VERDICTS, REVIEW_AUTOMATION_MODES, REVIEW_JOB_STATES, REVIEW_JOB_TRANSITIONS, REVIEW_REPORT_STATES, REVIEW_VERDICTS, ReviewAutoApplyVerdict, ReviewAutomationMode (+11 more)
 
 ### Community 1010 - "Community 1010"
-Cohesion: 0.12
-Nodes (16): columns, concurrently, isUnique, method, name, with, columns, concurrently (+8 more)
+Cohesion: 0.18
+Nodes (10): REVIEW_EFFORT_LEVELS, REVIEW_SETTING_DEFAULTS, ReviewEffortLevel, SETTINGS_KEYS, SettingsKey, SYSTEM_NOTIFICATION_SETTINGS_KEYS, SYSTEM_REDIRECT_SETTINGS_KEYS, SYSTEM_REVIEW_SETTINGS_KEYS (+2 more)
 
 ### Community 1011 - "Community 1011"
 Cohesion: 0.08
@@ -5639,8 +5663,8 @@ Cohesion: 0.20
 Nodes (7): ButtonFieldConfigProps, FieldConfigPanel(), FieldConfigPanelProps, IconPicker, MarkdownEditor, PanelMessages, RichTextFieldConfigProps
 
 ### Community 1015 - "Community 1015"
-Cohesion: 0.12
-Nodes (16): columns, concurrently, isUnique, method, name, with, columns, concurrently (+8 more)
+Cohesion: 0.22
+Nodes (6): AvatarState, EditableRole, EMPTY_AVATAR_STATE, UserEditDraftAction, UserEditDraftState, UserEditField
 
 ### Community 1016 - "Community 1016"
 Cohesion: 0.09
@@ -5667,8 +5691,8 @@ Cohesion: 0.09
 Nodes (22): name, notNull, primaryKey, type, admin_user_id, scope, social_media_account_id, template_id (+14 more)
 
 ### Community 1022 - "Community 1022"
-Cohesion: 0.33
-Nodes (6): role, default, name, notNull, primaryKey, type
+Cohesion: 0.25
+Nodes (8): columns, concurrently, isUnique, method, name, where, with, admin_users_invite_token_idx
 
 ### Community 1023 - "Community 1023"
 Cohesion: 0.09
@@ -5695,12 +5719,12 @@ Cohesion: 0.09
 Nodes (22): columns, name, name, value, admin_user_account_template_choice_scope_valid, admin_user_account_template_choice_admin_user_id_social_media_account_id_scope_pk, columns, concurrently (+14 more)
 
 ### Community 1029 - "Community 1029"
-Cohesion: 0.13
-Nodes (14): dialect, id, prevId, checkConstraints, compositePrimaryKeys, indexes, isRLSEnabled, name (+6 more)
+Cohesion: 0.25
+Nodes (8): checkConstraints, compositePrimaryKeys, foreignKeys, isRLSEnabled, name, policies, schema, public.admin_users
 
 ### Community 1030 - "Community 1030"
-Cohesion: 0.18
-Nodes (8): PageFooterContext, PageFooterContextValue, usePageFooterContext(), cx(), EditorPageShell(), EditorPageShellProps, PageFooter(), PageFooterProps
+Cohesion: 0.48
+Nodes (5): ContentPreviewSession, createContentPreviewSession(), getContentPreviewSession(), pruneExpiredSessions(), sessions
 
 ### Community 1031 - "Community 1031"
 Cohesion: 0.33
@@ -5711,8 +5735,8 @@ Cohesion: 0.09
 Nodes (22): name, notNull, primaryKey, type, admin_user_id, scope, social_media_account_id, template_id (+14 more)
 
 ### Community 1033 - "Community 1033"
-Cohesion: 0.17
-Nodes (7): Theme, ThemeContext, ThemeContextValue, useTheme(), EmailPreview(), EmailPreviewProps, AppToaster()
+Cohesion: 0.29
+Nodes (3): Theme, ThemeContext, ThemeContextValue
 
 ### Community 1034 - "Community 1034"
 Cohesion: 0.09
@@ -5735,8 +5759,8 @@ Cohesion: 0.40
 Nodes (3): MastodonAccountFormInput, MastodonAccountFormProps, VISIBILITY_OPTIONS
 
 ### Community 1040 - "Community 1040"
-Cohesion: 0.17
-Nodes (11): contentPreviewMocks, footerMocks, footerPreviewMocks, formConfigMocks, formSubmissionMocks, formValidationMocks, heroMocks, markdownMocks (+3 more)
+Cohesion: 0.15
+Nodes (12): publicRoutes, contentPreviewMocks, footerMocks, footerPreviewMocks, formConfigMocks, formSubmissionMocks, formValidationMocks, heroMocks (+4 more)
 
 ### Community 1041 - "Community 1041"
 Cohesion: 0.67
@@ -5751,8 +5775,8 @@ Cohesion: 0.40
 Nodes (3): MediaUploadOverlayProps, MediaUploadPhase, MediaUploadProgress
 
 ### Community 1044 - "Community 1044"
-Cohesion: 0.29
-Nodes (6): getEntryError(), getOpenUrl(), canonicalizePlatformKey(), normalizeSocialMediaValue(), SOCIAL_PLATFORM_KEYS, socialMediaSchema
+Cohesion: 0.48
+Nodes (6): EMPTY_DOMAIN_ALERT_RULES_CONFIG, findMatchingDomainAlertRule(), getManagedDomainAlertRulesConfig(), getUrlHostname(), matchesDomainAlertRule(), normalizeHostname()
 
 ### Community 1045 - "Community 1045"
 Cohesion: 0.25
@@ -5891,12 +5915,12 @@ Cohesion: 0.40
 Nodes (5): tracking_note, name, notNull, primaryKey, type
 
 ### Community 1079 - "Community 1079"
-Cohesion: 0.20
-Nodes (10): checkConstraints, compositePrimaryKeys, foreignKeys, indexes, isRLSEnabled, name, policies, schema (+2 more)
+Cohesion: 0.38
+Nodes (3): buildFieldSchema(), buildFormValidationSchema(), DISPLAY_FIELD_TYPES
 
 ### Community 1080 - "Community 1080"
-Cohesion: 0.22
-Nodes (6): PageHeaderContext, PageHeaderContextValue, TitleState, usePageHeaderContext(), PageHeader(), PageHeaderProps
+Cohesion: 0.29
+Nodes (4): answers, created, FakeAnthropic, request
 
 ### Community 1081 - "Community 1081"
 Cohesion: 0.09
@@ -5907,12 +5931,12 @@ Cohesion: 0.40
 Nodes (5): network_name, name, notNull, primaryKey, type
 
 ### Community 1083 - "Community 1083"
-Cohesion: 0.25
-Nodes (7): ContentPage, ContentPageSummary, ContentStatus, ContentWidth, NavId, NavItem, NavTarget
+Cohesion: 0.47
+Nodes (4): extractEuropeanPostalCodePrefix(), normalizePostalQuery(), POSTAL_PATTERNS, PostalPattern
 
 ### Community 1084 - "Community 1084"
 Cohesion: 0.33
-Nodes (6): program_found, default, name, notNull, primaryKey, type
+Nodes (6): role, default, name, notNull, primaryKey, type
 
 ### Community 1085 - "Community 1085"
 Cohesion: 0.33
@@ -5927,8 +5951,8 @@ Cohesion: 0.10
 Nodes (19): name, dialect, dead_link_reports_shop_id_shops_id_fk, id, columns, concurrently, isUnique, method (+11 more)
 
 ### Community 1088 - "Community 1088"
-Cohesion: 0.14
-Nodes (14): name, dead_link_reports_shop_id_shops_id_fk, columns, concurrently, isUnique, method, name, with (+6 more)
+Cohesion: 0.10
+Nodes (19): name, dialect, dead_link_reports_shop_id_shops_id_fk, id, columns, concurrently, isUnique, method (+11 more)
 
 ### Community 1089 - "Community 1089"
 Cohesion: 0.10
@@ -5960,7 +5984,7 @@ Nodes (6): role, default, name, notNull, primaryKey, type
 
 ### Community 1096 - "Community 1096"
 Cohesion: 0.33
-Nodes (6): program_found, default, name, notNull, primaryKey, type
+Nodes (6): scanned_at, default, name, notNull, primaryKey, type
 
 ### Community 1097 - "Community 1097"
 Cohesion: 0.33
@@ -5992,15 +6016,15 @@ Nodes (18): columns, name, nullsNotDistinct, columns, name, nullsNotDistinct, ch
 
 ### Community 1104 - "Community 1104"
 Cohesion: 0.33
-Nodes (6): tracking_status, default, name, notNull, primaryKey, type
+Nodes (6): started_at, default, name, notNull, primaryKey, type
 
 ### Community 1105 - "Community 1105"
 Cohesion: 0.33
-Nodes (6): is_owner, default, name, notNull, primaryKey, type
+Nodes (6): role, default, name, notNull, primaryKey, type
 
 ### Community 1106 - "Community 1106"
 Cohesion: 0.33
-Nodes (6): failed_shops, default, name, notNull, primaryKey, type
+Nodes (6): created_at, default, name, notNull, primaryKey, type
 
 ### Community 1107 - "Community 1107"
 Cohesion: 0.40
@@ -6016,15 +6040,15 @@ Nodes (18): columns, name, nullsNotDistinct, columns, name, nullsNotDistinct, ch
 
 ### Community 1110 - "Community 1110"
 Cohesion: 0.33
-Nodes (6): is_owner, default, name, notNull, primaryKey, type
+Nodes (6): failed_shops, default, name, notNull, primaryKey, type
 
 ### Community 1111 - "Community 1111"
 Cohesion: 0.33
-Nodes (6): locale, default, name, notNull, primaryKey, type
+Nodes (6): is_owner, default, name, notNull, primaryKey, type
 
 ### Community 1112 - "Community 1112"
 Cohesion: 0.33
-Nodes (6): description, default, name, notNull, primaryKey, type
+Nodes (6): tracking_status, default, name, notNull, primaryKey, type
 
 ### Community 1113 - "Community 1113"
 Cohesion: 0.33
@@ -6044,7 +6068,7 @@ Nodes (18): columns, name, nullsNotDistinct, columns, name, nullsNotDistinct, ch
 
 ### Community 1117 - "Community 1117"
 Cohesion: 0.33
-Nodes (6): failed_shops, default, name, notNull, primaryKey, type
+Nodes (6): is_owner, default, name, notNull, primaryKey, type
 
 ### Community 1118 - "Community 1118"
 Cohesion: 0.33
@@ -6052,7 +6076,7 @@ Nodes (6): role, default, name, notNull, primaryKey, type
 
 ### Community 1119 - "Community 1119"
 Cohesion: 0.33
-Nodes (6): tracking_status, default, name, notNull, primaryKey, type
+Nodes (6): started_at, default, name, notNull, primaryKey, type
 
 ### Community 1120 - "Community 1120"
 Cohesion: 0.40
@@ -6152,7 +6176,7 @@ Nodes (5): contact_email, name, notNull, primaryKey, type
 
 ### Community 1144 - "Community 1144"
 Cohesion: 0.33
-Nodes (6): failed_shops, default, name, notNull, primaryKey, type
+Nodes (6): errors, default, name, notNull, primaryKey, type
 
 ### Community 1145 - "Community 1145"
 Cohesion: 0.12
@@ -6164,11 +6188,11 @@ Nodes (5): network_name, name, notNull, primaryKey, type
 
 ### Community 1147 - "Community 1147"
 Cohesion: 0.33
-Nodes (6): locale, default, name, notNull, primaryKey, type
+Nodes (6): program_found, default, name, notNull, primaryKey, type
 
 ### Community 1148 - "Community 1148"
 Cohesion: 0.33
-Nodes (6): program_found, default, name, notNull, primaryKey, type
+Nodes (6): role, default, name, notNull, primaryKey, type
 
 ### Community 1149 - "Community 1149"
 Cohesion: 0.33
@@ -6180,7 +6204,7 @@ Nodes (6): program_found, default, name, notNull, primaryKey, type
 
 ### Community 1151 - "Community 1151"
 Cohesion: 0.33
-Nodes (6): role, default, name, notNull, primaryKey, type
+Nodes (6): program_found, default, name, notNull, primaryKey, type
 
 ### Community 1152 - "Community 1152"
 Cohesion: 0.33
@@ -6196,7 +6220,7 @@ Nodes (5): name, notNull, primaryKey, type, application_url
 
 ### Community 1155 - "Community 1155"
 Cohesion: 0.33
-Nodes (6): scanned_at, default, name, notNull, primaryKey, type
+Nodes (6): role, default, name, notNull, primaryKey, type
 
 ### Community 1156 - "Community 1156"
 Cohesion: 0.40
@@ -6216,7 +6240,7 @@ Nodes (6): icon, default, name, notNull, primaryKey, type
 
 ### Community 1160 - "Community 1160"
 Cohesion: 0.33
-Nodes (6): locale, default, name, notNull, primaryKey, type
+Nodes (6): started_at, default, name, notNull, primaryKey, type
 
 ### Community 1161 - "Community 1161"
 Cohesion: 0.12
@@ -6224,7 +6248,7 @@ Nodes (17): columns, concurrently, isUnique, method, name, where, with, columns 
 
 ### Community 1162 - "Community 1162"
 Cohesion: 0.33
-Nodes (6): status, default, name, notNull, primaryKey, type
+Nodes (6): tracking_status, default, name, notNull, primaryKey, type
 
 ### Community 1163 - "Community 1163"
 Cohesion: 0.40
@@ -6344,7 +6368,7 @@ Nodes (6): created_at, default, name, notNull, primaryKey, type
 
 ### Community 1192 - "Community 1192"
 Cohesion: 0.33
-Nodes (6): locale, default, name, notNull, primaryKey, type
+Nodes (6): is_owner, default, name, notNull, primaryKey, type
 
 ### Community 1193 - "Community 1193"
 Cohesion: 0.33
@@ -6364,7 +6388,7 @@ Nodes (6): image_focal_point_y, default, name, notNull, primaryKey, type
 
 ### Community 1197 - "Community 1197"
 Cohesion: 0.33
-Nodes (6): icon, default, name, notNull, primaryKey, type
+Nodes (6): program_found, default, name, notNull, primaryKey, type
 
 ### Community 1198 - "Community 1198"
 Cohesion: 0.33
@@ -6480,11 +6504,11 @@ Nodes (5): username, name, notNull, primaryKey, type
 
 ### Community 1226 - "Community 1226"
 Cohesion: 0.33
-Nodes (6): role, default, name, notNull, primaryKey, type
+Nodes (6): sort_order, default, name, notNull, primaryKey, type
 
 ### Community 1227 - "Community 1227"
 Cohesion: 0.33
-Nodes (6): icon, default, name, notNull, primaryKey, type
+Nodes (6): description, default, name, notNull, primaryKey, type
 
 ### Community 1228 - "Community 1228"
 Cohesion: 0.33
@@ -6543,8 +6567,8 @@ Cohesion: 0.40
 Nodes (5): email, name, notNull, primaryKey, type
 
 ### Community 1242 - "Community 1242"
-Cohesion: 0.40
-Nodes (5): email, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): locale, default, name, notNull, primaryKey, type
 
 ### Community 1243 - "Community 1243"
 Cohesion: 0.10
@@ -6608,11 +6632,11 @@ Nodes (6): EmailTemplate, emailTemplateCreateSchema, emailTemplateImportSchema, 
 
 ### Community 1258 - "Community 1258"
 Cohesion: 0.33
-Nodes (6): content, default, name, notNull, primaryKey, type
+Nodes (6): completed_shops, default, name, notNull, primaryKey, type
 
 ### Community 1259 - "Community 1259"
 Cohesion: 0.33
-Nodes (6): is_owner, default, name, notNull, primaryKey, type
+Nodes (6): icon, default, name, notNull, primaryKey, type
 
 ### Community 1260 - "Community 1260"
 Cohesion: 0.40
@@ -6628,7 +6652,7 @@ Nodes (6): content, default, name, notNull, primaryKey, type
 
 ### Community 1263 - "Community 1263"
 Cohesion: 0.33
-Nodes (6): sort_order, default, name, notNull, primaryKey, type
+Nodes (6): is_owner, default, name, notNull, primaryKey, type
 
 ### Community 1264 - "Community 1264"
 Cohesion: 0.40
@@ -6651,12 +6675,12 @@ Cohesion: 0.40
 Nodes (5): username, name, notNull, primaryKey, type
 
 ### Community 1269 - "Community 1269"
-Cohesion: 0.40
-Nodes (5): payout_threshold, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): locale, default, name, notNull, primaryKey, type
 
 ### Community 1270 - "Community 1270"
 Cohesion: 0.33
-Nodes (6): description, default, name, notNull, primaryKey, type
+Nodes (6): program_found, default, name, notNull, primaryKey, type
 
 ### Community 1272 - "Community 1272"
 Cohesion: 0.40
@@ -6692,15 +6716,15 @@ Nodes (3): optionalText(), parseCoordinate(), toHeadquartersPayload()
 
 ### Community 1281 - "Community 1281"
 Cohesion: 0.33
-Nodes (6): locale, default, name, notNull, primaryKey, type
+Nodes (6): tracking_status, default, name, notNull, primaryKey, type
 
 ### Community 1283 - "Community 1283"
 Cohesion: 0.50
 Nodes (3): dialect, entries, version
 
 ### Community 1284 - "Community 1284"
-Cohesion: 0.40
-Nodes (5): compensation_model, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): ui_preferences, columns, name, notNull, primaryKey, type
 
 ### Community 1287 - "Community 1287"
 Cohesion: 0.33
@@ -6711,8 +6735,8 @@ Cohesion: 0.40
 Nodes (5): compensation_model, name, notNull, primaryKey, type
 
 ### Community 1307 - "Community 1307"
-Cohesion: 0.40
-Nodes (5): notes, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): role, default, name, notNull, primaryKey, type
 
 ### Community 1365 - "Community 1365"
 Cohesion: 0.33
@@ -6743,16 +6767,16 @@ Cohesion: 0.40
 Nodes (5): cookie_duration, name, notNull, primaryKey, type
 
 ### Community 1400 - "Community 1400"
-Cohesion: 0.40
-Nodes (5): program_url, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): sort_order, default, name, notNull, primaryKey, type
 
 ### Community 1401 - "Community 1401"
 Cohesion: 0.33
-Nodes (6): status, default, name, notNull, primaryKey, type
+Nodes (6): image_focal_point_y, default, name, notNull, primaryKey, type
 
 ### Community 1402 - "Community 1402"
 Cohesion: 0.33
-Nodes (6): is_owner, default, name, notNull, primaryKey, type
+Nodes (6): created_at, default, name, notNull, primaryKey, type
 
 ### Community 1403 - "Community 1403"
 Cohesion: 0.40
@@ -6764,11 +6788,11 @@ Nodes (5): FolderContentsResponse, MediaAsset, MediaFolder, MediaFolderColor, Me
 
 ### Community 1405 - "Community 1405"
 Cohesion: 0.33
-Nodes (6): locale, default, name, notNull, primaryKey, type
+Nodes (6): image_focal_point_y, default, name, notNull, primaryKey, type
 
 ### Community 1406 - "Community 1406"
-Cohesion: 0.40
-Nodes (5): last_name, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): created_at, default, name, notNull, primaryKey, type
 
 ### Community 1407 - "Community 1407"
 Cohesion: 0.40
@@ -6788,7 +6812,7 @@ Nodes (5): payout_threshold, name, notNull, primaryKey, type
 
 ### Community 1411 - "Community 1411"
 Cohesion: 0.33
-Nodes (6): created_at, default, name, notNull, primaryKey, type
+Nodes (6): image_focal_point_y, default, name, notNull, primaryKey, type
 
 ### Community 1412 - "Community 1412"
 Cohesion: 0.40
@@ -6796,59 +6820,59 @@ Nodes (5): username, name, notNull, primaryKey, type
 
 ### Community 1413 - "Community 1413"
 Cohesion: 0.33
-Nodes (6): image_focal_point_y, default, name, notNull, primaryKey, type
+Nodes (6): icon, default, name, notNull, primaryKey, type
 
 ### Community 1414 - "Community 1414"
-Cohesion: 0.40
-Nodes (5): recommendation, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): icon, default, name, notNull, primaryKey, type
 
 ### Community 1415 - "Community 1415"
 Cohesion: 0.40
 Nodes (5): contact_email, name, notNull, primaryKey, type
 
 ### Community 1416 - "Community 1416"
-Cohesion: 0.40
-Nodes (5): tracking_note, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): content, default, name, notNull, primaryKey, type
 
 ### Community 1417 - "Community 1417"
 Cohesion: 0.40
 Nodes (5): notes, name, notNull, primaryKey, type
 
 ### Community 1418 - "Community 1418"
-Cohesion: 0.40
-Nodes (5): compensation_model, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): role, default, name, notNull, primaryKey, type
 
 ### Community 1419 - "Community 1419"
 Cohesion: 0.40
 Nodes (5): invite_token_hash, name, notNull, primaryKey, type
 
 ### Community 1420 - "Community 1420"
-Cohesion: 0.40
-Nodes (5): recommendation, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): content, default, name, notNull, primaryKey, type
 
 ### Community 1421 - "Community 1421"
 Cohesion: 0.40
 Nodes (5): email, name, notNull, primaryKey, type
 
 ### Community 1423 - "Community 1423"
-Cohesion: 0.40
-Nodes (5): scanned_by, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): is_owner, default, name, notNull, primaryKey, type
 
 ### Community 1424 - "Community 1424"
-Cohesion: 0.40
-Nodes (5): cookie_duration, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): sort_order, default, name, notNull, primaryKey, type
 
 ### Community 1427 - "Community 1427"
 Cohesion: 0.40
 Nodes (5): requirements, name, notNull, primaryKey, type
 
 ### Community 1428 - "Community 1428"
-Cohesion: 0.40
-Nodes (5): contact_email, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): description, default, name, notNull, primaryKey, type
 
 ### Community 1429 - "Community 1429"
-Cohesion: 0.40
-Nodes (5): recommendation, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): locale, default, name, notNull, primaryKey, type
 
 ### Community 1430 - "Community 1430"
 Cohesion: 0.40
@@ -6903,32 +6927,32 @@ Cohesion: 0.40
 Nodes (5): program_type, name, notNull, primaryKey, type
 
 ### Community 1450 - "Community 1450"
-Cohesion: 0.40
-Nodes (5): contact_email, name, notNull, primaryKey, type
+Cohesion: 0.33
+Nodes (6): status, default, name, notNull, primaryKey, type
 
 ### Community 1451 - "Community 1451"
 Cohesion: 0.40
 Nodes (5): program_type, name, notNull, primaryKey, type
 
 ### Community 1452 - "Community 1452"
-Cohesion: 0.03
-Nodes (127): reviewJobRoutes, normalizePaymentMethods(), resolveEffortLevel(), client, ReviewEventRow, reviewEvents, ReviewJobRow, reviewJobs (+119 more)
+Cohesion: 0.04
+Nodes (94): reviewJobRoutes, resolveEffortLevel(), client, ReviewEventRow, reviewEvents, ReviewJobRow, reviewJobs, reviewSpend (+86 more)
 
 ### Community 1453 - "Community 1453"
 Cohesion: 0.40
 Nodes (5): password_hash, name, notNull, primaryKey, type
 
 ### Community 1454 - "Community 1454"
-Cohesion: 0.40
-Nodes (5): payout_threshold, name, notNull, primaryKey, type
+Cohesion: 0.47
+Nodes (5): createFooterPreviewSession(), FooterPreviewSession, getFooterPreviewSession(), pruneExpiredSessions(), sessions
 
 ### Community 1455 - "Community 1455"
 Cohesion: 0.33
-Nodes (6): created_at, default, name, notNull, primaryKey, type
+Nodes (5): categoryBodySchema, categoryCreateSchema, categoryUpdateSchema, TemplateAssignment, templateAssignmentSchema
 
 ### Community 1456 - "Community 1456"
-Cohesion: 0.33
-Nodes (6): image_focal_point_y, default, name, notNull, primaryKey, type
+Cohesion: 0.40
+Nodes (5): email, name, notNull, primaryKey, type
 
 ### Community 1457 - "Community 1457"
 Cohesion: 0.40
@@ -6944,7 +6968,7 @@ Nodes (5): payout_threshold, name, notNull, primaryKey, type
 
 ### Community 1460 - "Community 1460"
 Cohesion: 0.40
-Nodes (5): network_program_url, name, notNull, primaryKey, type
+Nodes (5): email, name, notNull, primaryKey, type
 
 ### Community 1461 - "Community 1461"
 Cohesion: 0.40
@@ -6956,7 +6980,7 @@ Nodes (5): compensation_model, name, notNull, primaryKey, type
 
 ### Community 1463 - "Community 1463"
 Cohesion: 0.40
-Nodes (5): scanned_by, name, notNull, primaryKey, type
+Nodes (5): password_hash, name, notNull, primaryKey, type
 
 ### Community 1464 - "Community 1464"
 Cohesion: 0.33
@@ -6988,7 +7012,7 @@ Nodes (5): email, name, notNull, primaryKey, type
 
 ### Community 1471 - "Community 1471"
 Cohesion: 0.40
-Nodes (5): requirements, name, notNull, primaryKey, type
+Nodes (5): contact_email, name, notNull, primaryKey, type
 
 ### Community 1472 - "Community 1472"
 Cohesion: 0.33
@@ -7016,7 +7040,7 @@ Nodes (5): shop_id, name, notNull, primaryKey, type
 
 ### Community 1483 - "Community 1483"
 Cohesion: 0.40
-Nodes (5): tracking_note, name, notNull, primaryKey, type
+Nodes (5): first_name, name, notNull, primaryKey, type
 
 ### Community 1484 - "Community 1484"
 Cohesion: 0.40
@@ -7024,7 +7048,7 @@ Nodes (5): payout_threshold, name, notNull, primaryKey, type
 
 ### Community 1485 - "Community 1485"
 Cohesion: 0.40
-Nodes (5): payout_threshold, name, notNull, primaryKey, type
+Nodes (5): last_login_at, name, notNull, primaryKey, type
 
 ### Community 1486 - "Community 1486"
 Cohesion: 0.33
@@ -7032,15 +7056,15 @@ Nodes (6): icon, default, name, notNull, primaryKey, type
 
 ### Community 1487 - "Community 1487"
 Cohesion: 0.40
-Nodes (5): commission, name, notNull, primaryKey, type
+Nodes (5): notes, name, notNull, primaryKey, type
 
 ### Community 1488 - "Community 1488"
 Cohesion: 0.40
-Nodes (5): cookie_duration, name, notNull, primaryKey, type
+Nodes (5): program_type, name, notNull, primaryKey, type
 
 ### Community 1489 - "Community 1489"
 Cohesion: 0.40
-Nodes (5): program_url, name, notNull, primaryKey, type
+Nodes (5): cookie_duration, name, notNull, primaryKey, type
 
 ### Community 1490 - "Community 1490"
 Cohesion: 0.33
@@ -7056,7 +7080,7 @@ Nodes (5): program_type, name, notNull, primaryKey, type
 
 ### Community 1493 - "Community 1493"
 Cohesion: 0.40
-Nodes (5): recommendation, name, notNull, primaryKey, type
+Nodes (5): id, name, notNull, primaryKey, type
 
 ### Community 1495 - "Community 1495"
 Cohesion: 0.40
@@ -7068,7 +7092,7 @@ Nodes (5): listAllStoredMedia(), listStoredMediaPage(), listMediaAssets(), listM
 
 ### Community 1497 - "Community 1497"
 Cohesion: 0.40
-Nodes (5): scanned_by, name, notNull, primaryKey, type
+Nodes (5): program_type, name, notNull, primaryKey, type
 
 ### Community 1498 - "Community 1498"
 Cohesion: 0.40
@@ -7076,11 +7100,11 @@ Nodes (5): email, name, notNull, primaryKey, type
 
 ### Community 1499 - "Community 1499"
 Cohesion: 0.40
-Nodes (5): first_name, name, notNull, primaryKey, type
+Nodes (5): requirements, name, notNull, primaryKey, type
 
 ### Community 1500 - "Community 1500"
 Cohesion: 0.40
-Nodes (5): invite_token_hash, name, notNull, primaryKey, type
+Nodes (5): shop_id, name, notNull, primaryKey, type
 
 ### Community 1501 - "Community 1501"
 Cohesion: 0.40
@@ -7096,7 +7120,7 @@ Nodes (5): last_login_at, name, notNull, primaryKey, type
 
 ### Community 1504 - "Community 1504"
 Cohesion: 0.40
-Nodes (5): last_login_at, name, notNull, primaryKey, type
+Nodes (5): payout_threshold, name, notNull, primaryKey, type
 
 ### Community 1505 - "Community 1505"
 Cohesion: 0.40
@@ -7116,7 +7140,7 @@ Nodes (5): invite_token_hash, name, notNull, primaryKey, type
 
 ### Community 1509 - "Community 1509"
 Cohesion: 0.40
-Nodes (5): password_hash, name, notNull, primaryKey, type
+Nodes (5): cookie_duration, name, notNull, primaryKey, type
 
 ### Community 1510 - "Community 1510"
 Cohesion: 0.40
@@ -7132,15 +7156,15 @@ Nodes (5): program_url, name, notNull, primaryKey, type
 
 ### Community 1513 - "Community 1513"
 Cohesion: 0.40
-Nodes (5): email, name, notNull, primaryKey, type
+Nodes (5): notes, name, notNull, primaryKey, type
 
 ### Community 1514 - "Community 1514"
 Cohesion: 0.40
-Nodes (5): contact_email, name, notNull, primaryKey, type
+Nodes (5): program_type, name, notNull, primaryKey, type
 
 ### Community 1515 - "Community 1515"
 Cohesion: 0.40
-Nodes (5): invite_expires_at, name, notNull, primaryKey, type
+Nodes (5): program_url, name, notNull, primaryKey, type
 
 ### Community 1516 - "Community 1516"
 Cohesion: 0.40
@@ -7148,15 +7172,15 @@ Nodes (5): invite_token_hash, name, notNull, primaryKey, type
 
 ### Community 1517 - "Community 1517"
 Cohesion: 0.40
-Nodes (5): notes, name, notNull, primaryKey, type
+Nodes (5): requirements, name, notNull, primaryKey, type
 
 ### Community 1518 - "Community 1518"
 Cohesion: 0.40
-Nodes (5): requirements, name, notNull, primaryKey, type
+Nodes (5): cookie_duration, name, notNull, primaryKey, type
 
 ### Community 1519 - "Community 1519"
 Cohesion: 0.40
-Nodes (5): notes, name, notNull, primaryKey, type
+Nodes (5): program_url, name, notNull, primaryKey, type
 
 ### Community 1520 - "Community 1520"
 Cohesion: 0.40
@@ -7168,7 +7192,7 @@ Nodes (5): program_url, name, notNull, primaryKey, type
 
 ### Community 1522 - "Community 1522"
 Cohesion: 0.40
-Nodes (5): name, notNull, primaryKey, type, avatar_url
+Nodes (5): tracking_note, name, notNull, primaryKey, type
 
 ### Community 1523 - "Community 1523"
 Cohesion: 0.40
@@ -7176,15 +7200,15 @@ Nodes (5): program_type, name, notNull, primaryKey, type
 
 ### Community 1524 - "Community 1524"
 Cohesion: 0.40
-Nodes (5): email, name, notNull, primaryKey, type
+Nodes (5): last_name, name, notNull, primaryKey, type
 
 ### Community 1525 - "Community 1525"
 Cohesion: 0.40
-Nodes (5): invite_expires_at, name, notNull, primaryKey, type
+Nodes (5): network_program_id, name, notNull, primaryKey, type
 
 ### Community 1526 - "Community 1526"
 Cohesion: 0.40
-Nodes (5): requirements, name, notNull, primaryKey, type
+Nodes (5): program_url, name, notNull, primaryKey, type
 
 ### Community 1527 - "Community 1527"
 Cohesion: 0.40
@@ -7204,23 +7228,23 @@ Nodes (5): username, name, notNull, primaryKey, type
 
 ### Community 1531 - "Community 1531"
 Cohesion: 0.40
-Nodes (5): first_name, name, notNull, primaryKey, type
+Nodes (5): shop_id, name, notNull, primaryKey, type
 
 ### Community 1532 - "Community 1532"
 Cohesion: 0.40
-Nodes (5): contact_email, name, notNull, primaryKey, type
+Nodes (5): first_name, name, notNull, primaryKey, type
 
 ### Community 1533 - "Community 1533"
 Cohesion: 0.40
-Nodes (5): last_name, name, notNull, primaryKey, type
+Nodes (5): invite_token_hash, name, notNull, primaryKey, type
 
 ### Community 1534 - "Community 1534"
 Cohesion: 0.40
-Nodes (5): network_program_url, name, notNull, primaryKey, type
+Nodes (5): last_login_at, name, notNull, primaryKey, type
 
 ### Community 1535 - "Community 1535"
 Cohesion: 0.40
-Nodes (5): username, name, notNull, primaryKey, type
+Nodes (5): network_program_id, name, notNull, primaryKey, type
 
 ### Community 1536 - "Community 1536"
 Cohesion: 0.40
@@ -7232,15 +7256,15 @@ Nodes (5): invite_token_hash, name, notNull, primaryKey, type
 
 ### Community 1538 - "Community 1538"
 Cohesion: 0.40
-Nodes (5): name, notNull, primaryKey, type, avatar_url
+Nodes (5): last_name, name, notNull, primaryKey, type
 
 ### Community 1539 - "Community 1539"
 Cohesion: 0.40
-Nodes (5): first_name, name, notNull, primaryKey, type
+Nodes (5): network_program_url, name, notNull, primaryKey, type
 
 ### Community 1540 - "Community 1540"
 Cohesion: 0.40
-Nodes (5): invite_token_hash, name, notNull, primaryKey, type
+Nodes (5): program_url, name, notNull, primaryKey, type
 
 ### Community 1541 - "Community 1541"
 Cohesion: 0.40
@@ -7264,11 +7288,11 @@ Nodes (5): email, name, notNull, primaryKey, type
 
 ### Community 1546 - "Community 1546"
 Cohesion: 0.40
-Nodes (5): last_login_at, name, notNull, primaryKey, type
+Nodes (5): network_program_url, name, notNull, primaryKey, type
 
 ### Community 1547 - "Community 1547"
 Cohesion: 0.40
-Nodes (5): ui_preferences, name, notNull, primaryKey, type
+Nodes (5): payout_threshold, name, notNull, primaryKey, type
 
 ### Community 1548 - "Community 1548"
 Cohesion: 0.40
@@ -7284,7 +7308,7 @@ Nodes (5): invite_token_hash, name, notNull, primaryKey, type
 
 ### Community 1551 - "Community 1551"
 Cohesion: 0.40
-Nodes (5): name, notNull, primaryKey, type, avatar_url
+Nodes (5): network_program_id, name, notNull, primaryKey, type
 
 ### Community 1552 - "Community 1552"
 Cohesion: 0.40
@@ -7292,7 +7316,7 @@ Nodes (5): invite_token_hash, name, notNull, primaryKey, type
 
 ### Community 1553 - "Community 1553"
 Cohesion: 0.40
-Nodes (5): email, name, notNull, primaryKey, type
+Nodes (5): notes, name, notNull, primaryKey, type
 
 ### Community 1554 - "Community 1554"
 Cohesion: 0.40
@@ -7302,45 +7326,133 @@ Nodes (5): compensation_model, name, notNull, primaryKey, type
 Cohesion: 0.50
 Nodes (3): formatTrendValue(), KpiCard(), KpiCardProps
 
+### Community 1556 - "Community 1556"
+Cohesion: 0.40
+Nodes (5): name, notNull, primaryKey, type, avatar_url
+
+### Community 1557 - "Community 1557"
+Cohesion: 0.40
+Nodes (5): contact_email, name, notNull, primaryKey, type
+
 ### Community 1558 - "Community 1558"
 Cohesion: 0.50
 Nodes (4): buildCopySource(), buildS3Metadata(), updateStoredMediaMeta(), updateManagedMediaAsset()
+
+### Community 1569 - "Community 1569"
+Cohesion: 0.40
+Nodes (5): email, name, notNull, primaryKey, type
+
+### Community 1570 - "Community 1570"
+Cohesion: 0.40
+Nodes (5): first_name, name, notNull, primaryKey, type
+
+### Community 1571 - "Community 1571"
+Cohesion: 0.40
+Nodes (5): invite_expires_at, name, notNull, primaryKey, type
+
+### Community 1572 - "Community 1572"
+Cohesion: 0.40
+Nodes (5): last_login_at, name, notNull, primaryKey, type
+
+### Community 1573 - "Community 1573"
+Cohesion: 0.40
+Nodes (5): last_name, name, notNull, primaryKey, type
+
+### Community 1574 - "Community 1574"
+Cohesion: 0.40
+Nodes (5): network_program_id, name, notNull, primaryKey, type
+
+### Community 1575 - "Community 1575"
+Cohesion: 0.40
+Nodes (5): network_program_url, name, notNull, primaryKey, type
+
+### Community 1576 - "Community 1576"
+Cohesion: 0.40
+Nodes (5): notes, name, notNull, primaryKey, type
+
+### Community 1577 - "Community 1577"
+Cohesion: 0.40
+Nodes (5): email, name, notNull, primaryKey, type
+
+### Community 1578 - "Community 1578"
+Cohesion: 0.40
+Nodes (5): ui_preferences, name, notNull, primaryKey, type
+
+### Community 1579 - "Community 1579"
+Cohesion: 0.40
+Nodes (5): username, name, notNull, primaryKey, type
+
+### Community 1580 - "Community 1580"
+Cohesion: 0.40
+Nodes (5): password_hash, name, notNull, primaryKey, type
+
+### Community 1581 - "Community 1581"
+Cohesion: 0.40
+Nodes (5): password_hash, name, notNull, primaryKey, type
+
+### Community 1582 - "Community 1582"
+Cohesion: 0.40
+Nodes (5): last_login_at, name, notNull, primaryKey, type
 
 ### Community 1583 - "Community 1583"
 Cohesion: 0.40
 Nodes (5): name, notNull, primaryKey, type, avatar_url
 
+### Community 1584 - "Community 1584"
+Cohesion: 0.40
+Nodes (5): last_login_at, name, notNull, primaryKey, type
+
 ### Community 1585 - "Community 1585"
 Cohesion: 0.40
 Nodes (5): ui_preferences, name, notNull, primaryKey, type
 
+### Community 1586 - "Community 1586"
+Cohesion: 0.40
+Nodes (5): ui_preferences, name, notNull, primaryKey, type
+
+### Community 1587 - "Community 1587"
+Cohesion: 0.40
+Nodes (5): name, notNull, primaryKey, type, avatar_url
+
+### Community 1588 - "Community 1588"
+Cohesion: 0.40
+Nodes (5): first_name, name, notNull, primaryKey, type
+
+### Community 1589 - "Community 1589"
+Cohesion: 0.40
+Nodes (5): first_name, name, notNull, primaryKey, type
+
 ### Community 1590 - "Community 1590"
 Cohesion: 0.40
-Nodes (5): last_login_at, name, notNull, primaryKey, type
+Nodes (5): invite_token_hash, name, notNull, primaryKey, type
 
 ### Community 1591 - "Community 1591"
 Cohesion: 0.40
 Nodes (5): ui_preferences, name, notNull, primaryKey, type
 
+### Community 1592 - "Community 1592"
+Cohesion: 0.40
+Nodes (5): email, name, notNull, primaryKey, type
+
 ## Knowledge Gaps
-- **21863 isolated node(s):** `printWidth`, `tabWidth`, `useTabs`, `semi`, `singleQuote` (+21858 more)
+- **21867 isolated node(s):** `printWidth`, `tabWidth`, `useTabs`, `semi`, `singleQuote` (+21862 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **97 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **99 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useI18n()` connect `Community 4` to `Community 1`, `Community 1033`, `Community 10`, `Community 9`, `Community 1046`, `Community 923`, `Community 31`, `Community 290`, `Community 932`, `Community 424`, `Community 425`, `Community 49`, `Community 827`, `Community 192`, `Community 839`, `Community 969`, `Community 203`, `Community 734`, `Community 994`, `Community 483`, `Community 484`, `Community 233`, `Community 490`, `Community 235`, `Community 110`, `Community 883`, `Community 117`, `Community 1014`, `Community 505`, `Community 893`?**
-  _High betweenness centrality (0.002) - this node is a cross-community bridge._
-- **Why does `useFocalPointDrag()` connect `Community 425` to `Community 203`, `Community 324`?**
+- **Why does `useMediaPageElement()` connect `Community 9` to `Community 4`, `Community 424`, `Community 296`, `Community 969`, `Community 505`?**
+  _High betweenness centrality (0.001) - this node is a cross-community bridge._
+- **Why does `useMediaDropZone()` connect `Community 296` to `Community 9`?**
   _High betweenness centrality (0.001) - this node is a cross-community bridge._
 - **Are the 104 inferred relationships involving `useI18n()` (e.g. with `EventListCard()` and `AnalyticsPage()`) actually correct?**
   _`useI18n()` has 104 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `printWidth`, `tabWidth`, `useTabs` to the rest of the system?**
-  _21863 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _21867 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.03394850763271816 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06398809523809523 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.09359605911330049 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09195402298850575 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.03844916344916345 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03824424163407214 - nodes in this community are weakly interconnected._
