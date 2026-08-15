@@ -29,7 +29,18 @@ const EXTENDED_CACHE_BETA = "extended-cache-ttl-2025-04-11";
  * Most batches end well inside an hour. Asking every half minute costs one
  * cheap request and keeps a finished check from sitting around unnoticed.
  */
-const BATCH_POLL_INTERVAL_MS = 30_000;
+const BATCH_POLL_INTERVAL_MS = 10_000;
+
+/**
+ * Turns one check may take.
+ *
+ * @remarks
+ * The provider's tool loop pauses when it reaches its own iteration ceiling,
+ * and continuing means another batch and another wait in its queue. Four turns
+ * is far more than a decided shop needs and bounds a check that has stopped
+ * making progress.
+ */
+const MAX_BATCH_TURNS = 4;
 
 /**
  * How long one attempt waits for its batch.
@@ -313,72 +324,56 @@ export class AnthropicReviewProvider implements ReviewProvider {
       });
     }
 
+    const messages: BetaMessageParam[] = [
+      { role: "user", content: buildReviewUserMessage(request) },
+    ];
+    const usages: ReviewUsage[] = [];
     let batchId = request.resumeBatchId ?? null;
 
     try {
-      if (!batchId) {
-        const batch = await client.beta.messages.batches.create({
-          betas: [EXTENDED_CACHE_BETA],
-          requests: [
-            {
-              custom_id: `review-${request.submissionId}`,
-              params: {
-                model: this.model,
-                max_tokens: MAX_TOKENS,
-                thinking: { type: "adaptive" },
-                ...(this.effort ? { output_config: { effort: this.effort } } : {}),
-                system: [
-                  {
-                    type: "text",
-                    text: buildReviewSystemPrompt(request.skill),
-                    // Held for an hour rather than the default five minutes, so
-                    // a batch that waits in the queue and the checks that
-                    // follow it read the rules back instead of writing them
-                    // again. The write is a fifth of what a check costs.
-                    cache_control: { type: "ephemeral", ttl: "1h" },
-                  },
-                ],
-                tools: [
-                  { type: "web_search_20260209", name: "web_search", max_uses: MAX_SEARCHES },
-                  {
-                    type: "web_fetch_20260209",
-                    name: "web_fetch",
-                    max_uses: MAX_FETCHES,
-                    max_content_tokens: MAX_FETCH_CONTENT_TOKENS,
-                  },
-                ],
-                messages: [{ role: "user", content: buildReviewUserMessage(request) }],
-              },
-            },
-          ],
-        });
+      for (let turn = 0; turn < MAX_BATCH_TURNS; turn += 1) {
+        if (!batchId) {
+          batchId = await this.submitBatch(client, request, messages);
+          // Only the first batch is handed up. A worker that restarts resumes
+          // that one and rebuilds the conversation from its answer, which is
+          // exactly what this loop does anyway. Handing up a continuation
+          // instead would resume a turn whose history the resuming worker does
+          // not have.
+          if (turn === 0) request.onBatchCreated?.(batchId);
+          request.onProgress?.(
+            turn === 0
+              ? "Prüfung eingereicht, wartet auf den Anbieter"
+              : "Recherche wird fortgesetzt",
+          );
+        }
 
-        batchId = batch.id;
-        request.onBatchCreated?.(batch.id);
-        request.onProgress?.("Prüfung eingereicht, wartet auf den Anbieter");
-      } else {
-        request.onProgress?.("Setzt die eingereichte Prüfung fort");
-      }
+        const finished = await this.awaitBatch(client, batchId, request);
+        if (finished.kind !== "ended") return finished.outcome;
 
-      const finished = await this.awaitBatch(client, batchId, request);
-      if (finished.kind !== "ended") return finished.outcome;
-
-      const results = await client.beta.messages.batches.results(batchId);
-      for await (const entry of results) {
-        if (entry.custom_id !== `review-${request.submissionId}`) continue;
+        const entry = await this.readBatchEntry(client, batchId, request.submissionId);
+        if (!entry) {
+          return this.outcome("failed", {
+            usage: sumReviewUsage(usages),
+            providerResponseId: batchId,
+            errorCode: "PROVIDER_BATCH_EMPTY",
+            errorMessage: "Der Anbieter hat kein Ergebnis zu dieser Prüfung zurückgegeben.",
+            retryable: true,
+          });
+        }
 
         if (entry.result.type === "errored") {
-          const message = entry.result.error.error.message;
           return this.outcome("failed", {
+            usage: sumReviewUsage(usages),
             providerResponseId: batchId,
             errorCode: "PROVIDER_BATCH_ERROR",
-            errorMessage: `Provider hat die Anfrage abgelehnt: ${message}`,
+            errorMessage: `Provider hat die Anfrage abgelehnt: ${entry.result.error.error.message}`,
             retryable: false,
           });
         }
 
         if (entry.result.type !== "succeeded") {
           return this.outcome("failed", {
+            usage: sumReviewUsage(usages),
             providerResponseId: batchId,
             errorCode: `PROVIDER_BATCH_${entry.result.type.toUpperCase()}`,
             errorMessage: `Die eingereichte Prüfung wurde ${entry.result.type === "canceled" ? "abgebrochen" : "nicht rechtzeitig bearbeitet"}.`,
@@ -386,25 +381,114 @@ export class AnthropicReviewProvider implements ReviewProvider {
           });
         }
 
-        return this.readMessage(entry.result.message, request, batchId);
+        const message = entry.result.message;
+        usages.push(readUsage(message));
+
+        // The provider's own tool loop has an iteration ceiling of its own. On
+        // reaching it the turn pauses, carrying the work so far and no answer.
+        // It continues by sending that turn back unchanged, which needs a
+        // second batch; adding an instruction here would be read as a new task.
+
+        // The provider's own tool loop has an iteration ceiling. On reaching it
+        // the turn pauses, carrying the work so far and no answer. It continues
+        // by sending that turn back unchanged, which needs a second batch;
+        // adding an instruction here would be read as a new task.
+        if (message.stop_reason === "pause_turn") {
+          messages.push({ role: "assistant", content: message.content });
+          batchId = null;
+          continue;
+        }
+
+        return this.readMessage(message, request, batchId, sumReviewUsage(usages));
       }
 
       return this.outcome("failed", {
+        usage: sumReviewUsage(usages),
         providerResponseId: batchId,
-        errorCode: "PROVIDER_BATCH_EMPTY",
-        errorMessage: "Der Anbieter hat kein Ergebnis zu dieser Prüfung zurückgegeben.",
-        retryable: true,
+        errorCode: "PROVIDER_TURN_LIMIT",
+        errorMessage: `Die Recherche kam auch nach ${MAX_BATCH_TURNS} Durchgängen zu keinem Ergebnis.`,
+        retryable: false,
       });
     } catch (error) {
       const classified = classifyError(error);
       logger.error({ err: error, submissionId: request.submissionId }, "review provider failed");
       return this.outcome("failed", {
+        usage: sumReviewUsage(usages),
         providerResponseId: batchId,
         errorCode: classified.code,
         errorMessage: classified.message,
         retryable: classified.retryable,
       });
     }
+  }
+
+  /**
+   * Submits one turn of a check as a batch of one request.
+   *
+   * @param client - The provider client.
+   * @param request - The run, for the rules and the shop.
+   * @param messages - The conversation so far, which is just the task on the
+   * first turn and carries the paused turns after that.
+   * @returns The batch identifier.
+   */
+  private async submitBatch(
+    client: Anthropic,
+    request: ReviewProviderRequest,
+    messages: BetaMessageParam[],
+  ): Promise<string> {
+    const batch = await client.beta.messages.batches.create({
+      betas: [EXTENDED_CACHE_BETA],
+      requests: [
+        {
+          custom_id: `review-${request.submissionId}`,
+          params: {
+            model: this.model,
+            max_tokens: MAX_TOKENS,
+            thinking: { type: "adaptive" },
+            ...(this.effort ? { output_config: { effort: this.effort } } : {}),
+            system: [
+              {
+                type: "text",
+                text: buildReviewSystemPrompt(request.skill),
+                // Held for an hour rather than the default five minutes, so a
+                // batch that waits in the queue, its continuations and the
+                // checks that follow read the rules back instead of writing
+                // them again. The write is a fifth of what a check costs.
+                cache_control: { type: "ephemeral", ttl: "1h" },
+              },
+            ],
+            tools: [
+              { type: "web_search_20260209", name: "web_search", max_uses: MAX_SEARCHES },
+              {
+                type: "web_fetch_20260209",
+                name: "web_fetch",
+                max_uses: MAX_FETCHES,
+                max_content_tokens: MAX_FETCH_CONTENT_TOKENS,
+              },
+            ],
+            messages,
+          },
+        },
+      ],
+    });
+
+    return batch.id;
+  }
+
+  /**
+   * Reads this check's entry out of a finished batch.
+   *
+   * @param client - The provider client.
+   * @param batchId - The finished batch.
+   * @param submissionId - Identifies the entry within the batch.
+   * @returns The entry, or `null` where the batch holds none for this check.
+   */
+  private async readBatchEntry(client: Anthropic, batchId: string, submissionId: number) {
+    const results = await client.beta.messages.batches.results(batchId);
+    for await (const entry of results) {
+      if (entry.custom_id === `review-${submissionId}`) return entry;
+    }
+    return null;
   }
 
   async repairTexts(texts: TextRepairRequest[]): Promise<TextRepairOutcome> {
@@ -508,8 +592,8 @@ export class AnthropicReviewProvider implements ReviewProvider {
     message: BetaMessage,
     request: ReviewProviderRequest,
     batchId: string,
+    usage: ReviewUsage,
   ): ReviewProviderOutcome {
-    const usage = readUsage(message);
     // Priced as a batch, because that is how it was submitted and therefore how
     // it is billed. Pricing it at the standard rate would trip the ceiling at
     // half the spending the operator allowed.
