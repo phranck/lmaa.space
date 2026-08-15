@@ -1,3 +1,9 @@
+---
+name: lmaa-shop-check
+description: Use when a shop URL has to be judged against the lmaa.space admission criteria, whether by hand or by the automated review. Produces the acceptance JSON the dashboard imports, or the rejection texts, together with the evidence each verdict rests on.
+version: "1.0.0"
+---
+
 <objective>
 Evaluate a given shop URL against the current _lmaa.space_ admission criteria and produce a structured acceptance or rejection output, including all data required for database import.
 </objective>
@@ -25,7 +31,6 @@ Before starting the workflow, normalize and verify the input:
 
 <rules>
 - **Time budget:** For acceptance checks, aim for 2 minutes and prioritize speed. For rejections requiring ownership chain research, PE/VC tracing, or registry lookups, take the time needed to reach the minimum source requirement. Do NOT use the TodoWrite tool.
-- **Batch mode (when called from `/lmaa-shop-review`)**: Minimize all intermediate text output to save tokens. Do NOT output the criteria checklist table, the header, or any research notes. Only output the final verdict block (acceptance JSON or rejection Kommentar + Langbegründung). Keep all other prose to an absolute minimum.
 - ALWAYS reload the admission criteria on every run. NEVER use cached or remembered criteria from a prior run.
 - ALWAYS fetch shop pages fresh on every run.
 - NEVER truncate page content -- read it entirely from beginning to end.
@@ -38,6 +43,7 @@ Before starting the workflow, normalize and verify the input:
 - NEVER use Em-dashes. Formulate clear and understandable sentences.
 - When `lmaa.space` appears in prose, italicize it.
 - Always bold the first occurrence of the shop name in every generated text, including inside the `description` string value in the JSON output block. Example: `"description": "**Shop Name** ist ein ..."` -- the markdown bold markers belong inside the JSON string.
+- ALWAYS be descriptive as you tell a friend about the shop.
 </rules>
 
 <timing_and_tokens>
@@ -81,8 +87,6 @@ Only `input_tokens`, `output_tokens`, and `cache_creation_input_tokens` count as
 ```
 
 Format numbers with thousand separators (e.g. `12,345`) when ≥ 1000. If the transcript cannot be located or is empty (all token fields are 0), only output the `⏱️ Laufzeit` line and omit the token line.
-
-**Batch mode** (when invoked from `/lmaa-shop-review`): still run both commands to keep timing consistent, but DO NOT output either line to save tokens.
 </timing_and_tokens>
 
 <workflow>
@@ -97,14 +101,31 @@ Format numbers with thousand separators (e.g. `12,345`) when ≥ 1000. If the tr
    - NEVER combine `WORLD` with any other region code
    - NEVER combine `EU` with `DE`, `AT`, or `CH`
    - Only output combinations that make semantic sense for the selector state
-5. For acceptance candidates, determine the headquarters address as completely as possible:
+5. Determine the accepted payment methods from shop-controlled sources such as checkout, payment information, FAQ, terms, shipping pages, or the site footer. Record only evidenced methods using these canonical keys:
+   - `paypal`
+   - `credit_card`
+   - `stripe`
+   - `sepa`
+   - `bank_transfer`
+   - `invoice`
+   - `klarna`
+   - `apple_pay`
+   - `google_pay`
+   - `amazon_pay`
+   - `visa`
+   - `mastercard`
+   - `american_express`
+   - Use `credit_card` only when card acceptance is evidenced but no concrete card network can be identified.
+   - If Visa, Mastercard, or American Express is evidenced, output the concrete network key and omit `credit_card`.
+   - If no accepted payment method can be evidenced, output an empty array. Do not infer methods from an ecommerce platform alone.
+6. For acceptance candidates, determine the headquarters address as completely as possible:
    - `street`
    - `postalCode`
    - `city`
    - `state`
    - `countryCode` as ISO-3166-1 alpha-2, for example `DE`, `AT`, `CH`
    - note the source of the address, for example imprint, contact page, registry, or trusted third-party source
-6. For acceptance candidates, determine geo coordinates for the headquarters:
+7. For acceptance candidates, determine geo coordinates for the headquarters:
    - `latitude`
    - `longitude`
    - this step is mandatory for acceptance candidates
@@ -119,7 +140,7 @@ Format numbers with thousand separators (e.g. `12,345`) when ≥ 1000. If the tr
    - if street-level geocoding fails, you MUST still return coordinates for `postalCode + city` when these fields are available
    - only return `geo.latitude = null` and `geo.longitude = null` when even `postalCode + city` cannot be evidenced or geocoded reliably
    - note the exact source and granularity of the coordinates, for example `Nominatim (street-level)` or `Nominatim (PLZ+Ort centroid)`
-7. Rate each criterion as `✓`, `✗`, or `~`:
+8. Rate each criterion as `✓`, `✗`, or `~`:
    - Independent online presence
    - Sells to customers in Europe via any channel (worldwide is a plus)
    - Not a large corporation / corporate brand -- rate `✗` when the company exceeds the `<company_size_check>` thresholds (primarily >~100 employees). Research the size before rating; do not assume "small".
@@ -128,7 +149,7 @@ Format numbers with thousand separators (e.g. `12,345`) when ≥ 1000. If the tr
    - Not a chain / department store
    - Not a pure affiliate portal
    - No far-right ties
-8. To retrieve the required information, try to use all available tools. Be creative, but don't make anything up!
+9. To retrieve the required information, try to use all available tools. Be creative, but don't make anything up!
 </workflow>
 
 <company_size_check>
@@ -167,7 +188,8 @@ Only when the result is `✅ Aufnahme empfohlen`:
   Mastodon, Bluesky, Twitter/X, Instagram, TikTok, YouTube, Twitch, Pinterest, LinkedIn, Facebook, Threads, Patreon
 - Find the contact email address
   - Many shops obfuscate email addresses to prevent spam. Recognize and normalize alternative spellings such as `info(at)example.de`, `info (at) example.de`, `info[at]example[dot]de`, `info @ example.de`, `info(ät)example.de`, `info [at] example [dot] de`, or HTML-entity-encoded `@` / `.` characters. Always convert these to a proper `user@domain.tld` format in the output.
-- Apply the address and geocoding steps defined in the Workflow (steps 5 and 6) to resolve the final structured headquarters address and geo coordinates suitable for the shop database
+- Apply the address and geocoding steps defined in the Workflow (steps 6 and 7) to resolve the final structured headquarters address and geo coordinates suitable for the shop database
+- Apply the payment-method research and canonical-key rules from the Workflow to populate `paymentMethods`
 </extra_research>
 
 <rejection_research>
@@ -258,7 +280,7 @@ Output exactly two markdown code blocks back to back, then the runtime/token foo
 
 **Acceptance Output:**
 
-CRITICAL — On acceptance (`✅ Aufnahme empfohlen`), output ONLY the structured JSON code block below. No header, no criteria checklist, no verdict line, no description prose, no separate categories or social profile bullet points outside the JSON. Everything that the dashboard needs is contained in the JSON block. This rule applies in normal mode AND in batch mode.
+CRITICAL — On acceptance (`✅ Aufnahme empfohlen`), output ONLY the structured JSON code block below. No header, no criteria checklist, no verdict line, no description prose, no separate categories or social profile bullet points outside the JSON. Everything that the dashboard needs is contained in the JSON block.
 
 - Format and content of the `description` field inside the JSON:
   - Brief information about the shop, naming the owners and the city/location of operation. Spelling out the legal-form suffix (`GmbH`, `GbR`, `Einzelunternehmen` etc.) is NOT required and SHOULD be omitted by default -- it adds little reader value and is already captured in `legal.entityType`.
@@ -280,6 +302,7 @@ CRITICAL — On acceptance (`✅ Aufnahme empfohlen`), output ONLY the structure
   - The JSON MUST include all acceptance data that was gathered, not only the address
   - The JSON MUST be valid JSON, not JSON5
   - **CRITICAL — JSON SAFETY**: German typographic quotes inside JSON string values are forbidden as literal characters. If you need to quote a term or phrase inside a JSON string value, you MUST use the Unicode escape sequences `\u201E` (opening, „) and `\u201C` (closing, "). Example: `"description": "...als \u201Eetwas anderes\u201C bezeichnet..."`. NEVER write `„` or `"` as literal characters inside a JSON string — the parser will treat the literal `"` as the end of the string and break the JSON. When in doubt, rephrase to avoid quotation marks entirely.
+  - **One-liner text values:** Every string value in the JSON output MUST be written as a single physical line (Endloszeile) with no literal line breaks in the JSON source. Internal line breaks within a text MUST be represented as the escape sequence `\n`, never as actual newlines inside the JSON string. This applies to all keys, including `description`, `notes.companyPresentation`, and any other text field.
   - Use `null` for unknown scalar values, `[]` for unknown empty lists, and `{}` for unknown empty maps
   - Clean all URLs before putting them into the JSON
   - The address and geo fields must match this structure so they fit the database extension:
@@ -292,6 +315,7 @@ CRITICAL — On acceptance (`✅ Aufnahme empfohlen`), output ONLY the structure
   "categories": ["Kategorie A", "Kategorie B"],
   "contactEmail": "info@example.com",
   "shippingRegions": ["EU"],
+  "paymentMethods": ["paypal", "visa", "mastercard", "sepa"],
   "legal": {
     "entityName": "Beispiel GmbH",
     "entityType": "GmbH",
@@ -352,7 +376,8 @@ CRITICAL — On acceptance (`✅ Aufnahme empfohlen`), output ONLY the structure
 - Every relevant code block must be self-contained: inline footnotes in the text and the matching source list at the end of the same block.
 - Hard facts such as legal seat, corporate affiliation, or registry data require a source.
 - **EVERY source MUST be a verifiable URL.** Phrases like "allgemein bekannt", "common knowledge", "well-known facts", or any non-URL source are STRICTLY FORBIDDEN. If you cannot provide a concrete URL for a claim, you MUST either find one via web search or omit the claim entirely. No exceptions.
-- Format of each source: `[^N]: Description, URL, Stand: $DATUM`
+- Format of each source: `[^N]: [Description](URL), Stand: $DATUM`
+- Use the source description as the Markdown link label and the verifiable URL as its link target. Do not print bare URLs in the source list.
 - Exception for `✅ Aufnahme empfohlen`: shop description, categories, contact email, and social URL blocks stay source-free so they can be copied into the target system directly.
 </footnote_rules>
 
@@ -370,6 +395,7 @@ A run is successful when all of the following conditions are met:
 - A clear verdict is rendered (`✅ Aufnahme empfohlen` or `❌ Ablehnung empfohlen`)
 - For rejection: both the short `Kommentar` and the `Langbegründung` code blocks are present, `[REJECT_TOKEN]` is intact and unchanged, the source list contains at least 5 independently verifiable URLs, and no factual claim is left without a footnote
 - For acceptance: all fields in the JSON block are populated or explicitly set to `null`/`[]`/`{}`, geo coordinates are resolved via the fallback cascade, and the JSON is valid (no trailing commas, no JSON5 syntax)
-- Total runtime is measured via Bash `date +%s` at start and end, and (outside batch mode) displayed as a final `⏱️ Laufzeit: ...` line
-- Token usage is extracted from the session transcript delta and (outside batch mode) displayed as a final `🔢 Tokens: ...` line immediately after the runtime line
+- For acceptance: `paymentMethods` is present and contains only canonical keys supported by the dashboard; use `[]` when no method can be evidenced
+- Total runtime is measured via Bash `date +%s` at start and end, and displayed as a final `⏱️ Laufzeit: ...` line
+- Token usage is extracted from the session transcript delta and displayed as a final `🔢 Tokens: ...` line immediately after the runtime line
 </success_criteria>

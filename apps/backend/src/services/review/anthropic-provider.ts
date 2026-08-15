@@ -197,6 +197,20 @@ export function reportProgress(onProgress: (step: string) => void) {
       return;
     }
 
+    // The search and fetch tools filter what they found through the provider's
+    // code execution, so these names show up in a run that never asked for code
+    // to be run. They are named after what they do here rather than after the
+    // tool, which would tell a moderator nothing.
+    if (block.name === "code_execution" || block.name === "bash_code_execution") {
+      onProgress("Wertet die Fundstellen aus");
+      return;
+    }
+
+    if (block.name === "text_editor_code_execution") {
+      onProgress("Bereitet die Fundstellen auf");
+      return;
+    }
+
     onProgress(`Führt ${block.name} aus`);
   };
 }

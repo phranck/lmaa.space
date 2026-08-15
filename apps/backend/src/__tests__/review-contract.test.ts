@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+
 import {
   REJECT_TOKEN_PLACEHOLDER,
   REVIEW_RESULT_SCHEMA_VERSION,
@@ -8,6 +9,7 @@ import {
 } from "@lmaa/contracts";
 
 import { mapShopJsonToShopData } from "../lib/shopjson-mapper.js";
+import { loadReviewSkill } from "../services/review/skill.js";
 
 const passingCriteria = {
   independentOnlinePresence: "pass",
@@ -291,10 +293,14 @@ describe("reviewResultJsonSchema", () => {
     expect(rendered).toContain('"mastodon"');
   });
 
-  it("asks for no field the canonical output does not carry", () => {
-    // Payment methods were asked for once and are not part of the canonical
-    // acceptance output, so the model had to invent them.
-    expect(JSON.stringify(reviewResultJsonSchema)).not.toContain("paymentMethods");
+  it("asks for the payment methods the canonical rules research", () => {
+    // Held against the rules themselves rather than against a list here. The
+    // automation once ran against a copy of the rules that had no payment step,
+    // and every result came back without one, which nothing caught.
+    const rules = loadReviewSkill().text;
+    expect(rules).toContain("paymentMethods");
+    expect(rules).toMatch(/payment methods/i);
+    expect(JSON.stringify(reviewResultJsonSchema)).toContain("paymentMethods");
   });
 
   it("leaves the three payload keys optional, so only the chosen one is sent", () => {

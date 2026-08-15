@@ -6,12 +6,14 @@ import { resolve } from "node:path";
  * Where the canonical shop-check rules live, relative to the repository root.
  *
  * @remarks
- * The file is the same one a human runs the manual check from. Sending it to
- * the provider rather than a copy is what keeps the automated and the manual
- * check from drifting apart, which no amount of version pinning could assure
- * once two copies existed.
+ * This is the skill a person runs the manual check from, at the path Claude
+ * Code documents for a project skill. Sending that file rather than a copy is
+ * what keeps the automated and the manual check from drifting apart, which no
+ * amount of version pinning could assure once two copies existed. It cost one
+ * live check to learn that: the automation ran for weeks against a copy that
+ * had no payment-method step, so no result ever carried one.
  */
-const SKILL_RELATIVE_PATH = "skills/lmaa-shop-check.md";
+const SKILL_RELATIVE_PATH = ".claude/skills/lmaa-shop-check/SKILL.md";
 
 /**
  * Candidate roots the skill file is looked for in.
