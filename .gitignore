@@ -38,4 +38,8 @@ shop-geo-data.json
 .gource/*.mp4
 .gource/lmaa-history/
 .gource/lmaa-history-hls/
-skills
+# The canonical shop-check rules are read at runtime by the automated review and
+# are deployed with the backend, so that one file is tracked. Everything else in
+# here is local working material.
+skills/*
+!skills/lmaa-shop-check.md
