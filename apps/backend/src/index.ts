@@ -172,6 +172,7 @@ const EXPECTED_TABLES = [
   "rate_limit_entries",
   "review_events",
   "review_jobs",
+  "review_spend",
   "sessions",
   "shop_categories",
   "shop_concern_reports",
