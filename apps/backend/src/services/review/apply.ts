@@ -6,6 +6,7 @@ import type { ReviewAutoApplyVerdict } from "@lmaa/shared";
 import type { ReviewSettings } from "./settings.js";
 import { db } from "../../db/client.js";
 import { categories } from "../../db/schema.js";
+import { geocodeAddress } from "../../lib/geocoding.js";
 import { logger } from "../../lib/logger.js";
 import { mapShopJsonToSubmissionEditData } from "../../lib/shopjson-mapper.js";
 import { editSubmission, setReadyForReview } from "../../repositories/admin-submissions.js";
@@ -72,7 +73,10 @@ async function enrichSubmission(submissionId: number, result: ReviewResult): Pro
 
   const categoryNameToId = await loadCategoryNameToId();
   const editData = mapShopJsonToSubmissionEditData(
-    result.accept as unknown as Record<string, unknown>,
+    { ...result.accept, geo: await resolveGeo(result.accept) } as unknown as Record<
+      string,
+      unknown
+    >,
     categoryNameToId,
   );
 
@@ -81,6 +85,46 @@ async function enrichSubmission(submissionId: number, result: ReviewResult): Pro
 
   await setReadyForReview(submissionId, true);
   return true;
+}
+
+/**
+ * Resolves the coordinates of an accepted shop's headquarters.
+ *
+ * @param accept - The validated acceptance payload.
+ * @returns The coordinates with their source, or what the result already
+ * carried when no address could be resolved.
+ *
+ * @remarks
+ * Done here rather than by the model. Geocoding is a lookup with a defined
+ * answer, so a model that guesses coordinates is a model inventing a fact, and
+ * every lookup it makes is another round trip in a conversation that is re-read
+ * in full each time.
+ */
+async function resolveGeo(accept: NonNullable<ReviewResult["accept"]>): Promise<unknown> {
+  const headquarters = accept.headquarters;
+  if (!headquarters?.city) return accept.geo ?? null;
+
+  const resolved = await geocodeAddress({
+    street: headquarters.street ?? undefined,
+    postalCode: headquarters.postalCode ?? undefined,
+    city: headquarters.city,
+    countryCode: headquarters.countryCode ?? undefined,
+  });
+
+  if (!resolved) {
+    return {
+      latitude: null,
+      longitude: null,
+      source: "keine",
+      unresolvedReason: "Die Anschrift liess sich über die gesamte Kaskade nicht auflösen.",
+    };
+  }
+
+  return {
+    latitude: resolved.latitude,
+    longitude: resolved.longitude,
+    source: resolved.source,
+  };
 }
 
 /**

@@ -567,6 +567,7 @@ export interface DashboardMessages {
       };
       events: {
         "provider.started": string;
+        "provider.submitted": string;
         "result.validated": string;
         "result.invalid": string;
         "attempt.failed": string;
@@ -2137,6 +2138,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         },
         events: {
           "provider.started": "Recherche beim Anbieter gestartet",
+          "provider.submitted": "Beim Anbieter eingereicht, wird verarbeitet",
           "result.validated": "Ergebnis geprüft und angenommen",
           "result.invalid": "Ergebnis unbrauchbar, neuer Versuch",
           "attempt.failed": "Versuch fehlgeschlagen",
@@ -3757,6 +3759,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         },
         events: {
           "provider.started": "Research started at the provider",
+          "provider.submitted": "Submitted to the provider, being processed",
           "result.validated": "Result checked and accepted",
           "result.invalid": "Result unusable, trying again",
           "attempt.failed": "Attempt failed",

@@ -191,6 +191,15 @@ function priceTokens(tokens: number | undefined, perMillion: bigint): bigint {
 }
 
 /**
+ * How a run was submitted, which decides what the provider charges for it.
+ *
+ * @remarks
+ * The batches API is billed at half the standard prices, on every token line
+ * and on the tool calls.
+ */
+export type ReviewBilling = "standard" | "batch";
+
+/**
  * Prices one attempt's usage against a rate card.
  *
  * @param usage - Token counts and tool calls the provider reported.
@@ -211,6 +220,7 @@ export function calculateReviewCost(
   usage: ReviewUsage,
   model: string,
   rateCard: ReviewRateCard = CURRENT_REVIEW_RATE_CARD,
+  billing: ReviewBilling = "standard",
 ): ReviewCost {
   const prices = rateCard.prices[model];
   if (!prices) {
@@ -235,7 +245,11 @@ export function calculateReviewCost(
     BigInt(Math.max(0, Math.round(usage.webSearchCalls ?? 0))) * prices.perWebSearch;
 
   return {
-    totalNano: total.toString(),
+    // Batched usage is billed at half, so the amount that is stored is the
+    // amount that is charged. Without this every batched check would be
+    // recorded at twice its price, and the daily ceiling would stop the worker
+    // at half the spending it was set to allow.
+    totalNano: (billing === "batch" ? total / 2n : total).toString(),
     currency: rateCard.currency,
     rateCardVersion: rateCard.version,
     complete: missingDimensions.length === 0,
