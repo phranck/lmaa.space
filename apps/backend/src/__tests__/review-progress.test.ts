@@ -34,6 +34,18 @@ describe("reportProgress", () => {
     expect(step).toBe("Prüft die Adresse");
   });
 
+  it("names the filtering the search tools do through code execution", () => {
+    expect(stepFor({ type: "server_tool_use", name: "code_execution", input: {} })).toBe(
+      "Wertet die Fundstellen aus",
+    );
+    expect(stepFor({ type: "server_tool_use", name: "bash_code_execution", input: {} })).toBe(
+      "Wertet die Fundstellen aus",
+    );
+    expect(
+      stepFor({ type: "server_tool_use", name: "text_editor_code_execution", input: {} }),
+    ).toBe("Bereitet die Fundstellen auf");
+  });
+
   it("reports thinking", () => {
     expect(stepFor({ type: "thinking", thinking: "…" })).toBe("Denkt nach");
   });
