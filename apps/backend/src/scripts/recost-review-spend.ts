@@ -59,6 +59,8 @@ async function main(): Promise<void> {
         continue;
       }
 
+      // Historic attempts ran as standard requests, so they are recalculated as
+      // such. Batched runs price themselves correctly when they finish.
       const cost = calculateReviewCost(attempt.usage, attempt.model);
       const booked = await bookedFor(job.id, attempt.attempt);
       const delta = BigInt(cost.totalNano) - booked;

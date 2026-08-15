@@ -2705,8 +2705,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/i18n/messages.ts": {
-    "mtime": 1786788906.944546,
-    "ast_hash": "d488d04344e03a8c98a0b4fa447d438a",
+    "mtime": 1786797884.796595,
+    "ast_hash": "58b5fe7deec686f6d3ec427e7eb92d08",
     "semantic_hash": ""
   },
   "apps/dashboard/src/lib/api.ts": {
@@ -3390,7 +3390,7 @@
     "semantic_hash": ""
   },
   "packages/shared/src/constants/payment-methods.ts": {
-    "mtime": 1786795630.7357137,
+    "mtime": 1786796438.3872736,
     "ast_hash": "a029f76980414a625f3bbdb979587161",
     "semantic_hash": ""
   },
@@ -3730,7 +3730,7 @@
     "semantic_hash": ""
   },
   "packages/ui/src/payment-methods.ts": {
-    "mtime": 1786795630.735872,
+    "mtime": 1786796438.387444,
     "ast_hash": "db115266ab23e4bf359f6e58417b928f",
     "semantic_hash": ""
   },
@@ -3895,18 +3895,13 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-cost.test.ts": {
-    "mtime": 1786788906.9311185,
-    "ast_hash": "90f879a911c15ebf772e30172e6eaa4a",
+    "mtime": 1786798170.22657,
+    "ast_hash": "51b55bcfb836724820b65ab61202c295",
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-effort.test.ts": {
     "mtime": 1786788906.931192,
     "ast_hash": "dac3883cedbada829e44c5623156397e",
-    "semantic_hash": ""
-  },
-  "apps/backend/src/__tests__/review-progress.test.ts": {
-    "mtime": 1786792943.8118443,
-    "ast_hash": "da5465050959421c999916eff754a25e",
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-skill.test.ts": {
@@ -3920,12 +3915,12 @@
     "semantic_hash": ""
   },
   "apps/backend/src/lib/review-cost.ts": {
-    "mtime": 1786788906.9321408,
-    "ast_hash": "aa70a32f0c69eebbd6c0432df482f159",
+    "mtime": 1786798149.4449556,
+    "ast_hash": "0ab7bc2c45dfe165507e06c2b66b14d0",
     "semantic_hash": ""
   },
   "apps/backend/src/repositories/review-jobs.ts": {
-    "mtime": 1786794224.4496424,
+    "mtime": 1786796438.3706105,
     "ast_hash": "a1fad674ea4b195b5ca750804e9f0a5a",
     "semantic_hash": ""
   },
@@ -3935,8 +3930,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/scripts/recost-review-spend.ts": {
-    "mtime": 1786788906.9331665,
-    "ast_hash": "b940ffce13c925818c4119dcb9b63e21",
+    "mtime": 1786798160.8079803,
+    "ast_hash": "1bc608c8c362aa5805a24f828ac143c7",
     "semantic_hash": ""
   },
   "apps/backend/src/scripts/review-shop.ts": {
@@ -3945,13 +3940,13 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/anthropic-provider.ts": {
-    "mtime": 1786795833.9816642,
-    "ast_hash": "2e5fbcf41fafd9d207f5aeef11cb1b09",
+    "mtime": 1786798161.1124346,
+    "ast_hash": "9938ea502c400b5d87a9d937ff5178a9",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/apply.ts": {
-    "mtime": 1786788906.9337294,
-    "ast_hash": "ba6a284a4695a0d88c62ac2376b02ec1",
+    "mtime": 1786797799.467308,
+    "ast_hash": "390487fe8ae56b621db5e8f2d9fe4d1e",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/context.ts": {
@@ -3965,13 +3960,13 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/prompt.ts": {
-    "mtime": 1786788906.9340425,
-    "ast_hash": "369aab9e9c4cfb1ba22211938c6e6f56",
+    "mtime": 1786797725.0301058,
+    "ast_hash": "b6d1419d190e43e539c980115d43ecb5",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/provider.ts": {
-    "mtime": 1786788906.9341416,
-    "ast_hash": "bf84502d62758d054d862aa6c253d333",
+    "mtime": 1786797725.0302694,
+    "ast_hash": "397b10b226788e43d7a5b761713a1cbc",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/read-model.ts": {
@@ -3995,8 +3990,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/worker.ts": {
-    "mtime": 1786788906.9346998,
-    "ast_hash": "35db38b135c8d9fdb52b13be309e3247",
+    "mtime": 1786798149.4451528,
+    "ast_hash": "43695b78e4cb706d81b77d43dfeb090d",
     "semantic_hash": ""
   },
   "apps/dashboard/src/components/ui/Badge.tsx": {
@@ -4040,8 +4035,8 @@
     "semantic_hash": ""
   },
   "packages/contracts/src/review-result.ts": {
-    "mtime": 1786792943.8301594,
-    "ast_hash": "d197aa35f6fd90a6785e24b7180e3e22",
+    "mtime": 1786797761.9042668,
+    "ast_hash": "83b86fd94084b23f1bd661104f03f759",
     "semantic_hash": ""
   },
   "packages/shared/src/constants/review-jobs.ts": {
@@ -4055,18 +4050,23 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/payment-methods-from-html.test.ts": {
-    "mtime": 1786795736.479692,
+    "mtime": 1786796438.370266,
     "ast_hash": "1ae0aa2393ac6a09b7c8ad0c41416443",
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-error-classification.test.ts": {
-    "mtime": 1786794319.7459548,
+    "mtime": 1786796438.3703547,
     "ast_hash": "39a300359e664034111013585f2a4d4b",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/payment-methods-from-html.ts": {
-    "mtime": 1786795718.2396367,
+    "mtime": 1786796438.3704543,
     "ast_hash": "f7f67f6e096c6e47d91a4d8d19bab940",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/services/review/payment-evidence.ts": {
+    "mtime": 1786797799.4673097,
+    "ast_hash": "d78072cf00da2911a34f9811229f52fa",
     "semantic_hash": ""
   }
 }

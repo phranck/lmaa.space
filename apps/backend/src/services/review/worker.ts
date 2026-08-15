@@ -8,6 +8,7 @@ import type { ReviewAttemptRecord, ReviewCost, ReviewJobState, ReviewVerdict } f
 import { AnthropicReviewProvider } from "./anthropic-provider.js";
 import { applyReviewResult } from "./apply.js";
 import { MissingAdmissionCriteriaError, loadReviewRunContext } from "./context.js";
+import { collectPaymentEvidence } from "./payment-evidence.js";
 import type { ReviewProvider, ReviewProviderOutcome } from "./provider.js";
 import { sendReviewReport } from "./report.js";
 import { loadReviewSettings } from "./settings.js";
@@ -246,6 +247,10 @@ export class ReviewWorker {
     const skill = loadReviewSkill();
     const startedAt = new Date();
 
+    // Read before the provider is asked, because the names live in the markup
+    // and the provider's page fetch only returns extracted text.
+    const paymentEvidence = await collectPaymentEvidence(submission.shopUrl);
+
     await transitionReviewJob(
       job.id,
       "provider_waiting",
@@ -275,7 +280,22 @@ export class ReviewWorker {
         skill,
         context,
         costLimitNano: settings.costLimitPerCheckNano,
+        paymentMethods: paymentEvidence.methods,
         signal: abort.signal,
+        // A batch that a previous attempt already submitted is resumed rather
+        // than submitted again, because the provider bills what it processed
+        // whether or not anybody collected the answer.
+        resumeBatchId: job.providerResponseId ?? undefined,
+        onBatchCreated: (batchId) => {
+          void transitionReviewJob(
+            job.id,
+            "provider_waiting",
+            { providerResponseId: batchId },
+            { name: "provider.submitted", detail: batchId },
+          ).catch((error: unknown) => {
+            logger.warn({ err: error, jobId: job.id }, "could not record the batch id");
+          });
+        },
         onProgress: (step) => {
           void recordReviewProgress(job.id, WORKER_ID, step).catch((error) => {
             logger.debug({ err: error, jobId: job.id }, "could not record review progress");
@@ -286,7 +306,8 @@ export class ReviewWorker {
       clearInterval(heartbeat);
     }
 
-    const cost = calculateReviewCost(outcome.usage, outcome.model);
+    // Every check is submitted as a batch, which the provider bills at half.
+    const cost = calculateReviewCost(outcome.usage, outcome.model, undefined, "batch");
     const attemptRecord = buildAttemptRecord(job, provider, outcome, cost, startedAt);
 
     // A cancellation ends the job at once, so by the time the aborted run
