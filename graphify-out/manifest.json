@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/index.ts": {
-    "mtime": 1786788906.9319143,
-    "ast_hash": "fe0b5b983df02bb2d06ce79b0f222fea",
+    "mtime": 1786821493.5721793,
+    "ast_hash": "e39f3bbe6c186acf6220186669d1c3bb",
     "semantic_hash": ""
   },
   "apps/backend/src/lib/email-address.ts": {
@@ -2275,8 +2275,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/NavManagerPage.tsx": {
-    "mtime": 1783966418.898981,
-    "ast_hash": "3e69c6410b2f0afe071e85d5616ec34d",
+    "mtime": 1786823446.045205,
+    "ast_hash": "db14f9d142a7e171fb39ccb70fcd5c9f",
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/RedirectUrlsPage.tsx": {
@@ -3940,7 +3940,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/anthropic-provider.ts": {
-    "mtime": 1786819358.841279,
+    "mtime": 1786819650.9940078,
     "ast_hash": "119747c0ea3c110ec48a017945810579",
     "semantic_hash": ""
   },
@@ -4085,8 +4085,18 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-provider-pause.test.ts": {
-    "mtime": 1786819335.2353313,
+    "mtime": 1786819650.9937634,
     "ast_hash": "aa00e1fb13cca6bc83b3d5a44b66dd48",
+    "semantic_hash": ""
+  },
+  "apps/dashboard/src/features/system/nav-column-state.test.ts": {
+    "mtime": 1786823459.4864728,
+    "ast_hash": "6e499c52748d3b9eefa012780825c012",
+    "semantic_hash": ""
+  },
+  "apps/dashboard/src/features/system/nav-column-state.ts": {
+    "mtime": 1786823469.91724,
+    "ast_hash": "45dc06f47fb4ca9a90a67235bbe2fc39",
     "semantic_hash": ""
   }
 }
