@@ -1,10 +1,10 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import { footerConfigSchema } from "@lmaa/contracts";
 
 import { ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import { getFooterConfig, upsertFooterConfig } from "../../repositories/footer-config.js";
 import { createFooterPreviewSession } from "../../services/footer-preview-store.js";
 
@@ -22,20 +22,16 @@ footerConfigRoutes.get("/footer-config", async (c) => {
 });
 
 // PUT /admin/footer-config
-footerConfigRoutes.put(
-  "/footer-config",
-  zValidator("json", footerConfigSchema),
-  async (c) => {
-    const config = c.req.valid("json");
-    await upsertFooterConfig(config);
-    return ok(c, config);
-  },
-);
+footerConfigRoutes.put("/footer-config", validate("json", footerConfigSchema), async (c) => {
+  const config = c.req.valid("json");
+  await upsertFooterConfig(config);
+  return ok(c, config);
+});
 
 // POST /admin/footer-config/preview-sessions
 footerConfigRoutes.post(
   "/footer-config/preview-sessions",
-  zValidator("json", footerConfigSchema),
+  validate("json", footerConfigSchema),
   async (c) => {
     const config = c.req.valid("json");
     return ok(c, createFooterPreviewSession(config));

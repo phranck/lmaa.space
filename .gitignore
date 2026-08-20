@@ -33,6 +33,7 @@ scripts/*
 !scripts/smoke-prod.sh
 !scripts/check-web-fonts.mjs
 !scripts/check-web-fonts.test.mjs
+!scripts/check-analytics-integrity.mjs
 apps/frontend/image-originals/
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep

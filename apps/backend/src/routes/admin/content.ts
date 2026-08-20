@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import {
@@ -10,6 +9,7 @@ import {
 
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   createManagedContentPage,
   deleteManagedContentPage,
@@ -34,7 +34,7 @@ contentRoutes.get("/content", requireAdmin, async (c) => {
 
 // ─── Create page ──────────────────────────────────────────────────────────────
 
-contentRoutes.post("/content", requireAdmin, zValidator("json", contentCreateSchema), async (c) => {
+contentRoutes.post("/content", requireAdmin, validate("json", contentCreateSchema), async (c) => {
   const { slug, title, status = "draft", contentWidth = "default" } = c.req.valid("json");
   const adminId = c.get("adminId");
 
@@ -60,7 +60,7 @@ contentRoutes.get("/content/:slug", requireAdmin, async (c) => {
 contentRoutes.put(
   "/content/:slug",
   requireAdmin,
-  zValidator("json", contentUpdateSchema),
+  validate("json", contentUpdateSchema),
   async (c) => {
     const slug = c.req.param("slug");
     const { content } = c.req.valid("json");
@@ -78,7 +78,7 @@ contentRoutes.put(
 contentRoutes.post(
   "/content/:slug/preview-sessions",
   requireAdmin,
-  zValidator("json", contentPreviewSessionSchema),
+  validate("json", contentPreviewSessionSchema),
   async (c) => {
     const page = c.req.valid("json");
     return ok(c, createContentPreviewSession(page), 201);
@@ -90,7 +90,7 @@ contentRoutes.post(
 contentRoutes.patch(
   "/content/:slug",
   requireAdmin,
-  zValidator("json", contentMetaSchema),
+  validate("json", contentMetaSchema),
   async (c) => {
     const currentSlug = c.req.param("slug");
     const { title, slug: newSlug, status, showTitle, contentWidth } = c.req.valid("json");

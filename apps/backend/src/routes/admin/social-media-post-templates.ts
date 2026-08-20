@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -11,6 +10,7 @@ import {
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   createManagedSocialMediaPostTemplate,
   deleteManagedSocialMediaPostTemplate,
@@ -29,7 +29,7 @@ socialMediaPostTemplateRoutes.use("*", requireAdmin);
 
 socialMediaPostTemplateRoutes.get(
   "/social-media-post-templates",
-  zValidator("query", listQuerySchema),
+  validate("query", listQuerySchema),
   async (c) => {
     const { scope } = c.req.valid("query");
     const templates = await getManagedSocialMediaPostTemplates(scope);
@@ -47,12 +47,10 @@ socialMediaPostTemplateRoutes.get("/social-media-post-templates/:id", async (c) 
 
 socialMediaPostTemplateRoutes.post(
   "/social-media-post-templates",
-  zValidator("json", socialMediaPostTemplateCreateSchema),
+  validate("json", socialMediaPostTemplateCreateSchema),
   async (c) => {
     const payload = c.req.valid("json");
-    const safePayload = c.get("isOwner")
-      ? payload
-      : { ...payload, isSystemTemplate: undefined };
+    const safePayload = c.get("isOwner") ? payload : { ...payload, isSystemTemplate: undefined };
     const result = await createManagedSocialMediaPostTemplate(safePayload);
     if (!result.ok) return fail(c, 409, "Template name already exists");
     return ok(c, result.data, 201);
@@ -61,14 +59,12 @@ socialMediaPostTemplateRoutes.post(
 
 socialMediaPostTemplateRoutes.put(
   "/social-media-post-templates/:id",
-  zValidator("json", socialMediaPostTemplateUpdateSchema),
+  validate("json", socialMediaPostTemplateUpdateSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid ID");
     const payload = c.req.valid("json");
-    const safePayload = c.get("isOwner")
-      ? payload
-      : { ...payload, isSystemTemplate: undefined };
+    const safePayload = c.get("isOwner") ? payload : { ...payload, isSystemTemplate: undefined };
     const result = await updateManagedSocialMediaPostTemplate(id, safePayload);
     if (!result.ok) return fail(c, 404, "Social-media post template not found");
     return ok(c, result.data);

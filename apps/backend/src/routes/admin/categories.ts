@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -7,6 +6,7 @@ import { categoryCreateSchema, categoryUpdateSchema } from "@lmaa/contracts";
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   deleteAdminCategory,
   listAdminCategories,
@@ -39,7 +39,7 @@ categoriesRoutes.get("/categories", async (c) => {
 categoriesRoutes.post(
   "/categories",
   requireAdmin,
-  zValidator("json", categoryCreateSchema),
+  validate("json", categoryCreateSchema),
   async (c) => {
     const body = c.req.valid("json");
     const adminId = c.get("adminId");
@@ -55,7 +55,7 @@ categoriesRoutes.post(
   },
 );
 
-const updateCategoryHandler = zValidator("json", categoryUpdateSchema);
+const updateCategoryHandler = validate("json", categoryUpdateSchema);
 
 categoriesRoutes.put("/categories/:id", requireAdmin, updateCategoryHandler, async (c) => {
   const id = parseId(c.req.param("id"));
@@ -117,7 +117,7 @@ const unsplashImageSchema = z.object({
 categoriesRoutes.post(
   "/categories/:id/unsplash-image",
   requireAdmin,
-  zValidator("json", unsplashImageSchema),
+  validate("json", unsplashImageSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
@@ -157,7 +157,7 @@ const focalPointSchema = z.object({
 categoriesRoutes.patch(
   "/categories/:id/focal-point",
   requireAdmin,
-  zValidator("json", focalPointSchema),
+  validate("json", focalPointSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");

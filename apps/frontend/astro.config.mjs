@@ -106,7 +106,13 @@ export default defineConfig({
     UnoCSS({ injectReset: false }),
     react(),
     sitemap({
-      filter: (page) => !page.includes("/search") && !page.includes("/suggestion"),
+      // The sitemap lists the pages meant for readers. `/preview/*` is the
+      // editor's own view of unpublished content, reachable only with a token,
+      // and listing it pointed every crawler straight at it. Those pages ask
+      // crawlers to stay away in their own markup, so leaving them here stated
+      // the opposite of what the pages themselves say.
+      filter: (page) =>
+        !page.includes("/search") && !page.includes("/suggestion") && !page.includes("/preview/"),
     }),
   ],
   vite: {

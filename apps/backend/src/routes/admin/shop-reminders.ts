@@ -1,10 +1,10 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import type { AuthVariables } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   deleteReminderById,
   getReminder,
@@ -36,41 +36,37 @@ shopRemindersRoutes.get("/shops/:id/reminder", async (c) => {
   return ok(c, reminder);
 });
 
-shopRemindersRoutes.post(
-  "/shops/:id/reminder",
-  zValidator("json", reminderBodySchema),
-  async (c) => {
-    const id = parseId(c.req.param("id"));
-    if (!id) return fail(c, 400, "Invalid id");
-    const adminId = c.get("adminId");
-    const {
-      remindAt,
-      note,
-      isActive,
-      recurrence,
-      recurrenceCustomDays,
-      recurrenceUnit,
-      recurrenceDaysOfWeek,
-      sendEmail,
-      emailTemplateId,
-    } = c.req.valid("json");
-    await upsertReminder(
-      id,
-      adminId,
-      new Date(remindAt),
-      note ?? null,
-      isActive ?? true,
-      recurrence ?? "never",
-      recurrenceCustomDays ?? null,
-      recurrenceUnit ?? null,
-      recurrenceDaysOfWeek ?? null,
-      sendEmail ?? false,
-      emailTemplateId ?? null,
-    );
-    const reminder = await getReminder(id, adminId);
-    return ok(c, reminder, 201);
-  },
-);
+shopRemindersRoutes.post("/shops/:id/reminder", validate("json", reminderBodySchema), async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+  const adminId = c.get("adminId");
+  const {
+    remindAt,
+    note,
+    isActive,
+    recurrence,
+    recurrenceCustomDays,
+    recurrenceUnit,
+    recurrenceDaysOfWeek,
+    sendEmail,
+    emailTemplateId,
+  } = c.req.valid("json");
+  await upsertReminder(
+    id,
+    adminId,
+    new Date(remindAt),
+    note ?? null,
+    isActive ?? true,
+    recurrence ?? "never",
+    recurrenceCustomDays ?? null,
+    recurrenceUnit ?? null,
+    recurrenceDaysOfWeek ?? null,
+    sendEmail ?? false,
+    emailTemplateId ?? null,
+  );
+  const reminder = await getReminder(id, adminId);
+  return ok(c, reminder, 201);
+});
 
 shopRemindersRoutes.delete("/shops/:id/reminder", async (c) => {
   const id = parseId(c.req.param("id"));

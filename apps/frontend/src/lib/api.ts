@@ -44,6 +44,42 @@ const responseCache = new Map<string, { data: unknown; expiresAt: number }>();
 /** Upper bound on held entries, so a long-running server cannot grow unbounded. */
 const MAX_CACHE_ENTRIES = 200;
 
+/** Header the backend reads to recognise this renderer as its own caller. */
+const INTERNAL_TOKEN_HEADER = "X-Internal-Token";
+
+/**
+ * Builds the headers for one server-side request.
+ *
+ * @param url - Absolute URL the request is about to go to.
+ * @returns Headers to send, carrying the internal token only where it belongs.
+ *
+ * @remarks
+ * These requests reach the backend directly instead of through the proxy, so
+ * they arrive without a client address and the backend cannot tell them apart
+ * from a visitor's. The token says who they are, which is what keeps the whole
+ * site's page rendering from sharing one visitor's rate limit.
+ *
+ * The token goes out only when the destination is the configured backend. A URL
+ * pointing anywhere else gets none, so a mistyped or redirected target cannot
+ * carry the secret off the origin it belongs to. It is read from `process.env`
+ * rather than `import.meta.env`, so it stays on the server and is never inlined
+ * into anything the browser receives.
+ */
+function requestHeaders(url: string): HeadersInit | undefined {
+  const token = process.env.INTERNAL_API_TOKEN?.trim();
+  if (!token) return undefined;
+
+  let origin: string;
+  try {
+    origin = new URL(url).origin;
+  } catch {
+    return undefined;
+  }
+  if (origin !== BACKEND_ORIGIN) return undefined;
+
+  return { [INTERNAL_TOKEN_HEADER]: token };
+}
+
 /**
  * Executes a typed GET request against the backend API.
  *
@@ -76,7 +112,7 @@ async function getJson<T>(url: string, label: string, configuredBase: string): P
 
   let res: Response;
   try {
-    res = await fetch(url, { signal: controller.signal });
+    res = await fetch(url, { signal: controller.signal, headers: requestHeaders(url) });
   } catch (err) {
     throw new Error(
       `API fetch failed for ${url} — is API_URL set correctly? (current: ${configuredBase})\n${err}`,

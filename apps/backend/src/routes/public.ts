@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -16,6 +15,7 @@ import { env } from "../config/env.js";
 import { fail, ok } from "../lib/http.js";
 import { shopFilterSchema } from "../lib/shop-filters.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
+import { validate } from "../middleware/validate-request.js";
 import { getFooterConfig } from "../repositories/footer-config.js";
 import { getEnabledMarkdownWidgetByKey } from "../repositories/markdown-widgets.js";
 import {
@@ -295,7 +295,7 @@ publicRoutes.post(
 publicRoutes.post(
   "/shops/:id/concern",
   rateLimit({ max: 20, windowMs: 60 * 60 * 1000 }),
-  zValidator("json", concernBodySchema),
+  validate("json", concernBodySchema),
   async (c) => {
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) {
@@ -327,7 +327,7 @@ const likeBodySchema = z.object({
 publicRoutes.post(
   "/shops/:id/like",
   rateLimit({ max: 10, windowMs: 60 * 1000 }),
-  zValidator("json", likeBodySchema),
+  validate("json", likeBodySchema),
   async (c) => {
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) {
@@ -439,7 +439,7 @@ publicRoutes.get("/rejected/:token", publicReadLimit, async (c) => {
 publicRoutes.get(
   "/rejected-shops",
   publicReadLimit,
-  zValidator("query", rejectedShopsQuerySchema),
+  validate("query", rejectedShopsQuerySchema),
   async (c) => {
     const query = c.req.valid("query");
     const result = await getManagedPublicRejectedShops({
@@ -460,58 +460,58 @@ publicRoutes.get(
 // ---------------------------------------------------------------------------
 
 // GET /api/filtered/categories?city=&radius=&country=&region=
-publicRoutes.get("/filtered/categories", publicReadLimit, async (c) => {
-  const filters = shopFilterSchema.parse({
-    city: c.req.query("city"),
-    radius: c.req.query("radius"),
-    country: c.req.query("country"),
-    region: c.req.query("region"),
-  });
-  const rows = await getFilteredPublicCategories(filters);
-  return ok(c, rows);
-});
+publicRoutes.get(
+  "/filtered/categories",
+  publicReadLimit,
+  validate("query", shopFilterSchema),
+  async (c) => {
+    const filters = c.req.valid("query");
+    const rows = await getFilteredPublicCategories(filters);
+    return ok(c, rows);
+  },
+);
 
 // GET /api/filtered/categories/:slug?city=&radius=&country=&region=
-publicRoutes.get("/filtered/categories/:slug", publicReadLimit, async (c) => {
-  const slug = c.req.param("slug");
-  const filters = shopFilterSchema.parse({
-    city: c.req.query("city"),
-    radius: c.req.query("radius"),
-    country: c.req.query("country"),
-    region: c.req.query("region"),
-  });
-  const result = await getFilteredPublicCategoryBySlug(slug, filters);
-  if (!result.ok) {
-    return fail(c, 404, "Category not found");
-  }
-  c.header("Cache-Control", "private, max-age=30");
-  return ok(c, result.data);
-});
+publicRoutes.get(
+  "/filtered/categories/:slug",
+  publicReadLimit,
+  validate("query", shopFilterSchema),
+  async (c) => {
+    const slug = c.req.param("slug");
+    const filters = c.req.valid("query");
+    const result = await getFilteredPublicCategoryBySlug(slug, filters);
+    if (!result.ok) {
+      return fail(c, 404, "Category not found");
+    }
+    c.header("Cache-Control", "private, max-age=30");
+    return ok(c, result.data);
+  },
+);
 
 // GET /api/filtered/shops?city=&radius=&country=&region=
-publicRoutes.get("/filtered/shops", publicReadLimit, async (c) => {
-  const filters = shopFilterSchema.parse({
-    city: c.req.query("city"),
-    radius: c.req.query("radius"),
-    country: c.req.query("country"),
-    region: c.req.query("region"),
-  });
-  const data = await getFilteredPublicShops(filters);
-  return ok(c, data);
-});
+publicRoutes.get(
+  "/filtered/shops",
+  publicReadLimit,
+  validate("query", shopFilterSchema),
+  async (c) => {
+    const filters = c.req.valid("query");
+    const data = await getFilteredPublicShops(filters);
+    return ok(c, data);
+  },
+);
 
 // GET /api/filtered/search?q=&city=&radius=&country=&region=
-publicRoutes.get("/filtered/search", publicReadLimit, async (c) => {
-  const q = c.req.query("q")?.slice(0, 200);
-  const filters = shopFilterSchema.parse({
-    city: c.req.query("city"),
-    radius: c.req.query("radius"),
-    country: c.req.query("country"),
-    region: c.req.query("region"),
-  });
-  const result = await searchFilteredPublicCatalog(q, filters);
-  return ok(c, result);
-});
+publicRoutes.get(
+  "/filtered/search",
+  publicReadLimit,
+  validate("query", shopFilterSchema),
+  async (c) => {
+    const q = c.req.query("q")?.slice(0, 200);
+    const filters = c.req.valid("query");
+    const result = await searchFilteredPublicCatalog(q, filters);
+    return ok(c, result);
+  },
+);
 
 // GET /api/filter-options
 publicRoutes.get("/filter-options", publicReadLimit, async (c) => {

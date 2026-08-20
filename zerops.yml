@@ -44,6 +44,11 @@ zerops:
         # SMTP2GO_API_KEY
         # EMAIL_FROM  (default: hallo@lmaa.space)
         # OWNER_EMAIL (recipient for report/submission notifications)
+        # INTERNAL_API_TOKEN (min. 32 characters, same value on the website
+        #   service). Lets the website's server-side rendering skip the public
+        #   rate limits, which it needs because those requests reach the backend
+        #   directly and therefore carry no client address. Optional: while it is
+        #   unset nothing is exempt and every caller is limited as before.
       initCommands:
         - node apps/backend/dist/db/doctor.js
         - node apps/backend/dist/db/migrate.js
@@ -84,6 +89,9 @@ zerops:
         PORT: "3000"
         NODE_ENV: production
         API_URL: http://backend:3000/api/v1
+        # Secrets (set in Zerops dashboard):
+        # INTERNAL_API_TOKEN (must match the backend service exactly). Sent as
+        #   X-Internal-Token on server-side data fetches and on nothing else.
       start: node apps/frontend/dist/server/entry.mjs
 
   # DASHBOARD SERVICE (React + Vite → Static)

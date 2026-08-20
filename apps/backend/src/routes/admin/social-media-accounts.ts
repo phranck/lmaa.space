@@ -1,14 +1,11 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import {
-  socialMediaAccountCreateSchema,
-  socialMediaAccountUpdateSchema,
-} from "@lmaa/contracts";
+import { socialMediaAccountCreateSchema, socialMediaAccountUpdateSchema } from "@lmaa/contracts";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   createSocialMediaAccount,
   deleteSocialMediaAccount,
@@ -27,7 +24,7 @@ socialMediaAccountRoutes.get("/social-media-accounts", async (c) => {
 
 socialMediaAccountRoutes.post(
   "/social-media-accounts",
-  zValidator("json", socialMediaAccountCreateSchema),
+  validate("json", socialMediaAccountCreateSchema),
   async (c) => {
     const payload = c.req.valid("json");
     const result = await createSocialMediaAccount(payload);
@@ -44,7 +41,7 @@ socialMediaAccountRoutes.post(
 
 socialMediaAccountRoutes.patch(
   "/social-media-accounts/:id",
-  zValidator("json", socialMediaAccountUpdateSchema),
+  validate("json", socialMediaAccountUpdateSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid ID");

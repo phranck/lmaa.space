@@ -19,7 +19,7 @@ const repoMocks = vi.hoisted(() => ({
 }));
 
 const envMock = vi.hoisted(() => ({
-  env: { NODE_ENV: "development" },
+  env: { NODE_ENV: "development", LOG_LEVEL: "silent" },
 }));
 
 vi.mock("../services/admin-auth.js", () => serviceMocks);
@@ -214,6 +214,25 @@ describe("authRoutes", () => {
       });
 
       expect(res.status).toBe(401);
+    });
+  });
+
+  describe("POST /invite/accept validation", () => {
+    it("states neither the expected fields nor the token length when refusing", async () => {
+      const res = await app.request("/invite/accept", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body).toEqual({ error: { message: "Invalid request", code: "invalid_request" } });
+      // The validator's own object gives the minimum token length away, which
+      // is the figure anyone weighing up guessing would want.
+      const serialised = JSON.stringify(body);
+      expect(serialised).not.toContain("too_small");
+      expect(serialised).not.toContain("ZodError");
     });
   });
 

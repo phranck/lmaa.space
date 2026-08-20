@@ -7,6 +7,27 @@ export const YOUTUBE_EMBED_CSP_ORIGIN = "https://www.youtube-nocookie.com";
 /** Origin serving the analytics script and receiving its events. */
 export const ANALYTICS_CSP_ORIGIN = "https://umami.layered.work";
 
+/** Address the analytics script is loaded from. */
+export const ANALYTICS_SCRIPT_URL = `${ANALYTICS_CSP_ORIGIN}/script.js`;
+
+/**
+ * Integrity hash of the analytics script, so the browser refuses anything else.
+ *
+ * @remarks
+ * The script runs with full access to every page: the DOM, the cookies that are
+ * not `httpOnly`, and every form on screen. It comes from a host of its own
+ * with its own deployment, and the policy admits that host under `script-src`,
+ * which makes it the widest remaining grant on the site. The hash is what turns
+ * "whatever that host returns" into "this exact file".
+ *
+ * It has to be renewed whenever that instance is updated, and a stale hash
+ * stops analytics silently rather than loudly. `scripts/check-analytics-integrity.mjs`
+ * exists so that shows up as a red run instead of as missing numbers nobody
+ * looks for.
+ */
+export const ANALYTICS_SCRIPT_INTEGRITY =
+  "sha384-BRaUFjOnCmWCc/Fzz6hqywS4clr0LbPdvb9WH1QuIhkfopGfKIhTn5OQBSc3ntfl";
+
 /**
  * Rewrites `frame-ancestors` in an existing policy.
  *
@@ -22,10 +43,10 @@ export const ANALYTICS_CSP_ORIGIN = "https://umami.layered.work";
  * second copy that has to be kept in step.
  */
 export function withFrameAncestors(policy: string, frameAncestors: string): string {
-  const directives = policy
-    .split(";")
-    .map((directive) => directive.trim())
-    .filter(Boolean);
+  const directives = policy.split(";").flatMap((directive) => {
+    const trimmed = directive.trim();
+    return trimmed ? [trimmed] : [];
+  });
 
   const rewritten = directives.map((directive) =>
     directive === "frame-ancestors" || directive.startsWith("frame-ancestors ")
