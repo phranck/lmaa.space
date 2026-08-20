@@ -7,6 +7,7 @@ import barlowCondensed600Url from "@/assets/fonts/barlow-condensed-600.woff2?url
 import barlowCondensed700Url from "@/assets/fonts/barlow-condensed-700.woff2?url";
 import dynaPuff500Url from "@/assets/fonts/dynapuff-500.woff2?url";
 import { apiGet } from "@/lib/api";
+import { ANALYTICS_SCRIPT_INTEGRITY, ANALYTICS_SCRIPT_URL } from "@/lib/csp";
 import type { FooterConfig, SocialPreviewPublicImage } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
 
@@ -145,7 +146,9 @@ try {
     <script
       is:inline
       async
-      src="https://umami.layered.work/script.js"
+      src={ANALYTICS_SCRIPT_URL}
+      integrity={ANALYTICS_SCRIPT_INTEGRITY}
+      crossorigin="anonymous"
       data-website-id="ebec4dd2-b578-4f10-a416-6503c7fe2da0"
     ></script>
   </head>
