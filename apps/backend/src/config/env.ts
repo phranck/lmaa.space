@@ -41,6 +41,17 @@ export const envSchema = z
       .enum(["cf-connecting-ip", "x-real-ip", "x-forwarded-for"])
       .default("x-forwarded-for"),
     TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
+    // Shared secret that lets this project's own server-side renderer skip the
+    // public rate limits. Those requests reach the backend directly rather than
+    // through the proxy, so they carry no client address and would otherwise
+    // all share one bucket, which caps page rendering far below what the limit
+    // suggests. The secret is what tells them apart from foreign traffic.
+    //
+    // Optional, so a missing value cannot take the site down. Absent, no caller
+    // is exempt and everything is limited as before, which is the safe
+    // direction to fail in. Both the backend and the website need the same
+    // value for the exemption to apply.
+    INTERNAL_API_TOKEN: z.string().min(32).optional(),
     SMTP2GO_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default("hallo@lmaa.space"),
     DASHBOARD_URL: z.string().url().optional(),
