@@ -1,12 +1,18 @@
-import { ArrowSquareUpRightIcon, RobotIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import {
+  ArrowSquareUpRightIcon,
+  FileTextIcon,
+  RobotIcon,
+  WarningCircleIcon,
+} from "@phosphor-icons/react";
 import { useMemo } from "react";
-import { Link } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 import type { ReviewCost, ReviewJobListItem } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useReviewJobs, useReviewSpend } from "@/features/overview/hooks/useReviewJob.ts";
 
@@ -76,6 +82,8 @@ function CostAmount({
  */
 export function AutomatedChecksTab() {
   const { locale, messages } = useI18n();
+  const { pathname, search } = useLocation();
+  const navigate = useNavigate();
   const t = messages.submissions.automatedChecks;
   const reviewMessages = messages.submissions.review;
 
@@ -124,7 +132,8 @@ export function AutomatedChecksTab() {
         cell: (job) => (
           <div className="min-w-0">
             <Link
-              to={`/submissions/${job.submissionId}`}
+              to={`/reports/suggestions/${job.submissionId}`}
+              state={{ returnTo: `${pathname}${search}` }}
               className="block truncate font-medium text-[var(--ds-text)] hover:underline"
             >
               {job.shopName}
@@ -209,8 +218,25 @@ export function AutomatedChecksTab() {
             <span className="text-xs text-[var(--ds-text-subtle)]">–</span>
           ),
       },
+      {
+        id: "actions",
+        className: "w-36",
+        cell: (job) => (
+          <div className="flex justify-end">
+            <TableActionButton
+              onClick={() =>
+                navigate(`/reports/suggestions/${job.submissionId}`, {
+                  state: { returnTo: `${pathname}${search}` },
+                })
+              }
+              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={messages.submissions.suggestions.edit}
+            />
+          </div>
+        ),
+      },
     ],
-    [locale, reviewMessages, t],
+    [locale, messages, navigate, pathname, reviewMessages, search, t],
   );
 
   if (isLoading) {
