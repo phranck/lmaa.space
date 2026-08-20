@@ -12,8 +12,6 @@ import {
   BugIcon,
   CaretCircleDoubleDownIcon,
   CaretCircleDoubleUpIcon,
-  ChartBarIcon,
-  ChartLineUpIcon,
   CheckCircleIcon,
   CircleIcon,
   ClockIcon,
@@ -90,9 +88,9 @@ const SIDEBAR_GROUP_STORAGE_KEYS = [
   "sidebar-social-preview-open",
 ] as const;
 
-const SIDEBAR_SECTION_IDS = ["general", "content", "builders", "analytics", "system"] as const;
+const SIDEBAR_SECTION_IDS = ["general", "content", "builders", "system"] as const;
 type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
-const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "analytics", "system"];
+const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "system"];
 const SECTION_DRAG_LABEL = {
   de: "Abschnitt verschieben",
   en: "Move section",
@@ -871,26 +869,6 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.footerBuilder}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
-                </DashboardSection.Body>
-              </DashboardSection>
-            ),
-            analytics: (dragHandle) => (
-              <DashboardSection>
-                <DashboardSection.Header
-                  icon={<ChartLineUpIcon weight="duotone" className="w-4 h-4" />}
-                  title={sidebarMessages.sectionAnalytics}
-                  addOn={dragHandle}
-                />
-                <DashboardSection.Body className="!gap-0.5 !p-2">
-                  <NavLink to="/analytics" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
-                        label={sidebarMessages.analytics}
                         active={isActive}
                       />
                     )}

@@ -38,7 +38,6 @@ Wichtige produktive Variablen:
 - `TRUST_PROXY_IP_HEADER`: welcher Header die echte Client-Adresse trägt, Default `x-forwarded-for`. Zusammen mit `TRUST_PROXY_HOPS` muss der Wert zur tatsächlichen Kette vor dem Backend passen, sonst zählt das Rate-Limit die falsche Adresse.
 - `SMTP2GO_API_KEY`, `EMAIL_FROM`, `OWNER_EMAIL`: E-Mail-Versand über SMTP2GO EU und Benachrichtigungen an die Betreibenden.
 - `DASHBOARD_URL`, `FRONTEND_URL`: externe URLs, in Non-Production Pflicht.
-- `UMAMI_URL`, `UMAMI_USERNAME`, `UMAMI_PASSWORD`, `UMAMI_WEBSITE_ID`: optionale Analytics-Anbindung.
 - `UNSPLASH_ACCESS_KEY`: optionale Medien-/Bildsuche.
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`: optionale Push-Benachrichtigungen.
 - `RUN_MIGRATIONS_ON_STARTUP`: `true` oder `false`, Default `true`.

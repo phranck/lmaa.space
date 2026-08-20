@@ -491,6 +491,13 @@
       "when": 1786785252940,
       "tag": "0069_backfill_review_spend",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1787236311613,
+      "tag": "0070_drop_analytics_sidebar_entry",
+      "breakpoints": true
     }
   ]
 }
