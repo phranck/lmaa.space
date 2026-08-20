@@ -935,7 +935,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/index.ts": {
-    "mtime": 1786821493.5721793,
+    "mtime": 1786823665.6440194,
     "ast_hash": "e39f3bbe6c186acf6220186669d1c3bb",
     "semantic_hash": ""
   },
@@ -2275,7 +2275,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/NavManagerPage.tsx": {
-    "mtime": 1786823446.045205,
+    "mtime": 1786823665.6444077,
     "ast_hash": "db14f9d142a7e171fb39ccb70fcd5c9f",
     "semantic_hash": ""
   },
@@ -4000,8 +4000,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/overview/AutomatedChecksTab.tsx": {
-    "mtime": 1786788906.939251,
-    "ast_hash": "af29c52a5669ecddcaf7ec71df665542",
+    "mtime": 1787233694.321781,
+    "ast_hash": "d78aa2376e25f3fca9c94f0d054cbe8c",
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/overview/ReviewField.tsx": {
@@ -4090,12 +4090,12 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/nav-column-state.test.ts": {
-    "mtime": 1786823459.4864728,
+    "mtime": 1786823665.645062,
     "ast_hash": "6e499c52748d3b9eefa012780825c012",
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/nav-column-state.ts": {
-    "mtime": 1786823469.91724,
+    "mtime": 1786823665.6452277,
     "ast_hash": "45dc06f47fb4ca9a90a67235bbe2fc39",
     "semantic_hash": ""
   }
