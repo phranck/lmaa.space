@@ -93,7 +93,7 @@ async function main() {
   }
 
   const shopPath = await findShopPath(base);
-  const routes = ["/", "/about", "/suggestion", "/search"];
+  const routes = ["/", "/about", "/suggestion", "/search", "/support-me"];
   if (shopPath) {
     routes.push(shopPath);
   } else {
@@ -210,6 +210,12 @@ async function checkRoute(url) {
 
   send("Page.enable");
   send("Runtime.enable");
+  // The listener below only sees what the top document reports. A page that
+  // refuses to be framed reports it in its own document, which the parent never
+  // reaches, so those blocks were invisible: two framed widgets were refused in
+  // production whilst this check called the page clean. The browser's own
+  // security log carries them, so it is read as well.
+  send("Log.enable");
   send("Page.addScriptToEvaluateOnNewDocument", {
     source: `
       window.__cspViolations = [];
@@ -219,6 +225,14 @@ async function checkRoute(url) {
         );
       });
     `,
+  });
+
+  const logged = [];
+  ws.addEventListener("message", (event) => {
+    const message = JSON.parse(event.data);
+    if (message.method !== "Log.entryAdded") return;
+    const entry = message.params.entry;
+    if (entry.source === "security" && entry.level === "error") logged.push(entry.text);
   });
 
   send("Page.navigate", { url });
@@ -252,7 +266,7 @@ async function checkRoute(url) {
   await fetch(`http://127.0.0.1:${DEBUG_PORT}/json/close/${target.id}`);
 
   // The same rule usually fires once per blocked element; report each once.
-  return [...new Set(violations)];
+  return [...new Set([...violations, ...logged])];
 }
 
 await main();
