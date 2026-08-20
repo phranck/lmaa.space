@@ -1570,7 +1570,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/components/layout/Sidebar.tsx": {
-    "mtime": 1787241210.228016,
+    "mtime": 1787241537.2197287,
     "ast_hash": "221986617049261673092d3833c60f02",
     "semantic_hash": ""
   },
@@ -2195,7 +2195,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/RedirectUrlsPage.tsx": {
-    "mtime": 1787241015.2782815,
+    "mtime": 1787241537.21991,
     "ast_hash": "26979a27c98c22315a076147cef2e2ad",
     "semantic_hash": ""
   },
@@ -2990,8 +2990,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/middleware.ts": {
-    "mtime": 1786044038.3640153,
-    "ast_hash": "954fbaf307d03a686322238743ec6b18",
+    "mtime": 1787244790.1260989,
+    "ast_hash": "7bf521b58b6181ceafd09da071b77d6b",
     "semantic_hash": ""
   },
   "apps/frontend/src/pages/404.astro": {
@@ -3015,8 +3015,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/pages/markdown-widgets/[key].astro": {
-    "mtime": 1773225536.3244145,
-    "ast_hash": "b763ee553e515bb761140f2c947c2881",
+    "mtime": 1787244801.994482,
+    "ast_hash": "28f28ce6ead79b42c1371e2062a48c20",
     "semantic_hash": ""
   },
   "apps/frontend/src/pages/my-shops.astro": {
@@ -4025,13 +4025,18 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/redirect-urls-config.test.ts": {
-    "mtime": 1787241340.7774055,
+    "mtime": 1787241537.2200089,
     "ast_hash": "b1ecee9c7f7438b4a55902d83fc3e771",
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/redirect-urls-config.ts": {
-    "mtime": 1787241001.873793,
+    "mtime": 1787241537.2200942,
     "ast_hash": "16e4718755c374922466d7f4e806f05b",
+    "semantic_hash": ""
+  },
+  "apps/frontend/src/env.d.ts": {
+    "mtime": 1787244776.5344462,
+    "ast_hash": "6b5b4685fc87b172a7208361e2a9c48d",
     "semantic_hash": ""
   }
 }
