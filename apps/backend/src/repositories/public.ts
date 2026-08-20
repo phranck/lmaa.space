@@ -200,7 +200,6 @@ export async function listAllPublicShopsWithCategories() {
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
-           s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
            s.payment_methods as "paymentMethods",
            s.like_count as "likeCount",
@@ -247,7 +246,6 @@ export async function searchPublicShops(
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
-           s.contact_email as "contactEmail",
            s.is_active as "isActive",
            s.social_media as "socialMedia",
            s.payment_methods as "paymentMethods",
@@ -654,7 +652,6 @@ export async function getFullPublicShopById(id: number) {
   const rows = await db.execute<
     CategoryShopRow & {
       categories: ShopCategory[];
-      contactEmail: string | null;
       pickup: string;
       createdAt: string;
       updatedAt: string;
@@ -664,7 +661,6 @@ export async function getFullPublicShopById(id: number) {
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
-           s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
            s.payment_methods as "paymentMethods",
            s.like_count as "likeCount",
