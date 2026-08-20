@@ -1,9 +1,9 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
 import { ok, respondError } from "../../lib/http.js";
 import { requireAdmin, type AuthVariables } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   searchManagedUnsplashPhotos,
   triggerManagedUnsplashDownload,
@@ -42,7 +42,7 @@ unsplashRoutes.get("/unsplash/search", async (c) => {
 });
 
 // Unsplash ToS: trigger download
-unsplashRoutes.post("/unsplash/download", zValidator("json", unsplashDownloadSchema), async (c) => {
+unsplashRoutes.post("/unsplash/download", validate("json", unsplashDownloadSchema), async (c) => {
   const { downloadLocation } = c.req.valid("json");
   const result = await triggerManagedUnsplashDownload(downloadLocation);
   return ok(c, result);

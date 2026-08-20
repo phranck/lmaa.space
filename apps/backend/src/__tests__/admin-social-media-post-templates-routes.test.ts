@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../config/env.js", () => ({
-  env: { NODE_ENV: "test" },
+  env: { NODE_ENV: "test", LOG_LEVEL: "silent" },
 }));
 
 vi.mock("../middleware/auth.js", () => ({
@@ -56,7 +56,10 @@ describe("social-media-post-templates routes — owner gate", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      serviceMocks.createManagedSocialMediaPostTemplate.mockResolvedValue({ ok: true, data: template });
+      serviceMocks.createManagedSocialMediaPostTemplate.mockResolvedValue({
+        ok: true,
+        data: template,
+      });
 
       const app = makeApp(true);
       const res = await app.request("/social-media-post-templates", {
@@ -89,7 +92,10 @@ describe("social-media-post-templates routes — owner gate", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      serviceMocks.createManagedSocialMediaPostTemplate.mockResolvedValue({ ok: true, data: template });
+      serviceMocks.createManagedSocialMediaPostTemplate.mockResolvedValue({
+        ok: true,
+        data: template,
+      });
 
       const app = makeApp(false);
       const res = await app.request("/social-media-post-templates", {
@@ -153,7 +159,10 @@ describe("social-media-post-templates routes — owner gate", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      serviceMocks.createManagedSocialMediaPostTemplate.mockResolvedValue({ ok: true, data: template });
+      serviceMocks.createManagedSocialMediaPostTemplate.mockResolvedValue({
+        ok: true,
+        data: template,
+      });
 
       const app = makeApp(true);
       const res = await app.request("/social-media-post-templates", {
@@ -184,7 +193,10 @@ describe("social-media-post-templates routes — owner gate", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      serviceMocks.updateManagedSocialMediaPostTemplate.mockResolvedValue({ ok: true, data: template });
+      serviceMocks.updateManagedSocialMediaPostTemplate.mockResolvedValue({
+        ok: true,
+        data: template,
+      });
 
       const app = makeApp(true);
       const res = await app.request("/social-media-post-templates/5", {
@@ -218,7 +230,10 @@ describe("social-media-post-templates routes — owner gate", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      serviceMocks.updateManagedSocialMediaPostTemplate.mockResolvedValue({ ok: true, data: template });
+      serviceMocks.updateManagedSocialMediaPostTemplate.mockResolvedValue({
+        ok: true,
+        data: template,
+      });
 
       const app = makeApp(false);
       const res = await app.request("/social-media-post-templates/6", {

@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import { navItemsSchema } from "@lmaa/contracts";
@@ -6,6 +5,7 @@ import type { NavId } from "@lmaa/shared";
 
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import { getManagedNavItems, replaceManagedNavItems } from "../../services/admin-nav.js";
 
 /**
@@ -41,7 +41,7 @@ navAdminRoutes.get("/nav/:navId", requireAdmin, async (c) => {
 
 // ─── PUT /admin/nav/:navId ────────────────────────────────────────────────────
 
-navAdminRoutes.put("/nav/:navId", requireAdmin, zValidator("json", navItemsSchema), async (c) => {
+navAdminRoutes.put("/nav/:navId", requireAdmin, validate("json", navItemsSchema), async (c) => {
   const navId = parseNavId(c.req.param("navId"));
   if (!navId) {
     return fail(c, 400, "Invalid navId");

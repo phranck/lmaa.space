@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -8,6 +7,7 @@ import { MEDIA_UPLOAD_MAX_LABEL } from "@lmaa/shared";
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   completeManagedHlsBundleUpload,
   deleteManagedMediaAsset,
@@ -171,7 +171,7 @@ mediaRoutes.post("/media/bundles/hls/chunks", requireAdmin, async (c) => {
 mediaRoutes.post(
   "/media/bundles/hls/complete",
   requireAdmin,
-  zValidator("json", hlsBundleCompleteSchema),
+  validate("json", hlsBundleCompleteSchema),
   async (c) => {
     const payload = c.req.valid("json");
     const adminId = c.get("adminId");
@@ -208,7 +208,7 @@ mediaRoutes.post(
   },
 );
 
-mediaRoutes.patch("/media/:id", requireAdmin, zValidator("json", mediaUpdateSchema), async (c) => {
+mediaRoutes.patch("/media/:id", requireAdmin, validate("json", mediaUpdateSchema), async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 

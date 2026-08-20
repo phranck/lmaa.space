@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import {
@@ -16,6 +15,7 @@ import {
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   getAdminShopById,
   getShopVisibilityCounts,
@@ -67,7 +67,7 @@ shopsRoutes.get("/shops/:id", async (c) => {
   return ok(c, row);
 });
 
-shopsRoutes.post("/shops", requireAdmin, zValidator("json", shopBodySchema), async (c) => {
+shopsRoutes.post("/shops", requireAdmin, validate("json", shopBodySchema), async (c) => {
   const body = c.req.valid("json");
   const result = await createManagedAdminShop(body);
   if (!result.ok) {
@@ -84,7 +84,7 @@ shopsRoutes.post("/shops", requireAdmin, zValidator("json", shopBodySchema), asy
   return ok(c, result.shop, 201);
 });
 
-const updateShopHandler = zValidator("json", shopUpdateSchema);
+const updateShopHandler = validate("json", shopUpdateSchema);
 
 shopsRoutes.put("/shops/:id", requireAdmin, updateShopHandler, async (c) => {
   const id = parseId(c.req.param("id"));
@@ -107,7 +107,7 @@ shopsRoutes.patch("/shops/:id", requireAdmin, updateShopHandler, async (c) => {
 shopsRoutes.delete(
   "/shops/:id",
   requireAdmin,
-  zValidator("json", shopDeleteBodySchema),
+  validate("json", shopDeleteBodySchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
@@ -171,7 +171,7 @@ shopsRoutes.post("/shops/:id/refetch-image", requireAdmin, async (c) => {
 shopsRoutes.patch(
   "/shops/:id/og-image",
   requireAdmin,
-  zValidator("json", ogImageUpdateSchema),
+  validate("json", ogImageUpdateSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
@@ -184,7 +184,7 @@ shopsRoutes.patch(
 shopsRoutes.post(
   "/preview-image",
   requireAdmin,
-  zValidator("json", previewImageSchema),
+  validate("json", previewImageSchema),
   async (c) => {
     const { url } = c.req.valid("json");
     const result = await previewAdminShopImage(url);
@@ -196,7 +196,7 @@ shopsRoutes.post(
 shopsRoutes.post(
   "/shops/import",
   requireAdmin,
-  zValidator("json", shopcheckImportSchema),
+  validate("json", shopcheckImportSchema),
   async (c) => {
     const entries = c.req.valid("json");
 

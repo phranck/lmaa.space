@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import { createUserSchema, gravatarSchema, updateUserSchema } from "@lmaa/contracts";
@@ -6,6 +5,7 @@ import { createUserSchema, gravatarSchema, updateUserSchema } from "@lmaa/contra
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireOwner } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   createManagedAdminUser,
   deleteManagedAdminUser,
@@ -27,7 +27,7 @@ usersRoutes.get("/users", requireAdmin, async (c) => {
 });
 
 // POST /api/admin/users
-usersRoutes.post("/users", requireOwner, zValidator("json", createUserSchema), async (c) => {
+usersRoutes.post("/users", requireOwner, validate("json", createUserSchema), async (c) => {
   const { username, email, role, welcomeTemplateId } = c.req.valid("json");
   const invite = await createManagedAdminUser({
     username,
@@ -39,7 +39,7 @@ usersRoutes.post("/users", requireOwner, zValidator("json", createUserSchema), a
 });
 
 // PATCH /api/admin/users/:id
-usersRoutes.patch("/users/:id", zValidator("json", updateUserSchema), async (c) => {
+usersRoutes.patch("/users/:id", validate("json", updateUserSchema), async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) {
     return fail(c, 400, "Invalid id");
@@ -94,7 +94,7 @@ usersRoutes.post("/users/:id/avatar", async (c) => {
 });
 
 // PATCH /api/admin/users/:id/avatar
-usersRoutes.patch("/users/:id/avatar", zValidator("json", gravatarSchema), async (c) => {
+usersRoutes.patch("/users/:id/avatar", validate("json", gravatarSchema), async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) {
     return fail(c, 400, "Invalid id");

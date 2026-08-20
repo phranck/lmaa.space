@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import {
@@ -10,6 +9,7 @@ import {
 
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   createManagedAdminFormConfig,
   deleteManagedAdminFormConfig,
@@ -43,7 +43,7 @@ formConfigRoutes.get("/form-configs", async (c) => {
 // POST /api/admin/form-configs/import — import a form config (must be before /:name)
 formConfigRoutes.post(
   "/form-configs/import",
-  zValidator("json", importFormConfigSchema),
+  validate("json", importFormConfigSchema),
   async (c) => {
     const { name, overwrite, ...payload } = c.req.valid("json");
     const result = await importManagedFormConfig(name, payload, overwrite ?? false);
@@ -63,7 +63,7 @@ formConfigRoutes.get("/form-configs/:name", async (c) => {
 });
 
 // POST /api/admin/form-configs — create new empty form
-formConfigRoutes.post("/form-configs", zValidator("json", createFormConfigSchema), async (c) => {
+formConfigRoutes.post("/form-configs", validate("json", createFormConfigSchema), async (c) => {
   const { name, slug } = c.req.valid("json");
   const result = await createManagedAdminFormConfig(name, slug ?? name);
   if (!result.ok) {
@@ -77,7 +77,7 @@ formConfigRoutes.post("/form-configs", zValidator("json", createFormConfigSchema
 // PUT /api/admin/form-configs/:name — upsert
 formConfigRoutes.put(
   "/form-configs/:name",
-  zValidator("json", formConfigPayloadSchema),
+  validate("json", formConfigPayloadSchema),
   async (c) => {
     const name = c.req.param("name");
     const payload = c.req.valid("json");
@@ -93,7 +93,7 @@ formConfigRoutes.put(
 // PATCH /api/admin/form-configs/:name/active — set active state
 formConfigRoutes.patch(
   "/form-configs/:name/active",
-  zValidator("json", formConfigActiveSchema),
+  validate("json", formConfigActiveSchema),
   async (c) => {
     const name = c.req.param("name");
     const { isActive } = c.req.valid("json");

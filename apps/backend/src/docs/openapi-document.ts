@@ -356,7 +356,7 @@ const schemas: Record<string, SchemaObject> = {
           message: {
             type: "string",
             description:
-              "Human-readable explanation. Treat it as display text only, because its wording can change at any time. Unexpected server faults are reported as \"Internal Server Error\" so that internals never leak.",
+              'Human-readable explanation. Treat it as display text only, because its wording can change at any time. Unexpected server faults are reported as "Internal Server Error" so that internals never leak.',
           },
           code: {
             type: "string",
@@ -482,8 +482,7 @@ const schemas: Record<string, SchemaObject> = {
       },
       description: {
         type: "string",
-        description:
-          "Public description of the shop, written in Markdown. May be an empty string.",
+        description: "Public description of the shop, written in Markdown. May be an empty string.",
       },
       ogImage: described(
         nullable({ type: "string", format: "uri" }),
@@ -575,8 +574,7 @@ const schemas: Record<string, SchemaObject> = {
     ],
   },
   FilteredShopItem: {
-    description:
-      "A shop returned by the filter endpoints, carrying the coordinates the map needs.",
+    description: "A shop returned by the filter endpoints, carrying the coordinates the map needs.",
     allOf: [
       ref("PublicShopListItem"),
       {
@@ -615,7 +613,8 @@ const schemas: Record<string, SchemaObject> = {
     ],
   },
   RankedFilteredShopItem: {
-    description: "A search hit within the active filters, ranked the same way as an unfiltered one.",
+    description:
+      "A search hit within the active filters, ranked the same way as an unfiltered one.",
     allOf: [
       ref("FilteredShopItem"),
       {
@@ -804,7 +803,8 @@ const schemas: Record<string, SchemaObject> = {
       },
       {
         type: "object",
-        description: "A submission for this domain is waiting to be reviewed or has been put on hold.",
+        description:
+          "A submission for this domain is waiting to be reviewed or has been put on hold.",
         properties: {
           status: { type: "string", const: "pending" },
           shopName: { type: "string", description: "Name given in the submission." },
@@ -866,7 +866,8 @@ const schemas: Record<string, SchemaObject> = {
         type: "string",
         minLength: 2,
         maxLength: 2,
-        description: "ISO 3166-1 alpha-2 code in upper case, and the value the country filter expects.",
+        description:
+          "ISO 3166-1 alpha-2 code in upper case, and the value the country filter expects.",
       },
       name: {
         type: "string",
@@ -896,10 +897,7 @@ const schemas: Record<string, SchemaObject> = {
     envelope(ref("CheckUrlResult")),
     "What the directory knows about the domain that was checked.",
   ),
-  RejectionPageEnvelope: described(
-    envelope(ref("RejectionPage")),
-    "A public rejection notice.",
-  ),
+  RejectionPageEnvelope: described(envelope(ref("RejectionPage")), "A public rejection notice."),
   FilteredShopListEnvelope: described(
     envelope(arrayOf(ref("FilteredShopItem"))),
     "Shops matching the active filters, sorted by name.",
@@ -1053,9 +1051,12 @@ const publicOpenApiOperations: OpenApiOperation[] = [
       "Returns public shops filtered by city and radius, headquarters country, and shipping region. Results include latitude and longitude when headquarters coordinates are known.",
     operationId: "listFilteredPublicShops",
     parameters: filterParameters,
-    responses: withCommonErrors({
-      "200": jsonResponse("Filtered shop list.", ref("FilteredShopListEnvelope")),
-    }),
+    responses: withCommonErrors(
+      {
+        "200": jsonResponse("Filtered shop list.", ref("FilteredShopListEnvelope")),
+      },
+      { badRequest: "Filter parameters outside the documented bounds." },
+    ),
   },
   {
     method: "get",
@@ -1066,9 +1067,12 @@ const publicOpenApiOperations: OpenApiOperation[] = [
       "Returns categories with filtered shop counts plus the total number of shops matching the active filters.",
     operationId: "listFilteredPublicCategories",
     parameters: filterParameters,
-    responses: withCommonErrors({
-      "200": jsonResponse("Filtered categories.", ref("FilteredCategoriesEnvelope")),
-    }),
+    responses: withCommonErrors(
+      {
+        "200": jsonResponse("Filtered categories.", ref("FilteredCategoriesEnvelope")),
+      },
+      { badRequest: "Filter parameters outside the documented bounds." },
+    ),
   },
   {
     method: "get",
@@ -1086,7 +1090,10 @@ const publicOpenApiOperations: OpenApiOperation[] = [
           ref("FilteredCategoryDetailEnvelope"),
         ),
       },
-      { notFound: "Category not found." },
+      {
+        badRequest: "Filter parameters outside the documented bounds.",
+        notFound: "Category not found.",
+      },
     ),
   },
   {
@@ -1098,9 +1105,12 @@ const publicOpenApiOperations: OpenApiOperation[] = [
       "Searches public shops within the active filters, including imported shop-check notes, and returns matching categories for the query.",
     operationId: "searchFilteredPublicCatalog",
     parameters: [searchQueryParam, ...filterParameters],
-    responses: withCommonErrors({
-      "200": jsonResponse("Filtered search result.", ref("FilteredSearchResultEnvelope")),
-    }),
+    responses: withCommonErrors(
+      {
+        "200": jsonResponse("Filtered search result.", ref("FilteredSearchResultEnvelope")),
+      },
+      { badRequest: "Filter parameters outside the documented bounds." },
+    ),
   },
   {
     method: "get",
