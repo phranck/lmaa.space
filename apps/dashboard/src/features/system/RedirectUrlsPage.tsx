@@ -27,6 +27,7 @@ import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { parseRedirectUrlsConfig } from "@/features/system/redirect-urls-config.ts";
 import { FRONTEND_URL } from "@/lib/env.ts";
 
 import { useSaveSystemSetting, useSystemSettings } from "./settings/hooks/useSystemSettings.ts";
@@ -52,16 +53,6 @@ function redirectUrlsReducer(
   action: RedirectUrlsAction,
 ): RedirectUrlsState {
   return { ...state, ...action };
-}
-
-function parseStoredConfig(raw: string | undefined): RedirectUrlsConfig {
-  if (!raw) return { redirects: [] };
-  try {
-    const parsed = redirectUrlsConfigSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : { redirects: [] };
-  } catch {
-    return { redirects: [] };
-  }
 }
 
 function serializeConfig(config: RedirectUrlsConfig): string {
@@ -262,7 +253,7 @@ export const RedirectUrlsPage = memo(function RedirectUrlsPage() {
   const rawRedirectUrlsSetting = settings?.[SETTINGS_KEYS.REDIRECT_URLS];
 
   const initialConfig = useMemo(
-    () => parseStoredConfig(rawRedirectUrlsSetting),
+    () => parseRedirectUrlsConfig(rawRedirectUrlsSetting),
     [rawRedirectUrlsSetting],
   );
   const [state, dispatch] = useReducer(redirectUrlsReducer, {
