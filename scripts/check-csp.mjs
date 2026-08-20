@@ -49,6 +49,33 @@ function resolveBrowser() {
   return null;
 }
 
+/**
+ * Blocks that are the policy working, rather than something broken.
+ *
+ * @remarks
+ * A third party can pull a further third party that this site does not want,
+ * and refusing it is the right outcome. Left unlisted, that correct refusal
+ * would fail every run, and a check that is always red is a check nobody reads.
+ *
+ * Each entry names what is blocked and why it stays blocked. Anything not
+ * listed still fails, so the alarm keeps its meaning.
+ */
+const EXPECTED_BLOCKS = [
+  {
+    // Ko-fi's donation widget hard-codes a Google Fonts request for Quicksand.
+    // Allowing it would send every visitor's address to Google in the United
+    // States, which the published privacy notice rules out: "Eine Übermittlung
+    // von Daten in Drittstaaten außerhalb der EU findet nicht statt." The
+    // button renders in a system font instead.
+    match: "fonts.googleapis.com",
+    reason: "Ko-fi pulls Google Fonts; refused so no visitor address reaches Google.",
+  },
+];
+
+function isExpected(violation) {
+  return EXPECTED_BLOCKS.some((expected) => violation.includes(expected.match));
+}
+
 function parseArgs(argv) {
   const args = { base: "https://lmaa.space" };
   for (let i = 0; i < argv.length; i++) {
@@ -266,7 +293,9 @@ async function checkRoute(url) {
   await fetch(`http://127.0.0.1:${DEBUG_PORT}/json/close/${target.id}`);
 
   // The same rule usually fires once per blocked element; report each once.
-  return [...new Set([...violations, ...logged])];
+  return [...new Set([...violations, ...logged])].filter(
+    (violation) => !isExpected(violation),
+  );
 }
 
 await main();
