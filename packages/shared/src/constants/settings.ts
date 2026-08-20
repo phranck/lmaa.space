@@ -21,6 +21,8 @@ export const SETTINGS_KEYS = {
   REVIEW_COST_LIMIT_PER_DAY_EUR: "review.costLimitPerDayEur",
   REVIEW_REPORT_ENABLED: "review.report.enabled",
   REVIEW_REPORT_TEMPLATE_ID: "review.report.templateId",
+  REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID: "review.notify.acceptTemplateId",
+  REVIEW_NOTIFY_REJECT_TEMPLATE_ID: "review.notify.rejectTemplateId",
 } as const;
 
 export type SettingsKey = (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
@@ -49,6 +51,8 @@ export const SYSTEM_REVIEW_SETTINGS_KEYS = [
   SETTINGS_KEYS.REVIEW_COST_LIMIT_PER_DAY_EUR,
   SETTINGS_KEYS.REVIEW_REPORT_ENABLED,
   SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID,
+  SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID,
+  SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID,
 ] as const;
 
 /** All keys exposed to the system settings UI. */
@@ -79,6 +83,12 @@ export const REVIEW_SETTING_DEFAULTS = {
   [SETTINGS_KEYS.REVIEW_COST_LIMIT_PER_DAY_EUR]: "10",
   [SETTINGS_KEYS.REVIEW_REPORT_ENABLED]: "false",
   [SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID]: "",
+  // Empty by default, which means nothing is sent. The chosen template is the
+  // switch: a decision the automation applies on its own already reaches the
+  // public site, and writing to the person who suggested the shop is a further
+  // step that is taken by choosing what to write.
+  [SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID]: "",
+  [SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID]: "",
 } as const;
 
 /**

@@ -60,6 +60,8 @@ Alles andere sind Systemeinstellungen und stehen im Dashboard unter Einstellunge
 | Modus                                   | `off`           | `off` nimmt keine Arbeit an. `assist` schreibt das Rechercheergebnis in den Vorschlag und setzt ihn auf „bereit zur Prüfung". |
 | Aufnahmen automatisch freigeben         | aus             | Wirkt nur im Modus `assist`.                                                                                                                     |
 | Ablehnungen automatisch veröffentlichen | aus             | Wirkt nur im Modus `assist`.                                                                                                                     |
+| E-Mail bei automatischer Aufnahme        | keine           | Template, mit dem die Automatik an die vorschlagende Person schreibt. Ohne Template wird nichts versendet. |
+| E-Mail bei automatischer Ablehnung       | keine           | Wie oben, für eine Ablehnung. Der Link zur öffentlichen Begründung steckt im Template. |
 | Modell                                  | `claude-opus-5` | Zur Auswahl stehen die Modelle, die der Anbieter meldet und die eine Prüfung auch ausführen können. Wird an jeder Prüfung mitgeschrieben. |
 | Denktiefe                               | `high`          | Angeboten wird, was das gewählte Modell laut Anbieter annimmt. Claude Sonnet 4.6 kennt zum Beispiel kein `xhigh`. |
 | Versuche je Vorschlag                   | `3`             | Danach endet die Prüfung als zurückgestellt.                                                                                                     |

@@ -2705,8 +2705,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/i18n/messages.ts": {
-    "mtime": 1786817831.2252197,
-    "ast_hash": "e9ef86d45aaf80c18ecb2cdf9f9a9d9f",
+    "mtime": 1787234417.062664,
+    "ast_hash": "32e0440e9f3502ac3f842038276e7388",
     "semantic_hash": ""
   },
   "apps/dashboard/src/lib/api.ts": {
@@ -3395,8 +3395,8 @@
     "semantic_hash": ""
   },
   "packages/shared/src/constants/settings.ts": {
-    "mtime": 1786788906.9631782,
-    "ast_hash": "370183adfdbcae77effc1b2ada9c39e7",
+    "mtime": 1787234150.46875,
+    "ast_hash": "1fa4977647ed6a0596375ed611d403db",
     "semantic_hash": ""
   },
   "packages/shared/src/footer-styles.ts": {
@@ -3885,8 +3885,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-apply.test.ts": {
-    "mtime": 1786788906.9309354,
-    "ast_hash": "c49bbcf3dca8f08f4e0e03c6d46a9b60",
+    "mtime": 1787234191.3978734,
+    "ast_hash": "e4a0a3766a06cf91a2cb1d2c4359869d",
     "semantic_hash": ""
   },
   "apps/backend/src/__tests__/review-contract.test.ts": {
@@ -3945,8 +3945,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/apply.ts": {
-    "mtime": 1786798359.4705374,
-    "ast_hash": "390487fe8ae56b621db5e8f2d9fe4d1e",
+    "mtime": 1787234332.2231243,
+    "ast_hash": "1200db6d77ff96c39b45a08c770f3e98",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/context.ts": {
@@ -3980,8 +3980,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/settings.ts": {
-    "mtime": 1786788906.9344668,
-    "ast_hash": "c4ff19e9a2f8d34fad5ebb2983d74bca",
+    "mtime": 1787234150.4688978,
+    "ast_hash": "33f5936136a0c1abf4c22da85e13a361",
     "semantic_hash": ""
   },
   "apps/backend/src/services/review/skill.ts": {
@@ -4000,7 +4000,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/overview/AutomatedChecksTab.tsx": {
-    "mtime": 1787233694.321781,
+    "mtime": 1787233875.5195494,
     "ast_hash": "d78aa2376e25f3fca9c94f0d054cbe8c",
     "semantic_hash": ""
   },
@@ -4030,8 +4030,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/settings/ReviewTab.tsx": {
-    "mtime": 1786788906.942766,
-    "ast_hash": "cdc18cfb8456e2a39aca60cf9ace9099",
+    "mtime": 1787234402.1483667,
+    "ast_hash": "46f4c904373a13d07c0e5aa1ecfa634d",
     "semantic_hash": ""
   },
   "packages/contracts/src/review-result.ts": {

@@ -29,6 +29,16 @@ export interface ReviewSettings {
   reportEnabled: boolean;
   /** Email template the report is rendered with, or `null` when none is chosen. */
   reportTemplateId: number | null;
+  /**
+   * Template an automatic admission is written with, or `null` when none is chosen.
+   *
+   * @remarks
+   * The choice is the switch. No template means no mail, which is why there is
+   * no separate flag beside it.
+   */
+  notifyAcceptTemplateId: number | null;
+  /** Template an automatic rejection is written with, or `null` when none is chosen. */
+  notifyRejectTemplateId: number | null;
 }
 
 function readEnum<T extends string>(
@@ -74,8 +84,13 @@ export async function loadReviewSettings(): Promise<ReviewSettings> {
   if (readBoolean(read(SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT))) autoApply.push("accept");
   if (readBoolean(read(SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT))) autoApply.push("reject");
 
-  const templateIdRaw = read(SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID).trim();
-  const templateId = templateIdRaw === "" ? Number.NaN : Number(templateIdRaw);
+  const readTemplateId = (key: keyof typeof REVIEW_SETTING_DEFAULTS): number | null => {
+    const raw = read(key).trim();
+    const id = raw === "" ? Number.NaN : Number(raw);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  };
+
+  const templateId = readTemplateId(SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID);
 
   const model =
     read(SETTINGS_KEYS.REVIEW_MODEL).trim() || REVIEW_SETTING_DEFAULTS[SETTINGS_KEYS.REVIEW_MODEL];
@@ -101,6 +116,8 @@ export async function loadReviewSettings(): Promise<ReviewSettings> {
       readNumber(read(SETTINGS_KEYS.REVIEW_COST_LIMIT_PER_DAY_EUR), 10, 0.01, 10_000),
     ),
     reportEnabled: readBoolean(read(SETTINGS_KEYS.REVIEW_REPORT_ENABLED)),
-    reportTemplateId: Number.isFinite(templateId) && templateId > 0 ? templateId : null,
+    reportTemplateId: templateId,
+    notifyAcceptTemplateId: readTemplateId(SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID),
+    notifyRejectTemplateId: readTemplateId(SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID),
   };
 }
