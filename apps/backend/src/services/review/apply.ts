@@ -41,6 +41,28 @@ function mayApply(settings: ReviewSettings, verdict: ReviewAutoApplyVerdict): bo
 }
 
 /**
+ * The template an automatically applied decision is written with.
+ *
+ * @param settings - The current configuration.
+ * @param verdict - The decision that was applied.
+ * @returns The template id, or `undefined` where nothing should be sent.
+ *
+ * @remarks
+ * A moderator picks the template in the decision dialog. The automation has
+ * nobody to pick, so it takes what the operator configured, and the choice is
+ * the switch: no template means no mail. Admission and rejection take different
+ * templates, because only a rejection carries the link to its public reasoning.
+ */
+function notificationTemplateId(
+  settings: ReviewSettings,
+  verdict: ReviewAutoApplyVerdict,
+): number | undefined {
+  const templateId =
+    verdict === "accept" ? settings.notifyAcceptTemplateId : settings.notifyRejectTemplateId;
+  return templateId ?? undefined;
+}
+
+/**
  * Replaces the rejection placeholder with a freshly generated token.
  *
  * @param comment - The rejection comment as the provider wrote it.
@@ -175,6 +197,7 @@ export async function applyReviewResult(input: ApplyReviewInput): Promise<Review
       id: submissionId,
       status: "approved",
       adminId: null,
+      notificationTemplateId: notificationTemplateId(settings, "accept"),
     });
 
     if (!outcome.ok) {
@@ -210,6 +233,7 @@ export async function applyReviewResult(input: ApplyReviewInput): Promise<Review
     rejectionLongText: result.reject.longText,
     rejectionToken: token,
     adminId: null,
+    notificationTemplateId: notificationTemplateId(settings, "reject"),
   });
 
   if (!outcome.ok) {
