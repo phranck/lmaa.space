@@ -161,8 +161,10 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
       // not accept is never written back.
       const pending = { ...draft, [SETTINGS_KEYS.REVIEW_EFFORT]: effectiveEffort };
       await Promise.all(
-        EDITED_KEYS.filter((key) => pending[key] !== savedBaseline[key]).map((key) =>
-          saveSetting.mutateAsync({ key, value: pending[key] }),
+        EDITED_KEYS.flatMap((key) =>
+          pending[key] === savedBaseline[key]
+            ? []
+            : [saveSetting.mutateAsync({ key, value: pending[key] })],
         ),
       );
       setSavedBaseline(pending);

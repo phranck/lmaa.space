@@ -79,10 +79,21 @@ const INTERACTIVE_ONLY_SECTIONS = [
  */
 const ACCEPTANCE_EXAMPLE = /```json\s*\{\s*"name": "Shop Name"[\s\S]*?```\s*/g;
 
+/**
+ * One pattern per interactive-only section, built once rather than per call.
+ *
+ * @remarks
+ * `String.replace` resets a global regex's `lastIndex` when it finishes, so
+ * reusing these across calls carries no state between them.
+ */
+const INTERACTIVE_ONLY_SECTION_PATTERNS = INTERACTIVE_ONLY_SECTIONS.map(
+  (section) => new RegExp(`<${section}>[\\s\\S]*?</${section}>\\s*`, "g"),
+);
+
 function toAutomationRules(source: string): string {
   let text = source;
-  for (const section of INTERACTIVE_ONLY_SECTIONS) {
-    text = text.replace(new RegExp(`<${section}>[\\s\\S]*?</${section}>\\s*`, "g"), "");
+  for (const pattern of INTERACTIVE_ONLY_SECTION_PATTERNS) {
+    text = text.replace(pattern, "");
   }
   return text.replace(ACCEPTANCE_EXAMPLE, "");
 }

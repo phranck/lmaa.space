@@ -6,7 +6,7 @@ import { fail } from "../lib/http.js";
 import { logger } from "../lib/logger.js";
 
 /** Machine-readable code every rejected request carries, whatever was wrong with it. */
-export const INVALID_REQUEST_CODE = "invalid_request";
+const INVALID_REQUEST_CODE = "invalid_request";
 
 /**
  * Validates one part of a request against a schema and refuses it in the
