@@ -2,7 +2,7 @@
 -- is dropped from every sidebar order somebody saved. Reading already filters
 -- against the known sections, so this changes no behaviour; it removes the last
 -- trace of the feature from the database.
-UPDATE "users"
+UPDATE "admin_users"
 SET "ui_preferences" = jsonb_set(
 	"ui_preferences",
 	'{sidebarSectionOrder}',
