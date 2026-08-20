@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { strToU8, zipSync } from "fflate";
 import { Hono } from "hono";
 
@@ -12,6 +11,7 @@ import {
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import { getAdminProfileById } from "../../repositories/admin-auth.js";
 import { getEmailTemplateById } from "../../repositories/email-templates.js";
 import {
@@ -73,7 +73,7 @@ emailTemplateRoutes.get("/email-templates/:id", async (c) => {
 // POST /api/admin/email-templates — create
 emailTemplateRoutes.post(
   "/email-templates",
-  zValidator("json", emailTemplateCreateSchema),
+  validate("json", emailTemplateCreateSchema),
   async (c) => {
     const payload = c.req.valid("json");
     const safePayload = c.get("isOwner") ? payload : { ...payload, isSystemTemplate: undefined };
@@ -89,7 +89,7 @@ emailTemplateRoutes.post(
 // PUT /api/admin/email-templates/:id — update
 emailTemplateRoutes.put(
   "/email-templates/:id",
-  zValidator("json", emailTemplateUpdateSchema),
+  validate("json", emailTemplateUpdateSchema),
   async (c) => {
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) return fail(c, 400, "Invalid ID");
@@ -104,7 +104,7 @@ emailTemplateRoutes.put(
 // POST /api/admin/email-templates/preview — render preview HTML
 emailTemplateRoutes.post(
   "/email-templates/preview",
-  zValidator("json", emailTemplatePreviewSchema),
+  validate("json", emailTemplatePreviewSchema),
   (c) => {
     const { colorScheme, ...fields } = c.req.valid("json");
     const html = renderEmailPreview(fields, colorScheme);
@@ -115,7 +115,7 @@ emailTemplateRoutes.post(
 // POST /api/admin/email-templates/import — import single template (create or overwrite)
 emailTemplateRoutes.post(
   "/email-templates/import",
-  zValidator("json", emailTemplateImportSchema),
+  validate("json", emailTemplateImportSchema),
   async (c) => {
     const { overwrite, ...data } = c.req.valid("json");
     // Only an owner may flag a template as a system template — strip it for others,

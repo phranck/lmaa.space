@@ -1,9 +1,9 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
 import { ok, respondError } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   addHeroImage,
   getAdminHeroImages,
@@ -63,7 +63,7 @@ heroRoutes.get("/hero-rotation", async (c) => {
   }
 });
 
-heroRoutes.put("/hero-rotation", zValidator("json", rotationSchema), async (c) => {
+heroRoutes.put("/hero-rotation", validate("json", rotationSchema), async (c) => {
   const { enabled } = c.req.valid("json");
   try {
     await setHeroRotationEnabled(enabled);
@@ -82,7 +82,7 @@ heroRoutes.get("/hero-rotation-interval", async (c) => {
   }
 });
 
-heroRoutes.put("/hero-rotation-interval", zValidator("json", rotationIntervalSchema), async (c) => {
+heroRoutes.put("/hero-rotation-interval", validate("json", rotationIntervalSchema), async (c) => {
   const { interval } = c.req.valid("json");
   try {
     await setHeroRotationInterval(interval);
@@ -101,7 +101,7 @@ heroRoutes.get("/hero-images", async (c) => {
   }
 });
 
-heroRoutes.post("/hero-images", zValidator("json", addHeroImageSchema), async (c) => {
+heroRoutes.post("/hero-images", validate("json", addHeroImageSchema), async (c) => {
   const data = c.req.valid("json");
   try {
     const image = await addHeroImage(data);
@@ -122,7 +122,7 @@ heroRoutes.delete("/hero-images/:id", async (c) => {
   }
 });
 
-heroRoutes.patch("/hero-images/:id/select", zValidator("json", toggleSelectedSchema), async (c) => {
+heroRoutes.patch("/hero-images/:id/select", validate("json", toggleSelectedSchema), async (c) => {
   const id = Number(c.req.param("id"));
   if (Number.isNaN(id)) return respondError(c, new Error("Invalid id"));
   const { selected } = c.req.valid("json");
@@ -134,18 +134,14 @@ heroRoutes.patch("/hero-images/:id/select", zValidator("json", toggleSelectedSch
   }
 });
 
-heroRoutes.patch(
-  "/hero-images/:id/focal-point",
-  zValidator("json", focalPointSchema),
-  async (c) => {
-    const id = Number(c.req.param("id"));
-    if (Number.isNaN(id)) return respondError(c, new Error("Invalid id"));
-    const { focalPointY } = c.req.valid("json");
-    try {
-      const image = await updateHeroImageFocalPoint(id, focalPointY);
-      return ok(c, image);
-    } catch (error) {
-      return respondError(c, error);
-    }
-  },
-);
+heroRoutes.patch("/hero-images/:id/focal-point", validate("json", focalPointSchema), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (Number.isNaN(id)) return respondError(c, new Error("Invalid id"));
+  const { focalPointY } = c.req.valid("json");
+  try {
+    const image = await updateHeroImageFocalPoint(id, focalPointY);
+    return ok(c, image);
+  } catch (error) {
+    return respondError(c, error);
+  }
+});

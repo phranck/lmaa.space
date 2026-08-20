@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -14,6 +13,7 @@ import {
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   createManagedSocialPreviewImage,
   createManagedSocialPreviewProject,
@@ -58,7 +58,7 @@ socialPreviewImageRoutes.get("/social-preview-projects", requireAdmin, async (c)
 socialPreviewImageRoutes.post(
   "/social-preview-projects",
   requireAdmin,
-  zValidator("json", socialPreviewProjectCreateSchema),
+  validate("json", socialPreviewProjectCreateSchema),
   async (c) => {
     const body = c.req.valid("json");
     const project = await createManagedSocialPreviewProject({
@@ -72,7 +72,7 @@ socialPreviewImageRoutes.post(
 socialPreviewImageRoutes.patch(
   "/social-preview-projects/:id",
   requireAdmin,
-  zValidator("json", socialPreviewProjectUpdateSchema),
+  validate("json", socialPreviewProjectUpdateSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
@@ -123,7 +123,7 @@ socialPreviewImageRoutes.post("/social-preview-assets", requireAdmin, async (c) 
 socialPreviewImageRoutes.post(
   "/social-preview-assets/import-remote",
   requireAdmin,
-  zValidator("json", socialPreviewRemoteAssetImportSchema),
+  validate("json", socialPreviewRemoteAssetImportSchema),
   async (c) => {
     const body = c.req.valid("json");
     const result = await importManagedSocialPreviewAssetFromUrl({
@@ -156,7 +156,7 @@ socialPreviewImageRoutes.get("/social-preview-images", requireAdmin, async (c) =
 socialPreviewImageRoutes.post(
   "/social-preview-images",
   requireAdmin,
-  zValidator("json", socialPreviewCreateSchema),
+  validate("json", socialPreviewCreateSchema),
   async (c) => {
     const body = c.req.valid("json");
     const image = await createManagedSocialPreviewImage({
@@ -170,7 +170,7 @@ socialPreviewImageRoutes.post(
 socialPreviewImageRoutes.patch(
   "/social-preview-images/:id",
   requireAdmin,
-  zValidator("json", socialPreviewImageUpdateSchema),
+  validate("json", socialPreviewImageUpdateSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
@@ -185,7 +185,7 @@ socialPreviewImageRoutes.patch(
 socialPreviewImageRoutes.patch(
   "/social-preview-images/:id/active",
   requireAdmin,
-  zValidator("json", socialPreviewActiveSchema),
+  validate("json", socialPreviewActiveSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
@@ -201,7 +201,7 @@ socialPreviewImageRoutes.patch(
 socialPreviewImageRoutes.patch(
   "/social-preview-images/:id/default",
   requireAdmin,
-  zValidator("json", socialPreviewDefaultSchema),
+  validate("json", socialPreviewDefaultSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");

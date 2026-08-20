@@ -360,6 +360,23 @@ describe("publicRoutes", () => {
       );
     });
 
+    it("names no request field when refusing an incomplete body", async () => {
+      const res = await app.request("/shops/1/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body).toEqual({ error: { message: "Invalid request", code: "invalid_request" } });
+      // The validator's own object lists every expected field, which on a
+      // public route tells an outsider exactly what to send.
+      const serialised = JSON.stringify(body);
+      expect(serialised).not.toContain("fingerprint");
+      expect(serialised).not.toContain("ZodError");
+    });
+
     it("rejects like requests without a usable fingerprint", async () => {
       const res = await app.request("/shops/1/like", {
         method: "POST",
@@ -618,6 +635,62 @@ describe("publicRoutes", () => {
       const res = await app.request("/filtered/shops?country=DE");
 
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe("filtered routes reject what the schema forbids", () => {
+    // Each of these used to reach the handler and raise, which the service
+    // reported as 500. The schema states the bounds, so the request has to be
+    // refused at the boundary instead.
+    const badQueries = [
+      "radius=abc",
+      "radius=0",
+      "radius=-5",
+      "radius=99999",
+      "radius=",
+      `country=${"a".repeat(300)}`,
+      `city=${"a".repeat(300)}`,
+    ];
+
+    const routes = [
+      "/filtered/shops",
+      "/filtered/search",
+      "/filtered/categories",
+      "/filtered/categories/beer",
+    ];
+
+    for (const route of routes) {
+      for (const query of badQueries) {
+        it(`answers 400 for ${route}?${query}`, async () => {
+          const res = await app.request(`${route}?${query}`);
+
+          expect(res.status).toBe(400);
+        });
+      }
+    }
+
+    it("answers in the project's error shape rather than the validator's", async () => {
+      const res = await app.request("/filtered/shops?radius=abc");
+      const body = await res.json();
+
+      expect(body).toEqual({ error: { message: "Invalid request", code: "invalid_request" } });
+      // The validation library's own object names every expected field and its
+      // constraints, which on a public route describes the request to send.
+      expect(JSON.stringify(body)).not.toContain("ZodError");
+      expect(JSON.stringify(body)).not.toContain("issues");
+    });
+
+    it("still passes valid filters through to the service", async () => {
+      publicServiceMocks.getFilteredPublicShops.mockResolvedValue([{ id: 1 }]);
+
+      const res = await app.request("/filtered/shops?city=Berlin&radius=50&country=DE");
+
+      expect(res.status).toBe(200);
+      expect(publicServiceMocks.getFilteredPublicShops).toHaveBeenCalledWith({
+        city: "Berlin",
+        radius: 50,
+        country: "DE",
+      });
     });
   });
 

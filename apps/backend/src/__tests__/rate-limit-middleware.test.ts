@@ -95,9 +95,9 @@ describe("rateLimit key", () => {
 
     expect((await get(app, "/api/v1/items/x")).status).toBe(200);
     expect((await get(app, "/api/v1/items/y")).status).toBe(429);
-    expect(
-      (await get(app, "/api/v1/items/z", { "X-Forwarded-For": "198.51.100.5" })).status,
-    ).toBe(200);
+    expect((await get(app, "/api/v1/items/z", { "X-Forwarded-For": "198.51.100.5" })).status).toBe(
+      200,
+    );
   });
 
   it("keys on the mounted route pattern rather than the resolved path", async () => {
