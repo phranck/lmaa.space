@@ -39,6 +39,8 @@ const EDITED_KEYS = [
   SETTINGS_KEYS.REVIEW_COST_LIMIT_PER_DAY_EUR,
   SETTINGS_KEYS.REVIEW_REPORT_ENABLED,
   SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID,
+  SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID,
+  SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID,
 ] as const;
 
 /** The settings this tab edits, as the strings they are stored as. */
@@ -103,6 +105,17 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
   // One explanation per mode rather than both at once: the reader has already
   // chosen, and the other one only competes for attention.
   const modeHint = assistMode ? t.modeHintAssist : t.modeHintOff;
+
+  const templateOptions = useMemo(
+    () => [
+      { value: "", label: messages.system.settings.newShopSubmission.templatePlaceholder },
+      ...(templates?.map((template) => ({
+        value: String(template.id),
+        label: template.name,
+      })) ?? []),
+    ],
+    [messages, templates],
+  );
 
   const set = useCallback((key: (typeof EDITED_KEYS)[number], value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -264,6 +277,34 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
                     }
                   />
                 </div>
+
+                {/* No switch beside these: the chosen template is the switch,
+                    and nothing is written whilst none is chosen. */}
+                <p className={introClass}>{t.notifyHint}</p>
+
+                <DashboardCombobox
+                  id="review-notify-accept-template"
+                  fullWidth
+                  label={t.notifyAcceptTemplateLabel}
+                  disabled={templatesLoading || saving}
+                  value={draft[SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID]}
+                  onValueChange={(value) =>
+                    set(SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID, value)
+                  }
+                  options={templateOptions}
+                />
+
+                <DashboardCombobox
+                  id="review-notify-reject-template"
+                  fullWidth
+                  label={t.notifyRejectTemplateLabel}
+                  disabled={templatesLoading || saving}
+                  value={draft[SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID]}
+                  onValueChange={(value) =>
+                    set(SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID, value)
+                  }
+                  options={templateOptions}
+                />
               </DashboardSection.Body>
             </DashboardSection>
           </div>
@@ -342,16 +383,7 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
                   set(SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID, value);
                   if (value === "") set(SETTINGS_KEYS.REVIEW_REPORT_ENABLED, "false");
                 }}
-                options={[
-                  {
-                    value: "",
-                    label: messages.system.settings.newShopSubmission.templatePlaceholder,
-                  },
-                  ...(templates?.map((template) => ({
-                    value: String(template.id),
-                    label: template.name,
-                  })) ?? []),
-                ]}
+                options={templateOptions}
               />
             </DashboardSection.Body>
           </DashboardSection>

@@ -117,6 +117,8 @@ function settings(overrides: Record<string, unknown> = {}) {
     costLimitPerDayNano: 10_000_000_000n,
     reportEnabled: false,
     reportTemplateId: null,
+    notifyAcceptTemplateId: null,
+    notifyRejectTemplateId: null,
     ...overrides,
   } as Parameters<typeof applyReviewResult>[0]["settings"];
 }
@@ -278,5 +280,58 @@ describe("applyReviewResult", () => {
     });
 
     expect(outcome.kind).toBe("none");
+  });
+});
+
+describe("notifying whoever suggested the shop", () => {
+  it("writes with the configured template when the automation admits a shop", async () => {
+    // The moderator picks a template in the decision dialog. The automation has
+    // nobody to pick, so it took none, and an automatically applied decision
+    // reached the site without anybody being told.
+    await applyReviewResult({
+      submissionId: 42,
+      result: acceptResult(),
+      settings: settings({ autoApply: ["accept"], notifyAcceptTemplateId: 7 }),
+    });
+
+    expect(moderation.reviewAdminSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "approved", notificationTemplateId: 7 }),
+    );
+  });
+
+  it("writes with the rejection template when the automation rejects", async () => {
+    await applyReviewResult({
+      submissionId: 42,
+      result: rejectResult(),
+      settings: settings({ autoApply: ["reject"], notifyRejectTemplateId: 9 }),
+    });
+
+    expect(moderation.reviewAdminSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "rejected", notificationTemplateId: 9 }),
+    );
+  });
+
+  it("sends nothing when no template is chosen, because the choice is the switch", async () => {
+    await applyReviewResult({
+      submissionId: 42,
+      result: acceptResult(),
+      settings: settings({ autoApply: ["accept"] }),
+    });
+
+    expect(moderation.reviewAdminSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ notificationTemplateId: undefined }),
+    );
+  });
+
+  it("does not take the admission template for a rejection", async () => {
+    await applyReviewResult({
+      submissionId: 42,
+      result: rejectResult(),
+      settings: settings({ autoApply: ["reject"], notifyAcceptTemplateId: 7 }),
+    });
+
+    expect(moderation.reviewAdminSubmission).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "rejected", notificationTemplateId: undefined }),
+    );
   });
 });
