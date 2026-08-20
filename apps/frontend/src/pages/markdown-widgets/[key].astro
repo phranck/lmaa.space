@@ -80,8 +80,7 @@ function buildWidgetCsp(widget: MarkdownWidget) {
 const keyPattern = /^[a-z0-9-]+$/;
 if (!key || !keyPattern.test(key)) {
   Astro.response.status = 404;
-  Astro.response.headers.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'self'");
-  Astro.response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  Astro.locals.contentSecurityPolicy = "default-src 'none'; frame-ancestors 'self'";
   Astro.response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   Astro.response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   return Astro.rewrite("/404");
@@ -93,16 +92,18 @@ try {
 } catch (error) {
   const message = error instanceof Error ? error.message : "";
   Astro.response.status = message.includes("404") ? 404 : 502;
-  Astro.response.headers.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'self'");
-  Astro.response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  Astro.locals.contentSecurityPolicy = "default-src 'none'; frame-ancestors 'self'";
   Astro.response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   Astro.response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   return Astro.rewrite("/404");
 }
 const iframeTitle = widget.label || "Markdown widget";
 
-Astro.response.headers.set("Content-Security-Policy", buildWidgetCsp(widget));
-Astro.response.headers.set("X-Frame-Options", "SAMEORIGIN");
+// Handed to the middleware rather than set here, because Astro builds the
+// site policy from its configuration and writes it over any header a route
+// sets. Setting it here left every widget with the site's policy: no framing,
+// no inline style, and none of the third-party sources it needs.
+Astro.locals.contentSecurityPolicy = buildWidgetCsp(widget);
 Astro.response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 Astro.response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 ---
