@@ -60,6 +60,9 @@ function resolveBrowser() {
  * Each entry names what is blocked and why it stays blocked. Anything not
  * listed still fails, so the alarm keeps its meaning.
  */
+/** How long the browser gets to come up before the check gives in. */
+const BROWSER_START_TIMEOUT_MS = 60_000;
+
 const EXPECTED_BLOCKS = [
   {
     // Ko-fi's donation widget hard-codes a Google Fonts request for Quicksand.
@@ -143,7 +146,10 @@ async function main() {
       `--user-data-dir=${profile}`,
       "about:blank",
     ],
-    { stdio: "ignore" },
+    // The browser's own output is kept rather than discarded: when it fails to
+    // start, that output is the only thing that says why. Twice this check has
+    // failed in CI with nothing but "did not expose a debugging endpoint".
+    { stdio: ["ignore", "ignore", "pipe"] },
   );
 
   /**
@@ -170,7 +176,16 @@ async function main() {
   };
 
   try {
-    await waitForBrowser();
+    let startupOutput = "";
+    chrome.stderr?.on("data", (chunk) => {
+      startupOutput += String(chunk);
+    });
+    let exited = null;
+    chrome.on("exit", (code, signal) => {
+      exited = signal ?? code;
+    });
+
+    await waitForBrowser(() => exited, () => startupOutput);
     const failures = [];
 
     for (const route of routes) {
@@ -197,8 +212,29 @@ async function main() {
   }
 }
 
-async function waitForBrowser() {
-  for (let attempt = 0; attempt < 60; attempt++) {
+/**
+ * Waits for the browser to answer on its debugging port.
+ *
+ * @param exitStatus - Reads the browser's exit code or signal, or `null` whilst it runs.
+ * @param startupOutput - Reads what the browser has written to stderr so far.
+ * @throws {Error} When it exits, or when it never answers within the budget.
+ *
+ * @remarks
+ * A minute rather than fifteen seconds, because a cold CI runner starting
+ * Chrome with a fresh profile takes longer than a warm machine does, and this
+ * check has failed twice on that alone. An early exit is reported at once
+ * rather than waited out, and either failure carries the browser's own output,
+ * without which the message says only that nothing answered.
+ */
+async function waitForBrowser(exitStatus, startupOutput) {
+  const deadline = Date.now() + BROWSER_START_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    if (exitStatus() !== null) {
+      throw new Error(
+        `the browser exited during start-up (${exitStatus()}): ${startupOutput().trim() || "no output"}`,
+      );
+    }
     try {
       await fetch(`http://127.0.0.1:${DEBUG_PORT}/json/version`);
       return;
@@ -206,7 +242,10 @@ async function waitForBrowser() {
       await new Promise((resolve) => setTimeout(resolve, 250));
     }
   }
-  throw new Error("the browser did not expose a debugging endpoint");
+
+  throw new Error(
+    `the browser did not expose a debugging endpoint within ${BROWSER_START_TIMEOUT_MS / 1000}s: ${startupOutput().trim() || "no output"}`,
+  );
 }
 
 /**
