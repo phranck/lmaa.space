@@ -1308,6 +1308,9 @@ export interface DashboardMessages {
         autoApplyHint: string;
         autoApplyAccept: string;
         autoApplyReject: string;
+        notifyHint: string;
+        notifyAcceptTemplateLabel: string;
+        notifyRejectTemplateLabel: string;
         autoApplyBlocked: string;
         modelLabel: string;
         modelHint: string;
@@ -2927,6 +2930,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
             "Wirkt nur im Modus Unterstützend. Ohne diese Schalter entscheidest weiterhin du, die Automatik bereitet nur vor.",
           autoApplyAccept: "Aufnahmen automatisch freigeben",
           autoApplyReject: "Ablehnungen automatisch veröffentlichen",
+          notifyHint:
+            "Wird ein Template gewählt, schreibt die Automatik nach ihrer Entscheidung an die Person, die den Shop vorgeschlagen hat. Ohne Template wird nichts versendet.",
+          notifyAcceptTemplateLabel: "E-Mail bei automatischer Aufnahme",
+          notifyRejectTemplateLabel: "E-Mail bei automatischer Ablehnung",
           autoApplyBlocked: "Nur im Modus Unterstützend verfügbar.",
           modelLabel: "Modell",
           modelHint:
@@ -4543,6 +4550,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
             "Only has an effect in Assist mode. Without these switches you still decide, and the automation only prepares.",
           autoApplyAccept: "Publish acceptances automatically",
           autoApplyReject: "Publish rejections automatically",
+          notifyHint:
+            "Where a template is chosen, the automation writes to whoever suggested the shop once it has decided. Without one, nothing is sent.",
+          notifyAcceptTemplateLabel: "Email on an automatic admission",
+          notifyRejectTemplateLabel: "Email on an automatic rejection",
           autoApplyBlocked: "Available in Assist mode only.",
           modelLabel: "Model",
           modelHint:
