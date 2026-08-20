@@ -25,7 +25,6 @@ import { socialMediaPostTemplateRoutes } from "./social-media-post-templates.js"
 import { socialPreviewImageRoutes } from "./social-preview-images.js";
 import { statsRoutes } from "./stats.js";
 import { submissionsRoutes } from "./submissions.js";
-import { umamiRoutes } from "./umami.js";
 import { unsplashRoutes } from "./unsplash.js";
 import { usersRoutes } from "./users.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
@@ -45,7 +44,6 @@ adminRoutes.route("/", authRoutes);
 const protectedRoutes = new Hono<{ Variables: AuthVariables }>();
 protectedRoutes.use("*", requireAuth);
 protectedRoutes.route("/", statsRoutes);
-protectedRoutes.route("/", umamiRoutes);
 protectedRoutes.route("/", submissionsRoutes);
 protectedRoutes.route("/", shopsRoutes);
 protectedRoutes.route("/", deadLinkReportsRoutes);

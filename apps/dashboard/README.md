@@ -1,6 +1,6 @@
 # @lmaa/dashboard
 
-Administrationsoberfläche für Moderation, Inhalte, Navigation und Analytics.
+Administrationsoberfläche für Moderation, Inhalte und Navigation.
 
 ## Tech Stack
 
@@ -27,7 +27,7 @@ Build-Ausgabe liegt in `apps/dashboard/dist`.
 
 ## Wichtige Module
 
-- `src/features`: fachliche Module (Shops, Submissions, Analytics, Content)
+- `src/features`: fachliche Module (Shops, Submissions, Content)
 - `src/components`: app-weite UI-Bausteine
 - `src/lib`: API-Client, Services, Utilities
 - `src/i18n`: Übersetzungen und Lokalisierung
