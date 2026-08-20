@@ -112,12 +112,6 @@ const MarkdownWidgetsPage = lazy(() =>
   })),
 );
 
-const AnalyticsPage = lazy(() =>
-  import("@/features/analytics/AnalyticsPage.tsx").then((m) => ({
-    default: m.AnalyticsPage,
-  })),
-);
-
 const FormBuilderListPage = lazy(() =>
   import("@/features/templates/form-builder/FormBuilderListPage.tsx").then((m) => ({
     default: m.FormBuilderListPage,
@@ -341,14 +335,6 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <MediaPage />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="analytics"
-                element={
-                  <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <AnalyticsPage />
                   </Suspense>
                 }
               />

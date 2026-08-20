@@ -49,8 +49,6 @@ export interface DashboardMessages {
       sectionGeneral: string;
       sectionContent: string;
       sectionTemplates: string;
-      sectionAnalytics: string;
-      analytics: string;
       sectionSystem: string;
       overview: string;
       submissions: string;
@@ -142,60 +140,6 @@ export interface DashboardMessages {
       shopsReported: string;
       backgroundErrors: string;
       backgroundErrorsUnresolved: string;
-    };
-    analytics: {
-      title: string;
-      noData: string;
-      noRealtimeData: string;
-      unknown: string;
-      direct: string;
-      home: string;
-      visitors: string;
-      pageviews: string;
-      bounceRate: string;
-      averageDuration: string;
-      shopVisitClicks: string;
-      websiteInteractions: string;
-      topSearchTerms: string;
-      topCategoriesByClicks: string;
-      topShopsByVisitClicks: string;
-      topLinkClicks: string;
-      showAllRows: string;
-      showLessRows: string;
-      realtime: {
-        title: string;
-        active5m: string;
-        pageviews30m: string;
-        updatedEvery30s: string;
-      };
-      traffic: string;
-      topPages: string;
-      sources: string;
-      environment: string;
-      location: string;
-      countries: string;
-      regions: string;
-      cities: string;
-      country: string;
-      region: string;
-      city: string;
-      browser: string;
-      os: string;
-      devices: string;
-      device: string;
-      percentColumn: string;
-      umamiNotConfigured: string;
-      periods: {
-        today: string;
-        d7: string;
-        d30: string;
-        d60: string;
-        d90: string;
-      };
-      durationUnits: {
-        secondsShort: string;
-        minutesShort: string;
-      };
     };
   };
   shops: {
@@ -1607,8 +1551,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         sectionGeneral: "Allgemein",
         sectionContent: "Content",
         sectionTemplates: "Builders",
-        sectionAnalytics: "Analytics",
-        analytics: "Analytics",
         sectionSystem: "System",
         overview: "Übersicht",
         submissions: "Meldungen",
@@ -1700,61 +1642,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         shopsReported: "Shops gemeldet",
         backgroundErrors: "Hintergrundfehler",
         backgroundErrorsUnresolved: "Ungelöst",
-      },
-      analytics: {
-        title: "Analytics",
-        noData: "Keine Daten",
-        noRealtimeData: "Keine Realtime-Daten",
-        unknown: "(Unbekannt)",
-        direct: "(Direkt)",
-        home: "Startseite",
-        visitors: "Besucher",
-        pageviews: "Seitenaufrufe",
-        bounceRate: "Absprungrate",
-        averageDuration: "Ø Verweildauer",
-        shopVisitClicks: "Shop-Besuchen-Klicks",
-        websiteInteractions: "Website-Interaktionen",
-        topSearchTerms: "Top Suchbegriffe",
-        topCategoriesByClicks: "Top Kategorien nach Klicks",
-        topShopsByVisitClicks: "Top Shops nach Besuchen-Klicks",
-        topLinkClicks: "Top Link-Klicks",
-        showAllRows: "Alle anzeigen",
-        showLessRows: "Weniger anzeigen",
-        realtime: {
-          title: "Live",
-          active5m: "aktiv (5 min)",
-          pageviews30m: "Aufrufe (30 min)",
-          updatedEvery30s: "aktualisiert alle 30 s",
-        },
-        traffic: "Traffic",
-        topPages: "Top Seiten",
-        sources: "Quellen",
-        environment: "Environment",
-        location: "Location",
-        countries: "Länder",
-        regions: "Regionen",
-        cities: "Städte",
-        country: "Land",
-        region: "Region",
-        city: "Stadt",
-        browser: "Browser",
-        os: "OS",
-        devices: "Geräte",
-        device: "Gerät",
-        percentColumn: "%",
-        umamiNotConfigured:
-          "Umami nicht konfiguriert (UMAMI_URL, UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID).",
-        periods: {
-          today: "Heute",
-          d7: "7 Tage",
-          d30: "30 Tage",
-          d60: "60 Tage",
-          d90: "90 Tage",
-        },
-        durationUnits: {
-          secondsShort: "s",
-          minutesShort: "m",
-        },
       },
     },
     shops: {
@@ -3237,8 +3124,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         sectionGeneral: "General",
         sectionContent: "Content",
         sectionTemplates: "Builders",
-        sectionAnalytics: "Analytics",
-        analytics: "Analytics",
         sectionSystem: "System",
         overview: "Overview",
         submissions: "Reports",
@@ -3330,61 +3215,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         shopsReported: "Shops reported",
         backgroundErrors: "Background errors",
         backgroundErrorsUnresolved: "Unresolved",
-      },
-      analytics: {
-        title: "Analytics",
-        noData: "No data",
-        noRealtimeData: "No realtime data",
-        unknown: "(Unknown)",
-        direct: "(Direct)",
-        home: "Home",
-        visitors: "Visitors",
-        pageviews: "Pageviews",
-        bounceRate: "Bounce rate",
-        averageDuration: "Avg. visit duration",
-        shopVisitClicks: "Shop visit clicks",
-        websiteInteractions: "Website interactions",
-        topSearchTerms: "Top search terms",
-        topCategoriesByClicks: "Top categories by clicks",
-        topShopsByVisitClicks: "Top shops by visit clicks",
-        topLinkClicks: "Top link clicks",
-        showAllRows: "Show all",
-        showLessRows: "Show less",
-        realtime: {
-          title: "Live",
-          active5m: "active (5 min)",
-          pageviews30m: "Pageviews (30 min)",
-          updatedEvery30s: "updated every 30 s",
-        },
-        traffic: "Traffic",
-        topPages: "Top pages",
-        sources: "Sources",
-        environment: "Environment",
-        location: "Location",
-        countries: "Countries",
-        regions: "Regions",
-        cities: "Cities",
-        country: "Country",
-        region: "Region",
-        city: "City",
-        browser: "Browser",
-        os: "OS",
-        devices: "Devices",
-        device: "Device",
-        percentColumn: "%",
-        umamiNotConfigured:
-          "Umami is not configured (UMAMI_URL, UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID).",
-        periods: {
-          today: "Today",
-          d7: "7 days",
-          d30: "30 days",
-          d60: "60 days",
-          d90: "90 days",
-        },
-        durationUnits: {
-          secondsShort: "s",
-          minutesShort: "m",
-        },
       },
     },
     shops: {
