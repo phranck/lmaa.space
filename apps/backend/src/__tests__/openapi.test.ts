@@ -282,6 +282,22 @@ describe("OpenAPI document", () => {
     expect(backendPackageJson).toContain("periwinkle");
   });
 
+  it("keeps shop contact addresses out of the public API", () => {
+    // One unauthenticated request used to return the contact address of every
+    // listed shop, which is a finished mailing list for whoever asks. Nothing
+    // on the website reads it, so the public payload has no reason to carry it.
+    const document = JSON.stringify(buildOpenApiDocument());
+    expect(document).not.toContain("contactEmail");
+
+    for (const file of ["public.ts", "public-filtered.ts"]) {
+      const source = readFileSync(
+        resolve(repositoryRoot, "apps/backend/src/repositories", file),
+        "utf8",
+      );
+      expect(source).not.toContain("contact_email");
+    }
+  });
+
   it("keeps API documentation fonts in deployable shared source assets", () => {
     const zeropsConfig = readFileSync(resolve(repositoryRoot, "zerops.yml"), "utf8");
     const backendEntry = readFileSync(

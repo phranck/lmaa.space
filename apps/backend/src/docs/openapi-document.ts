@@ -488,10 +488,6 @@ const schemas: Record<string, SchemaObject> = {
         nullable({ type: "string", format: "uri" }),
         "Preview image taken from the shop's own website, discovered automatically from its touch icon, Open Graph tag, manifest, or logo. Hosted by the shop rather than by lmaa.space, so it is not guaranteed to stay reachable. Null when nothing suitable was found.",
       ),
-      contactEmail: described(
-        nullable({ type: "string", format: "email" }),
-        "Public contact address of the shop, not the address of whoever submitted it.",
-      ),
       socialMedia: ref("SocialMedia"),
       likeCount: {
         type: "integer",
