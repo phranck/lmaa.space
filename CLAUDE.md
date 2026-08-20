@@ -35,3 +35,13 @@ Rules:
 ## Tests
 
 - Die Dashboard-Tests laufen ohne DOM (`environment: "node"`). Komponenten lassen sich dort nicht rendern; Logik dafür in ein eigenes Modul ziehen und dieses prüfen.
+
+## Frontend, CSP
+
+- Astro 7 baut die Richtlinie aus `astro.config.mjs` und schreibt sie über jeden `Content-Security-Policy`-Kopf, den eine Route setzt. Eine Route mit eigener Richtlinie legt sie in `Astro.locals.contentSecurityPolicy` ab; die Middleware setzt sie nach `next()`, der letzten Stelle vor der Antwort.
+- `X-Frame-Options` wird ignoriert, sobald eine Richtlinie `frame-ancestors` nennt. Ein `SAMEORIGIN` in der Route entscheidet nichts.
+- `scripts/check-csp.mjs` kennt nur `--url`. Ein anderer Name wird verworfen, und die Prüfung läuft gegen die Vorgabe `https://lmaa.space` weiter, ohne das zu sagen.
+
+## Skills
+
+- Unter `.claude/skills/` ist nur `lmaa-shop-check` versioniert, weil das Backend ihn zur Laufzeit liest und `zerops.yml` ihn ausliefert. Alles andere dort ist lokales Werkzeug und gehört nicht in einen Commit.
