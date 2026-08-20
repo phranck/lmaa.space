@@ -41,9 +41,10 @@ import {
   UsersThreeIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
+import { SETTINGS_KEYS } from "@lmaa/shared";
 import type { AdminRole } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -64,9 +65,13 @@ import { useAdminShops } from "@/features/content/shops/hooks/useAdminShops.ts";
 import { useDeadLinkReports } from "@/features/overview/hooks/useDeadLinks.ts";
 import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
+import { useSocialMediaAccounts } from "@/features/social/hooks/useSocialMediaAccounts.ts";
 import { useAdminMedia } from "@/features/system/hooks/useAdminMedia.ts";
 import { useAdminUsers } from "@/features/system/hooks/useAdminUsers.ts";
+import { useMarkdownWidgets } from "@/features/system/hooks/useMarkdownWidgets.ts";
 import { useSocialPreviewProjects } from "@/features/system/hooks/useSocialPreviewImages.ts";
+import { parseRedirectUrlsConfig } from "@/features/system/redirect-urls-config.ts";
+import { useSystemSettings } from "@/features/system/settings/hooks/useSystemSettings.ts";
 import {
   useCreateEmailTemplate,
   useEmailTemplates,
@@ -641,6 +646,15 @@ export function Sidebar({
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
+  const { data: socialMediaAccounts = [] } = useSocialMediaAccounts();
+  const { data: markdownWidgets } = useMarkdownWidgets();
+  const { data: systemSettings } = useSystemSettings();
+  // Read through the same parser the page uses, so the count cannot disagree
+  // with the list it counts.
+  const redirectUrlCount = useMemo(
+    () => parseRedirectUrlsConfig(systemSettings?.[SETTINGS_KEYS.REDIRECT_URLS]).redirects.length,
+    [systemSettings],
+  );
   const suggestionsCount = pendingSubmissions.length;
   const [groupStatus, setGroupStatus] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(
@@ -860,6 +874,7 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.markdownWidgets}
+                        badge={markdownWidgets?.widgets.length ?? 0}
                         active={isActive}
                       />
                     )}
@@ -918,6 +933,7 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.redirectUrls}
+                        badge={redirectUrlCount}
                         active={isActive}
                       />
                     )}
@@ -934,6 +950,7 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.socialMediaAccounts}
+                        badge={socialMediaAccounts.length}
                         active={isActive}
                       />
                     )}
