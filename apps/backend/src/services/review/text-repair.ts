@@ -29,6 +29,7 @@ export interface RepairableText {
  */
 export function collectRepairableTexts(error: z.ZodError, raw: unknown): RepairableText[] {
   const texts: RepairableText[] = [];
+  const byPath = new Map<string, RepairableText>();
 
   for (const issue of error.issues) {
     const rule = (issue as { params?: { rule?: unknown } }).params?.rule;
@@ -38,13 +39,15 @@ export function collectRepairableTexts(error: z.ZodError, raw: unknown): Repaira
     const value = readPath(raw, issue.path);
     if (typeof value !== "string") return [];
 
-    const existing = texts.find((entry) => entry.path === path);
+    const existing = byPath.get(path);
     if (existing) {
       existing.problem = `${existing.problem}; ${issue.message}`;
       continue;
     }
 
-    texts.push({ path, value, problem: issue.message });
+    const entry: RepairableText = { path, value, problem: issue.message };
+    byPath.set(path, entry);
+    texts.push(entry);
   }
 
   return texts;

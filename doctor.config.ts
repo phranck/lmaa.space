@@ -49,10 +49,51 @@ export default {
         files: ["src/db/run-migrations.ts"],
         rules: ["react-doctor/async-parallel"],
       },
+      // Reading a stream is sequential by definition: each chunk only exists once
+      // the previous read resolved, and the size ceiling is enforced as they arrive.
+      {
+        files: ["src/lib/http-body.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
+      // The geocoder tries the most specific query first and stops at the first
+      // hit. Asking all of them at once would send every query to a third party
+      // even when the first one already answered.
+      {
+        files: ["src/lib/geocoding.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
+      // Waiting for a provider batch is a polling loop against a deadline, so
+      // each pass depends on the one before it.
+      {
+        files: ["src/services/review/anthropic-provider.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
+      // Both sites run inside one transaction, which is one connection. Issuing
+      // their statements at the same time does not make them concurrent; it
+      // gives up the ordering the row locks depend on.
+      {
+        files: ["src/repositories/review-jobs.ts"],
+        rules: ["react-doctor/async-await-in-loop", "react-doctor/async-parallel"],
+      },
+      // Sending the finished check's report is deliberately ahead of the mode
+      // guard, because delivery has a setting of its own. Moving it below would
+      // leave reports for completed checks unsent whenever the review mode is
+      // switched off.
+      {
+        files: ["src/services/review/worker.ts"],
+        rules: ["react-doctor/async-defer-await"],
+      },
       // React Doctor's dead-code graph does not follow Astro component imports.
       {
         files: ["src/components/Header.astro", "src/components/SupportButton.astro"],
         rules: ["deslop/unused-file"],
+      },
+      // Same blind spot, one level down: the analytics script address and its
+      // integrity hash are read by BaseLayout.astro, which the graph does not
+      // follow, so both look unused from here.
+      {
+        files: ["src/lib/csp.ts"],
+        rules: ["deslop/unused-export"],
       },
       // The dashboard bootstrap references this public asset directly from index.html.
       {
@@ -112,10 +153,12 @@ export default {
           "src/features/content/shops/ShopEditorPage.tsx",
           "src/features/content/shops/ShopReminderSection.tsx",
           "src/features/overview/SubmissionDialogs.tsx",
+          "src/features/overview/SubmissionReviewPanel.tsx",
           "src/features/social/AccountFormDialog.tsx",
           "src/features/social/forms/BlueskyAccountForm.tsx",
           "src/features/system/SocialPreviewPage.tsx",
           "src/features/system/settings/NotificationsTab.tsx",
+          "src/features/system/settings/ReviewTab.tsx",
           "src/features/templates/email-templates/EmailPreview.tsx",
           "src/features/templates/email-templates/EmailTemplateEditPage.tsx",
           "src/features/templates/form-builder/FormBuilderEditPage.tsx",
@@ -132,6 +175,21 @@ export default {
       // Category data arrives asynchronously and initializes the reducer-backed editor once.
       {
         files: ["src/features/content/categories/CategoryEditCard.tsx"],
+        rules: ["react-doctor/no-event-handler"],
+      },
+      // The automated check writes into a suggestion whilst a moderator may have
+      // it open, so a new revision reseeds the form. That is resetting state
+      // when a prop changes, guarded by the revision it was seeded from, rather
+      // than a value that could be worked out while rendering.
+      {
+        files: ["src/features/content/shops/hooks/useShopEditorController.ts"],
+        rules: ["react-doctor/no-derived-state"],
+      },
+      // The reload watches a check finishing, which is observed by polling and
+      // has no event handler to move into: nothing the moderator does triggers
+      // it.
+      {
+        files: ["src/features/overview/hooks/useReviewJob.ts"],
         rules: ["react-doctor/no-event-handler"],
       },
       // Account preferences initialize assignments and report derived overflow to the owner form.

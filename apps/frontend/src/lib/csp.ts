@@ -43,10 +43,10 @@ export const ANALYTICS_SCRIPT_INTEGRITY =
  * second copy that has to be kept in step.
  */
 export function withFrameAncestors(policy: string, frameAncestors: string): string {
-  const directives = policy
-    .split(";")
-    .map((directive) => directive.trim())
-    .filter(Boolean);
+  const directives = policy.split(";").flatMap((directive) => {
+    const trimmed = directive.trim();
+    return trimmed ? [trimmed] : [];
+  });
 
   const rewritten = directives.map((directive) =>
     directive === "frame-ancestors" || directive.startsWith("frame-ancestors ")
