@@ -53,5 +53,6 @@ expect_status "$WEB_BASE_URL/category/computer" "200"
 expect_status "$WEB_BASE_URL/api/v1/stats" "200"
 node scripts/check-web-fonts.mjs --url "$WEB_BASE_URL"
 node scripts/check-csp.mjs --url "$WEB_BASE_URL"
+node scripts/check-analytics-integrity.mjs --url "$WEB_BASE_URL"
 
 echo "Production smoke checks passed."

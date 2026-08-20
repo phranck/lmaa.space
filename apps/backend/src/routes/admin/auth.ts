@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
@@ -12,6 +11,7 @@ import { adminUsers } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { rateLimit } from "../../middleware/rate-limit.js";
+import { validate } from "../../middleware/validate-request.js";
 import { getAdminProfileById } from "../../repositories/admin-auth.js";
 import {
   acceptAdminInvite,
@@ -87,7 +87,7 @@ authRoutes.post("/setup", async (c) => {
 authRoutes.post(
   "/login",
   rateLimit({ max: 10, windowMs: 15 * 60 * 1000 }),
-  zValidator("json", loginSchema),
+  validate("json", loginSchema),
   async (c) => {
     const { username, password } = c.req.valid("json");
     const result = await loginAdmin({ username, password });
@@ -105,7 +105,7 @@ authRoutes.post(
 authRoutes.post(
   "/invite/accept",
   inviteAcceptLimit,
-  zValidator("json", acceptInviteSchema),
+  validate("json", acceptInviteSchema),
   async (c) => {
     const { token, password } = c.req.valid("json");
     const result = await acceptAdminInvite({ token, password });
@@ -149,7 +149,7 @@ const uiPreferencesSchema = z.object({
 authRoutes.patch(
   "/me/preferences",
   requireAuth,
-  zValidator("json", uiPreferencesSchema),
+  validate("json", uiPreferencesSchema),
   async (c) => {
     const adminId = c.get("adminId");
     const prefs = c.req.valid("json");

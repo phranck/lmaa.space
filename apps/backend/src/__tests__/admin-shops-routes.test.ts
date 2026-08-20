@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../config/env.js", () => ({
-  env: { NODE_ENV: "development" },
+  env: { NODE_ENV: "development", LOG_LEVEL: "silent" },
 }));
 
 const serviceMocks = vi.hoisted(() => ({

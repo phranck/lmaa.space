@@ -129,9 +129,11 @@ export async function listReviewModels(): Promise<ReviewModelOption[]> {
       listed.map(async (entry) => ({ entry, described: await client.models.retrieve(entry.id) })),
     );
 
-    const options = described
-      .filter(({ entry, described: model }) => canRunReview(model) && hasReviewPrices(entry.id))
-      .map(({ entry, described: model }) => ({ ...entry, efforts: readEfforts(model) }));
+    const options = described.flatMap(({ entry, described: model }) =>
+      canRunReview(model) && hasReviewPrices(entry.id)
+        ? [{ ...entry, efforts: readEfforts(model) }]
+        : [],
+    );
 
     cached = { options, fetchedAt: Date.now() };
     return options;

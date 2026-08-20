@@ -1,10 +1,10 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import { markdownWidgetsConfigSchema } from "@lmaa/contracts";
 
 import { ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   getMarkdownWidgetsConfig,
   upsertMarkdownWidgetsConfig,
@@ -21,7 +21,7 @@ markdownWidgetsRoutes.get("/markdown-widgets", async (c) => {
 
 markdownWidgetsRoutes.put(
   "/markdown-widgets",
-  zValidator("json", markdownWidgetsConfigSchema),
+  validate("json", markdownWidgetsConfigSchema),
   async (c) => {
     const config = c.req.valid("json");
     await upsertMarkdownWidgetsConfig(config);

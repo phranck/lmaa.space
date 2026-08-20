@@ -361,33 +361,30 @@ export class AnthropicReviewProvider implements ReviewProvider {
           });
         }
 
-        if (entry.result.type === "errored") {
+        const { result } = entry;
+
+        if (result.type === "errored") {
           return this.outcome("failed", {
             usage: sumReviewUsage(usages),
             providerResponseId: batchId,
             errorCode: "PROVIDER_BATCH_ERROR",
-            errorMessage: `Provider hat die Anfrage abgelehnt: ${entry.result.error.error.message}`,
+            errorMessage: `Provider hat die Anfrage abgelehnt: ${result.error.error.message}`,
             retryable: false,
           });
         }
 
-        if (entry.result.type !== "succeeded") {
+        if (result.type !== "succeeded") {
           return this.outcome("failed", {
             usage: sumReviewUsage(usages),
             providerResponseId: batchId,
-            errorCode: `PROVIDER_BATCH_${entry.result.type.toUpperCase()}`,
-            errorMessage: `Die eingereichte Prüfung wurde ${entry.result.type === "canceled" ? "abgebrochen" : "nicht rechtzeitig bearbeitet"}.`,
-            retryable: entry.result.type === "expired",
+            errorCode: `PROVIDER_BATCH_${result.type.toUpperCase()}`,
+            errorMessage: `Die eingereichte Prüfung wurde ${result.type === "canceled" ? "abgebrochen" : "nicht rechtzeitig bearbeitet"}.`,
+            retryable: result.type === "expired",
           });
         }
 
-        const message = entry.result.message;
+        const message = result.message;
         usages.push(readUsage(message));
-
-        // The provider's own tool loop has an iteration ceiling of its own. On
-        // reaching it the turn pauses, carrying the work so far and no answer.
-        // It continues by sending that turn back unchanged, which needs a
-        // second batch; adding an instruction here would be read as a new task.
 
         // The provider's own tool loop has an iteration ceiling. On reaching it
         // the turn pauses, carrying the work so far and no answer. It continues

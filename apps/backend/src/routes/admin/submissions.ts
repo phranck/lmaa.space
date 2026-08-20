@@ -1,4 +1,3 @@
-import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import {
@@ -14,6 +13,7 @@ import { fail, ok } from "../../lib/http.js";
 import { mapShopJsonToSubmissionEditData } from "../../lib/shopjson-mapper.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate-request.js";
 import {
   editSubmission,
   getAdminSubmissionById,
@@ -60,7 +60,7 @@ submissionsRoutes.get("/submissions/:id", async (c) => {
 submissionsRoutes.patch(
   "/submissions/:id",
   requireAdmin,
-  zValidator("json", reviewSchema),
+  validate("json", reviewSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
@@ -107,7 +107,7 @@ submissionsRoutes.patch(
 submissionsRoutes.patch(
   "/submissions/:id/edit",
   requireAdmin,
-  zValidator("json", submissionEditSchema),
+  validate("json", submissionEditSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
@@ -140,7 +140,7 @@ submissionsRoutes.delete("/submissions/:id", requireAdmin, async (c) => {
 submissionsRoutes.post(
   "/submissions/import",
   requireAdmin,
-  zValidator("json", submissionReviewImportSchema),
+  validate("json", submissionReviewImportSchema),
   async (c) => {
     const entries = c.req.valid("json");
 

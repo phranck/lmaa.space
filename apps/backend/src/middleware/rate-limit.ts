@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { isIP } from "node:net";
 
 import { eq, lt } from "drizzle-orm";
@@ -147,6 +148,41 @@ export function resolveClientIp(
   }
 }
 
+/** Header the website's server-side renderer uses to identify itself. */
+const INTERNAL_TOKEN_HEADER = "X-Internal-Token";
+
+/**
+ * Decides whether a request comes from this project's own server-side renderer.
+ *
+ * @param headers - Request headers of the incoming request.
+ * @returns `true` only when the request presents the configured internal token.
+ *
+ * @remarks
+ * The website renders its pages on the server and fetches the data straight
+ * from the backend rather than through the proxy, so those requests carry no
+ * client address. Without a way to tell them apart they all fall into one
+ * bucket, and the page rendering of the whole site is then capped by a limit
+ * meant for a single visitor.
+ *
+ * Returns `false` whenever `INTERNAL_API_TOKEN` is unset, so a missing secret
+ * withdraws the exemption instead of granting it. The comparison is
+ * constant-time, and the length check in front of it is required because
+ * `timingSafeEqual` throws on differing lengths.
+ */
+function isInternalCaller(headers: Headers): boolean {
+  const configured = env.INTERNAL_API_TOKEN;
+  if (!configured) return false;
+
+  const presented = headers.get(INTERNAL_TOKEN_HEADER);
+  if (!presented) return false;
+
+  const presentedBytes = Buffer.from(presented, "utf8");
+  const configuredBytes = Buffer.from(configured, "utf8");
+  if (presentedBytes.length !== configuredBytes.length) return false;
+
+  return timingSafeEqual(presentedBytes, configuredBytes);
+}
+
 /** Starts periodic cleanup of expired rate-limit entries. Returns the timer for shutdown. */
 export function startRateLimitCleanupJob(): NodeJS.Timeout {
   logger.info(
@@ -190,7 +226,7 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
 }
 
 /**
- * Creates in-memory IP/path based rate limiting middleware.
+ * Creates rate limiting middleware keyed on the matched route and the client.
  *
  * @param options - Rate limit configuration.
  * @param options.max - Maximum number of requests within the window.
@@ -199,15 +235,24 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
  *
  * @remarks
  * Hidden behavior:
- * - Keying strategy is `"{path}:{clientIp}"`.
+ * - Keying strategy is `"{routePath}:{clientIp}"`, so `/shops/:token` is one
+ *   bucket whichever token was asked for. Keying on the requested path instead
+ *   would give every identifier its own bucket, and a caller working through
+ *   identifiers would never be refused.
+ * - Requests presenting the configured `INTERNAL_API_TOKEN` skip the limit
+ *   entirely, because they come from this project's own renderer rather than
+ *   from a visitor. See `isInternalCaller`.
  * - Default store is process-local memory. Pass a shared store (for example Redis)
  *   when running multiple backend instances.
- * - Expired entries are cleaned up by a background interval.
+ * - Expired entries are cleaned up by a background interval. Entries written
+ *   under the previous key format simply expire; nothing has to migrate them.
  */
 export function rateLimit(options: { max: number; windowMs: number; store?: RateLimitStore }) {
   const store = options.store ?? defaultRateLimitStore;
 
   return createMiddleware(async (c, next) => {
+    if (isInternalCaller(c.req.raw.headers)) return next();
+
     const ip = resolveClientIp(c.req.raw.headers);
 
     // Every caller without a resolvable address shares one bucket, so this is a
@@ -218,7 +263,11 @@ export function rateLimit(options: { max: number; windowMs: number; store?: Rate
       logger.warn({ path: c.req.path }, "rate limit: no client address, using shared bucket");
     }
 
-    const key = `${c.req.path}:${ip}`;
+    // The key names the matched route, not the path that was requested. A path
+    // carries the identifier the caller chose, so keying on it hands every
+    // guess a bucket of its own and the limit never reaches the enumeration or
+    // brute-force attempt it exists to stop.
+    const key = `${c.req.routePath}:${ip}`;
     const now = Date.now();
     const entry = (await store.get(key)) ?? { count: 0, resetAt: now + options.windowMs };
 
