@@ -35,7 +35,7 @@ const description = page ? buildContentDescription(page.content) : "";
 
 {
   page ? (
-    <BaseLayout title={`${page.title} Preview`} description={description}>
+    <BaseLayout title={`${page.title} Preview`} description={description} noindex>
       <div class:list={[getContentWidthClass(page.contentWidth), "mx-auto px-4 sm:px-6 py-14"]}>
         <article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
           {page.showTitle && <h1>{page.title}</h1>}
@@ -57,7 +57,7 @@ const description = page ? buildContentDescription(page.content) : "";
       </div>
     </BaseLayout>
   ) : (
-    <BaseLayout title="Preview">
+    <BaseLayout title="Preview" noindex>
       <main class="min-h-screen flex items-center justify-center px-6 py-16 text-center">
         <p class="text-sm text-stone-500">{errorMessage}</p>
       </main>
