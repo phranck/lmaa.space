@@ -600,7 +600,7 @@
     "semantic_hash": ""
   },
   "apps/backend/drizzle/meta/_journal.json": {
-    "mtime": 1787236311.61318,
+    "mtime": 1787237541.670477,
     "ast_hash": "b8352a1cc1f2866553921949894c78d5",
     "semantic_hash": ""
   },
@@ -865,7 +865,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/config/env.ts": {
-    "mtime": 1787236128.3877237,
+    "mtime": 1787237541.6706095,
     "ast_hash": "ee09ac2ab09517bc4714ef2ac35dbf81",
     "semantic_hash": ""
   },
@@ -1235,7 +1235,7 @@
     "semantic_hash": ""
   },
   "apps/backend/src/routes/admin/routes.ts": {
-    "mtime": 1787236128.387595,
+    "mtime": 1787237541.6707342,
     "ast_hash": "d02fd1e43197afdec7022b0d26046212",
     "semantic_hash": ""
   },
@@ -1545,7 +1545,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/App.tsx": {
-    "mtime": 1787236052.995051,
+    "mtime": 1787237541.6709917,
     "ast_hash": "7b73c6a608eef1a89f7a9a3348d96b40",
     "semantic_hash": ""
   },
@@ -1570,8 +1570,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/components/layout/Sidebar.tsx": {
-    "mtime": 1787236235.3191254,
-    "ast_hash": "d64fa55631743cdd2f9cc9e8165a1443",
+    "mtime": 1787241210.228016,
+    "ast_hash": "221986617049261673092d3833c60f02",
     "semantic_hash": ""
   },
   "apps/dashboard/src/components/layout/SidebarFooter.tsx": {
@@ -2195,8 +2195,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/RedirectUrlsPage.tsx": {
-    "mtime": 1786788906.9418898,
-    "ast_hash": "a12b67705a389e1fe39efa4204709918",
+    "mtime": 1787241015.2782815,
+    "ast_hash": "26979a27c98c22315a076147cef2e2ad",
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/system/SocialPreviewPage.tsx": {
@@ -2620,7 +2620,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/i18n/messages.ts": {
-    "mtime": 1787236110.0356102,
+    "mtime": 1787237541.6715012,
     "ast_hash": "5dc568c36998c087f6d5211b61784af3",
     "semantic_hash": ""
   },
@@ -4015,13 +4015,23 @@
     "semantic_hash": ""
   },
   "apps/backend/drizzle/0070_drop_analytics_sidebar_entry.sql": {
-    "mtime": 1787237226.6313934,
+    "mtime": 1787237541.6701174,
     "ast_hash": "680a2dc8e1605e7eb7b886e759f464f9",
     "semantic_hash": ""
   },
   "apps/backend/drizzle/meta/0070_snapshot.json": {
-    "mtime": 1787236311.61299,
+    "mtime": 1787237541.670302,
     "ast_hash": "2e6b688e7a9fd8dfcffe581a7729e415",
+    "semantic_hash": ""
+  },
+  "apps/dashboard/src/features/system/redirect-urls-config.test.ts": {
+    "mtime": 1787241340.7774055,
+    "ast_hash": "b1ecee9c7f7438b4a55902d83fc3e771",
+    "semantic_hash": ""
+  },
+  "apps/dashboard/src/features/system/redirect-urls-config.ts": {
+    "mtime": 1787241001.873793,
+    "ast_hash": "16e4718755c374922466d7f4e806f05b",
     "semantic_hash": ""
   }
 }
