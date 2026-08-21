@@ -3,6 +3,8 @@ name: Deploy to Zerops
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       backend:
@@ -17,6 +19,15 @@ on:
         description: "Deploy dashboard"
         type: boolean
         default: true
+
+# A pull request only needs the run for its newest commit, so an older one is
+# cancelled. A run on main deploys, and cancelling that half way would leave a
+# service mid-rollout, so a later run waits for the current one to finish. Two
+# overlapping deployments also make the earlier run's smoke test hit a host the
+# later run is still replacing.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   quality-gate:
@@ -44,7 +55,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build -w @lmaa/shared
-      - run: npm test -w @lmaa/backend
+      # Four workspaces carry a suite: backend, shared, dashboard and frontend.
+      - run: npm test --workspaces --if-present
 
   deploy-backend:
     needs: test
