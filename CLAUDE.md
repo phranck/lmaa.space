@@ -31,6 +31,8 @@ Rules:
 
 - On a red run, start with `gh run view <id> --json jobs`. `deploy-*` and `smoke-prod` fail independently of each other, and `smoke-prod` occasionally fails on the browser.
 - `/health` keeps answering `ok` during a failed deployment, because the previous version is still serving. The cause sits in the service log: `zcli service log --service-id <id>`.
+- Every service runs with exactly one container. `minContainers` and `maxContainers` are both 1 for `backend`, `website` and `dashboard`, so horizontal autoscaling is off. The "Cores 2" the panel shows beside "1 container" are CPU cores, and reading them as a container count is the mistake this line exists to prevent.
+- Two containers do exist during a deployment, whilst the new one is up and the old one has not gone yet. Both run the `initCommands` from `zerops.yml`, so anything placed there executes twice per deployment, against the same database. `runMigrations()` holds a `pg_advisory_lock` for that reason. In the service log the overlap shows as two node ids reporting the same step within a second of each other; in normal operation only one appears.
 
 ## CI
 
