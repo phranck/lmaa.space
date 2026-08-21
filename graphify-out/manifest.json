@@ -1405,8 +1405,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/services/email-renderer.ts": {
-    "mtime": 1785079450.003486,
-    "ast_hash": "58d51d520aa70bcbff5428cd6ecc8637",
+    "mtime": 1787314217.1566668,
+    "ast_hash": "118e16b56dcfc9f19cb1fabda485aa83",
     "semantic_hash": ""
   },
   "apps/backend/src/services/email-templates.ts": {
@@ -2610,8 +2610,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx": {
-    "mtime": 1783964666.9021945,
-    "ast_hash": "70260060029e0a4405b9c1c2c1f49342",
+    "mtime": 1787314217.15686,
+    "ast_hash": "527cfee48d628cc6006046c3b729e626",
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateListPage.tsx": {
@@ -2735,7 +2735,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/astro.config.mjs": {
-    "mtime": 1787270699.0028286,
+    "mtime": 1787270888.2036548,
     "ast_hash": "5f6f5e8a7ef136b9c5d171bca1bc370c",
     "semantic_hash": ""
   },
@@ -2745,7 +2745,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/package.json": {
-    "mtime": 1787269905.9008045,
+    "mtime": 1787270888.204011,
     "ast_hash": "1982f91aff29dcf771e155517d453f4b",
     "semantic_hash": ""
   },
@@ -2760,7 +2760,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/components/Footer.astro": {
-    "mtime": 1787269949.292005,
+    "mtime": 1787270888.2042234,
     "ast_hash": "3056173022cc6987f0a504b53ef5af55",
     "semantic_hash": ""
   },
@@ -4035,7 +4035,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/env.d.ts": {
-    "mtime": 1787269953.830014,
+    "mtime": 1787270888.2043612,
     "ast_hash": "2e44532362a7d4038c53762f0050cfff",
     "semantic_hash": ""
   },
@@ -4050,7 +4050,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/vite.obfuscate.js": {
-    "mtime": 1787270300.616173,
+    "mtime": 1787270888.2044709,
     "ast_hash": "3fd12d2de147688726ed3ad91ac2fbf4",
     "semantic_hash": ""
   }
