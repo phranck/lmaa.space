@@ -6,8 +6,8 @@ import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 import {
   advanceReminderDate,
+  claimDueReminders,
   deleteReminderById,
-  getDueReminders,
 } from "../repositories/shop-reminders.js";
 import type { DueReminder } from "../repositories/shop-reminders.js";
 
@@ -122,15 +122,34 @@ async function sendReminderEmail(reminder: DueReminder): Promise<boolean> {
   return sendMail(reminder.adminEmail, subject, html, { errorSource: "reminder-email" });
 }
 
-async function processReminders(): Promise<void> {
-  const due = await getDueReminders();
-  await Promise.all(due.map(processReminder));
+/**
+ * How long a claimed reminder stays reserved for the container that took it.
+ *
+ * Long enough to outlast sending an email and a push notification, short enough
+ * that a container dying mid-send does not hold the reminder back for long. A
+ * failed send leaves the claim standing, so the retry happens once it expires.
+ */
+export const REMINDER_LEASE_MS = 5 * 60 * 1000;
+
+/**
+ * Sends every reminder this container manages to claim.
+ *
+ * @remarks
+ * Side effects: claims reminders in the database, sends email and push
+ * notifications, then advances or deletes each reminder it processed.
+ */
+export async function processReminders(): Promise<void> {
+  const claimed = await claimDueReminders(REMINDER_LEASE_MS);
+  await Promise.all(claimed.map(processReminder));
 }
 
 async function processReminder(reminder: DueReminder): Promise<void> {
   const emailSent = await sendReminderEmail(reminder);
   if (!emailSent) {
-    logger.warn({ shopId: reminder.shopId }, "reminder: email failed, will retry next tick");
+    logger.warn(
+      { shopId: reminder.shopId, leaseMs: REMINDER_LEASE_MS },
+      "reminder: email failed, retries once the claim expires",
+    );
     return;
   }
 
@@ -155,8 +174,15 @@ async function processReminder(reminder: DueReminder): Promise<void> {
 
 /**
  * Starts the reminder scheduler.
- * Polls every 60 seconds for due reminders, sends email + push, then either
- * advances the date (recurring) or deletes the entry (one-time).
+ *
+ * @returns The interval timer, so the caller can clear it on shutdown.
+ *
+ * @remarks
+ * Polls every 60 seconds and claims what is due, sends email and push, then
+ * either advances the date for a recurring reminder or deletes a one-off entry.
+ *
+ * Every container starts its own scheduler. They do not collide because the
+ * claim in `claimDueReminders` hands each due reminder to one of them.
  */
 export function startReminderScheduler(): NodeJS.Timeout {
   const intervalMs = 60_000;
