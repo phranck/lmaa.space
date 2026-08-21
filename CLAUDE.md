@@ -14,34 +14,41 @@ Rules:
 
 ## Gates
 
-- `npx tsc --noEmit -p <projekt>` kann grün melden, obwohl Fehler vorliegen: es liest den zwischengespeicherten Build-Stand. Verbindlich ist `npm run ci:quality`, dessen `typecheck` mit `tsc -b --noEmit` läuft.
+- `npx tsc --noEmit -p <project>` can report success whilst errors exist, because it reads the cached build state. The binding check is `npm run ci:quality`, whose `typecheck` runs `tsc -b --noEmit`.
 
-## Migrationen
+## Migrations
 
-- Eine neue Datei unter `apps/backend/drizzle/` wird von `.claude/hooks/auto-migrate.sh` sofort lokal angewendet. Läuft Docker nicht, schlägt schon das Schreiben fehl. Docker vorher starten.
-- Nach einem Docker-Neustart ist die lokale Datenbank leer: erst `npm run db:migrate -w @lmaa/backend`, sonst existiert keine Tabelle.
-- Tabellennamen im Schema nachsehen, nicht raten. Die Nutzertabelle heißt `admin_users`, nicht `users`.
+- A new file under `apps/backend/drizzle/` is applied locally straight away by `.claude/hooks/auto-migrate.sh`. Without Docker running, even writing the file fails, so start Docker first.
+- After a Docker restart the local database is empty. Run `npm run db:migrate -w @lmaa/backend` first, otherwise no table exists.
+- Look table names up in the schema rather than guessing them. The user table is called `admin_users`, not `users`.
 
 ## Shell
 
-- `rm` ist auf `rm -i` aliasiert und fragt zurück. In Befehlen `command rm -f` verwenden, für versionierte Dateien `git rm`.
-- Das Arbeitsverzeichnis überdauert einzelne Bash-Aufrufe. Nach einem `cd` mit absoluten Pfaden weiterarbeiten.
+- `rm` is aliased to `rm -i` and asks back. Use `command rm -f` in commands, and `git rm` for tracked files.
+- The working directory outlives a single Bash call. After a `cd`, carry on with absolute paths.
 
-## Deploy
+## Deployment
 
-- Bei rotem Lauf zuerst `gh run view <id> --json jobs`: `deploy-*` und `smoke-prod` scheitern unabhängig voneinander, und `smoke-prod` fällt gelegentlich am Browser aus.
-- `/health` sagt während eines gescheiterten Deploys weiter `ok`, weil die alte Version bedient. Ursachen stehen im Dienstprotokoll: `zcli service log --service-id <id>`.
+- On a red run, start with `gh run view <id> --json jobs`. `deploy-*` and `smoke-prod` fail independently of each other, and `smoke-prod` occasionally fails on the browser.
+- `/health` keeps answering `ok` during a failed deployment, because the previous version is still serving. The cause sits in the service log: `zcli service log --service-id <id>`.
+
+## DNS and domains
+
+- `*.lmaa.space` is a CNAME to the apex and matches at any depth. Every invented name therefore answers successfully, and a real record is recognisable only by returning something other than that CNAME.
+- AXFR is refused, but the zone is signed with NSEC3. Collecting the hash chain and computing known names against it locally enumerates the zone in full, without access to the World4You panel.
+- `www.lmaa.space` redirects to the apex with a 301, configured at the Zerops L7 balancer under "Advanced Location Configuration" rather than in the code, even though `safe-url.ts` and `useMarkdownHtml.ts` carry `www` as a site host. The balancer does this per domain, so look there before writing code for a redirect or a routing question.
+- Whether a mailbox exists is answered by an SMTP dialogue up to `RCPT TO` without `DATA`. `450 Greylisted` means it exists, `550 User unknown` means it does not. Include an invented control address, because otherwise a catch-all gives no sign of itself.
 
 ## Tests
 
-- Die Dashboard-Tests laufen ohne DOM (`environment: "node"`). Komponenten lassen sich dort nicht rendern; Logik dafür in ein eigenes Modul ziehen und dieses prüfen.
+- The dashboard tests run without a DOM (`environment: "node"`). Components cannot be rendered there, so move the logic into a module of its own and test that instead.
 
-## Frontend, CSP
+## Frontend and CSP
 
-- Astro 7 baut die Richtlinie aus `astro.config.mjs` und schreibt sie über jeden `Content-Security-Policy`-Kopf, den eine Route setzt. Eine Route mit eigener Richtlinie legt sie in `Astro.locals.contentSecurityPolicy` ab; die Middleware setzt sie nach `next()`, der letzten Stelle vor der Antwort.
-- `X-Frame-Options` wird ignoriert, sobald eine Richtlinie `frame-ancestors` nennt. Ein `SAMEORIGIN` in der Route entscheidet nichts.
-- `scripts/check-csp.mjs` kennt nur `--url`. Ein anderer Name wird verworfen, und die Prüfung läuft gegen die Vorgabe `https://lmaa.space` weiter, ohne das zu sagen.
+- Astro 7 builds the policy from `astro.config.mjs` and writes it over any `Content-Security-Policy` header a route sets. A route with a policy of its own puts it in `Astro.locals.contentSecurityPolicy`, and the middleware applies it after `next()`, which is the last point before the response.
+- `X-Frame-Options` is ignored as soon as a policy names `frame-ancestors`. A `SAMEORIGIN` in the route decides nothing.
+- `scripts/check-csp.mjs` knows only `--url`. Any other name is discarded, and the check carries on against the default `https://lmaa.space` without saying so.
 
 ## Skills
 
-- Unter `.claude/skills/` ist nur `lmaa-shop-check` versioniert, weil das Backend ihn zur Laufzeit liest und `zerops.yml` ihn ausliefert. Alles andere dort ist lokales Werkzeug und gehört nicht in einen Commit.
+- Under `.claude/skills/` only `lmaa-shop-check` is tracked, because the backend reads it at runtime and `zerops.yml` ships it. Everything else there is local tooling and does not belong in a commit.
