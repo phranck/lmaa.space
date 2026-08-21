@@ -33,7 +33,6 @@ import {
   normalizeSubmittedShopUrl,
   createManagedDeadLinkReport,
   createManagedShopConcernReport,
-  getManagedPublicCacheStats,
   getManagedPublicCategories,
   getManagedPublicCategoryBySlug,
   getManagedPublicContentPageBySlug,
@@ -100,10 +99,9 @@ publicRoutes.get("/categories/:slug", publicReadLimit, async (c) => {
 
 // GET /api/shops
 publicRoutes.get("/shops", publicReadLimit, async (c) => {
-  const result = await getManagedPublicShops();
-  c.header("X-Cache", result.cache);
+  const shops = await getManagedPublicShops();
   c.header("Cache-Control", "public, max-age=60");
-  return ok(c, result.data);
+  return ok(c, shops);
 });
 
 // GET /api/shops/:token
@@ -541,15 +539,3 @@ publicRoutes.get("/hero", publicReadLimit, async (c) => {
   c.header("Cache-Control", "no-store");
   return ok(c, image);
 });
-
-// Debug endpoint: cache stats (dev only)
-if (env.NODE_ENV === "development") {
-  publicRoutes.get("/cache/stats", (c) => {
-    const result = getManagedPublicCacheStats();
-    if (!result.ok) {
-      return fail(c, 404, "Not available");
-    }
-
-    return ok(c, result.data);
-  });
-}

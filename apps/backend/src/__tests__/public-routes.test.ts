@@ -151,16 +151,13 @@ describe("publicRoutes", () => {
   });
 
   describe("GET /shops", () => {
-    it("returns shops with cache header", async () => {
-      publicServiceMocks.getManagedPublicShops.mockResolvedValue({
-        cache: "HIT",
-        data: [{ id: 1 }],
-      });
+    it("returns shops and lets the client cache the response", async () => {
+      publicServiceMocks.getManagedPublicShops.mockResolvedValue([{ id: 1 }]);
 
       const res = await app.request("/shops");
 
       expect(res.status).toBe(200);
-      expect(res.headers.get("X-Cache")).toBe("HIT");
+      expect(res.headers.get("Cache-Control")).toBe("public, max-age=60");
       expect(await res.json()).toEqual({ data: [{ id: 1 }] });
     });
   });

@@ -17,7 +17,6 @@ import { runMigrations } from "./db/run-migrations.js";
 import { serveApiReference, serveOpenApiJson } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
 import { logger } from "./lib/logger.js";
-import { startCacheCleanupJob } from "./middleware/cache.js";
 import { startRateLimitCleanupJob } from "./middleware/rate-limit.js";
 import { requestId } from "./middleware/request-id.js";
 import { adminRoutes } from "./routes/admin/routes.js";
@@ -283,7 +282,6 @@ async function startServer() {
   const timers = [
     startSessionCleanupJob(),
     startRateLimitCleanupJob(),
-    startCacheCleanupJob(),
     startReminderScheduler(),
     startReviewWorker(),
   ];

@@ -37,14 +37,6 @@ const headquartersMocks = vi.hoisted(() => ({
   loadShopHeadquartersMap: vi.fn(),
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  SHOPS_CACHE_KEY: "shops:all",
-  getCacheEntry: vi.fn(),
-  getCacheStats: vi.fn(),
-  setCacheEntry: vi.fn(),
-  invalidateCache: vi.fn(),
-}));
-
 const envMock = vi.hoisted(() => ({
   env: { NODE_ENV: "development", IP_HASH_SALT: "test-salt-1234567890" },
 }));
@@ -57,7 +49,6 @@ vi.mock("../repositories/public.js", () => publicRepoMocks);
 vi.mock("../repositories/public-filtered.js", () => filteredRepoMocks);
 vi.mock("../repositories/headquarters.js", () => headquartersMocks);
 vi.mock("../repositories/app-settings.js", () => appSettingsMocks);
-vi.mock("../middleware/cache.js", () => cacheMocks);
 vi.mock("../config/env.js", () => envMock);
 vi.mock("../lib/result.js", async (importOriginal) => importOriginal());
 
@@ -66,7 +57,6 @@ import {
   createManagedDeadLinkReport,
   createManagedShopConcernReport,
   getFilteredPublicCategoryBySlug,
-  getManagedPublicCacheStats,
   getManagedPublicCategoryBySlug,
   getManagedPublicRejectedShops,
   getManagedPublicShopById,
@@ -255,23 +245,21 @@ describe("toggleShopLike", () => {
 describe("getManagedPublicShops", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("returns cached data on HIT", async () => {
-    cacheMocks.getCacheEntry.mockReturnValue([{ id: 1 }]);
-
-    const result = await getManagedPublicShops();
-
-    expect(result).toEqual({ cache: "HIT", data: [{ id: 1 }] });
-    expect(publicRepoMocks.listAllPublicShopsWithCategories).not.toHaveBeenCalled();
-  });
-
-  it("fetches and caches on MISS", async () => {
-    cacheMocks.getCacheEntry.mockReturnValue(undefined);
+  it("returns every public shop from the repository", async () => {
     publicRepoMocks.listAllPublicShopsWithCategories.mockResolvedValue([{ id: 1 }]);
 
     const result = await getManagedPublicShops();
 
-    expect(result).toEqual({ cache: "MISS", data: [{ id: 1 }] });
-    expect(cacheMocks.setCacheEntry).toHaveBeenCalledWith("shops:all", [{ id: 1 }], 60000);
+    expect(result).toEqual([{ id: 1 }]);
+  });
+
+  it("queries on every call, so two containers cannot hold different answers", async () => {
+    publicRepoMocks.listAllPublicShopsWithCategories.mockResolvedValue([{ id: 1 }]);
+
+    await getManagedPublicShops();
+    await getManagedPublicShops();
+
+    expect(publicRepoMocks.listAllPublicShopsWithCategories).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -591,28 +579,6 @@ describe("createManagedShopConcernReport", () => {
       "This shop sells counterfeit items",
       expect.stringMatching(/^[0-9a-f]{64}$/),
     );
-  });
-});
-
-describe("getManagedPublicCacheStats", () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it("returns stats in development", () => {
-    envMock.env.NODE_ENV = "development";
-    cacheMocks.getCacheStats.mockReturnValue({ entries: 1, keys: ["shops:all"] });
-
-    const result = getManagedPublicCacheStats();
-
-    expect(result).toEqual({ ok: true, data: { entries: 1, keys: ["shops:all"] } });
-  });
-
-  it("returns not_available in production", () => {
-    envMock.env.NODE_ENV = "production";
-
-    const result = getManagedPublicCacheStats();
-
-    expect(result).toEqual({ ok: false, reason: "not_available" });
-    envMock.env.NODE_ENV = "development";
   });
 });
 
