@@ -14,6 +14,7 @@ import {
   STORAGE_CSP_ORIGIN,
   YOUTUBE_EMBED_CSP_ORIGIN,
 } from "./src/lib/csp.js";
+import { obfuscateFirstPartyChunks } from "./vite.obfuscate.js";
 
 function devProxyPlugin() {
   return {
@@ -105,6 +106,7 @@ export default defineConfig({
   integrations: [
     UnoCSS({ injectReset: false }),
     react(),
+    obfuscateFirstPartyChunks(),
     sitemap({
       // The sitemap lists the pages meant for readers. `/preview/*` is the
       // editor's own view of unpublished content, reachable only with a token,
