@@ -9,7 +9,6 @@ import { db } from "../db/client.js";
 import { categories } from "../db/schema.js";
 import { failure, success } from "../lib/result.js";
 import { mapShopJsonToShopData } from "../lib/shopjson-mapper.js";
-import { SHOPS_CACHE_KEY, invalidateCache } from "../middleware/cache.js";
 import {
   type CreateAdminShopData,
   type UpdateAdminShopData,
@@ -51,7 +50,6 @@ interface DeleteAdminShopData {
  *
  * @remarks
  * Side effects on success:
- * - Invalidates shared public shop cache key.
  * - Starts fire-and-forget OG image hydration and persistence.
  */
 export async function createManagedAdminShop(data: CreateAdminShopData) {
@@ -67,8 +65,6 @@ export async function createManagedAdminShop(data: CreateAdminShopData) {
 
   const shop = await createAdminShop(data);
 
-  invalidateCache(SHOPS_CACHE_KEY);
-
   hydrateShopOgImageInBackground(shop.url, async (imageUrl) => {
     await setAdminShopOgImage(shop.id, imageUrl);
   });
@@ -77,7 +73,7 @@ export async function createManagedAdminShop(data: CreateAdminShopData) {
 }
 
 /**
- * Updates an existing shop and invalidates public cache.
+ * Updates an existing shop.
  *
  * @param id - Shop id.
  * @param data - Partial update payload.
@@ -89,7 +85,6 @@ export async function updateManagedAdminShop(id: number, data: UpdateAdminShopDa
     return failure("not_found");
   }
 
-  invalidateCache(SHOPS_CACHE_KEY);
   return success({ shop: { ...shop, categories: [] } });
 }
 
@@ -104,7 +99,6 @@ export async function updateManagedAdminShop(id: number, data: UpdateAdminShopDa
  * Side effects:
  * - `mode: "delete"` removes rows permanently.
  * - `mode: "mark_deleted"` keeps row and stores moderation metadata.
- * - Always invalidates shared public shop cache key.
  */
 export async function deleteManagedAdminShop(id: number, data: DeleteAdminShopData) {
   let found: boolean;
@@ -118,8 +112,6 @@ export async function deleteManagedAdminShop(id: number, data: DeleteAdminShopDa
   if (!found) {
     return failure("not_found");
   }
-
-  invalidateCache(SHOPS_CACHE_KEY);
 
   return success({
     message: data.mode === "delete" ? "Shop permanently deleted" : "Shop marked deleted",
@@ -148,7 +140,6 @@ export async function changeManagedAdminShopVisibility(
     return failure("not_found");
   }
 
-  invalidateCache(SHOPS_CACHE_KEY);
   return success({ message: `Shop visibility set to ${visibility}` });
 }
 
@@ -175,7 +166,7 @@ export async function refetchAdminShopImage(id: number) {
 
 export async function setManagedAdminShopOgImage(id: number, ogImage: string | null) {
   await setAdminShopOgImage(id, ogImage);
-  invalidateCache(SHOPS_CACHE_KEY);
+
   return success();
 }
 
@@ -200,7 +191,7 @@ export async function previewAdminShopImage(url: string) {
 export async function updateManagedAdminShopDeleteReason(id: number, reason: string | null) {
   const found = await updateAdminShopDeleteReason(id, reason);
   if (!found) return failure("not_found");
-  invalidateCache(SHOPS_CACHE_KEY);
+
   return success();
 }
 
@@ -214,7 +205,7 @@ export async function updateManagedAdminShopDeleteReason(id: number, reason: str
 export async function stageShopReviewData(id: number, rawShopJson: Record<string, unknown>) {
   const shop = await updateAdminShop(id, { reviewData: rawShopJson, needsReview: true });
   if (!shop) return failure("not_found");
-  invalidateCache(SHOPS_CACHE_KEY);
+
   return success({ shop });
 }
 
@@ -244,6 +235,5 @@ export async function acceptShopReview(id: number) {
   });
   if (!updated) return failure("not_found" as const);
 
-  invalidateCache(SHOPS_CACHE_KEY);
   return success({ shop: { ...updated, categories: [] } });
 }
