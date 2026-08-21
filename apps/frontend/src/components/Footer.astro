@@ -1,7 +1,7 @@
 ---
 import type { FooterConfig, FooterColumn } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
-import { FOOTER_STYLES_CSS, footerStyleVars } from "@lmaa/shared";
+import { footerStyleVars } from "@lmaa/shared";
 import { getButtonIconComponent, PLATFORM_MAP } from "@lmaa/ui";
 
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
@@ -184,4 +184,10 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
   </footer>
 )}
 
-<style set:html={FOOTER_STYLES_CSS} />
+{/*
+  The minified stylesheet, substituted by `vite.define` from `astro.config.mjs`.
+  That is also where the hash in the style policy is computed, so the two cannot
+  disagree. Importing `FOOTER_STYLES_CSS` here instead would ship the unminified
+  text against a hash of the minified one, and the browser would refuse it.
+*/}
+<style set:html={__FOOTER_STYLES_CSS__} />
