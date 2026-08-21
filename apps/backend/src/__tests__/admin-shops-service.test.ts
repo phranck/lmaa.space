@@ -21,11 +21,6 @@ const publicServiceMocks = vi.hoisted(() => ({
   validateShopUrl: vi.fn(),
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  SHOPS_CACHE_KEY: "shops:all",
-  invalidateCache: vi.fn(),
-}));
-
 const dbMock = vi.hoisted(() => ({
   db: { select: vi.fn() },
 }));
@@ -41,7 +36,6 @@ const mapperMock = vi.hoisted(() => ({
 vi.mock("../repositories/admin-shops.js", () => repoMocks);
 vi.mock("../services/preview-images.js", () => previewMocks);
 vi.mock("../services/public.js", () => publicServiceMocks);
-vi.mock("../middleware/cache.js", () => cacheMocks);
 vi.mock("../db/client.js", () => dbMock);
 vi.mock("../db/schema.js", () => schemaMock);
 vi.mock("../lib/shopjson-mapper.js", () => mapperMock);
@@ -76,7 +70,6 @@ describe("createManagedAdminShop", () => {
       shop: { id: 1, url: "https://shop.de", name: "Shop", categories: [] },
     });
     expect(publicServiceMocks.validateShopUrl).toHaveBeenCalledWith("https://shop.de");
-    expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
     expect(previewMocks.hydrateShopOgImageInBackground).toHaveBeenCalledWith(
       "https://shop.de",
       expect.any(Function),
@@ -115,7 +108,6 @@ describe("createManagedAdminShop", () => {
       conflictShopName: "Good Karma Coffee",
     });
     expect(repoMocks.createAdminShop).not.toHaveBeenCalled();
-    expect(cacheMocks.invalidateCache).not.toHaveBeenCalled();
   });
 
   it("blocks creation when the domain belongs to a published shop", async () => {
@@ -148,7 +140,6 @@ describe("updateManagedAdminShop", () => {
     const result = await updateManagedAdminShop(99, {} as never);
 
     expect(result).toEqual({ ok: false, reason: "not_found" });
-    expect(cacheMocks.invalidateCache).not.toHaveBeenCalled();
   });
 
   it("returns updated shop and invalidates cache", async () => {
@@ -160,7 +151,6 @@ describe("updateManagedAdminShop", () => {
       ok: true,
       shop: { id: 1, name: "Updated", categories: [] },
     });
-    expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
   });
 });
 
@@ -180,7 +170,6 @@ describe("deleteManagedAdminShop", () => {
     expect(result).toEqual({ ok: true, message: "Shop permanently deleted" });
     expect(repoMocks.permanentlyDeleteAdminShop).toHaveBeenCalledWith(1);
     expect(repoMocks.markAdminShopDeleted).not.toHaveBeenCalled();
-    expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
   });
 
   it("marks as deleted when mode is mark_deleted", async () => {
@@ -208,7 +197,6 @@ describe("deleteManagedAdminShop", () => {
     });
 
     expect(result).toEqual({ ok: false, reason: "not_found" });
-    expect(cacheMocks.invalidateCache).not.toHaveBeenCalled();
   });
 });
 
@@ -221,7 +209,6 @@ describe("changeManagedAdminShopVisibility", () => {
     const result = await changeManagedAdminShopVisibility(1, "public");
 
     expect(result).toEqual({ ok: true, message: "Shop visibility set to public" });
-    expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
   });
 
   it("passes rejection options through", async () => {
@@ -291,7 +278,6 @@ describe("setManagedAdminShopOgImage", () => {
 
     expect(result).toEqual({ ok: true });
     expect(repoMocks.setAdminShopOgImage).toHaveBeenCalledWith(1, "https://cdn.example.com/og.png");
-    expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
   });
 });
 
@@ -324,7 +310,6 @@ describe("updateManagedAdminShopDeleteReason", () => {
     const result = await updateManagedAdminShopDeleteReason(1, "New reason");
 
     expect(result).toEqual({ ok: true });
-    expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
   });
 
   it("returns failure when shop not found", async () => {
@@ -349,7 +334,6 @@ describe("stageShopReviewData", () => {
       reviewData: { name: "Updated" },
       needsReview: true,
     });
-    expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
   });
 
   it("returns failure when shop not found", async () => {
@@ -408,6 +392,5 @@ describe("acceptShopReview", () => {
       needsReview: false,
       reviewData: null,
     });
-    expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
   });
 });

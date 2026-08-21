@@ -498,6 +498,13 @@
       "when": 1787236311613,
       "tag": "0070_drop_analytics_sidebar_entry",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1787320349765,
+      "tag": "0071_white_prima",
+      "breakpoints": true
     }
   ]
 }

@@ -813,6 +813,11 @@ export const shopReminders = pgTable("shop_reminders", {
   emailTemplateId: integer("email_template_id").references(() => emailTemplates.id, {
     onDelete: "set null",
   }),
+  // Until when one container has the exclusive right to send this reminder.
+  // Every container runs its own scheduler, so without a claim a due reminder
+  // is read and sent by all of them. An expiring lease is also what turns a
+  // failed send back into a retry, because nothing else releases the claim.
+  claimedUntil: timestamp("claimed_until"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
