@@ -32,6 +32,12 @@ Rules:
 - On a red run, start with `gh run view <id> --json jobs`. `deploy-*` and `smoke-prod` fail independently of each other, and `smoke-prod` occasionally fails on the browser.
 - `/health` keeps answering `ok` during a failed deployment, because the previous version is still serving. The cause sits in the service log: `zcli service log --service-id <id>`.
 
+## CI
+
+- `deploy.yml` also runs on `pull_request` but deploys nothing there. The deploy jobs test `github.event_name == 'push'` and skip themselves, and `smoke-prod` skips with them for want of a successful deployment.
+- A `changes` job decides by path filter which services get deployed. `packages/ui` reaches the website and the dashboard but never the backend, whilst `shared`, `contracts`, `zerops.yml`, `scripts/` and the root configuration deploy everything. When a service was not deployed, the answer is in the `changes` job rather than in the Zerops panel.
+- The React Doctor step in the pre-commit hook reports regressions where there are none (issue #99). It does not block the commit. A full scan is the counter-check.
+
 ## DNS and domains
 
 - `*.lmaa.space` is a CNAME to the apex and matches at any depth. Every invented name therefore answers successfully, and a real record is recognisable only by returning something other than that CNAME.
