@@ -1,4 +1,4 @@
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, inArray, isNull, lte, or } from "drizzle-orm";
 
 import { db } from "../db/client.js";
 import { adminUsers, emailTemplates, shopReminders, shops } from "../db/schema.js";
@@ -87,11 +87,42 @@ export async function getReminder(
 }
 
 /**
- * Returns all active reminders whose due time has passed,
- * joined with shop name, admin email, and optional email template.
+ * Claims every due reminder for this caller and returns what it won.
+ *
+ * @param leaseMs - How long the claim holds before another caller may take the
+ *   reminder over. It has to outlast a send, because an expiring lease is what
+ *   turns a failed send back into a retry.
+ * @returns The claimed reminders, joined with shop name, admin email, and the
+ *   optional email template. Empty when another caller holds every due one.
+ *
+ * @remarks
+ * Side effects: writes `claimed_until` on every row it claims.
+ *
+ * The backend runs with several containers and each ticks its own scheduler, so
+ * an unprotected read would let all of them send the same reminder.
  */
-export async function getDueReminders(): Promise<DueReminder[]> {
+export async function claimDueReminders(leaseMs: number): Promise<DueReminder[]> {
   const now = new Date();
+
+  // One statement decides who sends. Postgres re-evaluates the WHERE clause
+  // after waiting for a concurrent update of the same row, so a second
+  // container finds `claimed_until` in the future and claims nothing.
+  const claimed = await db
+    .update(shopReminders)
+    .set({ claimedUntil: new Date(now.getTime() + leaseMs) })
+    .where(
+      and(
+        eq(shopReminders.isActive, true),
+        lte(shopReminders.remindAt, now),
+        or(isNull(shopReminders.claimedUntil), lte(shopReminders.claimedUntil, now)),
+      ),
+    )
+    .returning({ id: shopReminders.id });
+
+  if (claimed.length === 0) {
+    return [];
+  }
+
   const rows = await db
     .select({
       id: shopReminders.id,
@@ -122,7 +153,12 @@ export async function getDueReminders(): Promise<DueReminder[]> {
     .innerJoin(shops, eq(shopReminders.shopId, shops.id))
     .innerJoin(adminUsers, eq(shopReminders.adminId, adminUsers.id))
     .leftJoin(emailTemplates, eq(shopReminders.emailTemplateId, emailTemplates.id))
-    .where(and(eq(shopReminders.isActive, true), lte(shopReminders.remindAt, now)));
+    .where(
+      inArray(
+        shopReminders.id,
+        claimed.map((row) => row.id),
+      ),
+    );
 
   return rows.map((row) => ({
     id: row.id,
@@ -158,9 +194,19 @@ export async function getDueReminders(): Promise<DueReminder[]> {
 
 /**
  * Advances a recurring reminder's due date to its next occurrence.
+ *
+ * @param id - Reminder id.
+ * @param nextRemindAt - When the reminder falls due again.
+ *
+ * @remarks
+ * Releases the claim in the same statement, because the reminder has been sent
+ * and the next occurrence has to be claimable again.
  */
 export async function advanceReminderDate(id: number, nextRemindAt: Date): Promise<void> {
-  await db.update(shopReminders).set({ remindAt: nextRemindAt }).where(eq(shopReminders.id, id));
+  await db
+    .update(shopReminders)
+    .set({ remindAt: nextRemindAt, claimedUntil: null })
+    .where(eq(shopReminders.id, id));
 }
 
 /**
