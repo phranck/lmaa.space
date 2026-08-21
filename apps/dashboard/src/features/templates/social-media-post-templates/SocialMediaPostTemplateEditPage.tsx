@@ -63,7 +63,7 @@ function renderPreview(template: string) {
       categoryUrl: "https://lmaa.space/category/fair-fashion",
       categoryImageUrl: "https://lmaa.space/images/fair-fashion.jpg",
       frontendUrl: "https://lmaa.space",
-      dashboardUrl: "https://admin.lmaa.space",
+      dashboardUrl: "https://dashboard.lmaa.space",
     };
     return examples[name] ?? "";
   });
