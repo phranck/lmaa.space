@@ -58,9 +58,52 @@ jobs:
       # Four workspaces carry a suite: backend, shared, dashboard and frontend.
       - run: npm test --workspaces --if-present
 
+  # Which services a change can actually reach. The workspace graph decides it:
+  # backend depends on contracts and shared, website and dashboard additionally
+  # on ui. Anything shared by all three, and anything not attributable to a
+  # single service, deploys everything, because a service left on a stale build
+  # costs more than a redundant deployment.
+  changes:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      website: ${{ steps.filter.outputs.website }}
+      dashboard: ${{ steps.filter.outputs.dashboard }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            shared: &shared
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig*.json'
+              - '.nvmrc'
+              - 'zerops.yml'
+              - '.github/workflows/deploy.yml'
+              - 'scripts/**'
+              - 'packages/shared/**'
+              - 'packages/contracts/**'
+            backend:
+              - *shared
+              - 'apps/backend/**'
+            website:
+              - *shared
+              - 'packages/ui/**'
+              - 'apps/frontend/**'
+            dashboard:
+              - *shared
+              - 'packages/ui/**'
+              - 'apps/dashboard/**'
+
   deploy-backend:
-    needs: test
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.backend)
+    needs: [test, changes]
+    if: >-
+      always() && needs.test.result == 'success' &&
+      ((github.event_name == 'push' && needs.changes.outputs.backend == 'true') ||
+       (github.event_name == 'workflow_dispatch' && inputs.backend))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -77,8 +120,11 @@ jobs:
           service-id: ${{ secrets.ZEROPS_BACKEND_SERVICE_ID }}
 
   deploy-website:
-    needs: test
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.website)
+    needs: [test, changes]
+    if: >-
+      always() && needs.test.result == 'success' &&
+      ((github.event_name == 'push' && needs.changes.outputs.website == 'true') ||
+       (github.event_name == 'workflow_dispatch' && inputs.website))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -95,8 +141,11 @@ jobs:
           service-id: ${{ secrets.ZEROPS_WEBSITE_SERVICE_ID }}
 
   deploy-dashboard:
-    needs: test
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dashboard)
+    needs: [test, changes]
+    if: >-
+      always() && needs.test.result == 'success' &&
+      ((github.event_name == 'push' && needs.changes.outputs.dashboard == 'true') ||
+       (github.event_name == 'workflow_dispatch' && inputs.dashboard))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
