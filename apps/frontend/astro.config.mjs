@@ -5,6 +5,7 @@ import node from "@astrojs/node";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
+import { transformSync } from "esbuild";
 import UnoCSS from "unocss/astro";
 
 import { FOOTER_STYLES_CSS } from "@lmaa/shared";
@@ -15,6 +16,30 @@ import {
   YOUTUBE_EMBED_CSP_ORIGIN,
 } from "./src/lib/csp.js";
 import { obfuscateFirstPartyChunks } from "./vite.obfuscate.js";
+
+/**
+ * The footer stylesheet, minified.
+ *
+ * The footer hands its CSS to `set:html`, so Astro sees a string rather than a
+ * stylesheet and neither minifies it nor hashes it. It reaches every page of
+ * the site with its indentation intact, which is 597 bytes each time.
+ *
+ * Minified here rather than in `@lmaa/shared`, because the values the template
+ * carries have to be substituted before a CSS parser can read it, and here is
+ * the one place that already has both the finished string and a build to do the
+ * work in. Through esbuild, which is what Vite minifies the rest of the build's
+ * CSS with, so there is one minifier here rather than two.
+ *
+ * This is the string the whole site uses. It is what `styleDirective.hashes`
+ * below is computed from, and `vite.define` puts it into the footer, so the
+ * hash and the stylesheet cannot come apart. Importing `FOOTER_STYLES_CSS`
+ * anywhere else would publish the unminified one against this hash, and the
+ * browser would refuse it.
+ */
+const FOOTER_STYLES_MIN_CSS = transformSync(FOOTER_STYLES_CSS, {
+  loader: "css",
+  minify: true,
+}).code;
 
 function devProxyPlugin() {
   return {
@@ -83,8 +108,9 @@ export default defineConfig({
         // The footer injects this stylesheet through `set:html`, so Astro sees
         // dynamic content and cannot hash it. Hashing the constant here keeps
         // the two in step: changing the CSS changes the hash automatically,
-        // which a hard-coded value would not.
-        hashes: [`sha256-${createHash("sha256").update(FOOTER_STYLES_CSS).digest("base64")}`],
+        // which a hard-coded value would not. It hashes the minified string
+        // because that is the one the footer receives, through `vite.define`.
+        hashes: [`sha256-${createHash("sha256").update(FOOTER_STYLES_MIN_CSS).digest("base64")}`],
       },
       directives: [
         "default-src 'self'",
@@ -119,6 +145,13 @@ export default defineConfig({
   ],
   vite: {
     plugins: [devProxyPlugin()],
+    // Substituted into the footer at build time, so the stylesheet the page
+    // carries is the same string the hash above was taken from. A second
+    // minification at render time could not guarantee that, and doing it per
+    // request would minify the same 3.7 kB on every page view.
+    define: {
+      __FOOTER_STYLES_CSS__: JSON.stringify(FOOTER_STYLES_MIN_CSS),
+    },
     resolve: {
       alias: {
         "@": resolve("./src"),
