@@ -1,0 +1,146 @@
+name: Mail Policy Check
+
+on:
+  schedule:
+    # Monday mornings, an hour after the security.txt check, so two findings
+    # never arrive in the same minute.
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: mail-policy-check
+  cancel-in-progress: false
+
+env:
+  DOMAIN: lmaa.space
+  DKIM_SELECTOR: s758393
+  TRACKING_ISSUE: 101
+
+jobs:
+  check:
+    name: Read the published mail policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query DNS
+        id: dns
+        run: |
+          set -euo pipefail
+          txt() { dig +short TXT "$1" | tr -d '"' | tr '\n' ' '; }
+
+          dmarc=$(txt "_dmarc.${DOMAIN}")
+          spf=$(txt "${DOMAIN}" | grep -o 'v=spf1[^;]*' || true)
+          tlsrpt=$(txt "_smtp._tls.${DOMAIN}" | grep -o 'v=TLSRPTv1[^;]*' || true)
+          caa=$(dig +short CAA "${DOMAIN}" | tr '\n' ' ')
+          dkim=$(dig +short TXT "${DKIM_SELECTOR}._domainkey.${DOMAIN}" | tr -d '"' | grep -o 'v=DKIM1' || true)
+          mtasts=$(txt "_mta-sts.${DOMAIN}" | grep -o 'v=STSv1[^;]*' || true)
+
+          # A DMARC record counts only when it says it is one. The wildcard
+          # answers every name under the domain with the apex TXT, so a query
+          # for a name without its own record returns the SPF record instead.
+          case "$dmarc" in
+            v=DMARC1*) policy=$(printf '%s' "$dmarc" | grep -oE '(^|[;[:space:]])p=[a-z]+' | head -1 | cut -d= -f2) ;;
+            *) policy="missing" ;;
+          esac
+
+          {
+            echo "policy=${policy:-missing}"
+            echo "dmarc=$dmarc"
+            echo "spf_present=$([ -n "$spf" ] && echo yes || echo no)"
+            echo "dkim_present=$([ -n "$dkim" ] && echo yes || echo no)"
+            echo "tlsrpt_present=$([ -n "$tlsrpt" ] && echo yes || echo no)"
+            echo "caa_present=$([ -n "$caa" ] && echo yes || echo no)"
+            echo "mtasts_present=$([ -n "$mtasts" ] && echo yes || echo no)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Decide whether anything needs saying
+        id: verdict
+        env:
+          POLICY: ${{ steps.dns.outputs.policy }}
+          SPF: ${{ steps.dns.outputs.spf_present }}
+          DKIM: ${{ steps.dns.outputs.dkim_present }}
+          TLSRPT: ${{ steps.dns.outputs.tlsrpt_present }}
+          CAA: ${{ steps.dns.outputs.caa_present }}
+        run: |
+          set -euo pipefail
+          # A record that vanished is reported the week it vanishes. The nudge to
+          # tighten DMARC is fortnightly, because a weekly reminder for something
+          # that takes weeks to answer turns into noise nobody reads.
+          urgent=no
+          for present in "$SPF" "$DKIM" "$TLSRPT" "$CAA"; do
+            [ "$present" = "yes" ] || urgent=yes
+          done
+          [ "$POLICY" = "missing" ] && urgent=yes
+
+          due=no
+          if [ "$urgent" = "yes" ]; then
+            due=yes
+          elif [ "$POLICY" != "reject" ] && [ $(( $(date +%V) % 2 )) -eq 0 ]; then
+            due=yes
+          fi
+          {
+            echo "due=$due"
+            echo "urgent=$urgent"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comment on the tracking issue
+        if: steps.verdict.outputs.due == 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          POLICY: ${{ steps.dns.outputs.policy }}
+          DMARC: ${{ steps.dns.outputs.dmarc }}
+          SPF: ${{ steps.dns.outputs.spf_present }}
+          DKIM: ${{ steps.dns.outputs.dkim_present }}
+          TLSRPT: ${{ steps.dns.outputs.tlsrpt_present }}
+          CAA: ${{ steps.dns.outputs.caa_present }}
+          MTASTS: ${{ steps.dns.outputs.mtasts_present }}
+          URGENT: ${{ steps.verdict.outputs.urgent }}
+        run: |
+          set -euo pipefail
+          state=$(gh issue view "$TRACKING_ISSUE" --repo "$REPO" --json state --jq .state)
+          if [ "$state" != "OPEN" ]; then
+            echo "Issue #${TRACKING_ISSUE} is closed, so there is nobody to remind."
+            exit 0
+          fi
+
+          case "$POLICY" in
+            none)       next="Read the reports at dmarc@${DOMAIN}. Once every legitimate sender passes, move \`p=none\` to \`p=quarantine\`." ;;
+            quarantine) next="One step left. If the reports stayed clean under \`p=quarantine\`, move it to \`p=reject\`." ;;
+            reject)     next="DMARC is enforcing. Nothing left to do for the policy itself." ;;
+            *)          next="**The DMARC record is gone or unreadable.** That is a fault rather than a reminder: nothing enforces alignment and no reports are collected." ;;
+          esac
+
+          mark() { if [ "$1" = "yes" ]; then echo "present"; else echo "**MISSING**"; fi; }
+
+          {
+            if [ "$URGENT" = "yes" ]; then
+              echo "Something that was in place has stopped answering."
+              echo
+            fi
+            echo "| Record | State |"
+            echo "| --- | --- |"
+            echo "| DMARC policy | \`p=${POLICY}\` |"
+            echo "| SPF | $(mark "$SPF") |"
+            echo "| DKIM (\`${DKIM_SELECTOR}\`) | $(mark "$DKIM") |"
+            echo "| TLS-RPT | $(mark "$TLSRPT") |"
+            echo "| CAA | $(mark "$CAA") |"
+            echo "| MTA-STS | $(mark "$MTASTS") |"
+            echo
+            echo "$next"
+            echo
+            echo "Published DMARC record: \`${DMARC}\`"
+            echo
+            echo "This check runs every Monday. It comments fortnightly whilst the policy is not enforcing, and immediately when a record disappears. Closing this issue stops it."
+          } > body.md
+
+          gh issue comment "$TRACKING_ISSUE" --repo "$REPO" --body-file body.md
+
+      - name: Fail the run when a record disappeared
+        if: steps.verdict.outputs.urgent == 'yes'
+        run: |
+          echo "A mail authentication record is missing. See the comment on issue #${TRACKING_ISSUE}."
+          exit 1

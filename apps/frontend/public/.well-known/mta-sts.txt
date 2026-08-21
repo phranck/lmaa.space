@@ -1,0 +1,4 @@
+version: STSv1
+mode: testing
+mx: mail.qlogin.de
+max_age: 86400
