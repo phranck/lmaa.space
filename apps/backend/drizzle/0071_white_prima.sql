@@ -1,0 +1,1 @@
+ALTER TABLE "shop_reminders" ADD COLUMN "claimed_until" timestamp;

@@ -15,12 +15,6 @@ import { UNKNOWN_CLIENT_IP } from "../lib/client-ip.js";
 import { extractEuropeanPostalCodePrefix } from "../lib/postal-code.js";
 import { type Result, failure, success } from "../lib/result.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
-import {
-  SHOPS_CACHE_KEY,
-  getCacheEntry,
-  getCacheStats,
-  setCacheEntry,
-} from "../middleware/cache.js";
 import { loadShopHeadquartersMap } from "../repositories/headquarters.js";
 import {
   countFilteredPublicShops,
@@ -56,7 +50,6 @@ import {
   setShopLikeState,
 } from "../repositories/public.js";
 
-const SHOPS_CACHE_TTL_MS = 60 * 1000;
 const NUMERIC_REJECTED_SHOP_PAGE_SIZES = new Set([10, 15, 20, 30, 50]);
 
 /**
@@ -252,23 +245,18 @@ export async function getManagedPublicShopById(id: number) {
 }
 
 /**
- * Returns all public shops with categories, backed by short-lived in-memory cache.
+ * Returns all public shops with their categories.
  *
- * @returns `{ cache: "HIT" | "MISS", data }`.
+ * @returns Every active, publicly visible shop, ordered by name.
  *
  * @remarks
- * Side effects:
- * - On cache miss, stores result in process-memory cache for `SHOPS_CACHE_TTL_MS`.
+ * The query is served straight from the database. It costs a few milliseconds
+ * against the current catalogue, so a server-side cache would buy little whilst
+ * giving each container its own answer. The route sets `Cache-Control` instead,
+ * which puts the same time window in front of the request rather than behind it.
  */
-export async function getManagedPublicShops() {
-  const cached = getCacheEntry<PublicShopRow[]>(SHOPS_CACHE_KEY);
-  if (cached) {
-    return { cache: "HIT" as const, data: cached };
-  }
-
-  const data = await listAllPublicShopsWithCategories();
-  setCacheEntry(SHOPS_CACHE_KEY, data, SHOPS_CACHE_TTL_MS);
-  return { cache: "MISS" as const, data };
+export async function getManagedPublicShops(): Promise<PublicShopRow[]> {
+  return listAllPublicShopsWithCategories();
 }
 
 /**
@@ -416,21 +404,6 @@ export async function createManagedShopConcernReport(
 
   await insertShopConcernReport(shopId, reason, hashIp(ip));
   return success();
-}
-
-/**
- * Returns cache diagnostics in development mode.
- *
- * @returns
- * - `{ ok: false, reason: "not_available" }` outside development.
- * - `{ ok: true, data }` with cache internals in development.
- */
-export function getManagedPublicCacheStats() {
-  if (env.NODE_ENV !== "development") {
-    return failure("not_available");
-  }
-
-  return success({ data: getCacheStats() });
 }
 
 function resolveCategoryImageUrl(row: { imageUrl: string | null }): string | null {
