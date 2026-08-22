@@ -299,12 +299,17 @@ export default function SupportLadder({
   const qr = bankAccount?.variants.find((entry) => entry.key === intervalKey)?.qr;
   const qrSize = qr?.size ?? QR_DEFAULTS.size;
   const qrBackground = qr?.background ?? QR_DEFAULTS.background;
+  const qrMargin = qr?.margin ?? QR_DEFAULTS.margin;
 
-  // How far the drawn code sits below the top of its own box, measured from the
-  // rendered result rather than assumed. The quiet zone is not the whole story:
-  // the renderer also centres the modules within whatever space is left after
-  // it has rounded them to whole pixels, so the offset changes with the size.
-  const [qrLift, setQrLift] = useState(0);
+  // The renderer takes its quiet zone out of the canvas it is given, so asking
+  // for a larger zone would shrink the code and move it. Drawing on a canvas
+  // enlarged by the zone on both sides, and pulling the drawing back by exactly
+  // that amount, keeps two promises at once: `size` is the edge length of the
+  // code a reader sees, and the code's top-left corner is the top-left of its
+  // box, flush with the details beside it.
+  const qrCanvas = qrSize + qrMargin * 2;
+
+
 
   const payload = useMemo(() => {
     if (!showQr || !bankAccount) return null;
@@ -332,10 +337,10 @@ export default function SupportLadder({
       if (cancelled || !node) return;
 
       const qrCode = new QRCodeStyling({
-        width: qrSize,
-        height: qrSize,
+        width: qrCanvas,
+        height: qrCanvas,
         data: payload,
-        margin: qr?.margin ?? QR_DEFAULTS.margin,
+        margin: qrMargin,
         type: "svg",
         dotsOptions: {
           color: qr?.color ?? QR_DEFAULTS.color,
@@ -355,21 +360,12 @@ export default function SupportLadder({
       node.replaceChildren();
       qrCode.append(node);
 
-      const svg = node.querySelector("svg");
-      if (svg) {
-        try {
-          setQrLift(-svg.getBBox().y);
-        } catch {
-          // getBBox throws whilst the element is not rendered. Leaving the lift
-          // at zero costs alignment, not the code itself.
-        }
-      }
     });
 
     return () => {
       cancelled = true;
     };
-  }, [payload, qr, qrSize]);
+  }, [payload, qr, qrCanvas, qrMargin]);
 
   function chooseInterval(key: SupportLadderInterval["key"]) {
     setIntervalKey(key);
@@ -484,11 +480,13 @@ export default function SupportLadder({
               <div
                 ref={qrRef}
                 aria-label={text.qrAlt}
-                className="shrink-0 rounded-control overflow-hidden"
+                className="lmaa-qr shrink-0 relative"
                 style={{
                   width: qrSize,
                   height: qrSize,
-                  marginTop: qrLift,
+                  // The quiet zone is drawn outside the box, so it neither
+                  // shrinks the code nor shifts it away from the text.
+                  ["--qr-inset" as string]: `${-qrMargin}px`,
                   background: qrBackground,
                 }}
               />

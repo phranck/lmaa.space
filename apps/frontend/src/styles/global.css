@@ -334,3 +334,14 @@ details > summary::-webkit-details-marker {
 .lmaa-rich strong {
   font-weight: 600;
 }
+
+/* The GiroCode.
+   The renderer takes its quiet zone out of the canvas it is given, so the code
+   is drawn on a larger canvas and pulled back by that zone. The box therefore
+   measures exactly the code, and the zone spills onto the card behind it, which
+   is where a scanner wants it anyway. */
+.lmaa-qr > svg {
+  position: absolute;
+  top: var(--qr-inset, 0);
+  left: var(--qr-inset, 0);
+}
