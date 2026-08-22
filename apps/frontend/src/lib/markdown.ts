@@ -366,30 +366,46 @@ function injectShortcodes(html: string, tokens: MarkdownShortcodeToken[]): strin
   return nextHtml;
 }
 
-const markedSafe = new Marked({
-  renderer: {
-    link({ href, title, text }) {
-      const safeHref = getSafeConfigHref(href);
-      if (!safeHref) return escapeHtml(text);
-      const titleAttr = title ? ` title="${escapeHtmlAttribute(title)}"` : "";
-      const isExternal = isExternalHref(safeHref);
-      const extAttrs = isExternal ? ' rel="noopener noreferrer" target="_blank"' : "";
-      return `<a href="${escapeHtmlAttribute(safeHref)}"${titleAttr}${extAttrs}>${escapeHtml(text)}</a>`;
+/**
+ * Builds a renderer with the project's escaping rules.
+ *
+ * The configuration exists once and both instances are built from it, so the
+ * link, image and raw-HTML handling cannot drift between them.
+ *
+ * @param breaks - Whether a single newline becomes a line break. Off for page
+ *   bodies, which follow ordinary Markdown, and on where an author types a
+ *   newline into a single-line field and means exactly one.
+ */
+function createSafeMarked(breaks: boolean) {
+  return new Marked({
+    breaks,
+    renderer: {
+      link({ href, title, text }) {
+        const safeHref = getSafeConfigHref(href);
+        if (!safeHref) return escapeHtml(text);
+        const titleAttr = title ? ` title="${escapeHtmlAttribute(title)}"` : "";
+        const isExternal = isExternalHref(safeHref);
+        const extAttrs = isExternal ? ' rel="noopener noreferrer" target="_blank"' : "";
+        return `<a href="${escapeHtmlAttribute(safeHref)}"${titleAttr}${extAttrs}>${escapeHtml(text)}</a>`;
+      },
+      image({ href, title, text }) {
+        // Mirror the link/shortcode allowlist for image src: only same-site /
+        // trusted-asset-host URLs. This blocks `data:`/`javascript:` and arbitrary
+        // external tracking hosts that marked's default image renderer would emit.
+        const safeSrc = getSafeSiteAssetPath(href);
+        if (!safeSrc) return escapeHtml(text);
+        const titleAttr = title ? ` title="${escapeHtmlAttribute(title)}"` : "";
+        return `<img src="${escapeHtmlAttribute(safeSrc)}" alt="${escapeHtmlAttribute(text)}"${titleAttr} loading="lazy" decoding="async" />`;
+      },
+      html({ text }) {
+        return escapeHtml(text);
+      },
     },
-    image({ href, title, text }) {
-      // Mirror the link/shortcode allowlist for image src: only same-site /
-      // trusted-asset-host URLs. This blocks `data:`/`javascript:` and arbitrary
-      // external tracking hosts that marked's default image renderer would emit.
-      const safeSrc = getSafeSiteAssetPath(href);
-      if (!safeSrc) return escapeHtml(text);
-      const titleAttr = title ? ` title="${escapeHtmlAttribute(title)}"` : "";
-      return `<img src="${escapeHtmlAttribute(safeSrc)}" alt="${escapeHtmlAttribute(text)}"${titleAttr} loading="lazy" decoding="async" />`;
-    },
-    html({ text }) {
-      return escapeHtml(text);
-    },
-  },
-}).use(markedFootnote());
+  }).use(markedFootnote());
+}
+
+const markedSafe = createSafeMarked(false);
+const markedSafeWithBreaks = createSafeMarked(true);
 
 /**
  * Renders Markdown into sanitized HTML with optional media alias resolution.
@@ -401,10 +417,12 @@ const markedSafe = new Marked({
 export async function renderMarkdown(
   content: string,
   aliases: MarkdownMediaAliases = {},
+  options: { breaks?: boolean } = {},
 ): Promise<string> {
   const normalized = normalizeFootnoteSourceHeadings(content);
   const { content: withShortcodes, tokens } = extractRenderableShortcodes(normalized, aliases);
-  const html = (await markedSafe.parse(withShortcodes)) as string;
+  const renderer = options.breaks ? markedSafeWithBreaks : markedSafe;
+  const html = (await renderer.parse(withShortcodes)) as string;
   return injectShortcodes(html, tokens);
 }
 

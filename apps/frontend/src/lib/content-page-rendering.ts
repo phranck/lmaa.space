@@ -57,6 +57,50 @@ async function loadInitialRejectedShopsData(
   }
 }
 
+/**
+ * Renders the prose of a support ladder through the page's own Markdown
+ * pipeline.
+ *
+ * The wording inside a shortcode is written by the same person who writes the
+ * page around it, so it goes through the same renderer and the same
+ * sanitisation. Headings, links, emphasis and lists therefore behave inside a
+ * shortcode exactly as they do outside one.
+ *
+ * Titles, labels and button captions are left as plain text, because a heading
+ * inside a heading is not a thing anybody wants.
+ */
+async function renderSupportLadderProse(segment: SupportLadderIsland): Promise<SupportLadderIsland> {
+  const [intervals, variants, paypalText] = await Promise.all([
+    Promise.all(
+      segment.intervals.map(async (interval) => ({
+        ...interval,
+        text: await renderMarkdown(interval.text, { breaks: true }),
+        options: await Promise.all(
+          interval.options.map(async (option) => ({
+            ...option,
+            description: await renderMarkdown(option.description, { breaks: true }),
+          })),
+        ),
+      })),
+    ),
+    Promise.all(
+      (segment.bankAccount?.variants ?? []).map(async (variant) => ({
+        ...variant,
+        text: await renderMarkdown(variant.text, { breaks: true }),
+        info: variant.info ? await renderMarkdown(variant.info, { breaks: true }) : undefined,
+      })),
+    ),
+    segment.paypal ? renderMarkdown(segment.paypal.text, { breaks: true }) : undefined,
+  ]);
+
+  return {
+    ...segment,
+    intervals,
+    bankAccount: segment.bankAccount ? { ...segment.bankAccount, variants } : undefined,
+    paypal: segment.paypal ? { ...segment.paypal, text: paypalText ?? "" } : undefined,
+  };
+}
+
 export async function renderContentSegments(content: string): Promise<RenderedContentSegment[]> {
   const segments = parseContentShortcodeSegments(content);
   return Promise.all(
@@ -68,6 +112,10 @@ export async function renderContentSegments(content: string): Promise<RenderedCo
       // Only the rejected-shops table needs data fetched before it renders.
       // The support ladder is self-contained, because everything it shows
       // comes from the shortcode's own parameters.
+      if (segment.type === "support-ladder") {
+        return renderSupportLadderProse(segment);
+      }
+
       if (segment.type === "rejected-shops-table") {
         return {
           ...segment,
