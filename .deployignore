@@ -1,0 +1,17 @@
+# What zcli leaves out of the package it sends to Zerops.
+#
+# The package is the repository as it stands, minus whatever .gitignore already
+# excludes. What remains still holds material no service builds from or runs on,
+# and it is packed and uploaded once per service on every deployment. Measured
+# on the run of 22 August 2026, packing the website's package took 86 seconds,
+# and these directories were 54 MB of the 79 MB in it.
+#
+# Anything a build command reads belongs in the package, so only files that no
+# build touches are listed here.
+
+# The knowledge graph. Tracked on purpose, read by nothing at build time.
+graphify-out/
+
+# Repository history visualisation, its input and its output.
+.gource/
+mkgource/
