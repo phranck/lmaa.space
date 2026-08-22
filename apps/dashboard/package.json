@@ -35,11 +35,13 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@testing-library/react": "16.3.2",
     "@types/blueimp-md5": "^2.18.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "30.0.1",
     "typescript": "^5.7.3",
     "unocss": "^66.3.3",
     "vite": "^6.4.3",
