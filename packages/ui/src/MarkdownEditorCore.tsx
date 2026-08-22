@@ -3,10 +3,11 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { EditorSelection, Prec, type Extension } from "@codemirror/state";
 import { EditorView, keymap, placeholder as cmPlaceholder } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
+import { BracketsSquareIcon, TextAlignJustifyIcon } from "@phosphor-icons/react";
 import CodeMirror from "@uiw/react-codemirror";
 import * as React from "react";
 
-import { getMarkdownShortcodeExamples } from "@lmaa/shared";
+import { MarkdownShortcodeReference } from "./MarkdownShortcodeReference.tsx";
 
 export interface MarkdownEditorProps {
   id?: string;
@@ -148,23 +149,81 @@ function Hint({ keys, label }: { keys: string[]; label: string }) {
   );
 }
 
-const SHORTCODE_HINT_EXAMPLES = getMarkdownShortcodeExamples();
+/**
+ * Remembers the line-wrap choice across pages and reloads.
+ *
+ * Wrapping stays on by default, because prose is the common case. It is turned
+ * off for a nested shortcode, where a wrapped line hides the indentation that
+ * carries the structure.
+ */
+const WRAP_STORAGE_KEY = "lmaa.markdown-editor.line-wrap";
 
-function HintsBar() {
+function readStoredWrap(): boolean {
+  if (typeof window === "undefined") return true;
+  return window.localStorage.getItem(WRAP_STORAGE_KEY) !== "off";
+}
+
+function FooterButton({
+  onClick,
+  pressed,
+  title,
+  children,
+}: {
+  onClick: () => void;
+  pressed?: boolean;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="hidden min-[420px]:flex items-center justify-between gap-3 px-2.5 py-1.5 border-t border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[0.625rem]">
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      aria-pressed={pressed}
+      className={`inline-flex items-center gap-1 h-[1.375rem] px-1.5 rounded border text-[0.625rem] leading-none transition-colors ${
+        pressed
+          ? "border-[var(--ds-border-strong)] bg-[var(--ds-control-active-bg)] text-[var(--ds-text)] font-medium"
+          : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function HintsBar({
+  lineWrap,
+  onToggleLineWrap,
+  onOpenReference,
+}: {
+  lineWrap: boolean;
+  onToggleLineWrap: () => void;
+  onOpenReference: () => void;
+}) {
+  return (
+    <div className="shrink-0 hidden min-[420px]:flex items-center justify-between gap-3 w-full px-2.5 py-1.5 border-t border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[0.625rem]">
       <div className="flex items-center gap-2.5">
         <Hint keys={["⌘", "B"]} label="Fett" />
         <Hint keys={["⌘", "I"]} label="Kursiv" />
         <Hint keys={["⌘", "K"]} label="Link" />
         <Hint keys={["⌘", "⇧", "D"]} label="Durch." />
       </div>
-      <div className="hidden xl:flex items-center gap-2 text-[var(--ds-text-muted)]">
-        {SHORTCODE_HINT_EXAMPLES.map((example) => (
-          <span key={example} className="font-mono">
-            {example}
-          </span>
-        ))}
+      <div className="flex items-center gap-1.5">
+        {/* The state is carried by the surface, the border and the weight of the
+            label, not by colour alone. */}
+        <FooterButton
+          onClick={onToggleLineWrap}
+          pressed={lineWrap}
+          title={lineWrap ? "Zeilenumbruch ausschalten" : "Zeilenumbruch einschalten"}
+        >
+          <TextAlignJustifyIcon weight="duotone" aria-hidden="true" className="size-3" />
+          Umbruch {lineWrap ? "an" : "aus"}
+        </FooterButton>
+        <FooterButton onClick={onOpenReference} title="Shortcodes nachschlagen">
+          <BracketsSquareIcon weight="duotone" aria-hidden="true" className="size-3" />
+          Shortcodes
+        </FooterButton>
       </div>
     </div>
   );
@@ -185,6 +244,17 @@ export function MarkdownEditorCore({
   extensions: extraExtensions = EMPTY_EXTENSIONS,
   className = "",
 }: MarkdownEditorProps) {
+  const [lineWrap, setLineWrap] = React.useState(readStoredWrap);
+  const [referenceOpen, setReferenceOpen] = React.useState(false);
+
+  function toggleLineWrap() {
+    setLineWrap((current) => {
+      const next = !current;
+      window.localStorage.setItem(WRAP_STORAGE_KEY, next ? "on" : "off");
+      return next;
+    });
+  }
+
   const rowsHeight = `${rows * 1.5}rem`;
   // When resizable + hints bar visible, the wrapper height must cover both the
   // editor content area (rowsHeight) AND the hints bar (~2.25rem).
@@ -193,7 +263,7 @@ export function MarkdownEditorCore({
   const extensions = React.useMemo(
     () => [
       markdown(),
-      EditorView.lineWrapping,
+      ...(lineWrap ? [EditorView.lineWrapping] : []),
       mdKeymap,
       ...(onPaste
         ? [
@@ -210,7 +280,7 @@ export function MarkdownEditorCore({
     ],
     // extraExtensions is spread from props — caller is responsible for stability
     // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
-    [onPaste, placeholder, extraExtensions],
+    [onPaste, placeholder, extraExtensions, lineWrap],
   );
 
   const wrapperStyle: React.CSSProperties | undefined = resizable
@@ -219,8 +289,12 @@ export function MarkdownEditorCore({
       ? { height }
       : undefined;
 
-  const isFlexCol = resizable && showHints;
+  // The footer is a row of the wrapper, so the wrapper has to be a column
+  // whenever it has a bounded height. Without this the editor fills the whole
+  // height, the footer sits below the clipped box and is never seen, and the
+  // scroller inherits no definite height of its own to scroll within.
   const hasBoundedHeight = resizable || Boolean(height);
+  const isFlexCol = showHints && hasBoundedHeight;
   const editorContainerClassName = hasBoundedHeight ? "h-full min-h-0" : undefined;
 
   return (
@@ -236,7 +310,7 @@ export function MarkdownEditorCore({
           extensions={extensions}
           theme={lmaaTheme}
           className={editorContainerClassName}
-          height={resizable ? "100%" : height}
+          height={isFlexCol || resizable ? "100%" : height}
           minHeight={resizable ? undefined : height ? undefined : rowsHeight}
           basicSetup={{
             lineNumbers: false,
@@ -247,7 +321,14 @@ export function MarkdownEditorCore({
           }}
         />
       </div>
-      {showHints && <HintsBar />}
+      {showHints && (
+        <HintsBar
+          lineWrap={lineWrap}
+          onToggleLineWrap={toggleLineWrap}
+          onOpenReference={() => setReferenceOpen(true)}
+        />
+      )}
+      <MarkdownShortcodeReference open={referenceOpen} onClose={() => setReferenceOpen(false)} />
     </div>
   );
 }
