@@ -393,25 +393,25 @@ export default function SupportLadder({
 
             <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm content-start min-w-[16rem] flex-1">
               <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldName}</dt>
-              <dd className="m-0 font-mono text-[0.92em]">{bankAccount.beneficiaryName}</dd>
+              <dd className="m-0 font-mono font-semibold text-[0.92em]">{bankAccount.beneficiaryName}</dd>
               <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldIban}</dt>
-              <dd className="m-0 font-mono text-[0.92em] break-all">
+              <dd className="m-0 font-mono font-semibold text-[0.92em] break-all">
                 {groupIban(bankAccount.iban)}
               </dd>
               {bankAccount.bic && (
                 <>
                   <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldBic}</dt>
-                  <dd className="m-0 font-mono text-[0.92em]">{bankAccount.bic}</dd>
+                  <dd className="m-0 font-mono font-semibold text-[0.92em]">{bankAccount.bic}</dd>
                 </>
               )}
               {bankAccount.purpose && (
                 <>
                   <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldPurpose}</dt>
-                  <dd className="m-0 font-mono text-[0.92em]">{bankAccount.purpose}</dd>
+                  <dd className="m-0 font-mono font-semibold text-[0.92em]">{bankAccount.purpose}</dd>
                 </>
               )}
               <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldAmount}</dt>
-              <dd className="m-0 font-mono text-[0.92em]">
+              <dd className="m-0 font-mono font-semibold text-[0.92em]">
                 {amountEur > 0 ? EURO_EXACT.format(amountEur) : text.amountOpen}
                 {interval.key === "monthly" && amountEur > 0 ? ` ${text.perMonth}` : ""}
               </dd>
