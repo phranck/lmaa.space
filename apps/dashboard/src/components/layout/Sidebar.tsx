@@ -26,6 +26,7 @@ import {
   LinkIcon,
   ListBulletsIcon,
   MarkdownLogoIcon,
+  MegaphoneSimpleIcon,
   NotebookIcon,
   PaperPlaneTiltIcon,
   PauseCircleIcon,
@@ -869,6 +870,15 @@ export function Sidebar({
                       handleGroupOpenChange("sidebar-social-media-post-templates-open", open)
                     }
                   />
+                  <NavLink to="/support-prompts" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<MegaphoneSimpleIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.supportPrompts}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
                   <NavLink to="/markdown-widgets" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
