@@ -1,12 +1,14 @@
 <!-- BADGES:START -->
 
-![React](https://img.shields.io/badge/React-19.2.4-D62828?style=flat&logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-E8590C?style=flat&logo=typescript&logoColor=white)
-![npm](https://img.shields.io/badge/npm-10.x-C99A00?style=flat&logo=npm&logoColor=white)
-![Hono](https://img.shields.io/badge/Hono-4.12.18-2D9D4F?style=flat&logo=hono&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-6.4.3-1E6FA8?style=flat&logo=vite&logoColor=white)
-![Astro](https://img.shields.io/badge/Astro-7.2.0-3D348B?style=flat&logo=astro&logoColor=white)
-![UnoCSS](https://img.shields.io/badge/UnoCSS-66.3.3-7B2CBF?style=flat&logo=unocss&logoColor=white)
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19.2.4-FF2D2D?style=flat&logo=react&logoColor=white" alt="React 19.2.4" />
+  <img src="https://img.shields.io/badge/TypeScript-5.7.3-FF6B00?style=flat&logo=typescript&logoColor=white" alt="TypeScript 5.7.3" />
+  <img src="https://img.shields.io/badge/npm-10.x-FFAA00?style=flat&logo=npm&logoColor=white" alt="npm 10.x" />
+  <img src="https://img.shields.io/badge/Hono-4.12.18-00D95F?style=flat&logo=hono&logoColor=white" alt="Hono 4.12.18" />
+  <img src="https://img.shields.io/badge/Vite-6.4.3-0091FF?style=flat&logo=vite&logoColor=white" alt="Vite 6.4.3" />
+  <img src="https://img.shields.io/badge/Astro-7.2.0-6236FF?style=flat&logo=astro&logoColor=white" alt="Astro 7.2.0" />
+  <img src="https://img.shields.io/badge/UnoCSS-66.3.3-C13AFF?style=flat&logo=unocss&logoColor=white" alt="UnoCSS 66.3.3" />
+</p>
 
 <!-- BADGES:END -->
 
