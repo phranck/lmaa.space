@@ -76,7 +76,13 @@ export function SubmissionsPage() {
     "submissions:suggestions:status",
   );
   const urlStatusFilter = parseSuggestionsStatusFilter(searchParams.get("status"));
-  const [storedStatusFilter, setStoredStatusFilter] = useState<SuggestionsStatusFilter>("pending");
+  // Read on the first render rather than in an effect, so the first list the
+  // page asks for is the one the moderator left it on. Starting on `pending`
+  // and correcting afterwards shows the wrong list for a frame, and any empty
+  // list changes the shape of the page around it.
+  const [storedStatusFilter, setStoredStatusFilter] = useState<SuggestionsStatusFilter>(
+    () => readStoredSuggestionsStatusFilter(suggestionsStatusStorageKey) ?? "pending",
+  );
   const statusFilter = urlStatusFilter ?? storedStatusFilter;
   const suggestionsSortStorageKey = getSegmentedStorageKey(
     user?.id,

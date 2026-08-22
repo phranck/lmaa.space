@@ -175,15 +175,20 @@ function AdminLayoutInner() {
       </Card>
 
       {/* Body Card */}
-      {chromeless ? (
-        <div className="flex items-center justify-center min-h-0 overflow-auto">
-          <Outlet />
-        </div>
-      ) : (
-        <Card className="overflow-auto p-3 flex flex-col min-h-0 shadow-sm">
-          <Outlet />
-        </Card>
-      )}
+      {/* One element in both states. A page turns `chromeless` on and off from
+          inside this container, so swapping the element type here would make
+          React discard the route and mount it again, which puts the page back
+          to its initial state and can drive that switch in a loop. */}
+      <Card
+        transparent={chromeless}
+        className={
+          chromeless
+            ? "flex items-center justify-center min-h-0 overflow-auto"
+            : "overflow-auto p-3 flex flex-col min-h-0 shadow-sm"
+        }
+      >
+        <Outlet />
+      </Card>
 
       {/* Footer Card */}
       <Card className="col-span-2 md:col-span-2 flex items-center gap-3 py-4 shadow-sm">
