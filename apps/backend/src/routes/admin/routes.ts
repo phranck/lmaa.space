@@ -25,6 +25,7 @@ import { socialMediaPostTemplateRoutes } from "./social-media-post-templates.js"
 import { socialPreviewImageRoutes } from "./social-preview-images.js";
 import { statsRoutes } from "./stats.js";
 import { submissionsRoutes } from "./submissions.js";
+import { supportPromptRoutes } from "./support-prompts.js";
 import { unsplashRoutes } from "./unsplash.js";
 import { usersRoutes } from "./users.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
@@ -51,6 +52,7 @@ protectedRoutes.route("/", shopConcernReportsRoutes);
 protectedRoutes.route("/", categoriesRoutes);
 protectedRoutes.route("/", unsplashRoutes);
 protectedRoutes.route("/", contentRoutes);
+protectedRoutes.route("/", supportPromptRoutes);
 protectedRoutes.route("/", navAdminRoutes);
 protectedRoutes.route("/", usersRoutes);
 protectedRoutes.route("/", formConfigRoutes);
