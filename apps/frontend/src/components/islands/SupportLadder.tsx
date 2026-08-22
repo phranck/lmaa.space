@@ -153,7 +153,7 @@ const ROUTE_ICON_PX = 72;
  * height follows from the file, so each brand keeps its own proportions and
  * every lockup ends at the same edge.
  */
-const BRAND_MARK_PX = 116;
+const BRAND_MARK_PX = 102;
 
 /**
  * The logos a brand publishes itself, each taken from that brand's own pack.
@@ -184,6 +184,64 @@ const BRAND_MARKS: Record<string, { url: string; width: number }> = {
  * An unknown name draws nothing rather than a placeholder, so a typo in the
  * page content costs the mark and not the block.
  */
+/** Frames allowed for a drawing to appear before the trim gives up. */
+const TRIM_ATTEMPTS = 30;
+
+/**
+ * Makes the drawn code fill its box.
+ *
+ * The renderer fits whole pixels per module, so a canvas that is not an exact
+ * multiple of the module count keeps the remainder as padding and centres the
+ * code inside it. That padding reads as a margin nobody asked for, and it
+ * changes with the data, because the amount decides how many modules there are.
+ *
+ * The fix crops rather than deletes, because the modules are drawn as clipping
+ * masks that a full-size rectangle is poured through. Deleting anything there
+ * takes the code with it.
+ *
+ * What is measured are the three finder patterns, the squares a scanner looks
+ * for. Every QR code carries them flush with its corners, so their extent is
+ * the code's extent, and that extent becomes the `viewBox`.
+ *
+ * @param node - The element the renderer drew into.
+ * @returns `true` once a drawing was found and cropped, `false` whilst there is
+ *   nothing to crop yet.
+ */
+function fitSvgToDrawing(node: HTMLElement): boolean {
+  const svg = node.querySelector("svg");
+  if (!svg) return false;
+
+  const canvas = Number(svg.getAttribute("width"));
+  if (!canvas) return false;
+
+  let left = Number.POSITIVE_INFINITY;
+  let top = Number.POSITIVE_INFINITY;
+  let right = Number.NEGATIVE_INFINITY;
+  let bottom = Number.NEGATIVE_INFINITY;
+
+  for (const shape of Array.from(svg.querySelectorAll<SVGRectElement>(":scope > rect"))) {
+    const width = shape.width.baseVal.value;
+    const height = shape.height.baseVal.value;
+    // The layers that carry the modules span the whole canvas and say nothing
+    // about where the code sits. The finder patterns are the ones that do.
+    if (width >= canvas || height >= canvas) continue;
+
+    const x = shape.x.baseVal.value;
+    const y = shape.y.baseVal.value;
+    left = Math.min(left, x);
+    top = Math.min(top, y);
+    right = Math.max(right, x + width);
+    bottom = Math.max(bottom, y + height);
+  }
+
+  if (!Number.isFinite(left) || right <= left || bottom <= top) return false;
+
+  svg.setAttribute("viewBox", `${left} ${top} ${right - left} ${bottom - top}`);
+  svg.removeAttribute("width");
+  svg.removeAttribute("height");
+  return true;
+}
+
 function RouteIcon({ name }: { name?: string }) {
   if (!name) return null;
 
@@ -220,15 +278,24 @@ function RouteIcon({ name }: { name?: string }) {
 function OutboundRoute({ route }: { route: SupportLadderRoute }) {
   return (
     <div
-      className="mt-3 p-4 border"
+      className="lmaa-card mt-3"
       style={{
+        border: "var(--card-border-width) solid",
+        padding: "var(--card-padding)",
         borderRadius: "var(--radius-card)",
         background: "var(--ds-surface)",
         borderColor: "var(--ds-border-subtle)",
       }}
     >
-      <div className="flex items-start justify-between gap-4">
-        <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--ds-font-serif)" }}>
+      <div className="lmaa-card-head flex items-start justify-between gap-4">
+        <h3
+          className="font-semibold"
+          style={{
+            fontFamily: "var(--ds-font-serif)",
+            fontSize: "var(--ds-text-lg)",
+            lineHeight: "var(--ds-leading-lg)",
+          }}
+        >
           {route.title}
         </h3>
         <RouteIcon name={route.icon} />
@@ -244,8 +311,12 @@ function OutboundRoute({ route }: { route: SupportLadderRoute }) {
         href={route.url}
         rel="noopener noreferrer"
         target="_blank"
-        className="mt-6 inline-flex items-center gap-2 h-9 px-4 rounded-full border text-sm font-semibold"
-        style={{ borderColor: "var(--ds-border)", color: "var(--ds-text)" }}
+        className="mt-6 ml-auto flex w-fit items-center gap-2 h-9 px-4 border text-sm font-semibold"
+        style={{
+          borderRadius: "var(--radius-card-inner)",
+          borderColor: "var(--ds-border)",
+          color: "var(--ds-text)",
+        }}
       >
         {route.button}
         <ArrowSquareOutIcon weight="duotone" aria-hidden="true" className="size-4" />
@@ -269,7 +340,7 @@ function InfoCard({ text }: { text: string }) {
     <div
       className="mt-4 flex gap-2 p-3 text-sm"
       style={{
-        borderRadius: "var(--radius-control)",
+        borderRadius: "var(--radius-card-inner)",
         background: "var(--ds-info-bg)",
         border: "1px solid var(--ds-info-border)",
         color: "var(--ds-info-text)",
@@ -326,8 +397,10 @@ function AmountGrid({
             type="button"
             aria-pressed={active}
             onClick={() => onChoose(option.amountEur)}
-            className="relative flex flex-col gap-1.5 p-4 text-left border transition-transform hover:-translate-y-0.5"
+            className="lmaa-card relative flex flex-col gap-1.5 text-left transition-transform hover:-translate-y-0.5"
             style={{
+              border: "var(--card-border-width) solid",
+              padding: "var(--card-padding)",
               borderRadius: "var(--radius-card)",
               background: active ? "var(--ds-accent-tint)" : "var(--ds-surface)",
               borderColor: active ? "var(--ds-accent)" : "var(--ds-border-subtle)",
@@ -359,8 +432,12 @@ function AmountGrid({
               <CheckCircleIcon
                 weight="fill"
                 aria-hidden="true"
-                className="absolute top-4 right-4 size-5"
-                style={{ color: "var(--ds-accent)" }}
+                className="absolute size-5"
+                style={{
+                  top: "var(--card-padding)",
+                  right: "var(--card-padding)",
+                  color: "var(--ds-accent)",
+                }}
               />
             )}
           </button>
@@ -369,8 +446,10 @@ function AmountGrid({
 
       {interval.custom && (
         <label
-          className="flex flex-col gap-1.5 p-4 border border-dashed"
+          className="lmaa-card flex flex-col gap-1.5"
           style={{
+            border: "var(--card-border-width) dashed",
+            padding: "var(--card-padding)",
             borderRadius: "var(--radius-card)",
             borderColor: customActive ? "var(--ds-accent)" : "var(--ds-border)",
             background: customActive ? "var(--ds-accent-tint)" : "transparent",
@@ -461,14 +540,6 @@ export default function SupportLadder({
   const qrBackground = qr?.background ?? QR_DEFAULTS.background;
   const qrMargin = qr?.margin ?? QR_DEFAULTS.margin;
 
-  // The renderer takes its quiet zone out of the canvas it is given, so asking
-  // for a larger zone would shrink the code and move it. Drawing on a canvas
-  // enlarged by the zone on both sides, and pulling the drawing back by exactly
-  // that amount, keeps two promises at once: `size` is the edge length of the
-  // code a reader sees, and the code's top-left corner is the top-left of its
-  // box, flush with the details beside it.
-  const qrCanvas = qrSize + qrMargin * 2;
-
 
 
   const payload = useMemo(() => {
@@ -497,10 +568,12 @@ export default function SupportLadder({
       if (cancelled || !node) return;
 
       const qrCode = new QRCodeStyling({
-        width: qrCanvas,
-        height: qrCanvas,
+        width: qrSize,
+        height: qrSize,
         data: payload,
-        margin: qrMargin,
+        // The quiet zone is painted by the container as a ring outside the box,
+        // so the renderer draws the code alone and nothing else.
+        margin: 0,
         type: "svg",
         dotsOptions: {
           color: qr?.color ?? QR_DEFAULTS.color,
@@ -520,12 +593,22 @@ export default function SupportLadder({
       node.replaceChildren();
       qrCode.append(node);
 
+      // The drawing arrives on a later turn when the code carries an image, so
+      // the trim is attempted again until there is something to trim.
+      let attempts = 0;
+      const trim = () => {
+        if (cancelled) return;
+        if (fitSvgToDrawing(node)) return;
+        attempts += 1;
+        if (attempts < TRIM_ATTEMPTS) requestAnimationFrame(trim);
+      };
+      trim();
     });
 
     return () => {
       cancelled = true;
     };
-  }, [payload, qr, qrCanvas, qrMargin]);
+  }, [payload, qr, qrSize]);
 
   function chooseInterval(key: SupportLadderInterval["key"]) {
     setIntervalKey(key);
@@ -562,10 +645,21 @@ export default function SupportLadder({
   return (
     <section>
       {intervals.length > 1 && (
-        <>
+        // The explanation and the switch share one row, with the switch on the
+        // right. Both start at the top, so an explanation running to two lines
+        // grows downwards instead of pushing itself off the switch's centre.
+        // They stack on a narrow screen rather than being squeezed.
+        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+          {intervalText && (
+            <RichText
+              html={intervalText}
+              className="min-w-0 flex-1 text-sm"
+              style={{ color: "var(--ds-text-subtle)" }}
+            />
+          )}
           <fieldset
             aria-label={text.frequencyGroup}
-            className="inline-flex gap-1 p-1 m-0 rounded-full border"
+            className="ml-auto inline-flex gap-1 p-1 m-0 rounded-full border"
             style={{
               background: "var(--ds-surface-inset)",
               borderColor: "var(--ds-border-subtle)",
@@ -593,15 +687,7 @@ export default function SupportLadder({
               );
             })}
           </fieldset>
-
-          {intervalText && (
-            <RichText
-              html={intervalText}
-              className="mt-3 text-sm"
-              style={{ color: "var(--ds-text-subtle)" }}
-            />
-          )}
-        </>
+        </div>
       )}
 
       <AmountGrid
@@ -618,8 +704,10 @@ export default function SupportLadder({
 
       {bankAccount && variant && (
         <div
-          className="mt-6 p-4 border"
+          className="lmaa-card mt-6"
           style={{
+            border: "var(--card-border-width) solid",
+            padding: "var(--card-padding)",
             borderRadius: "var(--radius-card)",
             background: "var(--ds-surface)",
             borderColor: variant.recommended
@@ -627,8 +715,15 @@ export default function SupportLadder({
               : "var(--ds-border-subtle)",
           }}
         >
-          <div className="flex items-start justify-between gap-4">
-            <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--ds-font-serif)" }}>
+          <div className="lmaa-card-head flex items-start justify-between gap-4">
+            <h3
+              className="font-semibold"
+              style={{
+                fontFamily: "var(--ds-font-serif)",
+                fontSize: "var(--ds-text-lg)",
+                lineHeight: "var(--ds-leading-lg)",
+              }}
+            >
               {variant.title}
             </h3>
             <RouteIcon name={variant.icon} />
@@ -646,13 +741,14 @@ export default function SupportLadder({
               <div
                 ref={qrRef}
                 aria-label={text.qrAlt}
-                className="lmaa-qr shrink-0 relative"
+                className="lmaa-qr shrink-0 box-border"
                 style={{
-                  width: qrSize,
-                  height: qrSize,
-                  // The quiet zone is drawn outside the box, so it neither
-                  // shrinks the code nor shifts it away from the text.
-                  ["--qr-inset" as string]: `${-qrMargin}px`,
+                  // The quiet zone belongs to the block: it takes its own space
+                  // in the layout rather than being painted over what stands
+                  // beside it. `size` stays the edge length of the code itself.
+                  width: qrSize + qrMargin * 2,
+                  height: qrSize + qrMargin * 2,
+                  padding: qrMargin,
                   background: qrBackground,
                 }}
               />
