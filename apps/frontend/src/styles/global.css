@@ -336,14 +336,13 @@ details > summary::-webkit-details-marker {
 }
 
 /* The GiroCode.
-   The renderer takes its quiet zone out of the canvas it is given, so the code
-   is drawn on a larger canvas and pulled back by that zone. The box therefore
-   measures exactly the code, and the zone spills onto the card behind it, which
-   is where a scanner wants it anyway. */
+   The box measures exactly the code, so its top edge lines up with the details
+   beside it. The quiet zone is painted as a ring outside that box, where it
+   costs no layout and still gives a scanner the clear margin it wants. */
 .lmaa-qr > svg {
-  position: absolute;
-  top: var(--qr-inset, 0);
-  left: var(--qr-inset, 0);
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* The brand mark in a block of the support ladder.
@@ -357,4 +356,13 @@ details > summary::-webkit-details-marker {
   border: none;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* Text in a card steps in by half the card's padding.
+   The rule sits on the card rather than on each line, so anything written into
+   a card later follows without being told. What carries an edge of its own does
+   not step in: the code, the details list, the notice, the input, the button. */
+.lmaa-card > :is(h3, p, span, .lmaa-rich),
+.lmaa-card > .lmaa-card-head > h3 {
+  padding-inline: var(--card-text-inset);
 }
