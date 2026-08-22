@@ -1285,8 +1285,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/routes/public.ts": {
-    "mtime": 1787363502.759217,
-    "ast_hash": "86d3d48dff849dc9aec18274ae938ec8",
+    "mtime": 1787365971.7362645,
+    "ast_hash": "c17655209174e044b03873f8517d455b",
     "semantic_hash": ""
   },
   "apps/backend/src/routes/redirect-urls.ts": {
@@ -4070,8 +4070,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/components/islands/SupportLadder.tsx": {
-    "mtime": 1787362290.4030306,
-    "ast_hash": "2d35a4a61e65dab5ab85a0b0d1b7901e",
+    "mtime": 1787366319.3997705,
+    "ast_hash": "d521c4f76cc748d692263c48cac99899",
     "semantic_hash": ""
   },
   "packages/shared/src/utils/epc-qr.test.ts": {
@@ -4100,8 +4100,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/lib/cache-control.ts": {
-    "mtime": 1787363487.911097,
-    "ast_hash": "66c6cc8326c6b612e2e67d54bfe8ff67",
+    "mtime": 1787365971.7153783,
+    "ast_hash": "c8a00ce4f0495dddec4c2b11ee30fb87",
     "semantic_hash": ""
   }
 }
