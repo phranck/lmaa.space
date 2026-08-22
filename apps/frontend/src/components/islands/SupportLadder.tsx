@@ -95,6 +95,107 @@ function startingAmount(interval: SupportLadderInterval | undefined): number {
 }
 
 /**
+ * The suggested amounts of one interval, plus its free-amount field.
+ *
+ * Separated from the ladder because it is the only part that changes when the
+ * visitor picks an amount, and because the ladder is otherwise long enough to
+ * hide it.
+ */
+function AmountGrid({
+  interval,
+  amountEur,
+  customAmount,
+  perMonthLabel,
+  onChoose,
+  onCustom,
+}: {
+  interval: SupportLadderInterval;
+  amountEur: number;
+  customAmount: string;
+  perMonthLabel: string;
+  onChoose: (amountEur: number) => void;
+  onCustom: (value: string) => void;
+}) {
+  return (
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      {interval.options.map((option, index) => {
+        const active = !customAmount && option.amountEur === amountEur;
+        return (
+          <button
+            // The position is part of the key, because an editor may write the
+            // same amount twice and the amount alone would then collide.
+            key={`${interval.key}-${index}-${option.amountEur}`}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChoose(option.amountEur)}
+            className="relative flex flex-col gap-1.5 p-6 text-left border transition-transform hover:-translate-y-0.5"
+            style={{
+              borderRadius: "var(--radius-card)",
+              background: active ? "var(--ds-accent-tint)" : "var(--ds-surface)",
+              borderColor: active ? "var(--ds-accent)" : "var(--ds-border-subtle)",
+            }}
+          >
+            <span
+              className="text-xl leading-none font-bold tabular-nums"
+              style={{ fontFamily: "var(--ds-font-serif)" }}
+            >
+              {EURO_WHOLE.format(option.amountEur)}
+              {interval.key === "monthly" && (
+                <span
+                  className="ml-1 text-sm font-medium"
+                  style={{ color: "var(--ds-text-muted)" }}
+                >
+                  {perMonthLabel}
+                </span>
+              )}
+            </span>
+            {option.description && (
+              <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
+                {option.description}
+              </span>
+            )}
+            {/* A tick, so the chosen rung is not marked by colour alone. */}
+            {active && (
+              <CheckCircleIcon
+                weight="fill"
+                aria-hidden="true"
+                className="absolute top-6 right-6 size-5"
+                style={{ color: "var(--ds-accent)" }}
+              />
+            )}
+          </button>
+        );
+      })}
+
+      {interval.custom && (
+        <label
+          className="flex flex-col gap-1.5 p-6 border border-dashed"
+          style={{ borderRadius: "var(--radius-card)", borderColor: "var(--ds-border)" }}
+        >
+          <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
+            {interval.custom.label}
+          </span>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={customAmount}
+            placeholder={interval.custom.placeholder}
+            aria-label={`${interval.custom.label} in Euro`}
+            onChange={(event) => onCustom(event.target.value)}
+            className="h-9 px-3 border rounded-control"
+            style={{
+              background: "var(--ds-surface)",
+              borderColor: "var(--ds-border)",
+              color: "var(--ds-text)",
+            }}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
+
+/**
  * The amount ladder and the payment details of the support page.
  *
  * Two things drive the design and both come from what comparable projects
@@ -209,10 +310,9 @@ export default function SupportLadder({
     <section>
       {intervals.length > 1 && (
         <>
-          <div
-            role="group"
+          <fieldset
             aria-label={text.frequencyGroup}
-            className="inline-flex gap-1 p-1 rounded-full border"
+            className="inline-flex gap-1 p-1 m-0 rounded-full border"
             style={{
               background: "var(--ds-surface-inset)",
               borderColor: "var(--ds-border-subtle)",
@@ -239,7 +339,7 @@ export default function SupportLadder({
                 </button>
               );
             })}
-          </div>
+          </fieldset>
 
           {intervalText && (
             <p className="mt-3 text-sm" style={{ color: "var(--ds-text-subtle)" }}>
@@ -249,84 +349,17 @@ export default function SupportLadder({
         </>
       )}
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {interval.options.map((option, index) => {
-          const active = !customAmount && option.amountEur === amountEur;
-          return (
-            <button
-              // The position is part of the key, because an editor may write the
-              // same amount twice and the amount alone would then collide.
-              key={`${interval.key}-${index}-${option.amountEur}`}
-              type="button"
-              aria-pressed={active}
-              onClick={() => {
-                setCustomAmount("");
-                setAmountEur(option.amountEur);
-              }}
-              className="relative flex flex-col gap-1.5 p-6 text-left border transition-transform hover:-translate-y-0.5"
-              style={{
-                borderRadius: "var(--radius-card)",
-                background: active ? "var(--ds-accent-tint)" : "var(--ds-surface)",
-                borderColor: active ? "var(--ds-accent)" : "var(--ds-border-subtle)",
-              }}
-            >
-              <span
-                className="text-xl leading-none font-bold tabular-nums"
-                style={{ fontFamily: "var(--ds-font-serif)" }}
-              >
-                {EURO_WHOLE.format(option.amountEur)}
-                {interval.key === "monthly" && (
-                  <span
-                    className="ml-1 text-sm font-medium"
-                    style={{ color: "var(--ds-text-muted)" }}
-                  >
-                    {text.perMonth}
-                  </span>
-                )}
-              </span>
-              {option.description && (
-                <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
-                  {option.description}
-                </span>
-              )}
-              {/* A tick, so the chosen rung is not marked by colour alone. */}
-              {active && (
-                <CheckCircleIcon
-                  weight="fill"
-                  aria-hidden="true"
-                  className="absolute top-6 right-6 size-5"
-                  style={{ color: "var(--ds-accent)" }}
-                />
-              )}
-            </button>
-          );
-        })}
-
-        {interval.custom && (
-          <label
-            className="flex flex-col gap-1.5 p-6 border border-dashed"
-            style={{ borderRadius: "var(--radius-card)", borderColor: "var(--ds-border)" }}
-          >
-            <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
-              {interval.custom.label}
-            </span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={customAmount}
-              placeholder={interval.custom.placeholder}
-              aria-label={`${interval.custom.label} in Euro`}
-              onChange={(event) => chooseCustom(event.target.value)}
-              className="h-9 px-3 border rounded-control"
-              style={{
-                background: "var(--ds-surface)",
-                borderColor: "var(--ds-border)",
-                color: "var(--ds-text)",
-              }}
-            />
-          </label>
-        )}
-      </div>
+      <AmountGrid
+        interval={interval}
+        amountEur={amountEur}
+        customAmount={customAmount}
+        perMonthLabel={text.perMonth}
+        onChoose={(next) => {
+          setCustomAmount("");
+          setAmountEur(next);
+        }}
+        onCustom={chooseCustom}
+      />
 
       {bankAccount && variant && (
         <div

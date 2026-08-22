@@ -256,16 +256,21 @@ export function MarkdownShortcodeReference({
     applyFrame(panel, frame);
   }, [open]);
 
+  // Held in a ref so the listener is bound once per open rather than rebound
+  // whenever the caller passes a new closure.
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
+
   React.useEffect(() => {
     if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
     }
     // Listening on the document rather than trapping focus, so the editor keeps
     // every other key.
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open]);
 
   /**
    * Drags the panel by its header.
