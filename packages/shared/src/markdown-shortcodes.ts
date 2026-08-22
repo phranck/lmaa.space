@@ -272,14 +272,14 @@ const SUPPORT_LADDER_INTERVAL: MarkdownShortcodeDefinition = {
  * a private person.
  */
 const SUPPORT_LADDER_SPONSORS: MarkdownShortcodeDefinition = {
-  token: "sponsors",
+  token: "ghsponsor",
   renderMode: "island",
   target: "forbidden",
   placement: "block",
   label: "GitHub Sponsors",
   description:
     "Der Weg über GitHub Sponsors. Erscheint bei jedem Intervall, weil er als einziger ein echtes Monats-Abo kann.",
-  examples: ['[[sponsors title="GitHub Sponsors" url="https://github.com/sponsors/phranck"]]'],
+  examples: ['[[ghsponsor title="GitHub Sponsors" url="https://github.com/sponsors/phranck"]]'],
   params: [
     { name: "url", type: "string", required: true, label: "Adresse" },
     { name: "title", type: "string", label: "Überschrift" },
