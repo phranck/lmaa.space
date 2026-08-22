@@ -12,6 +12,13 @@ import {
 import { decodeShopToken } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
+import {
+  CACHE_EDITABLE,
+  CACHE_NONE,
+  CACHE_PER_VISITOR,
+  CACHE_STABLE,
+  CACHE_VOLATILE,
+} from "../lib/cache-control.js";
 import { fail, ok } from "../lib/http.js";
 import { shopFilterSchema } from "../lib/shop-filters.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
@@ -75,14 +82,14 @@ const rejectedShopsQuerySchema = z.object({
 // GET /api/categories
 publicRoutes.get("/categories", publicReadLimit, async (c) => {
   const rows = await getManagedPublicCategories();
-  c.header("Cache-Control", "private, max-age=30");
+  c.header("Cache-Control", CACHE_PER_VISITOR);
   return ok(c, rows);
 });
 
 // GET /api/stats – unique active shop count
 publicRoutes.get("/stats", publicReadLimit, async (c) => {
   const stats = await getManagedPublicStats();
-  c.header("Cache-Control", "public, max-age=60");
+  c.header("Cache-Control", CACHE_VOLATILE);
   return ok(c, stats);
 });
 
@@ -93,14 +100,14 @@ publicRoutes.get("/categories/:slug", publicReadLimit, async (c) => {
     return fail(c, 404, "Category not found");
   }
 
-  c.header("Cache-Control", "private, max-age=30");
+  c.header("Cache-Control", CACHE_PER_VISITOR);
   return ok(c, result.data);
 });
 
 // GET /api/shops
 publicRoutes.get("/shops", publicReadLimit, async (c) => {
   const shops = await getManagedPublicShops();
-  c.header("Cache-Control", "public, max-age=60");
+  c.header("Cache-Control", CACHE_VOLATILE);
   return ok(c, shops);
 });
 
@@ -116,7 +123,7 @@ publicRoutes.get("/shops/:token", publicReadLimit, async (c) => {
     return fail(c, 404, "Shop not found");
   }
 
-  c.header("Cache-Control", "public, max-age=60");
+  c.header("Cache-Control", CACHE_VOLATILE);
   return ok(c, result.data);
 });
 
@@ -231,14 +238,14 @@ publicRoutes.get("/nav/:navId", publicReadLimit, async (c) => {
   }
 
   const rows = await getManagedPublicNavItems(navId);
-  c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+  c.header("Cache-Control", CACHE_STABLE);
   return ok(c, rows);
 });
 
 // GET /api/content – list all published pages (slugs + titles, for SSG)
 publicRoutes.get("/content", publicReadLimit, async (c) => {
   const rows = await getManagedPublicContentPages();
-  c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, rows);
 });
 
@@ -249,7 +256,7 @@ publicRoutes.get("/content/:slug", publicReadLimit, async (c) => {
     return fail(c, 404, "Not found");
   }
 
-  c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, page);
 });
 
@@ -265,7 +272,7 @@ publicRoutes.get("/content-preview/:token", publicReadLimit, async (c) => {
     return fail(c, 404, "Preview not found");
   }
 
-  c.header("Cache-Control", "no-store");
+  c.header("Cache-Control", CACHE_NONE);
   return ok(c, page);
 });
 
@@ -357,7 +364,7 @@ publicRoutes.post(
 publicRoutes.get("/form-config/:name", publicReadLimit, async (c) => {
   const result = await getManagedPublicFormConfig(c.req.param("name"));
   if (!result.ok) return fail(c, 404, "Form config not found");
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, result.data);
 });
 
@@ -365,28 +372,28 @@ publicRoutes.get("/form-config/:name", publicReadLimit, async (c) => {
 publicRoutes.get("/form-config-by-slug/:slug", publicReadLimit, async (c) => {
   const result = await getManagedPublicFormConfigBySlug(c.req.param("slug"));
   if (!result.ok) return fail(c, 404, "Form config not found");
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, result.data);
 });
 
 // GET /api/footer-config
 publicRoutes.get("/footer-config", publicReadLimit, async (c) => {
   const config = await getFooterConfig();
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, config);
 });
 
 // GET /api/social-media-accounts/footer
 publicRoutes.get("/social-media-accounts/footer", publicReadLimit, async (c) => {
   const accounts = await listFooterSocialMediaAccounts();
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, accounts);
 });
 
 // GET /api/social-preview-image – global Open Graph/Twitter preview image
 publicRoutes.get("/social-preview-image", publicReadLimit, async (c) => {
   const image = await getSocialPreviewImage();
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, image);
 });
 
@@ -397,7 +404,7 @@ publicRoutes.get("/markdown-widgets/:key", publicReadLimit, async (c) => {
     return fail(c, 404, "Not found");
   }
 
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, widget);
 });
 
@@ -413,7 +420,7 @@ publicRoutes.get("/footer-preview/:token", publicReadLimit, async (c) => {
     return fail(c, 404, "Preview not found");
   }
 
-  c.header("Cache-Control", "no-store");
+  c.header("Cache-Control", CACHE_NONE);
   return ok(c, config);
 });
 
@@ -429,7 +436,7 @@ publicRoutes.get("/rejected/:token", publicReadLimit, async (c) => {
     return fail(c, 404, "Not found");
   }
 
-  c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, page);
 });
 
@@ -448,7 +455,7 @@ publicRoutes.get(
       sortDir: query.sortDir as PublicRejectedShopSortDirection,
     });
 
-    c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+    c.header("Cache-Control", CACHE_EDITABLE);
     return ok(c, result);
   },
 );
@@ -481,7 +488,7 @@ publicRoutes.get(
     if (!result.ok) {
       return fail(c, 404, "Category not found");
     }
-    c.header("Cache-Control", "private, max-age=30");
+    c.header("Cache-Control", CACHE_PER_VISITOR);
     return ok(c, result.data);
   },
 );
@@ -514,21 +521,21 @@ publicRoutes.get(
 // GET /api/filter-options
 publicRoutes.get("/filter-options", publicReadLimit, async (c) => {
   const options = await getPublicFilterOptions();
-  c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+  c.header("Cache-Control", CACHE_STABLE);
   return ok(c, options);
 });
 
 // GET /api/media-aliases – alias → public URL map for markdown shortcodes
 publicRoutes.get("/media-aliases", publicReadLimit, async (c) => {
   const map = await getMediaAliasMap();
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, map);
 });
 
 // GET /api/media-shortcode-assets - alias to public media metadata for markdown shortcodes
 publicRoutes.get("/media-shortcode-assets", publicReadLimit, async (c) => {
   const map = await getMediaShortcodeAssetMap();
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, map);
 });
 
@@ -536,6 +543,6 @@ publicRoutes.get("/media-shortcode-assets", publicReadLimit, async (c) => {
 publicRoutes.get("/hero", publicReadLimit, async (c) => {
   const rawState = c.req.query("state") ?? null;
   const image = await getCurrentHeroImage(rawState);
-  c.header("Cache-Control", "no-store");
+  c.header("Cache-Control", CACHE_NONE);
   return ok(c, image);
 });
