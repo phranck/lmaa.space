@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "node --env-file=.env.local ./node_modules/.bin/vite",
+    "dev": "node --env-file=.env.local ../../node_modules/.bin/vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview --port 5174",
     "test": "vitest run --config vitest.config.ts",

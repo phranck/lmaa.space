@@ -42,34 +42,48 @@ export interface MarkdownShortcodeDefinition {
 }
 
 /**
- * Every label the support ladder shows, with the wording it uses when the
- * shortcode says nothing.
+ * The labels the support ladder shows that belong to no child node.
  *
- * This object is the only place the defaults exist. The shortcode's parameter
- * list is derived from its keys further down, and the component merges an
- * override on top of it, so none of the three can drift from the others.
+ * Anything an `interval`, a `variant`, an `option`, a `custom` or an `info`
+ * node owns is written on that node instead. What is left here are the few
+ * words the component itself puts on screen, each with the wording it uses when
+ * the shortcode says nothing.
  *
- * `monthlyNote` carries the placeholder `{jahr}`, which is replaced with the
- * yearly total of the chosen amount. Showing that total is the one thing found
- * to reverse the reluctance to accept a recurring ask, so a replacement that
- * drops the placeholder loses the effect.
+ * The parameter list of the shortcode is derived from these entries, so a new
+ * label is added in one place.
  */
-export const SUPPORT_LADDER_LABEL_DEFAULTS = {
-  frequencyGroup: "Wie oft",
-  onceLabel: "Einmalig",
-  monthlyLabel: "Monatlich",
-  onceNote: "Einmalig ist vorausgewählt. Monatlich hilft mir am meisten, weil ich dann planen kann.",
-  monthlyNote:
-    "Das sind {jahr} im Jahr. Du richtest den Dauerauftrag selbst ein und kannst ihn jederzeit wieder beenden.",
-  perMonth: "im Monat",
-  qrAlt: "GiroCode zum Scannen",
-  fieldName: "Empfänger",
-  fieldIban: "IBAN",
-  fieldBic: "BIC",
-  fieldPurpose: "Verwendung",
-  fieldAmount: "Betrag",
-  amountOpen: "du entscheidest",
-} as const satisfies Record<string, string>;
+export const SUPPORT_LADDER_LABELS = {
+  frequencyGroup: { value: "Wie oft", label: "Vorlesbarer Name der Intervall-Auswahl" },
+  perMonth: { value: "im Monat", label: "Zusatz hinter einem monatlichen Betrag" },
+  qrAlt: { value: "GiroCode zum Scannen", label: "Vorlesbarer Name des GiroCodes" },
+  fieldName: { value: "Empfänger", label: "Beschriftung der Zeile Empfänger" },
+  fieldIban: { value: "IBAN", label: "Beschriftung der Zeile IBAN" },
+  fieldBic: { value: "BIC", label: "Beschriftung der Zeile BIC" },
+  fieldPurpose: { value: "Verwendung", label: "Beschriftung der Zeile Verwendungszweck" },
+  fieldAmount: { value: "Betrag", label: "Beschriftung der Zeile Betrag" },
+  amountOpen: { value: "du entscheidest", label: "Text, wenn kein Betrag gewählt ist" },
+} as const satisfies Record<string, { value: string; label: string }>;
+
+/** Name of one overridable support-ladder label. */
+export type SupportLadderLabelKey = keyof typeof SUPPORT_LADDER_LABELS;
+
+/** Every overridable label name, in declaration order. */
+export const SUPPORT_LADDER_LABEL_KEYS = Object.keys(
+  SUPPORT_LADDER_LABELS,
+) as SupportLadderLabelKey[];
+
+/** The wording used when the shortcode names no override. */
+export const SUPPORT_LADDER_LABEL_DEFAULTS = Object.fromEntries(
+  SUPPORT_LADDER_LABEL_KEYS.map((key) => [key, SUPPORT_LADDER_LABELS[key].value]),
+) as Record<SupportLadderLabelKey, string>;
+
+const SUPPORT_LADDER_LABEL_PARAMS: readonly MarkdownShortcodeParamDefinition[] =
+  SUPPORT_LADDER_LABEL_KEYS.map((name) => ({
+    name,
+    type: "string" as const,
+    defaultValue: SUPPORT_LADDER_LABELS[name].value,
+    label: SUPPORT_LADDER_LABELS[name].label,
+  }));
 
 /** Token of every shortcode that may appear at the top level of a page. */
 export const MARKDOWN_SHORTCODE_TOKENS = {
@@ -81,26 +95,6 @@ export const MARKDOWN_SHORTCODE_TOKENS = {
   rejectedShopsTable: "rejected-shops-table",
   supportLadder: "support-ladder",
 } as const;
-
-/** Name of one overridable support-ladder label. */
-export type SupportLadderLabelKey = keyof typeof SUPPORT_LADDER_LABEL_DEFAULTS;
-
-/** Every overridable label name, in declaration order. */
-export const SUPPORT_LADDER_LABEL_KEYS = Object.keys(
-  SUPPORT_LADDER_LABEL_DEFAULTS,
-) as SupportLadderLabelKey[];
-
-/**
- * Parameter definitions for the label overrides, derived from the defaults so
- * a new label needs adding in one place only.
- */
-const SUPPORT_LADDER_LABEL_PARAMS: readonly MarkdownShortcodeParamDefinition[] =
-  SUPPORT_LADDER_LABEL_KEYS.map((name) => ({
-    name,
-    type: "string" as const,
-    defaultValue: SUPPORT_LADDER_LABEL_DEFAULTS[name],
-    label: name,
-  }));
 
 /**
  * Appearance of the GiroCode.

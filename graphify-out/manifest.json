@@ -1520,8 +1520,8 @@
     "semantic_hash": ""
   },
   "apps/dashboard/package.json": {
-    "mtime": 1787346184.7108588,
-    "ast_hash": "bee27b2d939e05d809a4315407988500",
+    "mtime": 1787358670.4260406,
+    "ast_hash": "f1c20abd91c46280347b3319b92c33ff",
     "semantic_hash": ""
   },
   "apps/dashboard/public/sw.js": {
@@ -3315,8 +3315,8 @@
     "semantic_hash": ""
   },
   "packages/shared/src/markdown-shortcodes.ts": {
-    "mtime": 1787357896.2971618,
-    "ast_hash": "5cba459af615508161dee4289eddacae",
+    "mtime": 1787358400.402525,
+    "ast_hash": "d59ad528af20ab2b8da796ca4b9075c1",
     "semantic_hash": ""
   },
   "packages/shared/src/types/admin.ts": {
@@ -4070,8 +4070,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/components/islands/SupportLadder.tsx": {
-    "mtime": 1787358096.549354,
-    "ast_hash": "73e98dbdb2b69c4228f96067372e7ecf",
+    "mtime": 1787358798.648751,
+    "ast_hash": "0a57105ab8513ae203617e05f1426a33",
     "semantic_hash": ""
   },
   "packages/shared/src/utils/epc-qr.test.ts": {
