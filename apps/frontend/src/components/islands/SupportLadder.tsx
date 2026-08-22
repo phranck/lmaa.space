@@ -150,10 +150,14 @@ function AmountGrid({
   onChoose: (amountEur: number) => void;
   onCustom: (value: string) => void;
 }) {
+  // A value in the free field is the choice, so no suggested amount is active
+  // whilst it holds one.
+  const customActive = customAmount.trim() !== "";
+
   return (
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+    <div className="mt-6 grid gap-3 sm:grid-cols-2">
       {interval.options.map((option, index) => {
-        const active = !customAmount && option.amountEur === amountEur;
+        const active = !customActive && option.amountEur === amountEur;
         return (
           <button
             // The position is part of the key, because an editor may write the
@@ -204,7 +208,11 @@ function AmountGrid({
       {interval.custom && (
         <label
           className="flex flex-col gap-1.5 p-6 border border-dashed"
-          style={{ borderRadius: "var(--radius-card)", borderColor: "var(--ds-border)" }}
+          style={{
+            borderRadius: "var(--radius-card)",
+            borderColor: customActive ? "var(--ds-accent)" : "var(--ds-border)",
+            background: customActive ? "var(--ds-accent-tint)" : "transparent",
+          }}
         >
           <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
             {interval.custom.label}
@@ -265,11 +273,13 @@ export default function SupportLadder({
   const showQr = intervalKey === "once" && Boolean(bankAccount);
   const qr = bankAccount?.variants.find((entry) => entry.key === intervalKey)?.qr;
   const qrSize = qr?.size ?? QR_DEFAULTS.size;
-  // The rendered code carries a quiet zone inside its own box, so its visible
-  // top edge would sit that far below the first line of the details beside it.
-  // Lifting the box by exactly the quiet zone puts the two top edges flush and
-  // leaves the zone itself where a scanner needs it.
-  const qrLift = -(qr?.margin ?? QR_DEFAULTS.margin);
+  const qrBackground = qr?.background ?? QR_DEFAULTS.background;
+
+  // How far the drawn code sits below the top of its own box, measured from the
+  // rendered result rather than assumed. The quiet zone is not the whole story:
+  // the renderer also centres the modules within whatever space is left after
+  // it has rounded them to whole pixels, so the offset changes with the size.
+  const [qrLift, setQrLift] = useState(0);
 
   const payload = useMemo(() => {
     if (!showQr || !bankAccount) return null;
@@ -311,12 +321,24 @@ export default function SupportLadder({
           type: (qr?.corners ?? QR_DEFAULTS.corners) as "extra-rounded",
         },
         cornersDotOptions: { color: qr?.color ?? QR_DEFAULTS.color, type: "dot" },
-        backgroundOptions: { color: qr?.background ?? QR_DEFAULTS.background },
+        // Drawn by the container instead, so the measurement below sees only
+        // the modules and not a background rectangle covering the whole canvas.
+        backgroundOptions: { color: "transparent" },
         ...(qr?.image ? { image: qr.image } : {}),
       });
 
       node.replaceChildren();
       qrCode.append(node);
+
+      const svg = node.querySelector("svg");
+      if (svg) {
+        try {
+          setQrLift(-svg.getBBox().y);
+        } catch {
+          // getBBox throws whilst the element is not rendered. Leaving the lift
+          // at zero costs alignment, not the code itself.
+        }
+      }
     });
 
     return () => {
@@ -332,6 +354,14 @@ export default function SupportLadder({
 
   function chooseCustom(value: string) {
     setCustomAmount(value);
+
+    // Emptying the field hands the choice back to the ladder, so the
+    // recommended amount becomes the active one again.
+    if (value.trim() === "") {
+      setAmountEur(startingAmount(interval));
+      return;
+    }
+
     const parsed = Number.parseFloat(value.replace(",", "."));
     if (Number.isFinite(parsed) && parsed > 0) setAmountEur(parsed);
   }
@@ -430,6 +460,7 @@ export default function SupportLadder({
                   width: qrSize,
                   height: qrSize,
                   marginTop: qrLift,
+                  background: qrBackground,
                 }}
               />
             )}
