@@ -17,6 +17,9 @@ apps/backend/openapi.generated.json
 /app.config
 /test-results/
 .agents/
+# The Graphify knowledge graph is rebuilt from the code on each machine, so the
+# graph, the report, the manifests and the caches stay local.
+graphify-out/
 .claude/*
 # The shop-check skill is what the automated review builds its prompt from, so
 # that one skill is tracked and deployed with the backend.
@@ -31,9 +34,17 @@ papers/
 plans/
 scripts/*
 !scripts/smoke-prod.sh
+!scripts/check-csp.mjs
 !scripts/check-web-fonts.mjs
 !scripts/check-web-fonts.test.mjs
 !scripts/check-analytics-integrity.mjs
+!scripts/smoke-backend-bundle.mjs
+!scripts/verify-deploy-artifacts.mjs
+# Git does not descend into an ignored directory, so scripts/lib has to be
+# opened again before a single file inside it can be allowed through.
+!scripts/lib/
+scripts/lib/*
+!scripts/lib/runtime-smoke.mjs
 apps/frontend/image-originals/
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep
@@ -41,13 +52,21 @@ TO-DOS.md
 WHATS-NEXT.md
 shop-geo-data.json
 /affiliate/
-.gource/*.mp4
-.gource/lmaa-history/
-.gource/lmaa-history-hls/
+# Gource renders the repository history into a video. Its renderer, its avatars,
+# its soundtrack and its configuration belong to one machine rather than to the
+# project, and the soundtrack is licensed to a person rather than to this public
+# repository.
+.gource/
+.gource.conf
+mkgource
+mkgource.command
 # Local working directories of editor assistants, which belong to a machine
-# rather than to the project.
+# rather than to the project. The instruction files beside them describe how one
+# person works, so they stay local as well.
 .continue/
 .kiro/
 .vibe/
+AGENTS.md
+CLAUDE.md
 
 /skills
