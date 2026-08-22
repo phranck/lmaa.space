@@ -1520,7 +1520,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/package.json": {
-    "mtime": 1787358670.4260406,
+    "mtime": 1787359300.0483568,
     "ast_hash": "f1c20abd91c46280347b3319b92c33ff",
     "semantic_hash": ""
   },
@@ -1935,7 +1935,7 @@
     "semantic_hash": ""
   },
   "apps/dashboard/src/features/content/pages/ContentEditorPage.tsx": {
-    "mtime": 1787354999.3455474,
+    "mtime": 1787359300.0488005,
     "ast_hash": "a6838b006669bf0d88bca7e4e0c91621",
     "semantic_hash": ""
   },
@@ -2735,7 +2735,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/package.json": {
-    "mtime": 1787346184.7104897,
+    "mtime": 1787359300.0492935,
     "ast_hash": "eebfc23d486fb65ccee8101a23415564",
     "semantic_hash": ""
   },
@@ -2905,8 +2905,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/content-page-rendering.ts": {
-    "mtime": 1787345628.5188277,
-    "ast_hash": "1bac864c4b7d9412a750d9c84c776bc3",
+    "mtime": 1787361607.717537,
+    "ast_hash": "2df0d61523eb1cc0e86f5a105ac69863",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/content-shortcode-segments.test.ts": {
@@ -2915,8 +2915,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/content-shortcode-segments.ts": {
-    "mtime": 1787357896.3172379,
-    "ast_hash": "0182652af045fef7c856b0d940b84a6d",
+    "mtime": 1787361375.2404654,
+    "ast_hash": "238374ee80b061c664c0f3087f8a5490",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/expand-form-config.ts": {
@@ -2945,8 +2945,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/markdown-ssr.ts": {
-    "mtime": 1778721292.5645878,
-    "ast_hash": "b1cc8df80689607b0d776e01c70d9116",
+    "mtime": 1787361607.6973276,
+    "ast_hash": "7741bb127da7d22c01ea5e99afacfa4e",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/markdown.test.ts": {
@@ -2955,8 +2955,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/markdown.ts": {
-    "mtime": 1781120272.3977573,
-    "ast_hash": "10867a340be37b0e777d87804b2e34f8",
+    "mtime": 1787361571.9725382,
+    "ast_hash": "a8255c35d61539bf621c0f794b4a8642",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/safe-url.test.ts": {
@@ -2990,7 +2990,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/pages/[slug].astro": {
-    "mtime": 1787345825.6225402,
+    "mtime": 1787359300.0509348,
     "ast_hash": "f8a35d1130f9691a99f352f84bf24b7b",
     "semantic_hash": ""
   },
@@ -3015,7 +3015,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/pages/preview/content.astro": {
-    "mtime": 1787345825.6226916,
+    "mtime": 1787359300.0511715,
     "ast_hash": "430f1af3505bf741d95548cf081d8c7e",
     "semantic_hash": ""
   },
@@ -3135,8 +3135,8 @@
     "semantic_hash": ""
   },
   "doctor.config.ts": {
-    "mtime": 1787268074.1801193,
-    "ast_hash": "b1dc0e2cd60892929ae7f274e5806def",
+    "mtime": 1787361983.0570884,
+    "ast_hash": "60956af6cc9c92e3172bbdb702ae83fb",
     "semantic_hash": ""
   },
   "drizzle.config.ts": {
@@ -3310,12 +3310,12 @@
     "semantic_hash": ""
   },
   "packages/shared/src/index.ts": {
-    "mtime": 1787345568.437486,
+    "mtime": 1787359300.0786223,
     "ast_hash": "c6a6ee50d81d43d9b476780dc68732ab",
     "semantic_hash": ""
   },
   "packages/shared/src/markdown-shortcodes.ts": {
-    "mtime": 1787358400.402525,
+    "mtime": 1787359300.08041,
     "ast_hash": "d59ad528af20ab2b8da796ca4b9075c1",
     "semantic_hash": ""
   },
@@ -3375,12 +3375,12 @@
     "semantic_hash": ""
   },
   "packages/shared/src/utils/markdown-shortcode-parser.test.ts": {
-    "mtime": 1787351511.4236367,
+    "mtime": 1787359300.0811996,
     "ast_hash": "022353ae71d453d87616069a6f83e494",
     "semantic_hash": ""
   },
   "packages/shared/src/utils/markdown-shortcode-parser.ts": {
-    "mtime": 1787351216.0980372,
+    "mtime": 1787359300.0815077,
     "ast_hash": "47592d08648b79ba94ef9562b8b8a0f5",
     "semantic_hash": ""
   },
@@ -3510,7 +3510,7 @@
     "semantic_hash": ""
   },
   "packages/ui/src/MarkdownEditorCore.tsx": {
-    "mtime": 1787354999.3647377,
+    "mtime": 1787359300.0832624,
     "ast_hash": "e4f39d4a3a250fcae0dc0950fb52cefd",
     "semantic_hash": ""
   },
@@ -4065,37 +4065,37 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/components/ContentArticle.astro": {
-    "mtime": 1787351411.6174557,
+    "mtime": 1787359300.0495236,
     "ast_hash": "723ecc81d112cf3730e7d1ba2f78eee9",
     "semantic_hash": ""
   },
   "apps/frontend/src/components/islands/SupportLadder.tsx": {
-    "mtime": 1787358798.648751,
-    "ast_hash": "0a57105ab8513ae203617e05f1426a33",
+    "mtime": 1787361745.7322206,
+    "ast_hash": "2d35a4a61e65dab5ab85a0b0d1b7901e",
     "semantic_hash": ""
   },
   "packages/shared/src/utils/epc-qr.test.ts": {
-    "mtime": 1787346266.4173954,
+    "mtime": 1787359300.0806742,
     "ast_hash": "b82a8f37f526c23e510f3445b5c367f0",
     "semantic_hash": ""
   },
   "packages/shared/src/utils/epc-qr.ts": {
-    "mtime": 1787345547.5693982,
+    "mtime": 1787359300.080912,
     "ast_hash": "426533b0aabc5c62de5532c26415737c",
     "semantic_hash": ""
   },
   "packages/shared/src/utils/markdown-shortcode-tokenizer.test.ts": {
-    "mtime": 1787351130.4670148,
+    "mtime": 1787359300.082399,
     "ast_hash": "20b314bb705255ae9cc6afc2ba9509e9",
     "semantic_hash": ""
   },
   "packages/shared/src/utils/markdown-shortcode-tokenizer.ts": {
-    "mtime": 1787351109.501418,
+    "mtime": 1787359300.0826263,
     "ast_hash": "121e3ed5f9998cec3fddb24ad8327f0f",
     "semantic_hash": ""
   },
   "packages/ui/src/MarkdownShortcodeReference.tsx": {
-    "mtime": 1787358114.6927338,
+    "mtime": 1787359300.0838244,
     "ast_hash": "1a4f8d6bba4209a64fc6339171200f5b",
     "semantic_hash": ""
   }

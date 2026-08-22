@@ -4,6 +4,13 @@ export default {
   lint: true,
   ignore: {
     overrides: [
+      // The support ladder shows page content that the server already rendered
+      // and sanitised through the site's own Markdown pipeline, the same one the
+      // article around it goes through. Nothing here comes from a visitor.
+      {
+        files: ["src/components/islands/SupportLadder.tsx"],
+        rules: ["react-doctor/no-danger"],
+      },
       // These large editors/routes are tracked as structural refactors in LMAA-029.
       // Keep the size rule active everywhere else so new giant components still surface.
       {
