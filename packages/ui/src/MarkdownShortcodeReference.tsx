@@ -33,7 +33,7 @@ function describeType(param: MarkdownShortcodeParamDefinition): string {
 
 function ParamRow({ param }: { param: MarkdownShortcodeParamDefinition }) {
   return (
-    <tr className="border-t border-[var(--ds-border-subtle)] align-top">
+    <tr className="border-t border-[var(--ds-rule)] align-top">
       <td className="py-1 pr-3 font-mono text-[var(--ds-text)] whitespace-nowrap">
         {param.name}
         {param.required && (
@@ -97,8 +97,8 @@ function DefinitionEntry({
     <div
       className={
         depth > 0
-          ? "mt-3 pl-3 border-l border-[var(--ds-border-subtle)]"
-          : "mt-5 first:mt-0 pt-5 first:pt-0 border-t first:border-t-0 border-[var(--ds-border-subtle)]"
+          ? "mt-3 pl-3 border-l border-[var(--ds-rule)]"
+          : "mt-5 first:mt-0 pt-5 first:pt-0 border-t first:border-t-0 border-[var(--ds-rule)]"
       }
     >
       <div className="flex flex-wrap items-baseline gap-x-2">

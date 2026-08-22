@@ -2915,8 +2915,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/content-shortcode-segments.ts": {
-    "mtime": 1787352852.3562799,
-    "ast_hash": "0efef3232a425f443c9810a96c1657be",
+    "mtime": 1787357896.3172379,
+    "ast_hash": "0182652af045fef7c856b0d940b84a6d",
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/expand-form-config.ts": {
@@ -3315,8 +3315,8 @@
     "semantic_hash": ""
   },
   "packages/shared/src/markdown-shortcodes.ts": {
-    "mtime": 1787352731.8727715,
-    "ast_hash": "c7ea86593a84ec5573ef90d82fdf1292",
+    "mtime": 1787357896.2971618,
+    "ast_hash": "5cba459af615508161dee4289eddacae",
     "semantic_hash": ""
   },
   "packages/shared/src/types/admin.ts": {
@@ -4070,8 +4070,8 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/components/islands/SupportLadder.tsx": {
-    "mtime": 1787357703.0765119,
-    "ast_hash": "27f38ea5bf797f07f006670257bfc191",
+    "mtime": 1787358096.549354,
+    "ast_hash": "73e98dbdb2b69c4228f96067372e7ecf",
     "semantic_hash": ""
   },
   "packages/shared/src/utils/epc-qr.test.ts": {
@@ -4095,8 +4095,8 @@
     "semantic_hash": ""
   },
   "packages/ui/src/MarkdownShortcodeReference.tsx": {
-    "mtime": 1787357098.8276935,
-    "ast_hash": "1b825a0d307065fa87ad8afd0697372e",
+    "mtime": 1787358114.6927338,
+    "ast_hash": "1a4f8d6bba4209a64fc6339171200f5b",
     "semantic_hash": ""
   }
 }

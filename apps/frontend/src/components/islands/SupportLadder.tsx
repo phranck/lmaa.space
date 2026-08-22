@@ -95,6 +95,40 @@ function startingAmount(interval: SupportLadderInterval | undefined): number {
 }
 
 /**
+ * A notice inside a payment block, drawn as a tinted sub-card.
+ *
+ * The icon is aligned with the first line of the text rather than with the
+ * block as a whole, so a notice running to three lines does not leave the icon
+ * floating in the middle. Its box is one line tall and centres its contents,
+ * which puts it on the first line's optical centre whatever the text does
+ * afterwards. It takes the card's own colour, because it is part of the notice
+ * rather than a second signal.
+ */
+function InfoCard({ text }: { text: string }) {
+  return (
+    <div
+      className="mt-4 flex gap-2 p-3 text-sm"
+      style={{
+        borderRadius: "var(--radius-control)",
+        background: "var(--ds-info-bg)",
+        border: "1px solid var(--ds-info-border)",
+        color: "var(--ds-info-text)",
+        lineHeight: "var(--ds-leading-sm)",
+      }}
+    >
+      <span
+        aria-hidden="true"
+        className="flex shrink-0 items-center"
+        style={{ height: "calc(1em * var(--ds-leading-sm))" }}
+      >
+        <InfoIcon weight="duotone" className="size-4" />
+      </span>
+      <span>{text}</span>
+    </div>
+  );
+}
+
+/**
  * The suggested amounts of one interval, plus its free-amount field.
  *
  * Separated from the ladder because it is the only part that changes when the
@@ -231,6 +265,11 @@ export default function SupportLadder({
   const showQr = intervalKey === "once" && Boolean(bankAccount);
   const qr = bankAccount?.variants.find((entry) => entry.key === intervalKey)?.qr;
   const qrSize = qr?.size ?? QR_DEFAULTS.size;
+  // The rendered code carries a quiet zone inside its own box, so its visible
+  // top edge would sit that far below the first line of the details beside it.
+  // Lifting the box by exactly the quiet zone puts the two top edges flush and
+  // leaves the zone itself where a scanner needs it.
+  const qrLift = -(qr?.margin ?? QR_DEFAULTS.margin);
 
   const payload = useMemo(() => {
     if (!showQr || !bankAccount) return null;
@@ -387,7 +426,11 @@ export default function SupportLadder({
                 ref={qrRef}
                 aria-label={text.qrAlt}
                 className="shrink-0 rounded-control overflow-hidden"
-                style={{ width: qrSize, height: qrSize }}
+                style={{
+                  width: qrSize,
+                  height: qrSize,
+                  marginTop: qrLift,
+                }}
               />
             )}
 
@@ -418,17 +461,7 @@ export default function SupportLadder({
             </dl>
           </div>
 
-          {/* The specification expects the encoded data to be readable beside
-              the code, so the payer can check one against the other. */}
-          {showQr && payload && (
-            <p
-              className="mt-4 flex items-start gap-2 text-sm"
-              style={{ color: "var(--ds-text-subtle)" }}
-            >
-              <InfoIcon weight="duotone" aria-hidden="true" className="size-4 mt-0.5 shrink-0" />
-              <span>{text.verifyNote}</span>
-            </p>
-          )}
+          {variant.info && <InfoCard text={variant.info} />}
         </div>
       )}
 

@@ -63,7 +63,6 @@ export const SUPPORT_LADDER_LABEL_DEFAULTS = {
     "Das sind {jahr} im Jahr. Du richtest den Dauerauftrag selbst ein und kannst ihn jederzeit wieder beenden.",
   perMonth: "im Monat",
   qrAlt: "GiroCode zum Scannen",
-  verifyNote: "Vergleich kurz, ob deine Banking-App dieselben Daten zeigt wie hier.",
   fieldName: "Empfänger",
   fieldIban: "IBAN",
   fieldBic: "BIC",
@@ -145,6 +144,24 @@ const SUPPORT_LADDER_QRCODE: MarkdownShortcodeDefinition = {
 };
 
 /**
+ * A short notice inside a payment block, drawn as a tinted sub-card.
+ *
+ * Used for the sort of thing a payer should read once before acting, such as
+ * checking that their banking app shows the same details as the page.
+ */
+const SUPPORT_LADDER_INFO: MarkdownShortcodeDefinition = {
+  token: "info",
+  renderMode: "island",
+  target: "forbidden",
+  placement: "inline",
+  label: "Hinweis",
+  description:
+    "Ein Hinweis als farbige Unterkarte, mit einem Symbol davor. Ohne diesen Knoten erscheint kein Hinweis.",
+  examples: ['[[info text="Vergleich kurz, ob deine Banking-App dieselben Daten zeigt."]]'],
+  params: [{ name: "text", type: "string", required: true, label: "Text des Hinweises" }],
+};
+
+/**
  * How a payment block presents itself for one interval.
  *
  * A bank account looks different depending on whether the visitor pays once or
@@ -165,7 +182,7 @@ const SUPPORT_LADDER_VARIANT: MarkdownShortcodeDefinition = {
     { name: "text", type: "string", aliases: ["description"], label: "Beschreibender Text" },
     { name: "recommended", type: "boolean", label: "Hervorheben und vorauswählen" },
   ],
-  children: [SUPPORT_LADDER_QRCODE],
+  children: [SUPPORT_LADDER_QRCODE, SUPPORT_LADDER_INFO],
 };
 
 /** One suggested amount, and what that amount pays for. */
