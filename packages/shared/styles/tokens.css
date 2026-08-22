@@ -108,6 +108,20 @@
   --ds-accent-subtle: var(--ds-color-brand-50);
   --ds-accent-fg: #ffffff;
 
+  /* Text on a filled accent surface.
+     --ds-accent-fg is white and measures 2.20:1 against --ds-accent, which
+     fails WCAG AA. Near-black measures 7.97:1 on the same gold and 5.88:1 on
+     the hover step, so both states clear AA for normal text. Use --ds-accent-fg
+     only where the accent is not the background. */
+  --ds-accent-on: var(--ds-color-neutral-900);
+
+  /* Accent washes, for a selected surface that must still read as a surface */
+  --ds-accent-tint: color-mix(in srgb, var(--ds-accent) 12%, transparent);
+  --ds-accent-tint-strong: color-mix(in srgb, var(--ds-accent) 22%, transparent);
+
+  /* Hairline rule beside a section label */
+  --ds-rule: color-mix(in srgb, var(--ds-text) 14%, transparent);
+
   /* Status */
   --ds-success-bg: hsl(135 60% 92%);
   --ds-success-border: hsl(130 40% 70%);
