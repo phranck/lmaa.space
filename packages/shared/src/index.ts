@@ -36,6 +36,8 @@ export * from "./utils/shop-token.js";
 export * from "./utils/text-tokens.js";
 /** Logo background color helper for shop avatars. */
 export * from "./utils/logo-background.js";
+
+export * from "./utils/epc-qr.js";
 /** Markdown shortcode registry metadata and parser helpers. */
 export * from "./markdown-shortcodes.js";
 export * from "./utils/markdown-shortcode-parser.js";
