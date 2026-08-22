@@ -14,6 +14,7 @@ import { decodeShopToken } from "@lmaa/shared";
 import { env } from "../config/env.js";
 import {
   CACHE_EDITABLE,
+  CACHE_REVALIDATE,
   CACHE_NONE,
   CACHE_PER_VISITOR,
   CACHE_STABLE,
@@ -245,7 +246,7 @@ publicRoutes.get("/nav/:navId", publicReadLimit, async (c) => {
 // GET /api/content – list all published pages (slugs + titles, for SSG)
 publicRoutes.get("/content", publicReadLimit, async (c) => {
   const rows = await getManagedPublicContentPages();
-  c.header("Cache-Control", CACHE_EDITABLE);
+  c.header("Cache-Control", CACHE_REVALIDATE);
   return ok(c, rows);
 });
 
@@ -256,7 +257,7 @@ publicRoutes.get("/content/:slug", publicReadLimit, async (c) => {
     return fail(c, 404, "Not found");
   }
 
-  c.header("Cache-Control", CACHE_EDITABLE);
+  c.header("Cache-Control", CACHE_REVALIDATE);
   return ok(c, page);
 });
 
@@ -436,7 +437,7 @@ publicRoutes.get("/rejected/:token", publicReadLimit, async (c) => {
     return fail(c, 404, "Not found");
   }
 
-  c.header("Cache-Control", CACHE_EDITABLE);
+  c.header("Cache-Control", CACHE_REVALIDATE);
   return ok(c, page);
 });
 
