@@ -1,0 +1,60 @@
+---
+/**
+ * Renders a content page's body.
+ *
+ * A content page is Markdown with shortcodes, so it arrives as a list of
+ * segments: rendered HTML, or an island that has to run in the browser. Both
+ * the public page and the dashboard preview render that list identically, and
+ * this component is the one place that decides how.
+ */
+import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
+import SupportLadder from "@/components/islands/SupportLadder";
+import type { RenderedContentSegment } from "@/lib/content-page-rendering";
+
+interface Props {
+  /** Page title, shown only when the page asks for it. */
+  title: string;
+  /** Whether the title is rendered above the content. */
+  showTitle: boolean;
+  /** Segments produced by `renderContentSegments`. */
+  segments: RenderedContentSegment[];
+}
+
+const { title, showTitle, segments } = Astro.props;
+---
+
+<article
+  class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
+>
+  {showTitle && <h1>{title}</h1>}
+  {
+    segments.map((segment) => {
+      if (segment.type === "html") {
+        return <Fragment set:html={segment.html} />;
+      }
+
+      if (segment.type === "support-ladder") {
+        return (
+          <div class="not-prose my-10">
+            <SupportLadder
+              client:load
+              bankAccount={segment.bankAccount}
+              intervals={segment.intervals}
+              paypal={segment.paypal}
+              labels={segment.labels}
+            />
+          </div>
+        );
+      }
+
+      return (
+        <RejectedShopsTable
+          client:load
+          defaultPageSize={segment.defaultPageSize}
+          initialData={segment.initialData}
+          storageKey={segment.storageKey}
+        />
+      );
+    })
+  }
+</article>
