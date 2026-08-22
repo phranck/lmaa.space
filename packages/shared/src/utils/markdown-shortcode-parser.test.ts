@@ -4,6 +4,81 @@ import { MARKDOWN_SHORTCODE_TOKENS } from "../markdown-shortcodes.js";
 import { parseMarkdownShortcodes } from "./markdown-shortcode-parser.js";
 
 describe("parseMarkdownShortcodes", () => {
+
+  it("resolves a child against the parent definition rather than the document", () => {
+    const content = [
+      "[[support-ladder",
+      "  [[bankaccount",
+      '    name="Frank Gregor"',
+      '    iban="AT55 1900 1047 0466 6811"',
+      '    [[variant key="once" title="Überweisung"]]',
+      "  ]]",
+      "]]",
+    ].join("\n");
+
+    const [ladder] = parseMarkdownShortcodes(content);
+    expect(ladder.token).toBe(MARKDOWN_SHORTCODE_TOKENS.supportLadder);
+
+    const [account] = ladder.children;
+    expect(account.token).toBe("bankaccount");
+    expect(account.params.name).toBe("Frank Gregor");
+    expect(account.params.iban).toBe("AT55 1900 1047 0466 6811");
+    expect(account.children[0].params.key).toBe("once");
+    expect(account.children[0].params.title).toBe("Überweisung");
+  });
+
+  it("does not resolve a child token at the top level", () => {
+    // "option" is meaningful inside "interval" and nowhere else, so a stray one
+    // in the page body is left alone rather than parsed.
+    expect(parseMarkdownShortcodes('[[option amount=5]]')).toHaveLength(0);
+  });
+
+  it("accepts label and description as aliases of title and text", () => {
+    const content = [
+      "[[support-ladder",
+      '  [[interval key="once" label="Einmalig" text="Vorausgewählt."',
+      '    [[option amount=5 description="Deckt zwei Wochen."]]',
+      "  ]]",
+      "]]",
+    ].join("\n");
+
+    const [ladder] = parseMarkdownShortcodes(content);
+    const [interval] = ladder.children;
+    expect(interval.params.label).toBe("Einmalig");
+    expect(interval.children[0].params.description).toBe("Deckt zwei Wochen.");
+  });
+
+  it("keeps every occurrence of a repeated attribute, in order", () => {
+    const [shortcode] = parseMarkdownShortcodes('[[widget:promo alt="a" alt="b"]]');
+    const values = shortcode.rawAttributes
+      .filter((attribute) => attribute.name === "alt")
+      .map((attribute) => attribute.value);
+
+    expect(values).toEqual(["a", "b"]);
+  });
+
+  it("stops at the first closing pair rather than running on", () => {
+    const content = '[[image:/uploads/a.png]] text [[image:/uploads/b.png]]';
+    const found = parseMarkdownShortcodes(content);
+    expect(found).toHaveLength(2);
+    expect(found[0].target).toBe("/uploads/a.png");
+    expect(found[1].target).toBe("/uploads/b.png");
+  });
+
+  it("does not swallow the document between a stray opener and a distant closer", () => {
+    // Newlines are allowed inside a shortcode, so without a length cap this
+    // stray "[[" would reach the closing pair far below and consume the prose
+    // in between.
+    const content = [
+      "[[image:/uploads/a.png",
+      "x".repeat(8100),
+      "[[image:/uploads/b.png]]",
+    ].join("\n");
+
+    const found = parseMarkdownShortcodes(content);
+    expect(found).toHaveLength(1);
+    expect(found[0].target).toBe("/uploads/b.png");
+  });
   it("parses target-style shortcodes with quoted and bare attributes", () => {
     const [token] = parseMarkdownShortcodes(
       "Intro [[image:hero alt=\"Hero image\" width=320 caption='Launch']] outro",
@@ -30,7 +105,6 @@ describe("parseMarkdownShortcodes", () => {
     expect(token?.rawAttributes).toContainEqual({
       name: "featured",
       value: true,
-      raw: "featured",
       quoted: "flag",
     });
     expect(token?.attributes.featured).toBe(true);
