@@ -345,3 +345,16 @@ details > summary::-webkit-details-marker {
   top: var(--qr-inset, 0);
   left: var(--qr-inset, 0);
 }
+
+/* The brand mark in a block of the support ladder.
+   The shared collection draws its logos as small cards: a rounded frame, a
+   shadow, and a muted filter that lifts to full colour on hover. That is right
+   for a row of many methods on a shop. Here a block carries exactly one mark in
+   a card that already has a frame, so it shows as the bare logo in its own
+   colours. */
+.lmaa-route-icon img {
+  filter: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
