@@ -1285,8 +1285,8 @@
     "semantic_hash": ""
   },
   "apps/backend/src/routes/public.ts": {
-    "mtime": 1787321198.0927315,
-    "ast_hash": "7daf7bf96d98e5b3e7e1f8469084a2dc",
+    "mtime": 1787363502.759217,
+    "ast_hash": "86d3d48dff849dc9aec18274ae938ec8",
     "semantic_hash": ""
   },
   "apps/backend/src/routes/redirect-urls.ts": {
@@ -2905,7 +2905,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/content-page-rendering.ts": {
-    "mtime": 1787361607.717537,
+    "mtime": 1787362290.40326,
     "ast_hash": "2df0d61523eb1cc0e86f5a105ac69863",
     "semantic_hash": ""
   },
@@ -2915,7 +2915,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/content-shortcode-segments.ts": {
-    "mtime": 1787361375.2404654,
+    "mtime": 1787362290.4034488,
     "ast_hash": "238374ee80b061c664c0f3087f8a5490",
     "semantic_hash": ""
   },
@@ -2945,7 +2945,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/markdown-ssr.ts": {
-    "mtime": 1787361607.6973276,
+    "mtime": 1787362290.403587,
     "ast_hash": "7741bb127da7d22c01ea5e99afacfa4e",
     "semantic_hash": ""
   },
@@ -2955,7 +2955,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/lib/markdown.ts": {
-    "mtime": 1787361571.9725382,
+    "mtime": 1787362290.4037466,
     "ast_hash": "a8255c35d61539bf621c0f794b4a8642",
     "semantic_hash": ""
   },
@@ -3135,7 +3135,7 @@
     "semantic_hash": ""
   },
   "doctor.config.ts": {
-    "mtime": 1787361983.0570884,
+    "mtime": 1787362290.4041965,
     "ast_hash": "60956af6cc9c92e3172bbdb702ae83fb",
     "semantic_hash": ""
   },
@@ -4070,7 +4070,7 @@
     "semantic_hash": ""
   },
   "apps/frontend/src/components/islands/SupportLadder.tsx": {
-    "mtime": 1787361745.7322206,
+    "mtime": 1787362290.4030306,
     "ast_hash": "2d35a4a61e65dab5ab85a0b0d1b7901e",
     "semantic_hash": ""
   },
@@ -4097,6 +4097,11 @@
   "packages/ui/src/MarkdownShortcodeReference.tsx": {
     "mtime": 1787359300.0838244,
     "ast_hash": "1a4f8d6bba4209a64fc6339171200f5b",
+    "semantic_hash": ""
+  },
+  "apps/backend/src/lib/cache-control.ts": {
+    "mtime": 1787363487.911097,
+    "ast_hash": "66c6cc8326c6b612e2e67d54bfe8ff67",
     "semantic_hash": ""
   }
 }
