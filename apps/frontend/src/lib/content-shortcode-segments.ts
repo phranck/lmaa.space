@@ -51,6 +51,8 @@ export interface SupportLadderVariant {
   recommended: boolean;
   /** Appearance of the GiroCode. Only the single-payment variant has one. */
   qr?: SupportLadderQrStyle;
+  /** A notice drawn as a tinted sub-card. Absent when the page names none. */
+  info?: string;
 }
 
 /**
@@ -262,6 +264,7 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
       text: getStringParam(child.params.text)?.trim() ?? "",
       recommended,
       qr: readQrStyle(child),
+      info: getStringParam(childrenOf(child, "info")[0]?.params.text)?.trim() || undefined,
     });
   }
 

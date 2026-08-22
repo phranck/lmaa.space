@@ -73,7 +73,7 @@
   align-items: center;
   gap: var(--ds-space-sm);
   padding: 0.625rem 1rem;
-  border-bottom: 1px solid var(--ds-border-subtle);
+  border-bottom: 1px solid var(--ds-rule);
   background: var(--ds-surface-inset);
   cursor: grab;
   touch-action: none;
