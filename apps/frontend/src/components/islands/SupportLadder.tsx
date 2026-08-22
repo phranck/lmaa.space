@@ -1,4 +1,5 @@
 import { ArrowSquareOutIcon, CheckCircleIcon, InfoIcon } from "@phosphor-icons/react";
+import type * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -95,6 +96,28 @@ function startingAmount(interval: SupportLadderInterval | undefined): number {
 }
 
 /**
+ * Renders one of the ladder's prose fields.
+ *
+ * The text arrives as HTML, already rendered and sanitised by the page's own
+ * Markdown pipeline before it ever reaches the browser, so the wording inside a
+ * shortcode behaves exactly like the wording around it. Nothing here comes from
+ * a visitor; it is the same page content the rest of the article is built from.
+ *
+ * Paragraph margins are reset, because these fields sit inside a card rather
+ * than in an article, and only the space between paragraphs is kept.
+ */
+function RichText({ html, className, style }: { html: string; className?: string; style?: React.CSSProperties }) {
+  return (
+    <div
+      className={`lmaa-rich ${className ?? ""}`}
+      style={style}
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: page content, rendered and sanitised server-side by renderMarkdownSSR
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
+/**
  * A notice inside a payment block, drawn as a tinted sub-card.
  *
  * The icon is aligned with the first line of the text rather than with the
@@ -123,7 +146,7 @@ function InfoCard({ text }: { text: string }) {
       >
         <InfoIcon weight="duotone" className="size-4" />
       </span>
-      <span>{text}</span>
+      <RichText html={text} />
     </div>
   );
 }
@@ -166,7 +189,7 @@ function AmountGrid({
             type="button"
             aria-pressed={active}
             onClick={() => onChoose(option.amountEur)}
-            className="relative flex flex-col gap-1.5 p-6 text-left border transition-transform hover:-translate-y-0.5"
+            className="relative flex flex-col gap-1.5 p-4 text-left border transition-transform hover:-translate-y-0.5"
             style={{
               borderRadius: "var(--radius-card)",
               background: active ? "var(--ds-accent-tint)" : "var(--ds-surface)",
@@ -188,16 +211,18 @@ function AmountGrid({
               )}
             </span>
             {option.description && (
-              <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
-                {option.description}
-              </span>
+              <RichText
+                html={option.description}
+                className="text-sm"
+                style={{ color: "var(--ds-text-muted)" }}
+              />
             )}
             {/* A tick, so the chosen rung is not marked by colour alone. */}
             {active && (
               <CheckCircleIcon
                 weight="fill"
                 aria-hidden="true"
-                className="absolute top-6 right-6 size-5"
+                className="absolute top-4 right-4 size-5"
                 style={{ color: "var(--ds-accent)" }}
               />
             )}
@@ -207,7 +232,7 @@ function AmountGrid({
 
       {interval.custom && (
         <label
-          className="flex flex-col gap-1.5 p-6 border border-dashed"
+          className="flex flex-col gap-1.5 p-4 border border-dashed"
           style={{
             borderRadius: "var(--radius-card)",
             borderColor: customActive ? "var(--ds-accent)" : "var(--ds-border)",
@@ -411,9 +436,11 @@ export default function SupportLadder({
           </fieldset>
 
           {intervalText && (
-            <p className="mt-3 text-sm" style={{ color: "var(--ds-text-subtle)" }}>
-              {intervalText}
-            </p>
+            <RichText
+              html={intervalText}
+              className="mt-3 text-sm"
+              style={{ color: "var(--ds-text-subtle)" }}
+            />
           )}
         </>
       )}
@@ -432,7 +459,7 @@ export default function SupportLadder({
 
       {bankAccount && variant && (
         <div
-          className="mt-6 p-6 border"
+          className="mt-6 p-4 border"
           style={{
             borderRadius: "var(--radius-card)",
             background: "var(--ds-surface)",
@@ -445,9 +472,11 @@ export default function SupportLadder({
             {variant.title}
           </h3>
           {variant.text && (
-            <p className="mt-1 text-sm" style={{ color: "var(--ds-text-muted)" }}>
-              {variant.text}
-            </p>
+            <RichText
+              html={variant.text}
+              className="mt-1 text-sm"
+              style={{ color: "var(--ds-text-muted)" }}
+            />
           )}
 
           <div className="mt-6 flex flex-wrap gap-6">
@@ -498,7 +527,7 @@ export default function SupportLadder({
 
       {paypal && intervalKey === "once" && (
         <div
-          className="mt-3 p-6 border"
+          className="mt-3 p-4 border"
           style={{
             borderRadius: "var(--radius-card)",
             background: "var(--ds-surface)",
@@ -509,9 +538,11 @@ export default function SupportLadder({
             {paypal.title}
           </h3>
           {paypal.text && (
-            <p className="mt-1 text-sm" style={{ color: "var(--ds-text-muted)" }}>
-              {paypal.text}
-            </p>
+            <RichText
+              html={paypal.text}
+              className="mt-1 text-sm"
+              style={{ color: "var(--ds-text-muted)" }}
+            />
           )}
           <a
             href={paypal.url}

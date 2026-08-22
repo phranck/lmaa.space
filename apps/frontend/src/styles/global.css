@@ -291,3 +291,46 @@ details > summary::-webkit-details-marker {
     scroll-behavior: auto !important;
   }
 }
+
+/* Prose inside a shortcode card.
+   The fields are rendered through the page's Markdown pipeline, so they arrive
+   wrapped in paragraphs. Inside a card those outer margins are wrong, but the
+   space between two paragraphs is not, so only the first and last are reset. */
+.lmaa-rich > :first-child {
+  margin-top: 0;
+}
+
+.lmaa-rich > :last-child {
+  margin-bottom: 0;
+}
+
+.lmaa-rich p {
+  margin-block: 0.5em;
+}
+
+.lmaa-rich ol,
+.lmaa-rich ul {
+  margin-block: 0.5em;
+  padding-left: 1.25em;
+  list-style-position: outside;
+}
+
+.lmaa-rich ol {
+  list-style-type: decimal;
+}
+
+.lmaa-rich ul {
+  list-style-type: disc;
+}
+
+.lmaa-rich li {
+  margin-block: 0.15em;
+}
+
+.lmaa-rich a {
+  text-decoration: underline;
+}
+
+.lmaa-rich strong {
+  font-weight: 600;
+}

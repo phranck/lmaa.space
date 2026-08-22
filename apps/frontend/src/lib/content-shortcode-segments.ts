@@ -102,6 +102,18 @@ export type ContentShortcodeSegment =
   | RejectedShopsTableIsland
   | SupportLadderIsland;
 
+/**
+ * Turns the escape sequences an author can type inside a quoted attribute into
+ * the characters they stand for.
+ *
+ * A shortcode attribute is one quoted run, so a real line break cannot be typed
+ * into it. `\n` is how an author writes one, and Markdown then treats it as it
+ * would any other newline.
+ */
+function unescapeText(value: string): string {
+  return value.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+}
+
 function getStringParam(value: MarkdownShortcodeParamValue | undefined): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
@@ -174,7 +186,7 @@ function readOptions(interval: ParsedMarkdownShortcode): SupportLadderOption[] {
 
     options.push({
       amountEur,
-      description: getStringParam(node.params.description)?.trim() ?? "",
+      description: unescapeText(getStringParam(node.params.description)?.trim() ?? ""),
       recommended,
     });
   }
@@ -206,7 +218,7 @@ function readIntervals(ladder: ParsedMarkdownShortcode): SupportLadderInterval[]
     intervals.push({
       key,
       label: getStringParam(node.params.label)?.trim() ?? "",
-      text: getStringParam(node.params.text)?.trim() ?? "",
+      text: unescapeText(getStringParam(node.params.text)?.trim() ?? ""),
       options,
       custom: customNode
         ? {
@@ -261,10 +273,10 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
     variants.push({
       key,
       title: getStringParam(child.params.title)?.trim() ?? "",
-      text: getStringParam(child.params.text)?.trim() ?? "",
+      text: unescapeText(getStringParam(child.params.text)?.trim() ?? ""),
       recommended,
       qr: readQrStyle(child),
-      info: getStringParam(childrenOf(child, "info")[0]?.params.text)?.trim() || undefined,
+      info: unescapeText(getStringParam(childrenOf(child, "info")[0]?.params.text)?.trim() ?? "") || undefined,
     });
   }
 
@@ -288,7 +300,7 @@ function readPaypal(ladder: ParsedMarkdownShortcode): SupportLadderPaypal | unde
   return {
     url,
     title: getStringParam(node.params.title)?.trim() ?? "PayPal",
-    text: getStringParam(node.params.text)?.trim() ?? "",
+    text: unescapeText(getStringParam(node.params.text)?.trim() ?? ""),
     button: getStringParam(node.params.button)?.trim() ?? "PayPal",
   };
 }
