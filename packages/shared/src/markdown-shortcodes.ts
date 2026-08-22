@@ -175,6 +175,9 @@ const SUPPORT_LADDER_VARIANT: MarkdownShortcodeDefinition = {
     { name: "title", type: "string", aliases: ["label"], label: "Überschrift" },
     { name: "text", type: "string", aliases: ["description"], label: "Beschreibender Text" },
     { name: "recommended", type: "boolean", label: "Hervorheben und vorauswählen" },
+    // Marke aus der Zahlungsmethoden-Sammlung, dieselbe wie auf den
+    // Shop-Detailseiten, oder "github" für das GitHub-Zeichen.
+    { name: "icon", type: "string", label: "Symbol, z. B. sepa, paypal, klarna, github" },
   ],
   children: [SUPPORT_LADDER_QRCODE, SUPPORT_LADDER_INFO],
 };
@@ -219,6 +222,7 @@ const SUPPORT_LADDER_CUSTOM: MarkdownShortcodeDefinition = {
     // Anchors the empty field without preselecting anything, which is what the
     // amount-ladder evidence asks for.
     { name: "placeholder", type: "string", label: "Platzhalter im leeren Feld" },
+    { name: "text", type: "string", label: "Erklärung unter dem Feld" },
   ],
 };
 
@@ -259,6 +263,34 @@ const SUPPORT_LADDER_INTERVAL: MarkdownShortcodeDefinition = {
   children: [SUPPORT_LADDER_OPTION, SUPPORT_LADDER_CUSTOM],
 };
 
+/**
+ * The GitHub Sponsors route.
+ *
+ * Unlike the PayPal route this shows for every interval, because Sponsors is
+ * the one way on the page that carries a real monthly subscription: the sponsor
+ * starts and ends it themselves, and GitHub takes no fee on a sponsorship from
+ * a private person.
+ */
+const SUPPORT_LADDER_SPONSORS: MarkdownShortcodeDefinition = {
+  token: "sponsors",
+  renderMode: "island",
+  target: "forbidden",
+  placement: "block",
+  label: "GitHub Sponsors",
+  description:
+    "Der Weg über GitHub Sponsors. Erscheint bei jedem Intervall, weil er als einziger ein echtes Monats-Abo kann.",
+  examples: ['[[sponsors title="GitHub Sponsors" url="https://github.com/sponsors/phranck"]]'],
+  params: [
+    { name: "url", type: "string", required: true, label: "Adresse" },
+    { name: "title", type: "string", label: "Überschrift" },
+    { name: "text", type: "string", aliases: ["description"], label: "Beschreibender Text" },
+    { name: "button", type: "string", label: "Beschriftung des Knopfes" },
+    // Marke aus der Zahlungsmethoden-Sammlung, dieselbe wie auf den
+    // Shop-Detailseiten, oder "github" für das GitHub-Zeichen.
+    { name: "icon", type: "string", label: "Symbol, z. B. sepa, paypal, klarna, github" },
+  ],
+};
+
 /** The PayPal.Me route. */
 const SUPPORT_LADDER_PAYPAL: MarkdownShortcodeDefinition = {
   token: "paypalme",
@@ -273,6 +305,9 @@ const SUPPORT_LADDER_PAYPAL: MarkdownShortcodeDefinition = {
     { name: "title", type: "string", label: "Überschrift" },
     { name: "text", type: "string", label: "Beschreibender Text" },
     { name: "button", type: "string", label: "Beschriftung des Knopfes" },
+    // Marke aus der Zahlungsmethoden-Sammlung, dieselbe wie auf den
+    // Shop-Detailseiten, oder "github" für das GitHub-Zeichen.
+    { name: "icon", type: "string", label: "Symbol, z. B. sepa, paypal, klarna, github" },
   ],
 };
 
@@ -468,7 +503,12 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
       // SUPPORT_LADDER_LABEL_DEFAULTS.
       ...SUPPORT_LADDER_LABEL_PARAMS,
     ],
-    children: [SUPPORT_LADDER_BANK_ACCOUNT, SUPPORT_LADDER_INTERVAL, SUPPORT_LADDER_PAYPAL],
+    children: [
+      SUPPORT_LADDER_BANK_ACCOUNT,
+      SUPPORT_LADDER_INTERVAL,
+      SUPPORT_LADDER_PAYPAL,
+      SUPPORT_LADDER_SPONSORS,
+    ],
   },
 ] as const satisfies readonly MarkdownShortcodeDefinition[];
 

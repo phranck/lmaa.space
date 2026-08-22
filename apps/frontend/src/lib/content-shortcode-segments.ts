@@ -30,6 +30,8 @@ export interface SupportLadderOption {
 export interface SupportLadderCustomAmount {
   label: string;
   placeholder: string;
+  /** A sentence under the field. Empty when the interval names none. */
+  text: string;
 }
 
 /** One frequency tab and the amounts it offers. */
@@ -49,6 +51,8 @@ export interface SupportLadderVariant {
   text: string;
   /** Draws the block as the suggested route for that interval. */
   recommended: boolean;
+  /** Name of the brand mark shown beside the heading. */
+  icon?: string;
   /** Appearance of the GiroCode. Only the single-payment variant has one. */
   qr?: SupportLadderQrStyle;
   /** A notice drawn as a tinted sub-card. Absent when the page names none. */
@@ -80,19 +84,47 @@ export interface SupportLadderBankAccount {
   variants: SupportLadderVariant[];
 }
 
-/** The PayPal.Me route. */
-export interface SupportLadderPaypal {
+/**
+ * An external route the ladder links out to.
+ *
+ * PayPal and GitHub Sponsors carry the same fields and differ only in when they
+ * are shown, so they share a shape rather than each having their own.
+ */
+export interface SupportLadderLink {
   url: string;
   title: string;
   text: string;
   button: string;
+  /** Name of the brand mark shown beside the heading. */
+  icon?: string;
+}
+
+/** The child nodes that stand for a route out of the page. */
+export const SUPPORT_LADDER_ROUTE_TOKENS = {
+  paypalme: "PayPal",
+  sponsors: "GitHub Sponsors",
+} as const;
+
+/** Name of one such node. */
+export type SupportLadderRouteToken = keyof typeof SUPPORT_LADDER_ROUTE_TOKENS;
+
+/**
+ * One route out of the page, in the order the document names it.
+ *
+ * Which node it came from decides when the ladder shows it: PayPal.Me pays once
+ * and appears only under the single payment, whilst GitHub Sponsors carries a
+ * subscription and appears under both.
+ */
+export interface SupportLadderRoute extends SupportLadderLink {
+  token: SupportLadderRouteToken;
 }
 
 export interface SupportLadderIsland {
   type: "support-ladder";
   bankAccount?: SupportLadderBankAccount;
   intervals: SupportLadderInterval[];
-  paypal?: SupportLadderPaypal;
+  /** Every route out of the page, in the order the document names them. */
+  routes: SupportLadderRoute[];
   /** Wording overrides for everything outside the child nodes. */
   labels: Partial<Record<SupportLadderLabelKey, string>>;
 }
@@ -224,6 +256,7 @@ function readIntervals(ladder: ParsedMarkdownShortcode): SupportLadderInterval[]
         ? {
             label: getStringParam(customNode.params.label)?.trim() ?? "Eigener Betrag",
             placeholder: getStringParam(customNode.params.placeholder)?.trim() ?? "",
+            text: unescapeText(getStringParam(customNode.params.text)?.trim() ?? ""),
           }
         : undefined,
     });
@@ -275,6 +308,7 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
       title: getStringParam(child.params.title)?.trim() ?? "",
       text: unescapeText(getStringParam(child.params.text)?.trim() ?? ""),
       recommended,
+      icon: getStringParam(child.params.icon)?.trim() || undefined,
       qr: readQrStyle(child),
       info: unescapeText(getStringParam(childrenOf(child, "info")[0]?.params.text)?.trim() ?? "") || undefined,
     });
@@ -289,20 +323,46 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
   };
 }
 
-/** Reads the PayPal route, which is left out when it names no address. */
-function readPaypal(ladder: ParsedMarkdownShortcode): SupportLadderPaypal | undefined {
-  const node = childrenOf(ladder, "paypalme")[0];
-  if (!node) return undefined;
-
+/**
+ * Reads one outgoing route, which is left out when it names no address.
+ *
+ * @param node - The route's own node, such as `paypalme` or `sponsors`.
+ * @param fallbackTitle - Used when the node names no heading of its own.
+ */
+function readLink(
+  node: ParsedMarkdownShortcode,
+  fallbackTitle: string,
+): SupportLadderLink | undefined {
   const url = getStringParam(node.params.url)?.trim();
   if (!url) return undefined;
 
   return {
     url,
-    title: getStringParam(node.params.title)?.trim() ?? "PayPal",
+    title: getStringParam(node.params.title)?.trim() || fallbackTitle,
     text: unescapeText(getStringParam(node.params.text)?.trim() ?? ""),
-    button: getStringParam(node.params.button)?.trim() ?? "PayPal",
+    button: getStringParam(node.params.button)?.trim() || fallbackTitle,
+    icon: getStringParam(node.params.icon)?.trim() || undefined,
   };
+}
+
+/**
+ * Reads every route the ladder names, in document order.
+ *
+ * A node without an address is dropped, because a route nobody can follow is
+ * an empty card.
+ */
+function readRoutes(ladder: ParsedMarkdownShortcode): SupportLadderRoute[] {
+  const routes: SupportLadderRoute[] = [];
+
+  for (const child of ladder.children) {
+    if (!(child.token in SUPPORT_LADDER_ROUTE_TOKENS)) continue;
+
+    const token = child.token as SupportLadderRouteToken;
+    const link = readLink(child, SUPPORT_LADDER_ROUTE_TOKENS[token]);
+    if (link) routes.push({ ...link, token });
+  }
+
+  return routes;
 }
 
 function isRenderableSupportLadder(
@@ -339,7 +399,7 @@ function toSupportLadderIsland(shortcode: ParsedMarkdownShortcode): SupportLadde
     type: "support-ladder",
     bankAccount: readBankAccount(shortcode),
     intervals,
-    paypal: readPaypal(shortcode),
+    routes: readRoutes(shortcode),
     labels,
   };
 }
