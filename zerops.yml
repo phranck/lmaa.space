@@ -76,7 +76,14 @@ zerops:
         # here: `astro` and `@astrojs/node` are runtime dependencies of
         # apps/frontend rather than development ones, and every bare import in
         # the built server entry resolves in this tree.
-        - npm ci --omit=dev --workspace @lmaa/frontend --include-workspace-root --cache .npm
+        #
+        # No install script runs. `vite` and `tsx` are runtime dependencies of
+        # @astrojs/react, so they come along, and esbuild's script checks the
+        # binary it finds against the version it expects. The two installs place
+        # esbuild differently, so it finds the other one and stops the build.
+        # The site executes none of these, and sharp brings its platform files
+        # as packages rather than through a script.
+        - npm ci --omit=dev --workspace @lmaa/frontend --include-workspace-root --ignore-scripts --cache .npm
       deployFiles:
         - apps/frontend/dist
         - node_modules
