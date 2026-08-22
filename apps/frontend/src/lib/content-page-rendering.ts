@@ -5,6 +5,7 @@ import { apiGet } from "@/lib/api";
 import {
   parseContentShortcodeSegments,
   type RejectedShopsTableIsland,
+  type SupportLadderIsland,
 } from "@/lib/content-shortcode-segments";
 import { stripMarkdown } from "@/lib/markdown";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
@@ -18,7 +19,8 @@ export interface ContentPageView {
 
 export type RenderedContentSegment =
   | { type: "html"; html: string }
-  | (RejectedShopsTableIsland & { initialData: PublicRejectedShopsResponse });
+  | (RejectedShopsTableIsland & { initialData: PublicRejectedShopsResponse })
+  | SupportLadderIsland;
 
 function emptyRejectedShopsResponse(
   pageSize: RejectedShopsTableIsland["defaultPageSize"],
@@ -63,10 +65,17 @@ export async function renderContentSegments(content: string): Promise<RenderedCo
         return { type: "html" as const, html: await renderMarkdown(segment.content) };
       }
 
-      return {
-        ...segment,
-        initialData: await loadInitialRejectedShopsData(segment.defaultPageSize),
-      };
+      // Only the rejected-shops table needs data fetched before it renders.
+      // The support ladder is self-contained, because everything it shows
+      // comes from the shortcode's own parameters.
+      if (segment.type === "rejected-shops-table") {
+        return {
+          ...segment,
+          initialData: await loadInitialRejectedShopsData(segment.defaultPageSize),
+        };
+      }
+
+      return segment;
     }),
   );
 }

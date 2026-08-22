@@ -1,5 +1,5 @@
 ---
-import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
+import ContentArticle from "@/components/ContentArticle.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import {
@@ -37,23 +37,7 @@ const description = page ? buildContentDescription(page.content) : "";
   page ? (
     <BaseLayout title={`${page.title} Preview`} description={description} noindex>
       <div class:list={[getContentWidthClass(page.contentWidth), "mx-auto px-4 sm:px-6 py-14"]}>
-        <article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
-          {page.showTitle && <h1>{page.title}</h1>}
-          {
-            contentSegments.map((segment) =>
-              segment.type === "html" ? (
-                <Fragment set:html={segment.html} />
-              ) : (
-                <RejectedShopsTable
-                  client:load
-                  defaultPageSize={segment.defaultPageSize}
-                  initialData={segment.initialData}
-                  storageKey={segment.storageKey}
-                />
-              ),
-            )
-          }
-        </article>
+        <ContentArticle title={page.title} showTitle={page.showTitle} segments={contentSegments} />
       </div>
     </BaseLayout>
   ) : (

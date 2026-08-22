@@ -628,7 +628,11 @@ export function ContentEditorPage() {
         />
       )}
 
-      <DashboardSection>
+      {/* The section becomes the column that carries the height, so the header
+          stays put and only the editor body scrolls. Without this its root is a
+          plain block, the flex-1 on PageBody does nothing, and the editor's
+          height of 100% resolves against an automatic height. */}
+      <DashboardSection className="flex flex-1 min-h-0 flex-col overflow-hidden">
         <DashboardSection.Header
           icon={<MarkdownLogoIcon weight="duotone" className="size-4" />}
           title={title}

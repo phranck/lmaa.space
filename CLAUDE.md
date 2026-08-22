@@ -60,9 +60,15 @@ Knowledge graph at `graphify-out/`.
 - AXFR is refused, but the zone is signed with NSEC3. Collecting the hash chain and computing known names against it enumerates the zone in full without panel access.
 - Whether a mailbox exists is answered by an SMTP dialogue up to `RCPT TO` without `DATA`. `450 Greylisted` means it exists, `550 User unknown` means it does not. Include an invented control address, or a catch-all gives no sign of itself.
 
+## Dashboard layout
+
+- `DashboardSection` renders a plain `div`. A `flex-1` on anything inside it, including `PageBody`, therefore does nothing, and a child asking for `height: 100%` resolves against an automatic height. A section whose body must fill the height and scroll needs `className="flex flex-1 min-h-0 flex-col overflow-hidden"` at the call site.
+- When a component misbehaves visually, read its call site and every container above it before touching the component. The height and overflow chain decides most of it, and it is not visible from inside the component.
+
 ## Tests
 
 - Dashboard tests run without a DOM (`environment: "node"`). Components cannot render there, so move logic into its own module and test that.
+- `packages/ui` has no test setup at all, so a layout question cannot be answered by a test there. Read the chain instead.
 
 ## Frontend and CSP
 

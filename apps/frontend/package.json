@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "node --env-file=.env.local ../../node_modules/astro/astro.js dev",
+    "dev": "node --env-file=.env.local ./node_modules/.bin/astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro-check",
