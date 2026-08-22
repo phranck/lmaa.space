@@ -68,6 +68,7 @@ export interface DashboardMessages {
       socialMediaPostTemplatesOverview: string;
       footerBuilder: string;
       markdownWidgets: string;
+      supportPrompts: string;
       systemSettings: string;
       redirectUrls: string;
       socialPreview: string;
@@ -1234,6 +1235,44 @@ export interface DashboardMessages {
     };
   };
   system: {
+    supportPrompts: {
+      title: string;
+      subtitle: string;
+      listTitle: string;
+      listHint: string;
+      empty: string;
+      newPrompt: string;
+      namePlaceholder: string;
+      nameLabel: string;
+      slotLabel: string;
+      slots: { myShops: string; shopDetail: string; categoryGrid: string };
+      kindLabel: string;
+      kinds: { card: string; line: string };
+      contentLabel: string;
+      contentHint: string;
+      buttonLabel: string;
+      buttonHrefLabel: string;
+      dismissLabel: string;
+      dismissHint: string;
+      thresholdLabel: string;
+      thresholdHint: string;
+      startsAtLabel: string;
+      endsAtLabel: string;
+      windowHint: string;
+      priorityLabel: string;
+      priorityHint: string;
+      publishedLabel: string;
+      publishedHint: string;
+      limitsTitle: string;
+      limitsHint: string;
+      maxShownLabel: string;
+      snoozeDaysLabel: string;
+      deleteConfirm: string;
+      draft: string;
+      live: string;
+      expired: string;
+      scheduled: string;
+    };
     settings: {
       title: string;
       notificationsTab: string;
@@ -1570,6 +1609,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         socialMediaPostTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
+        supportPrompts: "Einblendungen",
         systemSettings: "Einstellungen",
         redirectUrls: "Redirect URLs",
         socialPreview: "Social Media Preview",
@@ -2794,6 +2834,50 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
     },
     system: {
+      supportPrompts: {
+        title: "Einblendungen",
+        subtitle:
+          "Kurze Bitten, die im Verlauf der Seite stehen. Inhalt in Markdown, Ort und Regeln je Einblendung.",
+        listTitle: "Einblendungen",
+        listHint: "Je Platz und Seitenaufruf erscheint höchstens eine.",
+        empty: "Noch keine Einblendung angelegt.",
+        newPrompt: "Neue Einblendung",
+        namePlaceholder: "Interner Name",
+        nameLabel: "Name",
+        slotLabel: "Platz",
+        slots: {
+          myShops: "Meine Shops",
+          shopDetail: "Shop-Detailseite",
+          categoryGrid: "Kategorien-Raster",
+        },
+        kindLabel: "Darstellung",
+        kinds: { card: "Karte", line: "Zeile" },
+        contentLabel: "Inhalt",
+        contentHint: "{shops} und {views} werden durch die Zahlen des Lesers ersetzt.",
+        buttonLabel: "Beschriftung des Knopfes",
+        buttonHrefLabel: "Ziel des Knopfes",
+        dismissLabel: "Zweiter Knopf",
+        dismissHint: "Leer heisst: kein zweiter Knopf.",
+        thresholdLabel: "Ab wie vielen Shops",
+        thresholdHint: "Gemerkte Shops, beziehungsweise gesehene auf der Detailseite.",
+        startsAtLabel: "Von",
+        endsAtLabel: "Bis",
+        windowHint: "Leer heisst: ohne Zeitgrenze.",
+        priorityLabel: "Vorrang",
+        priorityHint: "Höher gewinnt, wenn zwei für denselben Platz in Frage kommen.",
+        publishedLabel: "Veröffentlicht",
+        publishedHint: "Unveröffentlichte werden gar nicht erst ausgeliefert.",
+        limitsTitle: "Grenzen für alle zusammen",
+        limitsHint:
+          "Gilt über alle Einblendungen hinweg und lässt sich von keiner einzelnen überschreiben.",
+        maxShownLabel: "Höchstens sichtbar",
+        snoozeDaysLabel: "Ruhezeit in Tagen",
+        deleteConfirm: "Diese Einblendung wirklich löschen?",
+        draft: "Entwurf",
+        live: "Sichtbar",
+        expired: "Abgelaufen",
+        scheduled: "Geplant",
+      },
       settings: {
         title: "Einstellungen",
         notificationsTab: "Benachrichtigungen",
@@ -3143,6 +3227,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         socialMediaPostTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
+        supportPrompts: "Support prompts",
         systemSettings: "Settings",
         redirectUrls: "Redirect URLs",
         socialPreview: "Social Media Preview",
@@ -4359,6 +4444,49 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
     },
     system: {
+      supportPrompts: {
+        title: "Support prompts",
+        subtitle:
+          "Short asks that stand in the flow of the site. Content in Markdown, place and rules per prompt.",
+        listTitle: "Prompts",
+        listHint: "One at most per slot and page view.",
+        empty: "No prompt yet.",
+        newPrompt: "New prompt",
+        namePlaceholder: "Internal name",
+        nameLabel: "Name",
+        slotLabel: "Slot",
+        slots: {
+          myShops: "My shops",
+          shopDetail: "Shop detail page",
+          categoryGrid: "Category grid",
+        },
+        kindLabel: "Presentation",
+        kinds: { card: "Card", line: "Line" },
+        contentLabel: "Content",
+        contentHint: "{shops} and {views} are replaced by the reader's own numbers.",
+        buttonLabel: "Button caption",
+        buttonHrefLabel: "Where it leads",
+        dismissLabel: "Second button",
+        dismissHint: "Empty means there is none.",
+        thresholdLabel: "From how many shops",
+        thresholdHint: "Liked shops, or seen ones on a detail page.",
+        startsAtLabel: "From",
+        endsAtLabel: "Until",
+        windowHint: "Empty means no time limit.",
+        priorityLabel: "Priority",
+        priorityHint: "Higher wins when two qualify for the same slot.",
+        publishedLabel: "Published",
+        publishedHint: "Unpublished prompts are not delivered at all.",
+        limitsTitle: "Limits for all of them together",
+        limitsHint: "Applies across every prompt and cannot be raised by any single one.",
+        maxShownLabel: "Shown at most",
+        snoozeDaysLabel: "Quiet days after a showing",
+        deleteConfirm: "Really delete this prompt?",
+        draft: "Draft",
+        live: "Visible",
+        expired: "Expired",
+        scheduled: "Scheduled",
+      },
       settings: {
         title: "Settings",
         notificationsTab: "Notifications",

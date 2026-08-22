@@ -505,6 +505,13 @@
       "when": 1787320349765,
       "tag": "0071_white_prima",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1787421823444,
+      "tag": "0072_real_callisto",
+      "breakpoints": true
     }
   ]
 }

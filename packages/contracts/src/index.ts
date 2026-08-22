@@ -40,3 +40,5 @@ export * from "./domain-alert-rules";
 export * from "./redirect-urls";
 /** Admin social preview image schemas. */
 export * from "./admin-social-preview";
+/** Support prompt schemas: the asks that appear inside the site. */
+export * from "./support-prompts";

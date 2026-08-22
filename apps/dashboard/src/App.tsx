@@ -106,6 +106,11 @@ const NavManagerPage = lazy(() =>
   })),
 );
 
+const SupportPromptsPage = lazy(() =>
+  import("@/features/system/SupportPromptsPage.tsx").then((m) => ({
+    default: m.SupportPromptsPage,
+  })),
+);
 const MarkdownWidgetsPage = lazy(() =>
   import("@/features/system/MarkdownWidgetsPage.tsx").then((m) => ({
     default: m.MarkdownWidgetsPage,
@@ -415,6 +420,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <NavManagerPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="support-prompts"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SupportPromptsPage />
                   </Suspense>
                 }
               />

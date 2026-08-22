@@ -71,6 +71,14 @@ const formValidationMocks = vi.hoisted(() => ({
   buildFormValidationSchema: vi.fn(),
 }));
 
+const supportPromptMocks = vi.hoisted(() => ({
+  listPublishedSupportPrompts: vi.fn(),
+}));
+
+const supportPromptServiceMocks = vi.hoisted(() => ({
+  getSupportPromptLimits: vi.fn(),
+}));
+
 vi.mock("../services/public.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/public.js")>();
   return { ...actual, ...publicServiceMocks };
@@ -85,6 +93,8 @@ vi.mock("../services/hero.js", () => heroMocks);
 vi.mock("../services/social-preview-images.js", () => socialPreviewMocks);
 vi.mock("../services/form-submission.js", () => formSubmissionMocks);
 vi.mock("../services/form-validation.js", () => formValidationMocks);
+vi.mock("../repositories/support-prompts.js", () => supportPromptMocks);
+vi.mock("../services/support-prompts.js", () => supportPromptServiceMocks);
 vi.mock("../middleware/rate-limit.js", () => ({
   rateLimit: vi.fn(() => (_c: unknown, next: () => Promise<void>) => next()),
   resolveClientIp: vi.fn(() => "127.0.0.1"),
@@ -106,6 +116,46 @@ describe("publicRoutes", () => {
 
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ data: [{ id: 1, name: "Mode" }] });
+    });
+  });
+
+
+  describe("GET /support-prompts", () => {
+    it("asks for today's prompts and answers with them and the limits", async () => {
+      supportPromptMocks.listPublishedSupportPrompts.mockResolvedValue([
+        { id: "a", slot: "my-shops", name: "Karte" },
+      ]);
+      supportPromptServiceMocks.getSupportPromptLimits.mockResolvedValue({
+        maxShown: 4,
+        snoozeDays: 14,
+      });
+
+      const res = await app.request("/support-prompts");
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({
+        data: {
+          prompts: [{ id: "a", slot: "my-shops", name: "Karte" }],
+          limits: { maxShown: 4, snoozeDays: 14 },
+        },
+      });
+
+      // The window is tested against a day, not a moment, so a prompt does not
+      // end part way through the day it names.
+      const [day] = supportPromptMocks.listPublishedSupportPrompts.mock.calls[0];
+      expect(day).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it("lets a person edit without a deployment, so the answer may be revalidated", async () => {
+      supportPromptMocks.listPublishedSupportPrompts.mockResolvedValue([]);
+      supportPromptServiceMocks.getSupportPromptLimits.mockResolvedValue({
+        maxShown: 4,
+        snoozeDays: 14,
+      });
+
+      const res = await app.request("/support-prompts");
+
+      expect(res.headers.get("Cache-Control")).toBe("public, max-age=60, stale-while-revalidate=300");
     });
   });
 

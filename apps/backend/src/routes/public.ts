@@ -26,6 +26,7 @@ import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
 import { validate } from "../middleware/validate-request.js";
 import { getFooterConfig } from "../repositories/footer-config.js";
 import { getEnabledMarkdownWidgetByKey } from "../repositories/markdown-widgets.js";
+import { listPublishedSupportPrompts } from "../repositories/support-prompts.js";
 import {
   getManagedPublicFormConfig,
   getManagedPublicFormConfigBySlug,
@@ -61,6 +62,7 @@ import {
 } from "../services/public.js";
 import { listFooterSocialMediaAccounts } from "../services/social-media-accounts.js";
 import { getSocialPreviewImage } from "../services/social-preview-images.js";
+import { getSupportPromptLimits } from "../services/support-prompts.js";
 
 /**
  * Public API routes consumed by the website and external clients.
@@ -248,6 +250,22 @@ publicRoutes.get("/content", publicReadLimit, async (c) => {
   const rows = await getManagedPublicContentPages();
   c.header("Cache-Control", CACHE_REVALIDATE);
   return ok(c, rows);
+});
+
+// GET /api/support-prompts – what may be shown inside the site today
+//
+// Only published prompts leave the server, and only those whose window covers
+// today. A prompt is rendered in the reader's browser, so anything delivered
+// here is readable by anyone, draft or not.
+publicRoutes.get("/support-prompts", publicReadLimit, async (c) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const [prompts, limits] = await Promise.all([
+    listPublishedSupportPrompts(today),
+    getSupportPromptLimits(),
+  ]);
+
+  c.header("Cache-Control", CACHE_EDITABLE);
+  return ok(c, { prompts, limits });
 });
 
 // GET /api/content/:slug (published pages only)
