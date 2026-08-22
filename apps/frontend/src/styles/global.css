@@ -361,8 +361,9 @@ details > summary::-webkit-details-marker {
 /* Text in a card steps in by half the card's padding.
    The rule sits on the card rather than on each line, so anything written into
    a card later follows without being told. What carries an edge of its own does
-   not step in: the code, the details list, the notice, the input, the button. */
+   not step in: the code, the notice, the input, the button. */
 .lmaa-card > :is(h3, p, span, .lmaa-rich),
-.lmaa-card > .lmaa-card-head > h3 {
+.lmaa-card > .lmaa-card-head > h3,
+.lmaa-card dl {
   padding-inline: var(--card-text-inset);
 }
