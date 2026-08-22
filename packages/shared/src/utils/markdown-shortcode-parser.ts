@@ -3,13 +3,13 @@ import {
   type MarkdownShortcodeDefinition,
   type MarkdownShortcodeParamDefinition,
 } from "../markdown-shortcodes.js";
+import { tokenizeShortcodes, type ShortcodeNode } from "./markdown-shortcode-tokenizer.js";
 
 export type MarkdownShortcodeAttributeValue = string | true;
 
 export interface MarkdownShortcodeAttribute {
   name: string;
   value: MarkdownShortcodeAttributeValue;
-  raw: string;
   quoted: "bare" | "double" | "flag" | "single";
 }
 
@@ -37,131 +37,14 @@ export interface ParsedMarkdownShortcode {
   attributes: Record<string, MarkdownShortcodeAttributeValue>;
   rawAttributes: MarkdownShortcodeAttribute[];
   params: Record<string, MarkdownShortcodeParamValue>;
+  /** Nodes nested inside this one, resolved against its own child list. */
+  children: ParsedMarkdownShortcode[];
   issues: MarkdownShortcodeIssue[];
   source: {
     start: number;
     end: number;
     raw: string;
   };
-}
-
-interface ParsedShortcodeHead {
-  token: string;
-  target?: string;
-  attrsInput: string;
-}
-
-const SHORTCODE_REGEX = /\[\[([^\]\r\n]+)\]\]/g;
-const TOKEN_REGEX = /^[a-z][a-z0-9-]*/;
-const ATTRIBUTE_NAME_REGEX = /^[a-zA-Z][a-zA-Z0-9-]*/;
-
-function parseShortcodeHead(input: string): ParsedShortcodeHead | null {
-  const body = input.trim();
-  const tokenMatch = body.match(TOKEN_REGEX);
-  if (!tokenMatch) return null;
-
-  const token = tokenMatch[0];
-  let cursor = token.length;
-  let target: string | undefined;
-
-  if (body[cursor] === ":") {
-    cursor += 1;
-    const targetStart = cursor;
-    while (cursor < body.length && !/\s/.test(body[cursor])) {
-      cursor += 1;
-    }
-    target = body.slice(targetStart, cursor) || undefined;
-  }
-
-  return {
-    token,
-    target,
-    attrsInput: body.slice(cursor).trim(),
-  };
-}
-
-function parseAttributes(input: string): {
-  attributes: Record<string, MarkdownShortcodeAttributeValue>;
-  rawAttributes: MarkdownShortcodeAttribute[];
-  issues: MarkdownShortcodeIssue[];
-} {
-  const attributes: Record<string, MarkdownShortcodeAttributeValue> = {};
-  const rawAttributes: MarkdownShortcodeAttribute[] = [];
-  const issues: MarkdownShortcodeIssue[] = [];
-  let cursor = 0;
-
-  while (cursor < input.length) {
-    while (cursor < input.length && /\s/.test(input[cursor])) cursor += 1;
-    if (cursor >= input.length) break;
-
-    const remaining = input.slice(cursor);
-    const nameMatch = remaining.match(ATTRIBUTE_NAME_REGEX);
-    if (!nameMatch) {
-      issues.push({
-        code: "invalid-attribute",
-        message: "Shortcode attribute names must start with a letter.",
-      });
-      break;
-    }
-
-    const name = nameMatch[0];
-    const rawStart = cursor;
-    cursor += name.length;
-
-    if (input[cursor] !== "=") {
-      const raw = input.slice(rawStart, cursor);
-      attributes[name] = true;
-      rawAttributes.push({ name, value: true, raw, quoted: "flag" });
-      continue;
-    }
-
-    cursor += 1;
-    if (cursor >= input.length) {
-      issues.push({
-        code: "missing-param-value",
-        message: `Shortcode attribute "${name}" is missing a value.`,
-        attribute: name,
-      });
-      break;
-    }
-
-    const quote = input[cursor];
-    let value = "";
-    let quoted: MarkdownShortcodeAttribute["quoted"] = "bare";
-
-    if (quote === '"' || quote === "'") {
-      quoted = quote === '"' ? "double" : "single";
-      cursor += 1;
-      const valueStart = cursor;
-      while (cursor < input.length && input[cursor] !== quote) {
-        cursor += 1;
-      }
-
-      if (cursor >= input.length) {
-        issues.push({
-          code: "unterminated-attribute",
-          message: `Shortcode attribute "${name}" has an unterminated quoted value.`,
-          attribute: name,
-        });
-        value = input.slice(valueStart);
-      } else {
-        value = input.slice(valueStart, cursor);
-        cursor += 1;
-      }
-    } else {
-      const valueStart = cursor;
-      while (cursor < input.length && !/\s/.test(input[cursor])) {
-        cursor += 1;
-      }
-      value = input.slice(valueStart, cursor);
-    }
-
-    const raw = input.slice(rawStart, cursor);
-    attributes[name] = value;
-    rawAttributes.push({ name, value, raw, quoted });
-  }
-
-  return { attributes, rawAttributes, issues };
 }
 
 function findAttribute(
@@ -284,42 +167,78 @@ function validateTarget(
   return [];
 }
 
+/**
+ * Resolves one tokenized node against a definition, and its children against
+ * that definition's own child list.
+ *
+ * @returns The parsed shortcode, or `null` when no definition claims the token.
+ */
+function resolveNode(
+  node: ShortcodeNode,
+  definitionByToken: Map<string, MarkdownShortcodeDefinition>,
+): ParsedMarkdownShortcode | null {
+  const definition = definitionByToken.get(node.token);
+  if (!definition) return null;
+
+  const { params, issues: paramIssues } = normalizeParams(definition, node.attributes);
+
+  const childDefinitions = new Map(
+    (definition.children ?? []).map((child) => [child.token, child]),
+  );
+  const children: ParsedMarkdownShortcode[] = [];
+  for (const child of node.children) {
+    const resolved = resolveNode(child, childDefinitions);
+    if (resolved) children.push(resolved);
+  }
+
+  return {
+    token: node.token,
+    definition,
+    target: node.target,
+    attributes: node.attributes,
+    rawAttributes: node.rawAttributes,
+    params,
+    children,
+    issues: [
+      ...validateTarget(definition, node.target),
+      // The tokenizer's own findings carry an offset rather than an attribute
+      // name, so only the parts this interface can express are carried over.
+      ...node.issues.map((issue) => ({
+        code:
+          issue.code === "unterminated-value"
+            ? ("unterminated-attribute" as const)
+            : ("invalid-attribute" as const),
+        message: issue.message,
+      })),
+      ...paramIssues,
+    ],
+    source: node.source,
+  };
+}
+
+/**
+ * Parses every shortcode in `content`.
+ *
+ * Only top-level nodes are returned. A nested one hangs off its parent's
+ * `children`, resolved against the parent definition's own child list, so a
+ * token means what its position says it means.
+ *
+ * @param content - The Markdown source.
+ * @param definitions - Definitions to resolve top-level tokens against.
+ * @returns The shortcodes found, in the order they appear.
+ */
 export function parseMarkdownShortcodes(
   content: string,
   definitions: readonly MarkdownShortcodeDefinition[] = MARKDOWN_SHORTCODE_DEFINITIONS,
 ): ParsedMarkdownShortcode[] {
-  const parsed: ParsedMarkdownShortcode[] = [];
   const definitionByToken = new Map(
     definitions.map((definition) => [definition.token, definition]),
   );
 
-  for (const match of content.matchAll(SHORTCODE_REGEX)) {
-    const start = match.index ?? 0;
-    if (start > 0 && content[start - 1] === "\\") continue;
-
-    const head = parseShortcodeHead(match[1]);
-    if (!head) continue;
-
-    const definition = definitionByToken.get(head.token);
-    if (!definition) continue;
-
-    const { attributes, rawAttributes, issues: attributeIssues } = parseAttributes(head.attrsInput);
-    const { params, issues: paramIssues } = normalizeParams(definition, attributes);
-
-    parsed.push({
-      token: head.token,
-      definition,
-      target: head.target,
-      attributes,
-      rawAttributes,
-      params,
-      issues: [...validateTarget(definition, head.target), ...attributeIssues, ...paramIssues],
-      source: {
-        start,
-        end: start + match[0].length,
-        raw: match[0],
-      },
-    });
+  const parsed: ParsedMarkdownShortcode[] = [];
+  for (const node of tokenizeShortcodes(content)) {
+    const resolved = resolveNode(node, definitionByToken);
+    if (resolved) parsed.push(resolved);
   }
 
   return parsed;
