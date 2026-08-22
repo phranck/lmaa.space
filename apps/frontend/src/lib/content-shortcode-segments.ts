@@ -102,7 +102,7 @@ export interface SupportLadderLink {
 /** The child nodes that stand for a route out of the page. */
 export const SUPPORT_LADDER_ROUTE_TOKENS = {
   paypalme: "PayPal",
-  sponsors: "GitHub Sponsors",
+  ghsponsor: "GitHub Sponsors",
 } as const;
 
 /** Name of one such node. */
@@ -326,7 +326,7 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
 /**
  * Reads one outgoing route, which is left out when it names no address.
  *
- * @param node - The route's own node, such as `paypalme` or `sponsors`.
+ * @param node - The route's own node, such as `paypalme` or `ghsponsor`.
  * @param fallbackTitle - Used when the node names no heading of its own.
  */
 function readLink(
