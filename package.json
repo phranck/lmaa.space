@@ -1,6 +1,7 @@
 {
   "name": "lmaa-space",
   "private": true,
+  "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=22.22.0 <23",
     "npm": ">=10 <11"
