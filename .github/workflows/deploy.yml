@@ -30,6 +30,11 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Lint, types, build, artefact checks and the suites, in one job. They used to
+  # be two, which meant a second runner, a second install of the dependencies,
+  # and the suites waiting for a gate they take nothing from. The install is the
+  # expensive part at around half a minute, whilst the suites themselves run in
+  # under twenty seconds.
   quality-gate:
     runs-on: ubuntu-latest
     steps:
@@ -43,19 +48,8 @@ jobs:
         env:
           API_URL: http://localhost:3000/api/v1
           PUBLIC_API_URL: /api/v1
-
-  test:
-    needs: quality-gate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run build -w @lmaa/shared
       # Four workspaces carry a suite: backend, shared, dashboard and frontend.
+      # `ci:quality` has already built @lmaa/shared, which they import.
       - run: npm test --workspaces --if-present
 
   # Which services a change can actually reach. The workspace graph decides it:
@@ -99,9 +93,9 @@ jobs:
               - 'apps/dashboard/**'
 
   deploy-backend:
-    needs: [test, changes]
+    needs: [quality-gate, changes]
     if: >-
-      always() && needs.test.result == 'success' &&
+      always() && needs.quality-gate.result == 'success' &&
       ((github.event_name == 'push' && needs.changes.outputs.backend == 'true') ||
        (github.event_name == 'workflow_dispatch' && inputs.backend))
     runs-on: ubuntu-latest
@@ -114,15 +108,15 @@ jobs:
           output: apps/backend/public/.well-known
           signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
           signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
-      - uses: zeropsio/actions@v1.0.1
+      - uses: zeropsio/actions@79c2d03f7c82ac58d011be746da3332f2f93c680 # v1.0.1
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: ${{ secrets.ZEROPS_BACKEND_SERVICE_ID }}
 
   deploy-website:
-    needs: [test, changes]
+    needs: [quality-gate, changes]
     if: >-
-      always() && needs.test.result == 'success' &&
+      always() && needs.quality-gate.result == 'success' &&
       ((github.event_name == 'push' && needs.changes.outputs.website == 'true') ||
        (github.event_name == 'workflow_dispatch' && inputs.website))
     runs-on: ubuntu-latest
@@ -135,15 +129,15 @@ jobs:
           output: apps/frontend/public/.well-known
           signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
           signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
-      - uses: zeropsio/actions@v1.0.1
+      - uses: zeropsio/actions@79c2d03f7c82ac58d011be746da3332f2f93c680 # v1.0.1
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: ${{ secrets.ZEROPS_WEBSITE_SERVICE_ID }}
 
   deploy-dashboard:
-    needs: [test, changes]
+    needs: [quality-gate, changes]
     if: >-
-      always() && needs.test.result == 'success' &&
+      always() && needs.quality-gate.result == 'success' &&
       ((github.event_name == 'push' && needs.changes.outputs.dashboard == 'true') ||
        (github.event_name == 'workflow_dispatch' && inputs.dashboard))
     runs-on: ubuntu-latest
@@ -156,7 +150,7 @@ jobs:
           output: apps/dashboard/public/.well-known
           signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
           signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
-      - uses: zeropsio/actions@v1.0.1
+      - uses: zeropsio/actions@79c2d03f7c82ac58d011be746da3332f2f93c680 # v1.0.1
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: ${{ secrets.ZEROPS_DASHBOARD_SERVICE_ID }}
