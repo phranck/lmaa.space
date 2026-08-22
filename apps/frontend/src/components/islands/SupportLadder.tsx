@@ -1,4 +1,8 @@
-import { ArrowSquareOutIcon, CheckCircleIcon, InfoIcon } from "@phosphor-icons/react";
+import {
+  ArrowSquareOutIcon,
+  CheckCircleIcon,
+  InfoIcon,
+} from "@phosphor-icons/react";
 import type * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -7,11 +11,17 @@ import {
   SUPPORT_LADDER_LABEL_DEFAULTS,
   type SupportLadderLabelKey,
 } from "@lmaa/shared";
+import { PAYMENT_METHOD_MAP } from "@lmaa/ui";
 
+
+import githubLockupUrl from "@/assets/brands/github-lockup.svg?url";
+import paypalLockupUrl from "@/assets/brands/paypal-lockup.svg?url";
+import sepaLockupUrl from "@/assets/brands/sepa-lockup.svg?url";
+import { normalizeAmountInput, readAmountInput } from "@/lib/amount-input";
 import type {
   SupportLadderBankAccount,
   SupportLadderInterval,
-  SupportLadderPaypal,
+  SupportLadderRoute,
 } from "@/lib/content-shortcode-segments";
 
 /**
@@ -26,13 +36,16 @@ import type {
  * @property intervals - The frequency tabs, in the order the page names them.
  *   The first one is preselected.
  * @property paypal - The PayPal route. Absent when the page names no address.
+ * @property sponsors - The GitHub Sponsors route, shown at every interval
+ *   because it is the one way here that carries a real monthly subscription.
  * @property labels - Wording overrides for everything outside the child nodes.
  *   Anything absent falls back to `SUPPORT_LADDER_LABEL_DEFAULTS`.
  */
 interface SupportLadderProps {
   bankAccount?: SupportLadderBankAccount;
   intervals: SupportLadderInterval[];
-  paypal?: SupportLadderPaypal;
+  /** Every route out of the page, in the order the document names them. */
+  routes: SupportLadderRoute[];
   labels?: Partial<Record<SupportLadderLabelKey, string>>;
 }
 
@@ -53,6 +66,13 @@ const EURO_EXACT = new Intl.NumberFormat("de-AT", {
 });
 
 const MONTHS_PER_YEAR = 12;
+
+/**
+ * The currency symbol, taken from the formatter rather than typed out, so it
+ * follows the locale the amounts are already formatted in.
+ */
+const CURRENCY_SYMBOL =
+  EURO_WHOLE.formatToParts(0).find((part) => part.type === "currency")?.value ?? "€";
 
 /** Fallbacks for anything the page's `[[qrcode]]` node does not name. */
 const QR_DEFAULTS = {
@@ -114,6 +134,123 @@ function RichText({ html, className, style }: { html: string; className?: string
       // biome-ignore lint/security/noDangerouslySetInnerHtml: page content, rendered and sanitised server-side by renderMarkdownSSR
       dangerouslySetInnerHTML={{ __html: html }}
     />
+  );
+}
+
+/**
+ * Width of a brand mark beside a block heading, in pixels.
+ *
+ * The collection draws every logo on a 3:2 card, so the height follows from the
+ * width rather than being chosen.
+ */
+const ROUTE_ICON_PX = 72;
+
+/**
+ * Width of a brand lockup, in pixels.
+ *
+ * A lockup carries the word beside the mark, so it is wider than a payment
+ * logo whilst the mark inside it comes out at about that logo's height. The
+ * height follows from the file, so each brand keeps its own proportions and
+ * every lockup ends at the same edge.
+ */
+const BRAND_MARK_PX = 116;
+
+/**
+ * The logos a brand publishes itself, each taken from that brand's own pack.
+ *
+ * They are used where a block is that brand's route out of the page, which is
+ * what the trademark holders permit their marks to be used for.
+ */
+const BRAND_MARKS: Record<string, { url: string; width: number }> = {
+  github: { url: githubLockupUrl, width: BRAND_MARK_PX },
+  sepa: { url: sepaLockupUrl, width: BRAND_MARK_PX },
+  // PayPal draws its lockup without the margin GitHub builds into theirs, so it
+  // is set two pixels narrower to carry the same weight beside it.
+  paypal: { url: paypalLockupUrl, width: BRAND_MARK_PX - 2 },
+};
+
+/**
+ * The brand mark of a payment route.
+ *
+ * Marks come from the same collection the shop detail pages use, so a PayPal
+ * logo looks here exactly as it looks there. GitHub is the one exception and
+ * takes Phosphor's mark, because the collection holds payment methods only. It
+ * is drawn on the same card so the three sit together as one set.
+ *
+ * The collection greys its logos in their resting state and shows full colour
+ * only on hover, which suits a row of many. Here each block carries a single
+ * mark, so the filter is switched off and the brand colours stand.
+ *
+ * An unknown name draws nothing rather than a placeholder, so a typo in the
+ * page content costs the mark and not the block.
+ */
+function RouteIcon({ name }: { name?: string }) {
+  if (!name) return null;
+
+  const lockup = BRAND_MARKS[name];
+  if (lockup) {
+    return (
+      <img
+        src={lockup.url}
+        alt=""
+        aria-hidden="true"
+        className="shrink-0"
+        style={{ width: lockup.width, height: "auto" }}
+      />
+    );
+  }
+
+  const definition = PAYMENT_METHOD_MAP.get(name as never);
+  if (!definition) return null;
+
+  const Mark = definition.icon;
+  return (
+    <span className="lmaa-route-icon inline-flex shrink-0">
+      <Mark aria-hidden={true} size={ROUTE_ICON_PX} />
+    </span>
+  );
+}
+
+/**
+ * An outgoing payment route, drawn as a card with a link.
+ *
+ * PayPal and GitHub Sponsors look the same and differ only in when the ladder
+ * shows them, so they share this rather than each carrying a copy.
+ */
+function OutboundRoute({ route }: { route: SupportLadderRoute }) {
+  return (
+    <div
+      className="mt-3 p-4 border"
+      style={{
+        borderRadius: "var(--radius-card)",
+        background: "var(--ds-surface)",
+        borderColor: "var(--ds-border-subtle)",
+      }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--ds-font-serif)" }}>
+          {route.title}
+        </h3>
+        <RouteIcon name={route.icon} />
+      </div>
+      {route.text && (
+        <RichText
+          html={route.text}
+          className="mt-1 text-sm"
+          style={{ color: "var(--ds-text-muted)" }}
+        />
+      )}
+      <a
+        href={route.url}
+        rel="noopener noreferrer"
+        target="_blank"
+        className="mt-6 inline-flex items-center gap-2 h-9 px-4 rounded-full border text-sm font-semibold"
+        style={{ borderColor: "var(--ds-border)", color: "var(--ds-text)" }}
+      >
+        {route.button}
+        <ArrowSquareOutIcon weight="duotone" aria-hidden="true" className="size-4" />
+      </a>
+    </div>
   );
 }
 
@@ -242,20 +379,43 @@ function AmountGrid({
           <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
             {interval.custom.label}
           </span>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={customAmount}
-            placeholder={interval.custom.placeholder}
-            aria-label={`${interval.custom.label} in Euro`}
-            onChange={(event) => onCustom(event.target.value)}
-            className="h-9 px-3 border rounded-control"
-            style={{
-              background: "var(--ds-surface)",
-              borderColor: "var(--ds-border)",
-              color: "var(--ds-text)",
-            }}
-          />
+          <span className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="text-xl leading-none font-bold"
+              style={{ fontFamily: "var(--ds-font-serif)" }}
+            >
+              {CURRENCY_SYMBOL}
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={customAmount}
+              placeholder={interval.custom.placeholder}
+              aria-label={`${interval.custom.label} in Euro`}
+              onChange={(event) => onCustom(event.target.value)}
+              // Wide enough for a five-figure amount and no wider, because the
+              // field should look like what belongs in it.
+              className="h-9 w-24 px-3 border rounded-control tabular-nums"
+              style={{
+                background: "var(--ds-surface)",
+                borderColor: "var(--ds-border)",
+                color: "var(--ds-text)",
+              }}
+            />
+            {interval.key === "monthly" && (
+              <span className="text-sm font-medium" style={{ color: "var(--ds-text-muted)" }}>
+                {perMonthLabel}
+              </span>
+            )}
+          </span>
+          {interval.custom.text && (
+            <RichText
+              html={interval.custom.text}
+              className="text-sm"
+              style={{ color: "var(--ds-text-muted)" }}
+            />
+          )}
         </label>
       )}
     </div>
@@ -278,7 +438,7 @@ function AmountGrid({
 export default function SupportLadder({
   bankAccount,
   intervals,
-  paypal,
+  routes,
   labels,
 }: SupportLadderProps) {
   // Merged once per render rather than looked up per label, and the defaults
@@ -374,17 +534,20 @@ export default function SupportLadder({
   }
 
   function chooseCustom(value: string) {
-    setCustomAmount(value);
+    // What the field holds is the cleaned value, so grouping separators, stray
+    // characters, and a third decimal never survive a keystroke.
+    const cleaned = normalizeAmountInput(value);
+    setCustomAmount(cleaned);
 
     // Emptying the field hands the choice back to the ladder, so the
     // recommended amount becomes the active one again.
-    if (value.trim() === "") {
+    if (cleaned === "") {
       setAmountEur(startingAmount(interval));
       return;
     }
 
-    const parsed = Number.parseFloat(value.replace(",", "."));
-    if (Number.isFinite(parsed) && parsed > 0) setAmountEur(parsed);
+    const amount = readAmountInput(cleaned);
+    if (amount !== null) setAmountEur(amount);
   }
 
   if (!interval) return null;
@@ -464,9 +627,12 @@ export default function SupportLadder({
               : "var(--ds-border-subtle)",
           }}
         >
-          <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--ds-font-serif)" }}>
-            {variant.title}
-          </h3>
+          <div className="flex items-start justify-between gap-4">
+            <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--ds-font-serif)" }}>
+              {variant.title}
+            </h3>
+            <RouteIcon name={variant.icon} />
+          </div>
           {variant.text && (
             <RichText
               html={variant.text}
@@ -523,37 +689,15 @@ export default function SupportLadder({
         </div>
       )}
 
-      {paypal && intervalKey === "once" && (
-        <div
-          className="mt-3 p-4 border"
-          style={{
-            borderRadius: "var(--radius-card)",
-            background: "var(--ds-surface)",
-            borderColor: "var(--ds-border-subtle)",
-          }}
-        >
-          <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--ds-font-serif)" }}>
-            {paypal.title}
-          </h3>
-          {paypal.text && (
-            <RichText
-              html={paypal.text}
-              className="mt-1 text-sm"
-              style={{ color: "var(--ds-text-muted)" }}
-            />
-          )}
-          <a
-            href={paypal.url}
-            rel="noopener noreferrer"
-            target="_blank"
-            className="mt-6 inline-flex items-center gap-2 h-9 px-4 rounded-full border text-sm font-semibold"
-            style={{ borderColor: "var(--ds-border)", color: "var(--ds-text)" }}
-          >
-            {paypal.button}
-            <ArrowSquareOutIcon weight="duotone" aria-hidden="true" className="size-4" />
-          </a>
-        </div>
-      )}
+      {/* The document decides the order. PayPal.Me pays once, so it stands
+          under the single payment only; Sponsors carries a subscription and
+          therefore stands under both. */}
+      {routes
+        .filter((route) => route.token !== "paypalme" || intervalKey === "once")
+        .map((route) => (
+          <OutboundRoute key={`${route.token}-${route.url}`} route={route} />
+        ))}
+
     </section>
   );
 }

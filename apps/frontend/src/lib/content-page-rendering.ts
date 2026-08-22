@@ -70,7 +70,7 @@ async function loadInitialRejectedShopsData(
  * inside a heading is not a thing anybody wants.
  */
 async function renderSupportLadderProse(segment: SupportLadderIsland): Promise<SupportLadderIsland> {
-  const [intervals, variants, paypalText] = await Promise.all([
+  const [intervals, variants, routes] = await Promise.all([
     Promise.all(
       segment.intervals.map(async (interval) => ({
         ...interval,
@@ -81,6 +81,12 @@ async function renderSupportLadderProse(segment: SupportLadderIsland): Promise<S
             description: await renderMarkdown(option.description, { breaks: true }),
           })),
         ),
+        custom: interval.custom
+          ? {
+              ...interval.custom,
+              text: await renderMarkdown(interval.custom.text, { breaks: true }),
+            }
+          : undefined,
       })),
     ),
     Promise.all(
@@ -90,14 +96,19 @@ async function renderSupportLadderProse(segment: SupportLadderIsland): Promise<S
         info: variant.info ? await renderMarkdown(variant.info, { breaks: true }) : undefined,
       })),
     ),
-    segment.paypal ? renderMarkdown(segment.paypal.text, { breaks: true }) : undefined,
+    Promise.all(
+      segment.routes.map(async (route) => ({
+        ...route,
+        text: await renderMarkdown(route.text, { breaks: true }),
+      })),
+    ),
   ]);
 
   return {
     ...segment,
     intervals,
     bankAccount: segment.bankAccount ? { ...segment.bankAccount, variants } : undefined,
-    paypal: segment.paypal ? { ...segment.paypal, text: paypalText ?? "" } : undefined,
+    routes,
   };
 }
 
