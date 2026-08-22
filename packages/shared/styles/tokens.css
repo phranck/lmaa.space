@@ -200,6 +200,29 @@
   --radius-control: 0.5rem; /* 8px */
   --radius-card: 1.25rem; /* 20px */
 
+  /* A card's own line, and how far it holds its contents from that line. */
+  --card-border-width: 1px;
+  --card-padding: 12px;
+
+  /* How far the contents sit from the card's outer edge, which is where the
+     radius is measured. The border counts, because border-radius applies to
+     the border box. */
+  --card-inset: calc(var(--card-border-width) + var(--card-padding));
+
+  /* How far text steps in from the card's content edge.
+     A line set hard against a rounded corner reads as colliding with it, so
+     text takes half the padding again whilst anything with an edge of its own,
+     such as a code, a table or a control, stays flush. */
+  --card-text-inset: calc(var(--card-padding) / 2);
+
+  /* The radius of anything sitting at that content edge.
+     A nested corner is the outer radius less the distance to it, so the gap
+     between the two curves stays even. Clamped at zero, because content set
+     further in than the radius sits past the curve entirely and is square.
+     A surface that states its own padding restates these two lines with it,
+     because a custom property holding a var() resolves where it is declared. */
+  --radius-card-inner: max(calc(var(--radius-card) - var(--card-inset)), 0px);
+
   /* Alias — packages/ui components reference this; apps can override */
   --color-primary: var(--ds-accent);
 
