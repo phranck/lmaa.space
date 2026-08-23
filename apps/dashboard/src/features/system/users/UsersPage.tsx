@@ -1,6 +1,7 @@
 import { TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
+import { Avatar } from "@/components/ui/Avatar.tsx";
 import { Badge } from "@/components/ui/Badge.tsx";
 import { ItemCard } from "@/components/ui/Card.tsx";
 import {
@@ -16,7 +17,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminUsers, useDeleteUser } from "@/features/system/hooks/useAdminUsers.ts";
 
-import { UserAvatar } from "./UserAvatar.tsx";
 import { UserCreateCard } from "./UserCreateCard.tsx";
 import { UserEditCard } from "./UserEditCard.tsx";
 
@@ -57,7 +57,7 @@ export function UsersPage() {
         <div className="space-y-2">
           {users.map((user) => (
             <ItemCard key={user.id} className="px-5 py-4 flex items-center gap-3">
-              <UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
+              <Avatar name={user.username} imageUrl={user.avatarUrl} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium text-[var(--ds-text)]">{user.username}</p>

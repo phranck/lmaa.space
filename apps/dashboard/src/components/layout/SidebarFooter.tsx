@@ -3,11 +3,11 @@ import { useState } from "react";
 
 import type { AdminRole } from "@lmaa/shared";
 
+import { Avatar } from "@/components/ui/Avatar.tsx";
 import { CancelActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { UserAvatar } from "@/features/system/users/UserAvatar.tsx";
 
 const SKIP_KEY = "logout-skip-confirm";
 
@@ -64,7 +64,7 @@ export function FooterUserInfo({
     <>
       <div className="w-full flex items-center gap-3">
         {username && (
-          <UserAvatar username={username} avatarUrl={avatarUrl} size="sm" className="shrink-0" />
+          <Avatar name={username} imageUrl={avatarUrl} size="sm" className="shrink-0" />
         )}
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-[var(--ds-text)] truncate">{displayName}</p>

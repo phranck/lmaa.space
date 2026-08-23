@@ -15,17 +15,38 @@ import { ControlTrigger } from "@lmaa/ui/listbox-primitives";
 import { DashboardNumberInput } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
+/**
+ * What the picker asks for.
+ *
+ * The mode decides the shape of the value as well as the shape of the control,
+ * because a field that only asks for a day should also only hand back a day.
+ * Otherwise every caller has to cut the part it did not want back off again.
+ */
+export type DateTimePickerMode = "datetime" | "date" | "time";
+
 interface DateTimePickerProps {
+  /**
+   * The current value: `YYYY-MM-DDTHH:MM` for `datetime`, `YYYY-MM-DD` for
+   * `date`, `HH:MM` for `time`. Empty means nothing is chosen.
+   */
   value: string;
-  onChange: (isoLocal: string) => void;
+  onChange: (value: string) => void;
+  /** What to ask for. Both parts by default. */
+  mode?: DateTimePickerMode;
 }
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function toLocalParts(iso: string) {
+function toLocalParts(iso: string, mode: DateTimePickerMode) {
   if (!iso) return { date: undefined, hours: "12", minutes: "00" };
+
+  if (mode === "time") {
+    const [rawHours = "12", rawMinutes = "00"] = iso.split(":");
+    return { date: undefined, hours: pad(Number(rawHours) || 0), minutes: pad(Number(rawMinutes) || 0) };
+  }
+
   const d = new Date(iso.includes("T") ? iso : `${iso}T12:00`);
   if (Number.isNaN(d.getTime())) return { date: undefined, hours: "12", minutes: "00" };
   return {
@@ -39,18 +60,24 @@ function emitValue(
   day: Date | undefined,
   hours: string,
   minutes: string,
+  mode: DateTimePickerMode,
   onChange: (v: string) => void,
 ) {
+  const h = pad(Math.max(0, Math.min(23, Number(hours) || 0)));
+  const m = pad(Math.max(0, Math.min(59, Number(minutes) || 0)));
+
+  if (mode === "time") {
+    onChange(`${h}:${m}`);
+    return;
+  }
+
   if (!day) {
     onChange("");
     return;
   }
-  const h = Math.max(0, Math.min(23, Number(hours) || 0));
-  const m = Math.max(0, Math.min(59, Number(minutes) || 0));
-  const y = day.getFullYear();
-  const mo = pad(day.getMonth() + 1);
-  const d = pad(day.getDate());
-  onChange(`${y}-${mo}-${d}T${pad(h)}:${pad(m)}`);
+
+  const stamp = `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`;
+  onChange(mode === "date" ? stamp : `${stamp}T${h}:${m}`);
 }
 
 function usePopoverPosition(triggerRef: React.RefObject<HTMLButtonElement | null>, open: boolean) {
@@ -87,10 +114,12 @@ function usePopoverPosition(triggerRef: React.RefObject<HTMLButtonElement | null
   return style;
 }
 
-export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
+export function DateTimePicker({ value, onChange, mode = "datetime" }: DateTimePickerProps) {
   const { locale } = useI18n();
   const isDe = locale === "de";
-  const { date: selected, hours, minutes } = toLocalParts(value);
+  const { date: selected, hours, minutes } = toLocalParts(value, mode);
+  const showDate = mode !== "time";
+  const showTime = mode !== "date";
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -113,11 +142,11 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   }, [open]);
 
   function handleDaySelect(day: Date | undefined) {
-    emitValue(day, hours, minutes, onChange);
+    emitValue(day, hours, minutes, mode, onChange);
   }
 
   function handleTimeChange(h: string, m: string) {
-    emitValue(selected, h, m, onChange);
+    emitValue(selected, h, m, mode, onChange);
   }
 
   const displayDate = selected
@@ -128,7 +157,20 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
       })
     : "";
 
-  const displayTime = selected ? `${hours}:${minutes}` : "";
+  const displayTime = mode === "time" || selected ? `${hours}:${minutes}` : "";
+  const hasValue = mode === "time" ? value !== "" : Boolean(selected);
+
+  const placeholder = isDe
+    ? mode === "date"
+      ? "Datum wählen"
+      : mode === "time"
+        ? "Uhrzeit wählen"
+        : "Datum & Uhrzeit wählen"
+    : mode === "date"
+      ? "Pick a date"
+      : mode === "time"
+        ? "Pick a time"
+        : "Pick date & time";
 
   return (
     <>
@@ -136,14 +178,23 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        leadingIcon={<CalendarBlankIcon weight="duotone" className="size-4" />}
+        leadingIcon={
+          mode === "time" ? (
+            <ClockIcon weight="duotone" className="size-4" />
+          ) : (
+            <CalendarBlankIcon weight="duotone" className="size-4" />
+          )
+        }
         open={open}
-        placeholder={isDe ? "Datum & Uhrzeit wählen" : "Pick date & time"}
+        placeholder={placeholder}
       >
-        {selected ? (
+        {hasValue ? (
           <span>
-            {displayDate}
-            <span className="text-[var(--ds-text-muted)] mx-1">{displayTime}</span>
+            {showDate && displayDate}
+            {showDate && showTime && (
+              <span className="text-[var(--ds-text-muted)] mx-1">{displayTime}</span>
+            )}
+            {!showDate && displayTime}
           </span>
         ) : null}
       </ControlTrigger>
@@ -155,6 +206,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
             style={popoverStyle}
             className="rounded-card border border-[var(--ds-border)] bg-[var(--ds-surface)] shadow-lg p-3 w-max"
           >
+            {showDate && (
             <DayPicker
               mode="single"
               selected={selected}
@@ -196,8 +248,10 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
                   ),
               }}
             />
+            )}
 
-            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--ds-border)]">
+            {showTime && (
+            <div className={`flex items-center gap-2 ${showDate ? "mt-2 pt-2 border-t border-[var(--ds-border)]" : ""}`}>
               <ClockIcon weight="duotone" className="size-4 text-[var(--ds-text-muted)]" />
               <DashboardNumberInput
                 min={0}
@@ -222,6 +276,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
               />
               <span className="text-xs text-[var(--ds-text-subtle)]">Uhr</span>
             </div>
+            )}
           </div>,
           document.body,
         )}

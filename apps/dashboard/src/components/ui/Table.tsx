@@ -205,7 +205,10 @@ export function DataTable<T>({
               <Th
                 key={col.id}
                 aria-sort={col.sortKey ? getTableSortAriaSort(sortDirection) : undefined}
-                className={`${col.headerClassName ?? col.className ?? ""} ${col.sortKey ? "select-none" : ""}`}
+                // A column title stays on one line. Broken over two, it
+                // changes the height of the whole header row and stops reading
+                // as a label for what is under it.
+                className={`whitespace-nowrap ${col.headerClassName ?? col.className ?? ""} ${col.sortKey ? "select-none" : ""}`}
               >
                 {col.sortKey ? (
                   <TableSortHeader

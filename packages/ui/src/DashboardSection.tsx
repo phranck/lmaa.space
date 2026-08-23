@@ -170,6 +170,32 @@ function DashboardSectionHeader({
 /*  DashboardSection.Body                                             */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Wraps whatever collapses, so it grows and shrinks instead of jumping.
+ *
+ * The height is animated by the browser through one property rather than by
+ * script: a grid whose single row goes from `0fr` to `1fr` grows to the height
+ * its content actually needs, and everything below is carried by ordinary
+ * layout. Nothing measures, nothing runs per frame.
+ *
+ * The content stays in the document whilst collapsed, because an element that
+ * has already left it cannot be animated out. It is marked inert so that what
+ * cannot be seen cannot be reached by keyboard either.
+ */
+function CollapseRegion({ expanded, children }: { expanded: boolean; children: ReactNode }) {
+  return (
+    <div
+      className={`grid transition-[grid-template-rows] duration-200 ease-out ${
+        expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+      }`}
+    >
+      <div className="overflow-hidden" inert={!expanded}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function DashboardSectionBody({
   children,
   className = "",
@@ -179,9 +205,11 @@ function DashboardSectionBody({
 }) {
   const { expanded } = use(DashboardSectionContext);
 
-  if (!expanded) return null;
-
-  return <div className={`flex flex-col gap-3 p-3 ${className}`}>{children}</div>;
+  return (
+    <CollapseRegion expanded={expanded}>
+      <div className={`flex flex-col gap-3 p-3 ${className}`}>{children}</div>
+    </CollapseRegion>
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -191,14 +219,14 @@ function DashboardSectionBody({
 function DashboardSectionFooter({ children, className = "" }: DashboardSectionFooterProps) {
   const { expanded } = use(DashboardSectionContext);
 
-  if (!expanded) return null;
-
   return (
-    <div
-      className={`flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-section-header-bg)] rounded-b-xl ${className}`}
-    >
-      {children}
-    </div>
+    <CollapseRegion expanded={expanded}>
+      <div
+        className={`flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-section-header-bg)] rounded-b-xl ${className}`}
+      >
+        {children}
+      </div>
+    </CollapseRegion>
   );
 }
 
