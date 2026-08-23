@@ -151,9 +151,37 @@ describe("classifyProfileLink", () => {
     });
   });
 
+  it("reads a fediverse handle as the address it is", () => {
+    // Written without a scheme, so putting one in front turns everything before
+    // the second `@` into a user on the instance's host.
+    expect(classifyProfileLink("@kim@chaos.social")).toEqual({
+      platform: "mastodon",
+      url: "https://chaos.social/@kim",
+    });
+    expect(classifyProfileLink("kim@chaos.social")).toEqual({
+      platform: "mastodon",
+      url: "https://chaos.social/@kim",
+    });
+  });
+
   it("gives nothing for what is not an address", () => {
     for (const input of ["", "   ", "not an address at all"]) {
       expect(classifyProfileLink(input)).toBeNull();
     }
+  });
+
+  it("refuses a scheme that reaches no page", () => {
+    for (const input of ["ftp://x.test", "javascript:alert(1)", "mailto:kim@example.test"]) {
+      expect(classifyProfileLink(input)).toBeNull();
+    }
+  });
+
+  it("refuses an address carrying a user in front of the host", () => {
+    // The shape that reads as one host and resolves to another.
+    expect(classifyProfileLink("https://layered.work@example.test")).toBeNull();
+  });
+
+  it("refuses a single word, which names no host", () => {
+    expect(classifyProfileLink("kim")).toBeNull();
   });
 });
