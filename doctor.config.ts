@@ -58,6 +58,20 @@ export default {
         ],
         rules: ["react-doctor/async-await-in-loop"],
       },
+      // A reference is drawn again only because the one before it turned out to
+      // be taken, so the attempts are a sequence rather than independent work.
+      {
+        files: ["src/services/pending-sponsorships.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
+      // The picture is looked for on the most telling service first and the
+      // search stops at the first hit. Asking every service at once would send
+      // a request to each of a sponsor's platforms whenever the first already
+      // answered.
+      {
+        files: ["src/services/sponsor-avatar.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
       // Migration safety, the Drizzle run, and ownership verification are strict phases.
       {
         files: ["src/db/run-migrations.ts"],
