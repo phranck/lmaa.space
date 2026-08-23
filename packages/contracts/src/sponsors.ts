@@ -92,6 +92,33 @@ export const sponsoringConfigSchema = z.object({
    * one sentence and stay the same when a hosting bill moves.
    */
   minAmountCents: z.coerce.number().int().min(0).max(1_000_000).default(4000),
+  /**
+   * Who is paid, as the transfer names them.
+   *
+   * Held here rather than in the page, because the same three lines are read by
+   * the transfer card, encoded into the GiroCode, and named in sentences across
+   * the site. Two places would disagree eventually and nothing would say which
+   * one the money followed.
+   */
+  payeeName: z.string().trim().max(70).default(""),
+  /** The account, without its printed spaces. Empty until one is entered. */
+  payeeIban: z
+    .string()
+    .trim()
+    .transform((value) => value.replace(/\s+/g, "").toUpperCase())
+    .refine((value) => value === "" || /^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/.test(value), {
+      message: "Expected an IBAN",
+    })
+    .default(""),
+  /** The bank, which a payee inside the EEA need not supply. */
+  payeeBic: z
+    .string()
+    .trim()
+    .transform((value) => value.replace(/\s+/g, "").toUpperCase())
+    .refine((value) => value === "" || /^[A-Z0-9]{8,11}$/.test(value), {
+      message: "Expected a BIC",
+    })
+    .default(""),
 });
 
 /** What the site needs to draw the sponsors and say what is covered. */
@@ -102,6 +129,16 @@ export const sponsorsPayloadSchema = z.object({
   /** What the current sponsors together have covered, in cents. */
   coveredCents: z.number().int(),
   minAmountCents: z.number().int(),
+  /**
+   * Who is paid, as the transfer names them.
+   *
+   * Public because the transfer details are, and because both the support page
+   * and any sentence naming them read from here rather than from the page's own
+   * content.
+   */
+  payeeName: z.string(),
+  payeeIban: z.string(),
+  payeeBic: z.string(),
 });
 
 /** Everything an editor records about one sponsor. */

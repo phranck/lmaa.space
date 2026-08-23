@@ -2,6 +2,7 @@
  * Server-side Markdown renderer with media alias resolution.
  * For Astro SSR / frontmatter use only — never import this in React islands.
  */
+import type { SponsorsPayload } from "@lmaa/contracts";
 import { expandSiteVariables, formatEuroCents, type SiteVariableValues } from "@lmaa/shared";
 
 import { apiGet } from "./api";
@@ -52,8 +53,13 @@ async function loadSiteVariables(): Promise<SiteVariableValues | null> {
   }
 
   try {
-    const payload = await apiGet<{ costsTotalCents: number }>("/sponsors");
-    cachedVariables = { annualCostCents: payload.costsTotalCents };
+    const payload = await apiGet<SponsorsPayload>("/sponsors");
+    cachedVariables = {
+      annualCostCents: payload.costsTotalCents,
+      payeeName: payload.payeeName,
+      payeeIban: payload.payeeIban,
+      payeeBic: payload.payeeBic,
+    };
     variablesTimestamp = now;
   } catch {
     // Whatever was last known stands, and nothing does on the first failure.

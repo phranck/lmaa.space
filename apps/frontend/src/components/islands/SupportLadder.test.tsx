@@ -21,6 +21,9 @@ function render(bankAccount: SupportLadderBankAccount, interval: SupportLadderIn
   return renderToStaticMarkup(
     createElement(SupportLadder, {
       bankAccount,
+      // From the sponsoring settings rather than from the page, which is what
+      // the ladder now expects.
+      payee: { name: "Frank Gregor", iban: "AT551900104704666811", bic: "TRBKATW2XXX" },
       intervals: [interval],
       routes: [],
       minSponsorAmountEur: 45,
@@ -41,8 +44,6 @@ const sponsorInterval: SupportLadderInterval = {
 /** The account, with the variant this test is about. */
 function account(sponsorForm: Record<string, string> | undefined): SupportLadderBankAccount {
   return {
-    beneficiaryName: "Frank Gregor",
-    iban: "AT551900104704666811",
     purposeDonation: "Spende: lmaa.space",
     purposeSponsor: "Sponsor: lmaa.space",
     variants: [

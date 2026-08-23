@@ -29,6 +29,18 @@ export const SITE_VARIABLES = {
     label: "Dieselben Kosten auf einen Monat gerechnet",
     example: "15,00 €",
   },
+  payeeName: {
+    label: "Empfänger der Überweisung, wie unter Sponsoring eingetragen",
+    example: "Frank Gregor",
+  },
+  payeeIban: {
+    label: "IBAN des Empfängers, in Vierergruppen",
+    example: "AT55 1900 1047 0466 6811",
+  },
+  payeeBic: {
+    label: "BIC des Empfängers",
+    example: "TRBKATW2XXX",
+  },
 } as const satisfies Record<string, { label: string; example: string }>;
 
 /** Name of one variable. */
@@ -37,10 +49,21 @@ export type SiteVariableName = keyof typeof SITE_VARIABLES;
 /** Every variable, in declaration order. */
 export const SITE_VARIABLE_NAMES = Object.keys(SITE_VARIABLES) as SiteVariableName[];
 
-/** The figures a text may name, in cents, as the settings hold them. */
+/** What a text may name, as the settings hold it. */
 export interface SiteVariableValues {
   /** What the year costs, being the sum of the items set in the dashboard. */
   annualCostCents: number;
+  /** Who is paid. Empty until somebody is entered. */
+  payeeName: string;
+  /** The account, without its printed spaces, as it is stored. */
+  payeeIban: string;
+  /** The bank, or empty for a payee inside the EEA who names none. */
+  payeeBic: string;
+}
+
+/** Four at a time, which is how an IBAN is printed and read back. */
+function groupIban(iban: string): string {
+  return iban.replace(/(.{4})/g, "$1 ").trim();
 }
 
 /** Only the names above, so an unrelated `{word}` is never touched. */
@@ -71,6 +94,14 @@ export function expandSiteVariables(
         // Rounded to the cent, because a third of a cent is not money and the
         // figure is read rather than added up.
         return formatMoney(Math.round(values.annualCostCents / MONTHS_PER_YEAR));
+      case "payeeName":
+        return values.payeeName;
+      case "payeeIban":
+        // Printed the way a banking app shows it, because somebody is going to
+        // compare the two character by character.
+        return groupIban(values.payeeIban);
+      case "payeeBic":
+        return values.payeeBic;
     }
   });
 }

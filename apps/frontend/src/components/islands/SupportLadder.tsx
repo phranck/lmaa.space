@@ -53,6 +53,14 @@ import {
  */
 interface SupportLadderProps {
   bankAccount?: SupportLadderBankAccount;
+  /**
+   * Who is paid, from the sponsoring settings rather than from the page.
+   *
+   * One place holds it, so the transfer card, the code and any sentence naming
+   * the account cannot disagree about where the money goes. Without a name and
+   * an account there is nothing to pay into, and no transfer block is shown.
+   */
+  payee: { name: string; iban: string; bic: string };
   intervals: SupportLadderInterval[];
   /** Every route out of the page, in the order the document names them. */
   routes: SupportLadderRoute[];
@@ -651,6 +659,7 @@ function AmountGrid({
  */
 export default function SupportLadder({
   bankAccount,
+  payee,
   intervals,
   routes,
   labels,
@@ -727,7 +736,9 @@ export default function SupportLadder({
   // A recurring payment is a standing order the payer sets up, so there is
   // nothing for a one-off transfer code to carry. A sponsorship is paid once
   // for the year, so it carries one like any other single transfer.
-  const showQr = shownKey !== "monthly" && Boolean(bankAccount);
+  // Nothing to pay into means nothing to show, whatever the page wrote about it.
+  const hasPayee = payee.name !== "" && payee.iban !== "";
+  const showQr = shownKey !== "monthly" && Boolean(bankAccount) && hasPayee;
   // A tab that draws no block of its own borrows the single payment's, because
   // that is the same transfer with a different reference.
   const onceVariant = bankAccount?.variants.find((entry) => entry.key === "once");
@@ -782,9 +793,9 @@ export default function SupportLadder({
     if (!showQr || !bankAccount) return null;
     try {
       return buildEpcQrPayload({
-        beneficiaryName: bankAccount.beneficiaryName,
-        iban: bankAccount.iban,
-        bic: bankAccount.bic,
+        beneficiaryName: payee.name,
+        iban: payee.iban,
+        bic: payee.bic,
         amountEur: amountEur > 0 ? amountEur : undefined,
         remittance,
         creditorReference,
@@ -794,7 +805,7 @@ export default function SupportLadder({
       // text below, so the block degrades to something still usable.
       return null;
     }
-  }, [showQr, bankAccount, amountEur, remittance, creditorReference]);
+  }, [showQr, bankAccount, payee, amountEur, remittance, creditorReference]);
 
   useEffect(() => {
     if (!qrRef.current || !payload) return;
@@ -1060,7 +1071,7 @@ export default function SupportLadder({
         </div>
       )}
 
-      {bankAccount && variant && (
+      {bankAccount && variant && hasPayee && (
         <div
           className="lmaa-card lmaa-payment-card mt-6"
           style={{
@@ -1123,15 +1134,15 @@ export default function SupportLadder({
                 style={{ lineHeight: "var(--ds-leading-lg)" }}
               >
                 <dt style={TRANSFER_LABEL_STYLE}>{text.fieldName}</dt>
-                <dd className={TRANSFER_VALUE_CLASS}>{bankAccount.beneficiaryName}</dd>
+                <dd className={TRANSFER_VALUE_CLASS}>{payee.name}</dd>
                 <dt style={TRANSFER_LABEL_STYLE}>{text.fieldIban}</dt>
                 <dd className={`${TRANSFER_VALUE_CLASS} break-all`}>
-                  {groupIban(bankAccount.iban)}
+                  {groupIban(payee.iban)}
                 </dd>
-                {bankAccount.bic && (
+                {payee.bic && (
                   <>
                     <dt style={TRANSFER_LABEL_STYLE}>{text.fieldBic}</dt>
-                    <dd className={TRANSFER_VALUE_CLASS}>{bankAccount.bic}</dd>
+                    <dd className={TRANSFER_VALUE_CLASS}>{payee.bic}</dd>
                   </>
                 )}
                 {remittance && (

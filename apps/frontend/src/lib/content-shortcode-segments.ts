@@ -102,11 +102,15 @@ export interface SupportLadderQrStyle {
   image?: string;
 }
 
-/** The bank account, with its per-interval presentation. */
+/**
+ * The payment block, as the page describes it.
+ *
+ * Who is paid is not here: the payee, the account and the bank are set under
+ * Sponsoring in the dashboard and reach the ladder with the sponsors' figures.
+ * What is left is what genuinely belongs to this page, being the words on the
+ * transfer and how the block presents itself per interval.
+ */
 export interface SupportLadderBankAccount {
-  beneficiaryName: string;
-  iban: string;
-  bic?: string;
   /** What the payer writes on an ordinary transfer. */
   purposeDonation?: string;
   /**
@@ -360,10 +364,6 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
   const node = childrenOf(ladder, "bankaccount")[0];
   if (!node) return undefined;
 
-  const beneficiaryName = getStringParam(node.params.name)?.trim();
-  const iban = getStringParam(node.params.iban)?.trim();
-  if (!beneficiaryName || !iban) return undefined;
-
   const variants: SupportLadderVariant[] = [];
   const seen = new Set<string>();
   // The same rule as for options: one recommendation, the first one written.
@@ -390,9 +390,6 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
   }
 
   return {
-    beneficiaryName,
-    iban,
-    bic: getStringParam(node.params.bic)?.trim() || undefined,
     purposeDonation:
       getStringParam(node.params.purposeDonation)?.trim() ||
       getStringParam(node.params.purpose)?.trim() ||

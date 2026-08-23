@@ -1,11 +1,7 @@
-import { CoinsIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import { BankIcon, CoinsIcon, MedalIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 
-import {
-  SPONSORING_DEFAULTS,
-  type RunningCostItem,
-  type SponsoringConfig,
-} from "@lmaa/contracts";
+import { SPONSORING_DEFAULTS, type RunningCostItem, type SponsoringConfig } from "@lmaa/contracts";
 import { formatEuroCents } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -23,10 +19,13 @@ interface CostRow extends RunningCostItem {
   id: string;
 }
 
-/** The running costs and the threshold, as the form holds them. */
+/** Everything the settings hold, as the form holds it whilst being edited. */
 interface CostDraft {
   costs: CostRow[];
   minAmountCents: number;
+  payeeName: string;
+  payeeIban: string;
+  payeeBic: string;
 }
 
 let costRowCount = 0;
@@ -55,6 +54,9 @@ function toDraft(config: SponsoringConfig | undefined): CostDraft {
   return {
     costs: (config?.costs ?? []).map((item) => ({ ...item, id: nextCostId() })),
     minAmountCents: config?.minAmountCents ?? SPONSORING_DEFAULTS.minAmountCents,
+    payeeName: config?.payeeName ?? "",
+    payeeIban: config?.payeeIban ?? "",
+    payeeBic: config?.payeeBic ?? "",
   };
 }
 
@@ -68,6 +70,9 @@ function toConfig(draft: CostDraft): SponsoringConfig {
   return {
     costs: draft.costs.map(({ id: _id, ...item }) => item),
     minAmountCents: draft.minAmountCents,
+    payeeName: draft.payeeName,
+    payeeIban: draft.payeeIban,
+    payeeBic: draft.payeeBic,
   };
 }
 
@@ -105,95 +110,142 @@ export function SponsoringSettingsPage() {
 
   return (
     <PageLayout>
-      <PageHeader title={messages.layout.sidebar.sponsoringSettings} />
+      <PageHeader title={messages.layout.sidebar.sponsoringSettings}>
+        {/* One button for the page, because both cards edit one configuration
+            and one write stores it. Two identical buttons would ask which. */}
+        <SaveActionButton
+          onClick={() => saveConfig.mutate(toConfig(current), { onSuccess: () => setDraft(null) })}
+          disabled={draft === null || saveConfig.isPending}
+          busy={saveConfig.isPending}
+          label={saveConfig.isPending ? common.saving : common.save}
+        />
+      </PageHeader>
 
       <PageBody className="overflow-y-auto">
-        <DashboardSection>
-          <DashboardSection.Header
-            icon={<CoinsIcon weight="duotone" className="size-4" />}
-            title={text.costsTitle}
-            subtitle={`${text.costsHint} ${formatEuroCents(totalCents)}`}
-            addOn={
-              <SaveActionButton
-                onClick={() =>
-                  saveConfig.mutate(toConfig(current), { onSuccess: () => setDraft(null) })
-                }
-                disabled={draft === null || saveConfig.isPending}
-                busy={saveConfig.isPending}
-                label={saveConfig.isPending ? common.saving : common.save}
-                size="control"
-              />
-            }
-          />
-          <DashboardSection.Body>
-            <div className="space-y-3">
-              {current.costs.map((item, index) => (
-                <div key={item.id} className="flex items-end gap-3">
-                  <DashboardInput
-                    label={index === 0 ? text.costLabelLabel : undefined}
-                    value={item.label}
-                    fieldClassName="flex-1"
-                    onChange={(event) => updateCost(item.id, { label: event.target.value })}
-                  />
-                  <DashboardNumberInput
-                    label={index === 0 ? text.costAmountLabel : undefined}
-                    value={item.amountCents / 100}
-                    min={0}
-                    step={1}
-                    className="w-32"
-                    onChange={(event) =>
-                      updateCost(item.id, {
-                        amountCents: Math.round(Number(event.target.value) * 100),
-                      })
-                    }
-                  />
-                  <DashboardButton
-                    variant="ghost"
-                    aria-label={common.delete}
-                    onClick={() =>
-                      updateConfig({
-                        ...current,
-                        costs: current.costs.filter((row) => row.id !== item.id),
-                      })
-                    }
-                  >
-                    <TrashIcon weight="duotone" className="size-4" />
-                  </DashboardButton>
+        {/* The items on the left and the payee on the right, because the list
+            is read down whilst the three lines beside it are read across. */}
+        <div className="grid gap-4 md:grid-cols-7 items-start">
+          <DashboardSection className="md:col-span-3">
+            <DashboardSection.Header
+              icon={<CoinsIcon weight="duotone" className="size-4" />}
+              title={text.costsTitle}
+              addOn={
+                // The sum stands in the header's own row rather than under the
+                // title, because it is the answer this card exists to give and a
+                // subtitle is where explanations go.
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-[var(--ds-text-muted)]">{text.costsHint}</span>
+                  <span className="text-lg font-semibold tabular-nums text-[var(--ds-text)]">
+                    {formatEuroCents(totalCents)}
+                  </span>
                 </div>
-              ))}
+              }
+            />
+            <DashboardSection.Body>
+              <div className="space-y-3">
+                {current.costs.map((item, index) => (
+                  <div key={item.id} className="flex items-end gap-3">
+                    <DashboardInput
+                      label={index === 0 ? text.costLabelLabel : undefined}
+                      value={item.label}
+                      fieldClassName="flex-1"
+                      onChange={(event) => updateCost(item.id, { label: event.target.value })}
+                    />
+                    <DashboardNumberInput
+                      label={index === 0 ? text.costAmountLabel : undefined}
+                      value={item.amountCents / 100}
+                      min={0}
+                      step={1}
+                      className="w-32"
+                      onChange={(event) =>
+                        updateCost(item.id, {
+                          amountCents: Math.round(Number(event.target.value) * 100),
+                        })
+                      }
+                    />
+                    <DashboardButton
+                      variant="ghost"
+                      aria-label={common.delete}
+                      onClick={() =>
+                        updateConfig({
+                          ...current,
+                          costs: current.costs.filter((row) => row.id !== item.id),
+                        })
+                      }
+                    >
+                      <TrashIcon weight="duotone" className="size-4" />
+                    </DashboardButton>
+                  </div>
+                ))}
 
-              <DashboardButton
-                variant="ghost"
-                onClick={() =>
-                  updateConfig({
-                    ...current,
-                    costs: [...current.costs, { id: nextCostId(), label: "", amountCents: 0 }],
-                  })
-                }
-              >
-                <PlusIcon weight="bold" className="size-4" />
-                {text.addCost}
-              </DashboardButton>
-
-              <div className="pt-2 border-t border-[var(--ds-border-subtle)]">
-                <DashboardNumberInput
-                  label={text.minAmountLabel}
-                  hint={text.minAmountHint}
-                  value={current.minAmountCents / 100}
-                  min={0}
-                  step={1}
-                  className="w-32"
-                  onChange={(event) =>
+                <DashboardButton
+                  variant="ghost"
+                  onClick={() =>
                     updateConfig({
                       ...current,
-                      minAmountCents: Math.round(Number(event.target.value) * 100),
+                      costs: [...current.costs, { id: nextCostId(), label: "", amountCents: 0 }],
                     })
                   }
+                >
+                  <PlusIcon weight="bold" className="size-4" />
+                  {text.addCost}
+                </DashboardButton>
+              </div>
+            </DashboardSection.Body>
+          </DashboardSection>
+          {/* Its own card, because it answers a different question from the
+              items above it: not what the year costs, but what it takes to be
+              named for one. */}
+          <DashboardSection className="md:col-span-3">
+            <DashboardSection.Header
+              icon={<MedalIcon weight="duotone" className="size-4" />}
+              title={text.minAmountTitle}
+            />
+            <DashboardSection.Body>
+              <DashboardNumberInput
+                label={text.minAmountLabel}
+                hint={text.minAmountHint}
+                value={current.minAmountCents / 100}
+                min={0}
+                step={1}
+                className="w-32"
+                onChange={(event) =>
+                  updateConfig({
+                    ...current,
+                    minAmountCents: Math.round(Number(event.target.value) * 100),
+                  })
+                }
+              />
+            </DashboardSection.Body>
+          </DashboardSection>
+          <DashboardSection className="md:col-span-4">
+            <DashboardSection.Header
+              icon={<BankIcon weight="duotone" className="size-4" />}
+              title={text.payeeTitle}
+              subtitle={text.payeeHint}
+            />
+            <DashboardSection.Body>
+              <div className="grid gap-4 md:grid-cols-3">
+                <DashboardInput
+                  label={text.payeeNameLabel}
+                  value={current.payeeName}
+                  onChange={(event) => updateConfig({ ...current, payeeName: event.target.value })}
+                />
+                <DashboardInput
+                  label={text.payeeIbanLabel}
+                  value={current.payeeIban}
+                  onChange={(event) => updateConfig({ ...current, payeeIban: event.target.value })}
+                />
+                <DashboardInput
+                  label={text.payeeBicLabel}
+                  hint={text.payeeBicHint}
+                  value={current.payeeBic}
+                  onChange={(event) => updateConfig({ ...current, payeeBic: event.target.value })}
                 />
               </div>
-            </div>
-          </DashboardSection.Body>
-        </DashboardSection>
+            </DashboardSection.Body>
+          </DashboardSection>
+        </div>
       </PageBody>
     </PageLayout>
   );

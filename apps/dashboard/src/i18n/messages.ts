@@ -1269,10 +1269,17 @@ export interface DashboardMessages {
       personTitle: string;
       contributionTitle: string;
       costsTitle: string;
+      payeeTitle: string;
+      payeeHint: string;
+      payeeNameLabel: string;
+      payeeIbanLabel: string;
+      payeeBicLabel: string;
+      payeeBicHint: string;
       costsHint: string;
       costLabelLabel: string;
       costAmountLabel: string;
       addCost: string;
+      minAmountTitle: string;
       minAmountLabel: string;
       minAmountHint: string;
       deleteTitle: string;
@@ -2931,10 +2938,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         personTitle: "Person",
         contributionTitle: "Beitrag",
         costsTitle: "Laufende Kosten",
-        costsHint: "Summe im Jahr:",
+        payeeTitle: "Empfänger",
+        payeeHint: "Wohin die Überweisungen gehen. Steht auf der Zahlungskarte und im GiroCode.",
+        payeeNameLabel: "Kontoinhaber",
+        payeeIbanLabel: "IBAN",
+        payeeBicLabel: "BIC",
+        payeeBicHint: "Innerhalb des EWR nicht nötig.",
+        costsHint: "Summe im Jahr",
         costLabelLabel: "Posten",
         costAmountLabel: "€ pro Jahr",
         addCost: "Posten hinzufügen",
+        minAmountTitle: "Mindestbetrag",
         minAmountLabel: "Mindestbetrag (€)",
         minAmountHint: "Ab diesem Betrag steht jemand ein Jahr lang auf der Seite.",
         deleteTitle: "Sponsor löschen",
@@ -4610,10 +4624,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         personTitle: "Person",
         contributionTitle: "Contribution",
         costsTitle: "Running costs",
-        costsHint: "Total per year:",
+        payeeTitle: "Payee",
+        payeeHint: "Where the transfers go. Shown on the payment card and encoded into the GiroCode.",
+        payeeNameLabel: "Account holder",
+        payeeIbanLabel: "IBAN",
+        payeeBicLabel: "BIC",
+        payeeBicHint: "Not needed inside the EEA.",
+        costsHint: "Total per year",
         costLabelLabel: "Item",
         costAmountLabel: "€ per year",
         addCost: "Add item",
+        minAmountTitle: "Minimum",
         minAmountLabel: "Minimum (€)",
         minAmountHint: "From this amount somebody stands on the site for a year.",
         deleteTitle: "Delete sponsor",

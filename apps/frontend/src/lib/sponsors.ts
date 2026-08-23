@@ -13,6 +13,9 @@ export const EMPTY_SPONSORS: SponsorsPayload = {
   costsTotalCents: 0,
   coveredCents: 0,
   minAmountCents: 0,
+  payeeName: "",
+  payeeIban: "",
+  payeeBic: "",
 };
 
 /**

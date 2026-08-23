@@ -6,8 +6,13 @@ import {
   type SiteVariableValues,
 } from "./site-variables.js";
 
-/** The costs of a year, as the dashboard would hold them. */
-const values: SiteVariableValues = { annualCostCents: 18_000 };
+/** The settings, as the dashboard would hold them. */
+const values: SiteVariableValues = {
+  annualCostCents: 18_000,
+  payeeName: "Frank Gregor",
+  payeeIban: "AT551900104704666811",
+  payeeBic: "TRBKATW2XXX",
+};
 
 /** Money the way the site writes it, standing in for the real formatter. */
 function money(cents: number): string {
@@ -33,7 +38,20 @@ describe("expandSiteVariables", () => {
 
   it("rounds the month to the cent", () => {
     // 100 cents over twelve months is 8.33, and a third of a cent is not money.
-    expect(expandSiteVariables("{monthlyCost}", { annualCostCents: 100 }, money)).toBe("0,08 €");
+    expect(expandSiteVariables("{monthlyCost}", { ...values, annualCostCents: 100 }, money)).toBe(
+      "0,08 €",
+    );
+  });
+
+  it("writes the payee the way a transfer names them", () => {
+    expect(expand("An {payeeName}, {payeeIban}, {payeeBic}.")).toBe(
+      "An Frank Gregor, AT55 1900 1047 0466 6811, TRBKATW2XXX.",
+    );
+  });
+
+  it("prints the account in fours, the way a banking app shows it", () => {
+    // Somebody is going to compare the two character by character.
+    expect(expand("{payeeIban}")).toBe("AT55 1900 1047 0466 6811");
   });
 
   it("leaves a name it does not know exactly as it was", () => {

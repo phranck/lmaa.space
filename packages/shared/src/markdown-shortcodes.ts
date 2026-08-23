@@ -345,12 +345,10 @@ const SUPPORT_LADDER_BANK_ACCOUNT: MarkdownShortcodeDefinition = {
   target: "forbidden",
   placement: "block",
   label: "Bankverbindung",
-  description: "Empfänger und Kontodaten. Enthält je einen variant-Block pro Intervall.",
-  examples: ['[[bankaccount name="Frank Gregor" iban="AT55 1900 1047 0466 6811"]]'],
+  description:
+    "Der Zahlungsblock. Empfänger, IBAN und BIC stehen unter Sponsoring/Einstellungen und nicht hier. Enthält je einen variant-Block pro Intervall.",
+  examples: ['[[bankaccount purposeDonation="Spende: lmaa.space"]]'],
   params: [
-    { name: "name", type: "string", required: true, label: "Kontoinhaber" },
-    { name: "iban", type: "string", required: true, label: "IBAN" },
-    { name: "bic", type: "string", label: "BIC" },
     {
       name: "purposeDonation",
       type: "string",
@@ -458,8 +456,7 @@ const SUPPORT_LADDER_PAYPAL: MarkdownShortcodeDefinition = {
 const SUPPORT_LADDER_EXAMPLE = [
   "[[support-ladder",
   "  [[bankaccount",
-  '    name="Frank Gregor"',
-  '    iban="AT55 1900 1047 0466 6811"',
+  '    purposeDonation="Spende: lmaa.space"',
   "    recommended",
   '    [[variant key="once"    title="Überweisung oder GiroCode" text="Kommt ohne Umweg an."]]',
   '    [[variant key="monthly" title="Dauerauftrag einrichten"   text="Läuft direkt zwischen den Banken."]]',
