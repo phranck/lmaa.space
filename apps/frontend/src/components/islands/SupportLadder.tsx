@@ -114,6 +114,16 @@ const CURRENCY_SYMBOL =
   EURO_WHOLE.formatToParts(0).find((part) => part.type === "currency")?.value ?? "€";
 
 /**
+ * The reference line before there is a reference.
+ *
+ * Five groups of four, which is what a finished one measures, so the row keeps
+ * its width and nothing shifts when the real value arrives. It stands in the
+ * card from the start rather than appearing later, because a line that is
+ * visibly missing is what sends somebody to the form above it.
+ */
+const REFERENCE_MASK = "XXXX XXXX XXXX XXXX XXXX";
+
+/**
  * Notes the reference the site has just issued, with the moment it happened.
  *
  * The moment is taken here rather than from the server, because what it decides
@@ -1135,10 +1145,18 @@ export default function SupportLadder({
                     <dd className={TRANSFER_VALUE_CLASS}>{remittance}</dd>
                   </>
                 )}
-                {creditorReference && issued && (
+                {shownKey === "sponsor" && (
                   <>
                     <dt style={TRANSFER_LABEL_STYLE}>{text.fieldReference}</dt>
-                    <dd className={TRANSFER_VALUE_CLASS}>{issued.referenceFormatted}</dd>
+                    <dd
+                      className={TRANSFER_VALUE_CLASS}
+                      style={issued ? undefined : { color: "var(--ds-danger-text)" }}
+                      // The masked line is meaningless read out, so what it
+                      // stands for is said instead.
+                      aria-label={issued ? undefined : text.referenceMissing}
+                    >
+                      {issued ? issued.referenceFormatted : REFERENCE_MASK}
+                    </dd>
                   </>
                 )}
                 <dt style={TRANSFER_LABEL_STYLE}>{text.fieldAmount}</dt>

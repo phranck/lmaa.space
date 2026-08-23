@@ -61,6 +61,10 @@ export const SUPPORT_LADDER_LABELS = {
   fieldBic: { value: "BIC", label: "Beschriftung der Zeile BIC" },
   fieldPurpose: { value: "Verwendung", label: "Beschriftung der Zeile Verwendungszweck" },
   fieldReference: { value: "Referenz", label: "Beschriftung der Zeile Referenz" },
+  referenceMissing: {
+    value: "Referenz noch nicht vergeben",
+    label: "Vorlesbarer Text, solange die Referenz fehlt",
+  },
   fieldAmount: { value: "Betrag", label: "Beschriftung der Zeile Betrag" },
   amountOpen: { value: "du entscheidest", label: "Text, wenn kein Betrag gewählt ist" },
 } as const satisfies Record<string, { value: string; label: string }>;
