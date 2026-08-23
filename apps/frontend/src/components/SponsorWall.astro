@@ -1,6 +1,6 @@
 ---
 import SponsorCard from "@/components/SponsorCard.astro";
-import { renderMarkdown } from "@/lib/markdown";
+import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { SponsorsPayload } from "@lmaa/contracts";
 import { daysLeft, fullName } from "@lmaa/shared";
 
@@ -40,10 +40,10 @@ const COVERED_DEFAULT =
   "Die laufenden Kosten dieses Jahres sind damit gedeckt. Jeder weitere Beitrag geht in die Arbeit am Verzeichnis.";
 const MISSING_DEFAULT = "Noch {missing} bis die laufenden Kosten dieses Jahres gedeckt sind.";
 
-const introHtml = text ? await renderMarkdown(text, {}, { breaks: true }) : "";
+const introHtml = text ? await renderMarkdown(text, { breaks: true }) : "";
 const claims = await Promise.all(
   payload.sponsors.map((sponsor) =>
-    sponsor.claim ? renderMarkdown(sponsor.claim, {}, { breaks: true }) : Promise.resolve(""),
+    sponsor.claim ? renderMarkdown(sponsor.claim, { breaks: true }) : Promise.resolve(""),
   ),
 );
 

@@ -32,6 +32,8 @@ export * from "./utils/social-media.js";
 export * from "./utils/rejection-token.js";
 /** Shop ID encoding/decoding for public URLs. */
 export * from "./utils/shop-token.js";
+/** Figures the settings own, named in a text as `{annualCost}` and expanded on render. */
+export * from "./utils/site-variables.js";
 /** User-friendly token expansion (`U+XXXX`, `{nbhy}`, `&#8209;`) for plain-text fields. */
 export * from "./utils/text-tokens.js";
 /** The ISO 11649 creditor reference a transfer carries instead of a sentence. */
