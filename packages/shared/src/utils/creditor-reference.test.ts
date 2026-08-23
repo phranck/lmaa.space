@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  REFERENCE_BODY_ALPHABET,
   buildCreditorReference,
-  creditorReferenceBody,
   formatCreditorReference,
   isValidCreditorReference,
+  normalizeCreditorReference,
   randomReferenceBody,
 } from "./creditor-reference.js";
 
@@ -65,17 +66,22 @@ describe("isValidCreditorReference", () => {
   });
 });
 
-describe("creditorReferenceBody", () => {
-  it("gives back what was put in", () => {
-    expect(creditorReferenceBody(buildCreditorReference("SPON26001"))).toBe("SPON26001");
+describe("normalizeCreditorReference", () => {
+  it("gives back what was issued", () => {
+    const issued = buildCreditorReference("SPON26001");
+    expect(normalizeCreditorReference(issued)).toBe(issued);
   });
 
   it("reads the printed form", () => {
-    expect(creditorReferenceBody("RF18 SPON 2600 1")).toBe("SPON26001");
+    expect(normalizeCreditorReference("RF18 SPON 2600 1")).toBe("RF18SPON26001");
+  });
+
+  it("restores the case a bank may have dropped", () => {
+    expect(normalizeCreditorReference("rf18 spon 2600 1")).toBe("RF18SPON26001");
   });
 
   it("gives nothing for a damaged reference", () => {
-    expect(creditorReferenceBody("RF19SPON26001")).toBeNull();
+    expect(normalizeCreditorReference("RF19SPON26001")).toBeNull();
   });
 });
 
@@ -101,15 +107,28 @@ describe("randomReferenceBody", () => {
     expect(randomReferenceBody(15, counting(0))).toHaveLength(15);
   });
 
-  it("draws only letters and digits", () => {
-    expect(randomReferenceBody(21, counting(0))).toMatch(/^[A-Za-z0-9]{21}$/);
+  it("draws only from the unambiguous alphabet", () => {
+    expect(randomReferenceBody(21, counting(0))).toMatch(
+      new RegExp(`^[${REFERENCE_BODY_ALPHABET}]{21}$`),
+    );
   });
 
-  it("throws away bytes that would favour the start of the alphabet", () => {
-    // 248 is the first byte at or above the ceiling of 4 * 62, so it is skipped
-    // and the next byte is taken instead.
-    const drawn = randomReferenceBody(1, counting(248));
-    expect(drawn).toBe(randomReferenceBody(1, counting(249)));
+  it("leaves out the characters that are misread on a statement", () => {
+    for (const character of ["I", "L", "O", "U"]) {
+      expect(REFERENCE_BODY_ALPHABET).not.toContain(character);
+    }
+    expect(REFERENCE_BODY_ALPHABET).toBe(REFERENCE_BODY_ALPHABET.toUpperCase());
+  });
+
+  it("gives every character of the alphabet the same weight", () => {
+    // One full cycle of byte values, so a draw that favoured the start of the
+    // alphabet would show up as an uneven count.
+    const drawn = randomReferenceBody(256, counting(0));
+    const timesPerCharacter = 256 / REFERENCE_BODY_ALPHABET.length;
+
+    for (const character of REFERENCE_BODY_ALPHABET) {
+      expect(drawn.split(character).length - 1).toBe(timesPerCharacter);
+    }
   });
 
   it("builds a valid reference from what it drew", () => {

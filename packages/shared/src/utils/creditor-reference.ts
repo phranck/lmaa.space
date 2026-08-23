@@ -12,8 +12,23 @@
  * payee recognises on a statement.
  */
 
-/** Letters and digits, in the order ISO 11649 clause 5 permits them. */
-const REFERENCE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+/**
+ * The characters a drawn reference body is made of.
+ *
+ * ISO 11649 clause 5 permits every letter and digit, and this takes a narrower
+ * set of 32 for two reasons that both cost a payment.
+ *
+ * Case carries no meaning: ISO/IEC 7064 reads `a` and `A` as the same number, so
+ * an app or a bank that upper-cases a reference leaves one that still checks out
+ * but no longer matches the row it was issued for. Drawing upper case only
+ * settles that.
+ *
+ * `I`, `L`, `O` and `U` are left out because somebody types this into a banking
+ * app from a page and reads it back off a statement, where `O` against `0` and
+ * `I` against `1` are the mistakes people actually make. The check digits catch
+ * a mistyped reference, which is not the same as the payment finding its record.
+ */
+export const REFERENCE_BODY_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 /** What follows `RF` and the two check digits, at most, per ISO 11649 clause 5. */
 export const MAX_CREDITOR_REFERENCE_BODY = 21;
@@ -89,14 +104,20 @@ export function isValidCreditorReference(reference: string): boolean {
 }
 
 /**
- * The body of a reference, which is what identifies the record behind it.
+ * Turns a reference as it arrived into the form the record is stored under.
  *
- * @param reference - The reference as it arrived, spaces allowed.
- * @returns The body, or `null` when the reference does not hold up.
+ * The printed spaces are presentation and come off. Case comes off with them,
+ * because ISO/IEC 7064 reads `a` and `A` as the same number, so a reference that
+ * arrives lower-cased still checks out whilst no longer matching the row it was
+ * issued for. Every reference is drawn in upper case, so upper case is the form
+ * to compare in.
+ *
+ * @param reference - The reference as it arrived, spaces and any case allowed.
+ * @returns The reference as it is stored, or `null` when it does not hold up.
  */
-export function creditorReferenceBody(reference: string): string | null {
-  const compact = reference.replace(/\s+/g, "");
-  return isValidCreditorReference(compact) ? compact.slice(4) : null;
+export function normalizeCreditorReference(reference: string): string | null {
+  const compact = reference.replace(/\s+/g, "").toUpperCase();
+  return isValidCreditorReference(compact) ? compact : null;
 }
 
 /**
@@ -116,7 +137,7 @@ export function formatCreditorReference(reference: string): string {
 }
 
 /**
- * Draws a body of random letters and digits.
+ * Draws a body from `REFERENCE_BODY_ALPHABET`, which holds 5 bits per character.
  *
  * @param length - How many characters to draw.
  * @param randomValues - Filled with cryptographically secure bytes.
@@ -126,9 +147,10 @@ export function randomReferenceBody(
   length: number,
   randomValues: (size: number) => Uint8Array,
 ): string {
-  const alphabet = REFERENCE_ALPHABET;
+  const alphabet = REFERENCE_BODY_ALPHABET;
   // Rejection sampling, so every character of the alphabet is equally likely.
-  // Taking a byte modulo 62 would favour the first 8 of them.
+  // A byte taken modulo an alphabet that does not divide 256 would favour the
+  // characters at its start, and this holds whatever the alphabet becomes.
   const ceiling = Math.floor(256 / alphabet.length) * alphabet.length;
   let drawn = "";
 
