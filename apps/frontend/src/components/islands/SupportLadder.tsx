@@ -67,6 +67,18 @@ const EURO_EXACT = new Intl.NumberFormat("de-AT", {
 
 const MONTHS_PER_YEAR = 12;
 
+/** The label of one line on the transfer card. */
+const TRANSFER_LABEL_STYLE = { color: "var(--ds-text-subtle)" };
+
+/**
+ * One value on the transfer card.
+ *
+ * Monospaced, because these are figures somebody copies into a banking app and
+ * compares character by character. The slight reduction takes back the width a
+ * monospaced face gains over the body face at the same size.
+ */
+const TRANSFER_VALUE_CLASS = "m-0 font-mono font-semibold text-[0.92em]";
+
 /**
  * The currency symbol, taken from the formatter rather than typed out, so it
  * follows the locale the amounts are already formatted in.
@@ -278,7 +290,7 @@ function RouteIcon({ name }: { name?: string }) {
 function OutboundRoute({ route }: { route: SupportLadderRoute }) {
   return (
     <div
-      className="lmaa-card mt-3"
+      className="lmaa-card lmaa-payment-card mt-3"
       style={{
         border: "var(--card-border-width) solid",
         padding: "var(--card-padding)",
@@ -311,11 +323,17 @@ function OutboundRoute({ route }: { route: SupportLadderRoute }) {
         href={route.url}
         rel="noopener noreferrer"
         target="_blank"
-        className="mt-6 ml-auto flex w-fit items-center gap-2 h-9 px-4 border text-sm font-semibold"
+        className="mt-6 ml-auto flex w-fit items-center gap-2 h-9 px-4 text-sm font-semibold transition-colors"
         style={{
           borderRadius: "var(--radius-card-inner)",
-          borderColor: "var(--ds-border)",
-          color: "var(--ds-text)",
+          // The accent draws the line, the wash behind it only lifts the button
+          // off the card. Filled with the accent itself it would shout, and the
+          // text on it would need a colour of its own to stay readable.
+          border: "var(--card-border-width) solid var(--ds-accent)",
+          background: "var(--ds-accent-tint)",
+          // The accent's own colour, two steps darker than the line: the line
+          // itself measures 2.01:1 on this wash, this shade measures 6.12:1.
+          color: "var(--ds-accent-text)",
         }}
       >
         {route.button}
@@ -386,7 +404,9 @@ function AmountGrid({
   const customActive = customAmount.trim() !== "";
 
   return (
-    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+    // The suggested amounts stand in one row wherever the page is wide enough,
+    // because they are read against each other rather than one after the other.
+    <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {interval.options.map((option, index) => {
         const active = !customActive && option.amountEur === amountEur;
         return (
@@ -397,7 +417,7 @@ function AmountGrid({
             type="button"
             aria-pressed={active}
             onClick={() => onChoose(option.amountEur)}
-            className="lmaa-card relative flex flex-col gap-1.5 text-left transition-transform hover:-translate-y-0.5"
+            className="lmaa-card lmaa-amount-card relative flex flex-col gap-1.5 text-left hover:-translate-y-0.5"
             style={{
               border: "var(--card-border-width) solid",
               padding: "var(--card-padding)",
@@ -446,13 +466,22 @@ function AmountGrid({
 
       {interval.custom && (
         <label
-          className="lmaa-card flex flex-col gap-1.5"
+          // The free amount is the alternative to all the suggestions rather
+          // than one more of them, so it stands on a row of its own, two cards
+          // wide and centred under them. Spanning columns also keeps it out of
+          // the track sizing, which its input would otherwise decide instead of
+          // the amounts.
+          className="lmaa-card col-span-full sm:col-span-2 lg:col-span-2 lg:col-start-2 flex flex-col gap-1.5"
           style={{
             border: "var(--card-border-width) dashed",
             padding: "var(--card-padding)",
             borderRadius: "var(--radius-card)",
-            borderColor: customActive ? "var(--ds-accent)" : "var(--ds-border)",
-            background: customActive ? "var(--ds-accent-tint)" : "transparent",
+            // It stands half a step off the page rather than on the same white
+            // as the amounts, because it is a field to fill in rather than one
+            // more thing to pick. The line is the one the amounts carry, so the
+            // dash alone tells it apart.
+            borderColor: customActive ? "var(--ds-accent)" : "var(--ds-border-subtle)",
+            background: customActive ? "var(--ds-accent-tint)" : "var(--ds-surface-soft)",
           }}
         >
           <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
@@ -704,7 +733,7 @@ export default function SupportLadder({
 
       {bankAccount && variant && (
         <div
-          className="lmaa-card mt-6"
+          className="lmaa-card lmaa-payment-card mt-6"
           style={{
             border: "var(--card-border-width) solid",
             padding: "var(--card-padding)",
@@ -754,34 +783,44 @@ export default function SupportLadder({
               />
             )}
 
-            <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm content-start min-w-[16rem] flex-1">
-              <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldName}</dt>
-              <dd className="m-0 font-mono font-semibold text-[0.92em]">{bankAccount.beneficiaryName}</dd>
-              <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldIban}</dt>
-              <dd className="m-0 font-mono font-semibold text-[0.92em] break-all">
-                {groupIban(bankAccount.iban)}
-              </dd>
-              {bankAccount.bic && (
-                <>
-                  <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldBic}</dt>
-                  <dd className="m-0 font-mono font-semibold text-[0.92em]">{bankAccount.bic}</dd>
-                </>
-              )}
-              {bankAccount.purpose && (
-                <>
-                  <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldPurpose}</dt>
-                  <dd className="m-0 font-mono font-semibold text-[0.92em]">{bankAccount.purpose}</dd>
-                </>
-              )}
-              <dt style={{ color: "var(--ds-text-subtle)" }}>{text.fieldAmount}</dt>
-              <dd className="m-0 font-mono font-semibold text-[0.92em]">
-                {amountEur > 0 ? EURO_EXACT.format(amountEur) : text.amountOpen}
-                {interval.key === "monthly" && amountEur > 0 ? ` ${text.perMonth}` : ""}
-              </dd>
-            </dl>
-          </div>
+            {/* The figures and the notice about them form the column beside the
+                code, so the notice starts where they start rather than under
+                the code as well. */}
+            <div className="flex min-w-[16rem] flex-1 flex-col">
+              <dl
+                // A list of five short figures, so it is set tight: the rows
+                // belong together and reading them as one block is the point.
+                className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-0.5 text-base content-start"
+                style={{ lineHeight: "var(--ds-leading-lg)" }}
+              >
+                <dt style={TRANSFER_LABEL_STYLE}>{text.fieldName}</dt>
+                <dd className={TRANSFER_VALUE_CLASS}>{bankAccount.beneficiaryName}</dd>
+                <dt style={TRANSFER_LABEL_STYLE}>{text.fieldIban}</dt>
+                <dd className={`${TRANSFER_VALUE_CLASS} break-all`}>
+                  {groupIban(bankAccount.iban)}
+                </dd>
+                {bankAccount.bic && (
+                  <>
+                    <dt style={TRANSFER_LABEL_STYLE}>{text.fieldBic}</dt>
+                    <dd className={TRANSFER_VALUE_CLASS}>{bankAccount.bic}</dd>
+                  </>
+                )}
+                {bankAccount.purpose && (
+                  <>
+                    <dt style={TRANSFER_LABEL_STYLE}>{text.fieldPurpose}</dt>
+                    <dd className={TRANSFER_VALUE_CLASS}>{bankAccount.purpose}</dd>
+                  </>
+                )}
+                <dt style={TRANSFER_LABEL_STYLE}>{text.fieldAmount}</dt>
+                <dd className={TRANSFER_VALUE_CLASS}>
+                  {amountEur > 0 ? EURO_EXACT.format(amountEur) : text.amountOpen}
+                  {interval.key === "monthly" && amountEur > 0 ? ` ${text.perMonth}` : ""}
+                </dd>
+              </dl>
 
-          {variant.info && <InfoCard text={variant.info} />}
+              {variant.info && <InfoCard text={variant.info} />}
+            </div>
+          </div>
         </div>
       )}
 
@@ -793,7 +832,6 @@ export default function SupportLadder({
         .map((route) => (
           <OutboundRoute key={`${route.token}-${route.url}`} route={route} />
         ))}
-
     </section>
   );
 }

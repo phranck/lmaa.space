@@ -94,6 +94,7 @@ export const MARKDOWN_SHORTCODE_TOKENS = {
   youtube: "youtube",
   rejectedShopsTable: "rejected-shops-table",
   supportLadder: "support-ladder",
+  sponsors: "sponsors",
 } as const;
 
 /**
@@ -486,6 +487,32 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
         name: "id",
         type: "string",
         label: "Eigene Kennung",
+      },
+    ],
+  },
+  {
+    token: MARKDOWN_SHORTCODE_TOKENS.sponsors,
+    renderMode: "island",
+    target: "forbidden",
+    placement: "block",
+    label: "Jahres-Sponsoren",
+    description:
+      "Die Menschen, die gerade die laufenden Kosten tragen. Wer dort steht, pflegst du unter Sponsoring; hier stehen nur Überschrift und Text.",
+    examples: [
+      '[[sponsors title="Die aktuellen Jahres-Sponsoren" text="Danke an alle, die das hier tragen."]]',
+    ],
+    params: [
+      { name: "title", type: "string", label: "Überschrift" },
+      { name: "text", type: "string", aliases: ["description"], label: "Text darüber" },
+      {
+        name: "covered",
+        type: "string",
+        label: "Satz, wenn die Kosten gedeckt sind",
+      },
+      {
+        name: "missing",
+        type: "string",
+        label: "Satz, solange etwas fehlt. {missing} wird durch den Betrag ersetzt",
       },
     ],
   },

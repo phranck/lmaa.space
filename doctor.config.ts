@@ -159,6 +159,9 @@ export default {
           "src/features/content/shops/ShopEditorFormContent.tsx",
           "src/features/content/shops/ShopEditorPage.tsx",
           "src/features/content/shops/ShopReminderSection.tsx",
+          "src/features/content/sponsors/SponsorsPage.tsx",
+          "src/features/content/support-prompts/SupportPromptEditorPage.tsx",
+          "src/features/content/support-prompts/SupportPromptsPage.tsx",
           "src/features/overview/SubmissionDialogs.tsx",
           "src/features/overview/SubmissionReviewPanel.tsx",
           "src/features/social/AccountFormDialog.tsx",
@@ -213,6 +216,7 @@ export default {
         files: [
           "src/features/content/hooks/useFooterConfig.ts",
           "src/features/content/shops/hooks/useAdminShops.ts",
+          "src/features/content/sponsors/hooks/useSponsors.ts",
           "src/features/system/hooks/useAdminMedia.ts",
           "src/features/templates/hooks/useEmailTemplates.ts",
         ],

@@ -34,4 +34,26 @@ describe("parseContentShortcodeSegments", () => {
       { type: "markdown", content: "[[rejected-shops-table:foo]]" },
     ]);
   });
+
+  it("carries both sentences about the year's costs from the sponsors block", () => {
+    expect(
+      parseContentShortcodeSegments(
+        '[[sponsors title="Sponsoren" covered="Alles gedeckt." missing="Es fehlen noch {missing}."]]',
+      ),
+    ).toEqual([
+      {
+        type: "sponsors",
+        title: "Sponsoren",
+        text: "",
+        covered: "Alles gedeckt.",
+        missing: "Es fehlen noch {missing}.",
+      },
+    ]);
+  });
+
+  it("leaves both sentences empty when the block names neither", () => {
+    expect(parseContentShortcodeSegments("[[sponsors]]")).toEqual([
+      { type: "sponsors", title: "", text: "", covered: "", missing: "" },
+    ]);
+  });
 });

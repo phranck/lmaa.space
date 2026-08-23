@@ -5,6 +5,7 @@ import { apiGet } from "@/lib/api";
 import {
   parseContentShortcodeSegments,
   type RejectedShopsTableIsland,
+  type SponsorsIsland,
   type SupportLadderIsland,
 } from "@/lib/content-shortcode-segments";
 import { stripMarkdown } from "@/lib/markdown";
@@ -20,6 +21,7 @@ export interface ContentPageView {
 export type RenderedContentSegment =
   | { type: "html"; html: string }
   | (RejectedShopsTableIsland & { initialData: PublicRejectedShopsResponse })
+  | SponsorsIsland
   | SupportLadderIsland;
 
 function emptyRejectedShopsResponse(

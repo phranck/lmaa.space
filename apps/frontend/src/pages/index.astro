@@ -1,12 +1,15 @@
 ---
 import FilterableCategoryGrid from "@/components/islands/FilterableCategoryGrid";
+import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
 import HeroLogo from "@/components/HeroLogo.astro";
 import UnsplashAttribution from "@/components/UnsplashAttribution.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
+import { loadSupportPrompts } from "@/lib/support-prompts";
 import type { Category } from "@lmaa/shared";
 
 const categories = await apiGet<Category[]>("/categories");
+const supportPrompts = await loadSupportPrompts("category-grid");
 const stats = await apiGet<{ shopCount: number; pendingReviewCount: number }>(
   "/stats",
 );
@@ -188,6 +191,15 @@ const jsonLd = {
     shopCount={shopCount}
     pendingReviewCount={pendingReviewCount}
   />
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <SupportPromptSlot
+      client:only="react"
+      slot="category-grid"
+      prompts={supportPrompts.prompts}
+      limits={supportPrompts.limits}
+    />
+  </div>
 
   <!-- CTA -->
   <section class="bg-amber-50 border-y border-amber-100">

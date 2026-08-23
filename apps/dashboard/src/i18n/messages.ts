@@ -69,6 +69,8 @@ export interface DashboardMessages {
       footerBuilder: string;
       markdownWidgets: string;
       supportPrompts: string;
+      sponsors: string;
+      sectionSponsoring: string;
       systemSettings: string;
       redirectUrls: string;
       socialPreview: string;
@@ -1235,6 +1237,42 @@ export interface DashboardMessages {
     };
   };
   system: {
+    sponsors: {
+      title: string;
+      newSponsor: string;
+      emptyTitle: string;
+      emptyHint: string;
+      nameLabel: string;
+      firstNameLabel: string;
+      lastNameLabel: string;
+      socialMediaLabel: string;
+      socialMediaHint: string;
+      imageLabel: string;
+      imageHint: string;
+      refreshPicture: string;
+      removePicture: string;
+      noPictureFound: string;
+      claimLabel: string;
+      claimHint: string;
+      amountLabel: string;
+      amountHint: string;
+      paidAtLabel: string;
+      paidAtHint: string;
+      remainingLabel: string;
+      daysLeft: string;
+      expired: string;
+      personTitle: string;
+      contributionTitle: string;
+      costsTitle: string;
+      costsHint: string;
+      costLabelLabel: string;
+      costAmountLabel: string;
+      addCost: string;
+      minAmountLabel: string;
+      minAmountHint: string;
+      deleteTitle: string;
+      deleteMessage: string;
+    };
     supportPrompts: {
       title: string;
       subtitle: string;
@@ -1267,11 +1305,16 @@ export interface DashboardMessages {
       limitsHint: string;
       maxShownLabel: string;
       snoozeDaysLabel: string;
-      deleteConfirm: string;
-      draft: string;
-      live: string;
-      expired: string;
-      scheduled: string;
+      placementTitle: string;
+      placementHint: string;
+      scheduleTitle: string;
+      windowColumn: string;
+      stateColumn: string;
+      emptyTitle: string;
+      emptyHint: string;
+      deleteTitle: string;
+      deleteMessage: string;
+      states: { draft: string; scheduled: string; live: string; expired: string };
     };
     settings: {
       title: string;
@@ -1610,6 +1653,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
         supportPrompts: "Einblendungen",
+        sponsors: "Jahressponsoren",
+        sectionSponsoring: "Sponsoring",
         systemSettings: "Einstellungen",
         redirectUrls: "Redirect URLs",
         socialPreview: "Social Media Preview",
@@ -2834,6 +2879,43 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
     },
     system: {
+      sponsors: {
+        title: "Jahressponsoren",
+        newSponsor: "Neuer Sponsor",
+        emptyTitle: "Noch keine Sponsoren",
+        emptyHint: "Wer die laufenden Kosten mitträgt, steht ein Jahr lang auf der Unterstützen-Seite.",
+        nameLabel: "Name",
+        firstNameLabel: "Vorname",
+        lastNameLabel: "Nachname",
+        socialMediaLabel: "Im Netz",
+        socialMediaHint:
+          "Adresse einfügen. Das Bild dahinter wird geholt, sobald die Adresse steht.",
+        imageLabel: "Bild",
+        imageHint: "Adresse eines Bildes. Leer heisst: kein Bild.",
+        refreshPicture: "Bild neu holen",
+        removePicture: "Bild entfernen",
+        noPictureFound: "Hinter dieser Adresse liegt kein Bild.",
+        claimLabel: "Sein Satz",
+        claimHint: "Warum er oder sie das macht. Freiwillig.",
+        amountLabel: "Betrag",
+        amountHint: "In Euro. Steht nie neben einem Namen auf der Seite.",
+        paidAtLabel: "Bezahlt am",
+        paidAtHint: "Ab diesem Tag läuft das Jahr, nicht ab Januar.",
+        remainingLabel: "Läuft noch",
+        daysLeft: "Tage",
+        expired: "Abgelaufen",
+        personTitle: "Person",
+        contributionTitle: "Beitrag",
+        costsTitle: "Laufende Kosten",
+        costsHint: "Summe im Jahr:",
+        costLabelLabel: "Posten",
+        costAmountLabel: "€ pro Jahr",
+        addCost: "Posten hinzufügen",
+        minAmountLabel: "Mindestbetrag (€)",
+        minAmountHint: "Ab diesem Betrag steht jemand ein Jahr lang auf der Seite.",
+        deleteTitle: "Sponsor löschen",
+        deleteMessage: "Der Eintrag verschwindet sofort von der Seite.",
+      },
       supportPrompts: {
         title: "Einblendungen",
         subtitle:
@@ -2854,10 +2936,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         kinds: { card: "Karte", line: "Zeile" },
         contentLabel: "Inhalt",
         contentHint: "{shops} und {views} werden durch die Zahlen des Lesers ersetzt.",
-        buttonLabel: "Beschriftung des Knopfes",
-        buttonHrefLabel: "Ziel des Knopfes",
-        dismissLabel: "Zweiter Knopf",
-        dismissHint: "Leer heisst: kein zweiter Knopf.",
+        buttonLabel: "Beschriftung des Buttons",
+        buttonHrefLabel: "Ziel des Buttons",
+        dismissLabel: "Zweiter Button",
+        dismissHint: "Leer heisst: kein zweiter Button.",
         thresholdLabel: "Ab wie vielen Shops",
         thresholdHint: "Gemerkte Shops, beziehungsweise gesehene auf der Detailseite.",
         startsAtLabel: "Von",
@@ -2870,13 +2952,24 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         limitsTitle: "Grenzen für alle zusammen",
         limitsHint:
           "Gilt über alle Einblendungen hinweg und lässt sich von keiner einzelnen überschreiben.",
-        maxShownLabel: "Höchstens sichtbar",
-        snoozeDaysLabel: "Ruhezeit in Tagen",
-        deleteConfirm: "Diese Einblendung wirklich löschen?",
-        draft: "Entwurf",
-        live: "Sichtbar",
-        expired: "Abgelaufen",
-        scheduled: "Geplant",
+        maxShownLabel: "Höchstens sichtbar (Anzahl)",
+        snoozeDaysLabel: "Ruhezeit (Tage)",
+        placementTitle: "Platzierung",
+        placementHint: "Wo sie steht, wie sie aussieht und ab wann sie erscheint.",
+        scheduleTitle: "Zeitplan",
+        windowColumn: "Zeitfenster",
+        stateColumn: "Zustand",
+        emptyTitle: "Noch keine Einblendung",
+        emptyHint: "Lege eine an, um im Verlauf der Seite um Unterstützung zu bitten.",
+        deleteTitle: "Einblendung löschen",
+        deleteMessage:
+          "Sie verschwindet sofort von der Seite. Was Leser bisher weggeklickt haben, wird dabei vergessen.",
+        states: {
+          draft: "Entwurf",
+          scheduled: "Geplant",
+          live: "Sichtbar",
+          expired: "Abgelaufen",
+        },
       },
       settings: {
         title: "Einstellungen",
@@ -3228,6 +3321,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
         supportPrompts: "Support prompts",
+        sponsors: "Yearly sponsors",
+        sectionSponsoring: "Sponsoring",
         systemSettings: "Settings",
         redirectUrls: "Redirect URLs",
         socialPreview: "Social Media Preview",
@@ -4444,6 +4539,42 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
     },
     system: {
+      sponsors: {
+        title: "Yearly sponsors",
+        newSponsor: "New sponsor",
+        emptyTitle: "No sponsors yet",
+        emptyHint: "Whoever helps carry the running costs stands on the support page for a year.",
+        nameLabel: "Name",
+        firstNameLabel: "First name",
+        lastNameLabel: "Last name",
+        socialMediaLabel: "Online",
+        socialMediaHint: "Paste an address. The picture behind it is fetched once it stands.",
+        imageLabel: "Picture",
+        imageHint: "Address of an image. Empty means no picture.",
+        refreshPicture: "Fetch picture again",
+        removePicture: "Remove picture",
+        noPictureFound: "There is no picture behind this address.",
+        claimLabel: "Their sentence",
+        claimHint: "Why they did it. Optional.",
+        amountLabel: "Amount",
+        amountHint: "In euro. Never shown beside a name on the site.",
+        paidAtLabel: "Paid on",
+        paidAtHint: "Their year runs from this day, not from January.",
+        remainingLabel: "Still stands",
+        daysLeft: "days",
+        expired: "Expired",
+        personTitle: "Person",
+        contributionTitle: "Contribution",
+        costsTitle: "Running costs",
+        costsHint: "Total per year:",
+        costLabelLabel: "Item",
+        costAmountLabel: "€ per year",
+        addCost: "Add item",
+        minAmountLabel: "Minimum (€)",
+        minAmountHint: "From this amount somebody stands on the site for a year.",
+        deleteTitle: "Delete sponsor",
+        deleteMessage: "The entry disappears from the site at once.",
+      },
       supportPrompts: {
         title: "Support prompts",
         subtitle:
@@ -4479,13 +4610,24 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         publishedHint: "Unpublished prompts are not delivered at all.",
         limitsTitle: "Limits for all of them together",
         limitsHint: "Applies across every prompt and cannot be raised by any single one.",
-        maxShownLabel: "Shown at most",
-        snoozeDaysLabel: "Quiet days after a showing",
-        deleteConfirm: "Really delete this prompt?",
-        draft: "Draft",
-        live: "Visible",
-        expired: "Expired",
-        scheduled: "Scheduled",
+        maxShownLabel: "Shown at most (times)",
+        snoozeDaysLabel: "Quiet period (days)",
+        placementTitle: "Placement",
+        placementHint: "Where it sits, how it looks, and from when it appears.",
+        scheduleTitle: "Schedule",
+        windowColumn: "Window",
+        stateColumn: "State",
+        emptyTitle: "No prompt yet",
+        emptyHint: "Create one to ask for support in the flow of the site.",
+        deleteTitle: "Delete prompt",
+        deleteMessage:
+          "It disappears from the site at once, and what readers dismissed so far is forgotten with it.",
+        states: {
+          draft: "Draft",
+          scheduled: "Scheduled",
+          live: "Visible",
+          expired: "Expired",
+        },
       },
       settings: {
         title: "Settings",

@@ -1,0 +1,217 @@
+---
+import SponsorCard from "@/components/SponsorCard.astro";
+import { apiGet } from "@/lib/api";
+import { renderMarkdown } from "@/lib/markdown";
+import type { SponsorsPayload } from "@lmaa/contracts";
+import { daysLeft, fullName } from "@lmaa/shared";
+
+interface Props {
+  /**
+   * How the block is introduced, in Markdown.
+   *
+   * The heading is not here: it is an ordinary heading of the page and is
+   * rendered by `ContentArticle` inside the article's own prose flow.
+   */
+  text: string;
+  /** What the block says once the running costs are covered. Empty for the default. */
+  covered: string;
+  /**
+   * What it says whilst they are not covered, where `{missing}` stands for the
+   * amount still outstanding. Empty for the default.
+   */
+  missing: string;
+}
+
+const { text, covered: coveredText, missing: missingText } = Astro.props;
+
+/**
+ * What the block says about the year's costs when the page says nothing.
+ *
+ * The page may write both sentences itself, so these only stand in until it
+ * does. `{missing}` is filled with the amount still outstanding.
+ */
+const COVERED_DEFAULT =
+  "Die laufenden Kosten dieses Jahres sind damit gedeckt. Jeder weitere Beitrag geht in die Arbeit am Verzeichnis.";
+const MISSING_DEFAULT = "Noch {missing} bis die laufenden Kosten dieses Jahres gedeckt sind.";
+
+/**
+ * The people who carry the running costs right now.
+ *
+ * Rendered on the server, because nothing here depends on the reader: who is
+ * listed follows from who paid within the last year, and that is the same for
+ * everybody.
+ */
+let payload: SponsorsPayload = {
+  sponsors: [],
+  costsTotalCents: 0,
+  coveredCents: 0,
+  minAmountCents: 3000,
+};
+
+try {
+  payload = await apiGet<SponsorsPayload>("/sponsors");
+} catch {
+  // A missing list is worth less than a broken page.
+}
+
+const introHtml = text ? await renderMarkdown(text, {}, { breaks: true }) : "";
+const claims = await Promise.all(
+  payload.sponsors.map((sponsor) =>
+    sponsor.claim ? renderMarkdown(sponsor.claim, {}, { breaks: true }) : Promise.resolve(""),
+  ),
+);
+
+const euro = new Intl.NumberFormat("de-DE", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+});
+
+const covered = payload.coveredCents >= payload.costsTotalCents && payload.costsTotalCents > 0;
+const missingCents = Math.max(payload.costsTotalCents - payload.coveredCents, 0);
+
+/** The sentence under the row, with the outstanding amount written into it. */
+const costsLine = covered
+  ? coveredText || COVERED_DEFAULT
+  : (missingText || MISSING_DEFAULT).replaceAll("{missing}", euro.format(missingCents / 100));
+
+const names = payload.sponsors.map((sponsor) => fullName(sponsor.firstName, sponsor.lastName));
+
+const dayFormat = new Intl.DateTimeFormat("de-DE", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+/** The same day in figures, which is what fits on a card the width of a phone. */
+const shortDayFormat = new Intl.DateTimeFormat("de-DE", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+/** Today as `YYYY-MM-DD`, which is what a sponsorship's days are counted against. */
+const today = new Date().toISOString().slice(0, 10);
+
+/**
+ * What each sponsorship says about itself: the day it began and what is left of it.
+ *
+ * A sponsorship runs from the day it was paid rather than with the calendar,
+ * and saying so on the card is what makes the list readable as a year rather
+ * than as a permanent roll of honour.
+ */
+const terms = payload.sponsors.map((sponsor) => {
+  const left = daysLeft(sponsor.paidAt, today);
+  const day = new Date(`${sponsor.paidAt}T00:00:00Z`);
+  return {
+    since: dayFormat.format(day),
+    sinceShort: shortDayFormat.format(day),
+    left: left === 1 ? "noch 1 Tag" : `noch ${left} Tage`,
+  };
+});
+
+/** Everything one card needs, gathered so the row and its copy read the same. */
+const cards = payload.sponsors.map((sponsor, index) => ({
+  key: sponsor.id,
+  name: names[index],
+  imageUrl: sponsor.imageUrl,
+  socialMedia: sponsor.socialMedia,
+  claimHtml: claims[index],
+  since: terms[index].since,
+  sinceShort: terms[index].sinceShort,
+  left: terms[index].left,
+}));
+
+/**
+ * Whether the row runs on its own.
+ *
+ * Two and a half cards fit across the content, so from the third card onwards
+ * there is more than can be seen at once and the row carries itself past the
+ * reader instead of asking them to scroll it.
+ */
+const scrolls = cards.length > 2;
+---
+
+<section class="lmaa-sponsors">
+  {introHtml && <div class="lmaa-rich" set:html={introHtml} />}
+
+  {
+    cards.length > 0 && (
+      <div
+        class:list={["lmaa-sponsor-rail", scrolls && "is-scrolling"]}
+        style={`--sponsor-count:${cards.length}`}
+      >
+        {/* Both runs stand in one list, because that is what makes the loop
+            exact: every card carries the same trailing space, so half the list
+            is precisely one run and moving by half of it lands where it began.
+            Two lists would leave the space between them out of that sum. */}
+        <ul class="lmaa-sponsor-track">
+          {cards.map((card) => (
+            <SponsorCard {...card} />
+          ))}
+          {scrolls && cards.map((card) => <SponsorCard {...card} duplicate />)}
+        </ul>
+      </div>
+    )
+  }
+
+  {payload.costsTotalCents > 0 && <p class="mt-6 text-sm">{costsLine}</p>}
+</section>
+
+<script>
+  /**
+   * Lets the sponsor row come to a stand rather than stop dead.
+   *
+   * Pausing an animation takes effect on the next frame, which reads as the row
+   * hitting a wall the moment the pointer arrives. Easing its playback rate down
+   * to nothing, and back up on leaving, keeps the movement believable. The rate
+   * is a number the browser reads; the animation itself stays where it was, so
+   * nothing is driven frame by frame except the ramp, and that ends after it has
+   * run its course.
+   *
+   * Where the reader has asked for less motion there is no animation to slow,
+   * and this does nothing at all.
+   */
+  const RAMP_MS = 700;
+
+  /** Smoothstep, so the ramp starts and ends without a corner. */
+  function ease(progress: number): number {
+    return progress * progress * (3 - 2 * progress);
+  }
+
+  for (const rail of document.querySelectorAll<HTMLElement>(".lmaa-sponsor-rail.is-scrolling")) {
+    const track = rail.querySelector<HTMLElement>(".lmaa-sponsor-track");
+    if (!track) continue;
+
+    let frame = 0;
+
+    /**
+     * Eases the row's playback rate towards `target`.
+     *
+     * The animation is looked up when the pointer arrives rather than when the
+     * page loads, because a stylesheet that arrives after this script leaves
+     * nothing to look up, and the row would then never slow down at all.
+     */
+    const rampTo = (target: number) => {
+      const animation = track.getAnimations()[0];
+      if (!animation) return;
+
+      const from = animation.playbackRate;
+      const startedAt = performance.now();
+      cancelAnimationFrame(frame);
+
+      function step(now: number) {
+        const progress = Math.min((now - startedAt) / RAMP_MS, 1);
+        animation.playbackRate = from + (target - from) * ease(progress);
+        if (progress < 1) frame = requestAnimationFrame(step);
+      }
+
+      frame = requestAnimationFrame(step);
+    };
+
+    rail.addEventListener("pointerenter", () => rampTo(0));
+    rail.addEventListener("pointerleave", () => rampTo(1));
+    rail.addEventListener("focusin", () => rampTo(0));
+    rail.addEventListener("focusout", () => rampTo(1));
+  }
+</script>

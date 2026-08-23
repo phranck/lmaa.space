@@ -88,6 +88,10 @@
   --ds-surface: oklch(var(--ds-L-surface) var(--ds-neutral-c) var(--ds-neutral-h));
   --ds-surface-alt: oklch(var(--ds-L-inset) var(--ds-neutral-c) var(--ds-neutral-h));
   --ds-surface-inset: oklch(var(--ds-L-inset) var(--ds-neutral-c) var(--ds-neutral-h));
+  /* Half a step off the page, for something that stands on it as a surface
+     without taking the full weight of a card. Derived from the two it sits
+     between, so it follows both themes without a value of its own. */
+  --ds-surface-soft: color-mix(in srgb, var(--ds-surface) 55%, var(--ds-bg));
   --ds-input-bg: var(--ds-surface);
 
   /* Borders */
@@ -114,6 +118,13 @@
      the hover step, so both states clear AA for normal text. Use --ds-accent-fg
      only where the accent is not the background. */
   --ds-accent-on: var(--ds-color-neutral-900);
+
+  /* Text in the accent's own colour, on one of the washes below.
+     The accent itself is too light for that: it measures 2.01:1 on the 12 per
+     cent wash and 2.73:1 at the hover step, both far under the 4.5:1 that
+     normal text needs. Two steps darker measures 6.12:1, stays recognisably
+     the same gold, and reads as a deliberate shade rather than a faded one. */
+  --ds-accent-text: var(--ds-color-brand-800);
 
   /* Accent washes, for a selected surface that must still read as a surface */
   --ds-accent-tint: color-mix(in srgb, var(--ds-accent) 12%, transparent);
@@ -189,10 +200,13 @@
   --ds-control-h-field-large: 2.25rem; /* h-9 basis */
   --ds-control-h-menu-item: 2rem; /* h-8 basis */
 
-  /* Shadows */
+  /* Shadows.
+     The two a card uses reach a little further than they are dark: the blur
+     carries them, and the alpha stays low so a wider shadow does not turn into
+     a heavier one. */
   --ds-shadow-xs: 0 1px 2px oklch(0 0 0 / 0.04);
-  --ds-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
-  --ds-shadow-md: 0 4px 6px oklch(0 0 0 / 0.05), 0 2px 4px oklch(0 0 0 / 0.04);
+  --ds-shadow-sm: 0 2px 8px oklch(0 0 0 / 0.05), 0 1px 3px oklch(0 0 0 / 0.035);
+  --ds-shadow-md: 0 6px 16px oklch(0 0 0 / 0.05), 0 2px 6px oklch(0 0 0 / 0.035);
   --ds-shadow-lg: 0 10px 15px oklch(0 0 0 / 0.06), 0 4px 6px oklch(0 0 0 / 0.04);
   --ds-shadow-xl: 0 20px 25px oklch(0 0 0 / 0.08), 0 8px 10px oklch(0 0 0 / 0.04);
 
@@ -294,6 +308,8 @@
 
   /* Accent */
   --ds-accent-subtle: hsl(215 30% 20%);
+  /* The same role on a dark wash, so it needs to be lighter rather than darker. */
+  --ds-accent-text: var(--ds-color-brand-300);
 
   /* Focus and interaction */
   --ds-focus-ring-offset: var(--ds-bg);
@@ -321,8 +337,8 @@
 
   /* Shadows — stronger for very dark surfaces */
   --ds-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
-  --ds-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.5), 0 1px 2px rgb(0 0 0 / 0.4);
-  --ds-shadow-md: 0 4px 6px rgb(0 0 0 / 0.45), 0 2px 4px rgb(0 0 0 / 0.35);
+  --ds-shadow-sm: 0 2px 8px rgb(0 0 0 / 0.45), 0 1px 3px rgb(0 0 0 / 0.35);
+  --ds-shadow-md: 0 6px 16px rgb(0 0 0 / 0.4), 0 2px 6px rgb(0 0 0 / 0.3);
   --ds-shadow-lg: 0 10px 15px rgb(0 0 0 / 0.5), 0 4px 6px rgb(0 0 0 / 0.4);
   --ds-shadow-xl: 0 20px 25px rgb(0 0 0 / 0.55), 0 8px 10px rgb(0 0 0 / 0.45);
 }

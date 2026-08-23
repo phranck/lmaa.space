@@ -129,9 +129,21 @@ export interface SupportLadderIsland {
   labels: Partial<Record<SupportLadderLabelKey, string>>;
 }
 
+/** The wall of people carrying the running costs. */
+export interface SponsorsIsland {
+  type: "sponsors";
+  title: string;
+  text: string;
+  /** What the block says once the running costs are covered. */
+  covered: string;
+  /** What it says whilst they are not. `{missing}` stands for the amount. */
+  missing: string;
+}
+
 export type ContentShortcodeSegment =
   | { type: "markdown"; content: string }
   | RejectedShopsTableIsland
+  | SponsorsIsland
   | SupportLadderIsland;
 
 /**
@@ -421,6 +433,16 @@ export function parseContentShortcodeSegments(content: string): ContentShortcode
       tableIndex += 1;
     } else if (isRenderableSupportLadder(shortcode)) {
       island = toSupportLadderIsland(shortcode);
+    } else if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.sponsors) {
+      // Who is listed follows from the data, so the page only says how the
+      // block is introduced.
+      island = {
+        type: "sponsors",
+        title: getStringParam(shortcode.params.title)?.trim() ?? "",
+        text: unescapeText(getStringParam(shortcode.params.text)?.trim() ?? ""),
+        covered: unescapeText(getStringParam(shortcode.params.covered)?.trim() ?? ""),
+        missing: unescapeText(getStringParam(shortcode.params.missing)?.trim() ?? ""),
+      };
     }
 
     if (!island) continue;

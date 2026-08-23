@@ -327,7 +327,15 @@ details > summary::-webkit-details-marker {
   margin-block: 0.15em;
 }
 
+/* A link inside a card reads like a link anywhere else on the page.
+   The prose around it resolves its link colour to the same palette variable,
+   so both sides take that one value instead of naming a colour twice. */
 .lmaa-rich a {
+  color: var(--colors-amber-700);
+  text-decoration: none;
+}
+
+.lmaa-rich a:hover {
   text-decoration: underline;
 }
 
@@ -358,6 +366,31 @@ details > summary::-webkit-details-marker {
   box-shadow: none;
 }
 
+/* A block that names one way to pay stands slightly off the page, so the ways
+   read as separate offers rather than as one long column of text. */
+.lmaa-payment-card {
+  box-shadow: var(--ds-shadow-sm);
+}
+
+/* A suggested amount lifts a little under the pointer. The shadow is what makes
+   that read as lifting rather than as sliding, so it grows with the movement
+   and is spent on the one card being pointed at. */
+.lmaa-amount-card {
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lmaa-amount-card:hover {
+  box-shadow: var(--ds-shadow-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lmaa-amount-card {
+    transition: none;
+  }
+}
+
 /* Text in a card steps in by half the card's padding.
    The rule sits on the card rather than on each line, so anything written into
    a card later follows without being told. What carries an edge of its own does
@@ -366,4 +399,149 @@ details > summary::-webkit-details-marker {
 .lmaa-card > .lmaa-card-head > h3,
 .lmaa-card dl {
   padding-inline: var(--card-text-inset);
+}
+
+/* The wall of yearly sponsors.
+   A card per person, in the geometry every other card on the site uses, so the
+   list reads as part of the page rather than as a badge rack. */
+.lmaa-sponsors .lmaa-card {
+  border: var(--card-border-width) solid var(--ds-border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--card-padding);
+  background: var(--ds-surface);
+  /* The row stands off the page at rest, because it moves past the reader and
+     a card that lies flat on the page reads as part of it rather than as one
+     of several. */
+  box-shadow: var(--ds-shadow-sm);
+  flex: 0 0 var(--sponsor-card-width);
+  /* The space after a card belongs to the card rather than to the row, so a
+     run of cards is a whole number of equal steps and the loop below can be
+     stated as half the list. A `gap` would leave one space out of that sum. */
+  margin-right: var(--sponsor-gap);
+}
+
+/* The row the sponsor cards stand in.
+   Two and a half cards fit across the content, so a third card is always half
+   visible and the row says without a word that it holds more. The width is read
+   from the rail rather than from the viewport, because the article is narrower
+   than the window. */
+.lmaa-sponsor-rail {
+  --sponsor-gap: var(--ds-space-sm);
+  --sponsor-fade: var(--ds-space-lg);
+  --sponsor-card-width: calc((100cqw - 1.5 * var(--sponsor-gap)) / 2.5);
+  container-type: inline-size;
+  display: flex;
+  overflow: hidden;
+  /* The row is clipped sideways so the cards can run out of it, and a clip cuts
+     every side. The padding is the room the cards' shadows need inside that
+     clip, and the margins give it back, so the row occupies what it did before
+     the shadows arrived. */
+  --sponsor-shadow-room: var(--ds-space-sm);
+  padding-block: var(--sponsor-shadow-room);
+  margin-top: calc(var(--ds-space-base) - var(--sponsor-shadow-room));
+  margin-bottom: calc(var(--sponsor-shadow-room) * -1);
+}
+
+/* The day is written out wherever there is room for it. The figures stand ready
+   for the narrow card and are switched on below, which is why this rule comes
+   first: two rules of the same weight are decided by their order. */
+.lmaa-sponsor-date-short {
+  display: none;
+}
+
+/* One card per screen on a narrow one, with the next card peeking. The day the
+   sponsorship began goes into figures there, because the month's name is what
+   breaks that line before anything else does. */
+@media (max-width: 40rem) {
+  .lmaa-sponsor-rail {
+    --sponsor-card-width: calc(85cqw);
+  }
+
+  .lmaa-sponsor-date-long {
+    display: none;
+  }
+
+  .lmaa-sponsor-date-short {
+    display: inline;
+  }
+}
+
+.lmaa-sponsor-track {
+  display: flex;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A row that carries itself past the reader fades at both ends rather than
+   cutting a card off, so the edge reads as more coming rather than as damage. */
+.lmaa-sponsor-rail.is-scrolling {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--sponsor-fade),
+    #000 calc(100% - var(--sponsor-fade)),
+    transparent
+  );
+}
+
+/* The list holds the same run twice, so half its width is one run exactly and
+   moving by that much lands on the copy of where it began. Nothing snaps back,
+   because the frame it ends on is the frame it started from. Only the transform
+   moves, which is the one thing that costs nothing per frame. The speed follows
+   the number of cards, so a longer row runs longer rather than faster. */
+.lmaa-sponsor-rail.is-scrolling .lmaa-sponsor-track {
+  animation: lmaa-sponsor-marquee calc(var(--sponsor-count) * 18s) linear infinite;
+}
+
+
+@keyframes lmaa-sponsor-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Nobody is carried anywhere against their settings: the row then stands still
+   and is scrolled by hand. */
+@media (prefers-reduced-motion: reduce) {
+  .lmaa-sponsor-rail.is-scrolling .lmaa-sponsor-track {
+    animation: none;
+  }
+
+  .lmaa-sponsor-rail {
+    overflow-x: auto;
+  }
+}
+
+/* What a sponsorship says about itself: the day it began and what is left of
+   it. It sits at the foot of the card, pushed down so that cards holding claims
+   of different length still line their last row up. */
+.lmaa-sponsor-term {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ds-space-xs);
+  margin-top: auto;
+  color: var(--ds-text-subtle);
+  /* A pixel under the small step, taken from that step rather than written out,
+     so it follows the scale when the scale moves. */
+  font-size: calc(var(--ds-text-sm) - 1px);
+}
+
+.lmaa-sponsor-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: var(--ds-accent-tint);
+  color: var(--ds-text);
+  font-family: var(--ds-font-serif);
+  font-size: var(--ds-text-lg);
+  font-weight: 600;
 }

@@ -26,6 +26,7 @@ import {
   LinkIcon,
   ListBulletsIcon,
   MarkdownLogoIcon,
+  HandHeartIcon,
   MegaphoneSimpleIcon,
   NotebookIcon,
   PaperPlaneTiltIcon,
@@ -94,9 +95,9 @@ const SIDEBAR_GROUP_STORAGE_KEYS = [
   "sidebar-social-preview-open",
 ] as const;
 
-const SIDEBAR_SECTION_IDS = ["general", "content", "builders", "system"] as const;
+const SIDEBAR_SECTION_IDS = ["general", "content", "sponsoring", "builders", "system"] as const;
 type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
-const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "system"];
+const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["sponsoring", "builders", "system"];
 const SECTION_DRAG_LABEL = {
   de: "Abschnitt verschieben",
   en: "Move section",
@@ -870,15 +871,6 @@ export function Sidebar({
                       handleGroupOpenChange("sidebar-social-media-post-templates-open", open)
                     }
                   />
-                  <NavLink to="/support-prompts" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<MegaphoneSimpleIcon weight="duotone" className="w-4 h-4" />}
-                        label={sidebarMessages.supportPrompts}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
                   <NavLink to="/markdown-widgets" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
@@ -894,6 +886,35 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.footerBuilder}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                </DashboardSection.Body>
+              </DashboardSection>
+            ),
+            sponsoring: (dragHandle) => (
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<HandHeartIcon weight="duotone" className="w-4 h-4" />}
+                  title={sidebarMessages.sectionSponsoring}
+                  addOn={dragHandle}
+                />
+                <DashboardSection.Body className="!gap-0.5 !p-2">
+                  <NavLink to="/sponsors" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<HandHeartIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.sponsors}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/support-prompts" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<MegaphoneSimpleIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.supportPrompts}
                         active={isActive}
                       />
                     )}

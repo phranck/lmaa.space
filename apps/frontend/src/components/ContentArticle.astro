@@ -8,6 +8,7 @@
  * this component is the one place that decides how.
  */
 import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
+import SponsorWall from "@/components/SponsorWall.astro";
 import SupportLadder from "@/components/islands/SupportLadder";
 import type { RenderedContentSegment } from "@/lib/content-page-rendering";
 
@@ -31,6 +32,24 @@ const { title, showTitle, segments } = Astro.props;
     segments.map((segment) => {
       if (segment.type === "html") {
         return <Fragment set:html={segment.html} />;
+      }
+
+      if (segment.type === "sponsors") {
+        // The heading belongs to the article and is therefore left inside the
+        // prose flow. Only the wall itself steps out of it, because its cards
+        // bring their own type and spacing.
+        return (
+          <Fragment>
+            {segment.title && <h2>{segment.title}</h2>}
+            <div class="not-prose mb-10">
+              <SponsorWall
+                text={segment.text}
+                covered={segment.covered}
+                missing={segment.missing}
+              />
+            </div>
+          </Fragment>
+        );
       }
 
       if (segment.type === "support-ladder") {
