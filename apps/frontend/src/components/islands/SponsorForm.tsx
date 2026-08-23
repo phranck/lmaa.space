@@ -230,22 +230,25 @@ export default function SponsorForm({ onIssued }: SponsorFormProps) {
         />
       </label>
 
-      <div className="flex items-center gap-3 text-sm text-[var(--ds-text)] px-1">
-        <ToggleSwitch
-          checked={form.published}
-          onChange={(value) => dispatch({ type: "setPublished", value })}
-          aria-label="Mit meinem Namen auf der Seite erscheinen"
-        />
-        <span>Mit meinem Namen auf der Seite erscheinen</span>
-      </div>
+      {/* The last decision and the button that acts on it share one row, with the
+          button on the right where a form ends. They stack on a narrow screen,
+          and the button then takes the full width. */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3 text-sm text-[var(--ds-text)] px-1">
+          <ToggleSwitch
+            checked={form.published}
+            onChange={(value) => dispatch({ type: "setPublished", value })}
+            aria-label="Mit meinem Namen auf der Seite erscheinen"
+          />
+          <span>Mit meinem Namen auf der Seite erscheinen</span>
+        </div>
 
-      <div>
         <button
           type="submit"
           disabled={form.sending || form.firstName.trim() === ""}
           className={`${buttonBaseClass} ${buttonFilledClass} max-sm:w-full max-sm:justify-center`}
         >
-          {form.sending ? "Einen Moment…" : "Referenz holen"}
+          {form.sending ? "Einen Moment…" : "Angaben absenden"}
         </button>
       </div>
 
