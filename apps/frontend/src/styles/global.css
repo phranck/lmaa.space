@@ -366,6 +366,59 @@ details > summary::-webkit-details-marker {
   box-shadow: none;
 }
 
+/* The switch between the ways of giving.
+   The mark under the chosen tab is one element that slides, rather than a
+   background appearing on one tab and vanishing from another. It moves by
+   transform, which the compositor carries on its own; its width follows the tab
+   it covers, and that is a layout the browser does for one absolutely
+   positioned element inside a small box. */
+.lmaa-segments {
+  /* The distance between the frame and a tab. Everything else about the mark
+     follows from it, so there is one number to move rather than three. */
+  --segment-inset: 3px;
+  position: relative;
+  padding: var(--segment-inset);
+}
+
+.lmaa-segment-marker {
+  position: absolute;
+  /* The mark covers its tab exactly, so it is inset by what the frame is padded
+     by and by nothing else. */
+  top: var(--segment-inset);
+  bottom: var(--segment-inset);
+  left: 0;
+  /* A nested radius is the outer one less the inset. The frame is fully
+     rounded, so its radius is half its height; less the inset that is half the
+     tab's height, which is what a fully rounded mark comes to here. */
+  border-radius: 999px;
+  background: var(--ds-surface);
+  border: var(--card-border-width) solid var(--ds-border);
+  box-shadow: var(--ds-shadow-sm);
+  pointer-events: none;
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* What the chosen tab decides fades out and comes back as the new one. The two
+   states are never both half visible, which a true crossing of the two would
+   require: it would mean drawing the outgoing block, its code and its figures,
+   at the same time as the incoming one. */
+.lmaa-ladder-body {
+  transition: opacity 140ms ease;
+}
+
+.lmaa-ladder-body.is-fading {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lmaa-segment-marker,
+  .lmaa-ladder-body {
+    transition: none;
+  }
+}
+
 /* A block that names one way to pay stands slightly off the page, so the ways
    read as separate offers rather than as one long column of text. */
 .lmaa-payment-card {

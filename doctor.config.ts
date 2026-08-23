@@ -29,6 +29,13 @@ export default {
         files: ["src/features/system/SocialPreviewPage.tsx"],
         rules: ["react-doctor/prefer-useReducer"],
       },
+      // The support ladder carries the whole donation interface in one island.
+      // Splitting it and modelling its tab and amount as one machine is tracked
+      // in issue #138, rather than reported as a regression on every scan.
+      {
+        files: ["src/components/islands/SupportLadder.tsx"],
+        rules: ["react-doctor/no-giant-component", "react-doctor/prefer-useReducer"],
+      },
       // Controlled preference wrappers restore a parent-owned value exactly once.
       {
         files: ["src/components/ui/FilterDropdown.tsx", "src/components/ui/SegmentedControl.tsx"],

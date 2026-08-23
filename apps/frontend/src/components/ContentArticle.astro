@@ -11,6 +11,7 @@ import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
 import SponsorWall from "@/components/SponsorWall.astro";
 import SupportLadder from "@/components/islands/SupportLadder";
 import type { RenderedContentSegment } from "@/lib/content-page-rendering";
+import { EMPTY_SPONSORS, getSponsors } from "@/lib/sponsors";
 
 interface Props {
   /** Page title, shown only when the page asks for it. */
@@ -22,6 +23,19 @@ interface Props {
 }
 
 const { title, showTitle, segments } = Astro.props;
+
+/**
+ * Both the wall and the sponsor tab of the ladder read the same figures, so the
+ * page asks for them once. A page carrying neither asks for nothing.
+ */
+const needsSponsors = segments.some(
+  (segment) =>
+    segment.type === "sponsors" ||
+    (segment.type === "support-ladder" &&
+      segment.intervals.some((interval) => interval.key === "sponsor")),
+);
+const sponsors = needsSponsors ? await getSponsors() : EMPTY_SPONSORS;
+const minSponsorAmountEur = Math.ceil(sponsors.minAmountCents / 100);
 ---
 
 <article
@@ -43,6 +57,7 @@ const { title, showTitle, segments } = Astro.props;
             {segment.title && <h2>{segment.title}</h2>}
             <div class="not-prose mb-10">
               <SponsorWall
+                payload={sponsors}
                 text={segment.text}
                 covered={segment.covered}
                 missing={segment.missing}
@@ -64,6 +79,7 @@ const { title, showTitle, segments } = Astro.props;
               intervals={segment.intervals}
               routes={segment.routes}
               labels={segment.labels}
+              minSponsorAmountEur={minSponsorAmountEur}
             />
           </div>
         );

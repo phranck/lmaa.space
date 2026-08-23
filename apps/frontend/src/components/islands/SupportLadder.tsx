@@ -47,6 +47,14 @@ interface SupportLadderProps {
   /** Every route out of the page, in the order the document names them. */
   routes: SupportLadderRoute[];
   labels?: Partial<Record<SupportLadderLabelKey, string>>;
+  /**
+   * The least a sponsor gives to stand on the page for a year, in euro.
+   *
+   * Kept in the dashboard rather than in the page, because it is the same
+   * number the sponsor list is judged by. A tab without suggested amounts opens
+   * on it.
+   */
+  minSponsorAmountEur?: number;
 }
 
 /**
@@ -66,6 +74,15 @@ const EURO_EXACT = new Intl.NumberFormat("de-AT", {
 });
 
 const MONTHS_PER_YEAR = 12;
+
+/**
+ * How long the body takes to fade before it shows the tab just chosen.
+ *
+ * The same figure stands in the stylesheet, which is where the fading itself
+ * lives. Both are short: long enough to read as a change of scene, short enough
+ * that nobody waits for it.
+ */
+const BODY_FADE_MS = 140;
 
 /** The label of one line on the transfer card. */
 const TRANSFER_LABEL_STYLE = { color: "var(--ds-text-subtle)" };
@@ -103,7 +120,7 @@ const QR_DEFAULTS = {
  * Showing that total is the one thing found to reverse the reluctance to accept
  * a recurring ask, so a text that drops the placeholder loses the effect.
  */
-const YEARLY_TOTAL_PLACEHOLDER = "[[annualAmount]]";
+const YEARLY_TOTAL_PLACEHOLDER = "{annualAmount}";
 
 /** Groups an IBAN into blocks of four, which is how a person reads one back. */
 function groupIban(iban: string): string {
@@ -120,11 +137,29 @@ function groupIban(iban: string): string {
  * second rung is taken, which is low enough not to hide the cheapest option and
  * high enough not to anchor the visitor on it.
  */
-function startingAmount(interval: SupportLadderInterval | undefined): number {
-  if (!interval || interval.options.length === 0) return 0;
+function startingAmount(interval: SupportLadderInterval | undefined, floorEur = 0): number {
+  // A tab that suggests nothing opens on the floor it names instead, which is
+  // what the sponsor tab does: there is one amount that counts, the least one.
+  if (!interval || interval.options.length === 0) return floorEur;
   const flagged = interval.options.find((option) => option.recommended);
   if (flagged) return flagged.amountEur;
   return interval.options[Math.min(1, interval.options.length - 1)].amountEur;
+}
+
+/**
+ * What the free field holds when a tab opens.
+ *
+ * A tab with suggested amounts leaves it empty, because one of those amounts is
+ * the choice until somebody types. A tab without them has nothing else to show,
+ * so its floor stands in the field ready to be changed.
+ *
+ * @param interval - The tab being opened.
+ * @param floorEur - The least amount that tab accepts, in euro.
+ * @returns What to put in the field.
+ */
+function startingCustomAmount(interval: SupportLadderInterval | undefined, floorEur: number): string {
+  if (!interval || interval.options.length > 0 || floorEur <= 0) return "";
+  return String(floorEur);
 }
 
 /**
@@ -138,9 +173,20 @@ function startingAmount(interval: SupportLadderInterval | undefined): number {
  * Paragraph margins are reset, because these fields sit inside a card rather
  * than in an article, and only the space between paragraphs is kept.
  */
-function RichText({ html, className, style }: { html: string; className?: string; style?: React.CSSProperties }) {
+function RichText({
+  html,
+  className,
+  style,
+  role,
+}: {
+  html: string;
+  className?: string;
+  style?: React.CSSProperties;
+  role?: string;
+}) {
   return (
     <div
+      role={role}
       className={`lmaa-rich ${className ?? ""}`}
       style={style}
       // biome-ignore lint/security/noDangerouslySetInnerHtml: page content, rendered and sanitised server-side by renderMarkdownSSR
@@ -344,7 +390,7 @@ function OutboundRoute({ route }: { route: SupportLadderRoute }) {
 }
 
 /**
- * A notice inside a payment block, drawn as a tinted sub-card.
+ * A notice about a payment block, drawn as a tinted card.
  *
  * The icon is aligned with the first line of the text rather than with the
  * block as a whole, so a notice running to three lines does not leave the icon
@@ -352,13 +398,30 @@ function OutboundRoute({ route }: { route: SupportLadderRoute }) {
  * which puts it on the first line's optical centre whatever the text does
  * afterwards. It takes the card's own colour, because it is part of the notice
  * rather than a second signal.
+ *
+ * Inside a block it is a nested surface and carries the nested radius. Beside
+ * one it is a card in its own right, so it takes the same radius and the same
+ * padding as the card it stands next to.
+ *
+ * @param text - The notice, as HTML from the page's own Markdown.
+ * @param className - Spacing decided by where it is used.
+ * @param beside - Whether it stands next to a card rather than inside one.
  */
-function InfoCard({ text }: { text: string }) {
+function InfoCard({
+  text,
+  className = "mt-4",
+  beside = false,
+}: {
+  text: string;
+  className?: string;
+  beside?: boolean;
+}) {
   return (
     <div
-      className="mt-4 flex gap-2 p-3 text-sm"
+      className={`flex gap-2 text-sm ${beside ? "" : "p-3"} ${className}`}
       style={{
-        borderRadius: "var(--radius-card-inner)",
+        borderRadius: beside ? "var(--radius-card)" : "var(--radius-card-inner)",
+        padding: beside ? "var(--card-padding)" : undefined,
         background: "var(--ds-info-bg)",
         border: "1px solid var(--ds-info-border)",
         color: "var(--ds-info-text)",
@@ -391,6 +454,9 @@ function AmountGrid({
   perMonthLabel,
   onChoose,
   onCustom,
+  className = "",
+  minimumEur = 0,
+  minimumNotice = "",
 }: {
   interval: SupportLadderInterval;
   amountEur: number;
@@ -398,15 +464,34 @@ function AmountGrid({
   perMonthLabel: string;
   onChoose: (amountEur: number) => void;
   onCustom: (value: string) => void;
+  className?: string;
+  /** The least this tab accepts to earn what it offers, in euro. */
+  minimumEur?: number;
+  /** What to say when the amount falls short of it. */
+  minimumNotice?: string;
 }) {
   // A value in the free field is the choice, so no suggested amount is active
   // whilst it holds one.
   const customActive = customAmount.trim() !== "";
+  const hasOptions = interval.options.length > 0;
+  /**
+   * Whether the field has been left since it was last changed.
+   *
+   * The notice waits for that, because somebody typing their way to 40 passes
+   * through 4 on the way, and being told off at every keystroke is no help.
+   */
+  const [leftTheField, setLeftTheField] = useState(false);
+  // Only once something has been typed, so an empty field is not an error.
+  const belowMinimum =
+    leftTheField && minimumEur > 0 && customActive && amountEur > 0 && amountEur < minimumEur;
 
   return (
     // The suggested amounts stand in one row wherever the page is wide enough,
     // because they are read against each other rather than one after the other.
-    <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    // A tab without them has one card to place and needs no columns at all.
+    <div
+      className={`grid gap-3 ${hasOptions ? "sm:grid-cols-2 lg:grid-cols-4" : ""} ${className}`}
+    >
       {interval.options.map((option, index) => {
         const active = !customActive && option.amountEur === amountEur;
         return (
@@ -470,8 +555,11 @@ function AmountGrid({
           // than one more of them, so it stands on a row of its own, two cards
           // wide and centred under them. Spanning columns also keeps it out of
           // the track sizing, which its input would otherwise decide instead of
-          // the amounts.
-          className="lmaa-card col-span-full sm:col-span-2 lg:col-span-2 lg:col-start-2 flex flex-col gap-1.5"
+          // the amounts. Where there are no suggestions it is the only card and
+          // simply fills what it is given.
+          className={`lmaa-card flex flex-col gap-1.5 ${
+            hasOptions ? "col-span-full sm:col-span-2 lg:col-span-2 lg:col-start-2" : ""
+          }`}
           style={{
             border: "var(--card-border-width) dashed",
             padding: "var(--card-padding)",
@@ -484,9 +572,19 @@ function AmountGrid({
             background: customActive ? "var(--ds-accent-tint)" : "var(--ds-surface-soft)",
           }}
         >
-          <span className="text-sm" style={{ color: "var(--ds-text-muted)" }}>
+          {/* A heading, like the one every other block of this ladder carries,
+              because it names what the card is rather than labelling the field
+              inside it. The field states its own name to a screen reader. */}
+          <h3
+            className="font-semibold"
+            style={{
+              fontFamily: "var(--ds-font-serif)",
+              fontSize: "var(--ds-text-lg)",
+              lineHeight: "var(--ds-leading-lg)",
+            }}
+          >
             {interval.custom.label}
-          </span>
+          </h3>
           <span className="flex items-center gap-2">
             <span
               aria-hidden="true"
@@ -501,7 +599,11 @@ function AmountGrid({
               value={customAmount}
               placeholder={interval.custom.placeholder}
               aria-label={`${interval.custom.label} in Euro`}
-              onChange={(event) => onCustom(event.target.value)}
+              onChange={(event) => {
+                setLeftTheField(false);
+                onCustom(event.target.value);
+              }}
+              onBlur={() => setLeftTheField(true)}
               // Wide enough for a five-figure amount and no wider, because the
               // field should look like what belongs in it.
               className="h-9 w-24 px-3 border rounded-control tabular-nums"
@@ -522,6 +624,17 @@ function AmountGrid({
               html={interval.custom.text}
               className="text-sm"
               style={{ color: "var(--ds-text-muted)" }}
+            />
+          )}
+          {/* Said rather than refused. Nothing is submitted here: the transfer
+              happens in the reader's own bank, so the field cannot stop an
+              amount, only say what it will and will not earn. */}
+          {belowMinimum && minimumNotice && (
+            <RichText
+              html={minimumNotice}
+              className="text-sm"
+              role="status"
+              style={{ color: "var(--ds-warning-text)" }}
             />
           )}
         </label>
@@ -548,28 +661,90 @@ export default function SupportLadder({
   intervals,
   routes,
   labels,
+  minSponsorAmountEur = 0,
 }: SupportLadderProps) {
   // Merged once per render rather than looked up per label, and the defaults
   // are the only place the wording exists when the shortcode says nothing.
   const text = { ...SUPPORT_LADDER_LABEL_DEFAULTS, ...labels };
 
   const [intervalKey, setIntervalKey] = useState(intervals[0]?.key ?? "once");
-  const interval = intervals.find((entry) => entry.key === intervalKey) ?? intervals[0];
+  /**
+   * Which tab the body below is showing.
+   *
+   * It follows the switch a moment later, so the old content has time to fade
+   * out before the new one takes its place. The switch itself moves at once,
+   * because that is the thing the reader just clicked.
+   */
+  const [shownKey, setShownKey] = useState(intervals[0]?.key ?? "once");
+  const interval = intervals.find((entry) => entry.key === shownKey) ?? intervals[0];
+  const swapTimer = useRef<number | null>(null);
 
-  const [amountEur, setAmountEur] = useState(() => startingAmount(intervals[0]));
-  const [customAmount, setCustomAmount] = useState("");
+  /** Where the marker sits, read from the tab it belongs to after layout. */
+  const tabsRef = useRef<HTMLFieldSetElement>(null);
+  const [marker, setMarker] = useState({ left: 0, width: 0 });
+
+  useEffect(() => {
+    const tabs = tabsRef.current;
+    if (!tabs) return;
+
+    // Read from the tab itself rather than computed from labels, because what
+    // the marker has to cover is whatever the type happens to measure.
+    function place() {
+      const active = tabs?.querySelector<HTMLElement>(`[data-interval="${intervalKey}"]`);
+      if (active) setMarker({ left: active.offsetLeft, width: active.offsetWidth });
+    }
+
+    place();
+    const observer = new ResizeObserver(place);
+    observer.observe(tabs);
+    return () => observer.disconnect();
+  }, [intervalKey]);
+
+  useEffect(
+    () => () => {
+      if (swapTimer.current !== null) window.clearTimeout(swapTimer.current);
+    },
+    [],
+  );
+
+  const [amountEur, setAmountEur] = useState(() =>
+    startingAmount(intervals[0], minSponsorAmountEur),
+  );
+  const [customAmount, setCustomAmount] = useState(() =>
+    startingCustomAmount(intervals[0], minSponsorAmountEur),
+  );
 
   const qrRef = useRef<HTMLDivElement>(null);
 
   // A recurring payment is a standing order the payer sets up, so there is
-  // nothing for a one-off transfer code to carry.
-  const showQr = intervalKey === "once" && Boolean(bankAccount);
-  const qr = bankAccount?.variants.find((entry) => entry.key === intervalKey)?.qr;
+  // nothing for a one-off transfer code to carry. A sponsorship is paid once
+  // for the year, so it carries one like any other single transfer.
+  const showQr = shownKey !== "monthly" && Boolean(bankAccount);
+  // A tab that draws no block of its own borrows the single payment's, because
+  // that is the same transfer with a different reference.
+  const qrVariant =
+    bankAccount?.variants.find((entry) => entry.key === shownKey) ??
+    bankAccount?.variants.find((entry) => entry.key === "once");
+  const qr = qrVariant?.qr;
   const qrSize = qr?.size ?? QR_DEFAULTS.size;
   const qrBackground = qr?.background ?? QR_DEFAULTS.background;
   const qrMargin = qr?.margin ?? QR_DEFAULTS.margin;
 
 
+
+  /**
+   * What the payer should write on the transfer.
+   *
+   * A sponsorship has to be recognisable as one on the statement, which the
+   * ordinary reference is not, so the account names a second one for it. It
+   * applies whilst the amount earns it: below what the sponsor tab asks for the
+   * payment is a donation, and the reference is what it gets booked as.
+   */
+  const earnsSponsorPurpose =
+    shownKey === "sponsor" && minSponsorAmountEur > 0 && amountEur >= minSponsorAmountEur;
+  const remittance =
+    (earnsSponsorPurpose ? bankAccount?.purposeSponsor : undefined) ||
+    bankAccount?.purposeDonation;
 
   const payload = useMemo(() => {
     if (!showQr || !bankAccount) return null;
@@ -579,14 +754,14 @@ export default function SupportLadder({
         iban: bankAccount.iban,
         bic: bankAccount.bic,
         amountEur: amountEur > 0 ? amountEur : undefined,
-        remittance: bankAccount.purpose,
+        remittance,
       });
     } catch {
       // A malformed payee is a content mistake. The details stay readable as
       // text below, so the block degrades to something still usable.
       return null;
     }
-  }, [showQr, bankAccount, amountEur]);
+  }, [showQr, bankAccount, amountEur, remittance]);
 
   useEffect(() => {
     if (!qrRef.current || !payload) return;
@@ -640,9 +815,20 @@ export default function SupportLadder({
   }, [payload, qr, qrSize]);
 
   function chooseInterval(key: SupportLadderInterval["key"]) {
+    if (key === intervalKey) return;
+
+    // The switch answers the click straight away; the body follows once it has
+    // faded, so the two states are never both half visible.
     setIntervalKey(key);
-    setCustomAmount("");
-    setAmountEur(startingAmount(intervals.find((entry) => entry.key === key)));
+
+    if (swapTimer.current !== null) window.clearTimeout(swapTimer.current);
+    swapTimer.current = window.setTimeout(() => {
+      const next = intervals.find((entry) => entry.key === key);
+      setShownKey(key);
+      setCustomAmount(startingCustomAmount(next, minSponsorAmountEur));
+      setAmountEur(startingAmount(next, minSponsorAmountEur));
+      swapTimer.current = null;
+    }, BODY_FADE_MS);
   }
 
   function chooseCustom(value: string) {
@@ -654,7 +840,7 @@ export default function SupportLadder({
     // Emptying the field hands the choice back to the ladder, so the
     // recommended amount becomes the active one again.
     if (cleaned === "") {
-      setAmountEur(startingAmount(interval));
+      setAmountEur(startingAmount(interval, minSponsorAmountEur));
       return;
     }
 
@@ -664,7 +850,7 @@ export default function SupportLadder({
 
   if (!interval) return null;
 
-  const variant = bankAccount?.variants.find((entry) => entry.key === intervalKey);
+  const variant = qrVariant;
   const yearlyTotal = amountEur * MONTHS_PER_YEAR;
   const intervalText = interval.text.replaceAll(
     YEARLY_TOTAL_PLACEHOLDER,
@@ -687,28 +873,42 @@ export default function SupportLadder({
             />
           )}
           <fieldset
+            ref={tabsRef}
             aria-label={text.frequencyGroup}
-            className="ml-auto inline-flex gap-1 p-1 m-0 rounded-full border"
+            className="lmaa-segments ml-auto inline-flex gap-1 m-0 rounded-full border"
             style={{
               background: "var(--ds-surface-inset)",
               borderColor: "var(--ds-border-subtle)",
             }}
           >
+            {/* The mark under the chosen tab, which slides rather than jumping.
+                It is one element that moves, so the tabs themselves carry no
+                background of their own to fade. Until it has been measured the
+                tab keeps its own, so nothing flashes before hydration. */}
+            {marker.width > 0 && (
+              <span
+                aria-hidden="true"
+                className="lmaa-segment-marker"
+                style={{ transform: `translateX(${marker.left}px)`, width: `${marker.width}px` }}
+              />
+            )}
             {intervals.map((entry) => {
               const active = entry.key === intervalKey;
+              const marked = active && marker.width > 0;
               return (
                 <button
                   key={entry.key}
+                  data-interval={entry.key}
                   type="button"
                   aria-pressed={active}
                   onClick={() => chooseInterval(entry.key)}
-                  className="h-8 px-4 rounded-full text-sm border transition-colors"
+                  className="relative h-8 px-4 rounded-full text-sm border transition-colors"
                   style={{
-                    background: active ? "var(--ds-surface)" : "transparent",
-                    borderColor: active ? "var(--ds-border)" : "transparent",
+                    background: active && !marked ? "var(--ds-surface)" : "transparent",
+                    borderColor: active && !marked ? "var(--ds-border)" : "transparent",
                     color: active ? "var(--ds-text)" : "var(--ds-text-muted)",
                     fontWeight: active ? 600 : 500,
-                    boxShadow: active ? "var(--ds-shadow-sm)" : "none",
+                    boxShadow: active && !marked ? "var(--ds-shadow-sm)" : "none",
                   }}
                 >
                   {entry.label}
@@ -719,17 +919,48 @@ export default function SupportLadder({
         </div>
       )}
 
-      <AmountGrid
-        interval={interval}
-        amountEur={amountEur}
-        customAmount={customAmount}
-        perMonthLabel={text.perMonth}
-        onChoose={(next) => {
-          setCustomAmount("");
-          setAmountEur(next);
-        }}
-        onCustom={chooseCustom}
-      />
+      {/* Everything the tab decides fades out together and comes back as the
+          tab just chosen. Only its opacity moves, so the change costs a
+          composite rather than a repaint of everything inside it. */}
+      <div className={`lmaa-ladder-body${intervalKey === shownKey ? "" : " is-fading"}`}>
+      {/* What this tab is, where it is not self-evident from its amounts, and
+          what it asks for. A tab of suggested amounts needs the whole width for
+          them and puts any notice above; a tab with a single field has room to
+          set the two beside each other, and they are read together. */}
+      <div
+        className={`mt-6 grid gap-3 ${
+          interval.hint && interval.options.length === 0 ? "md:grid-cols-2" : ""
+        }`}
+      >
+        {interval.hint && (
+          <InfoCard
+            text={interval.hint}
+            className="mt-0"
+            beside={interval.options.length === 0}
+          />
+        )}
+
+        <AmountGrid
+          // A fresh tab starts without a complaint about the tab before it.
+          key={shownKey}
+          interval={interval}
+          amountEur={amountEur}
+          customAmount={customAmount}
+          perMonthLabel={text.perMonth}
+          onChoose={(next) => {
+            setCustomAmount("");
+            setAmountEur(next);
+          }}
+          onCustom={chooseCustom}
+          // The floor belongs to the tab that earns something by it, which is
+          // the sponsor tab and no other.
+          minimumEur={shownKey === "sponsor" ? minSponsorAmountEur : 0}
+          minimumNotice={(interval.belowMinimum ?? "").replaceAll(
+            "{min}",
+            EURO_WHOLE.format(minSponsorAmountEur),
+          )}
+        />
+      </div>
 
       {bankAccount && variant && (
         <div
@@ -805,10 +1036,10 @@ export default function SupportLadder({
                     <dd className={TRANSFER_VALUE_CLASS}>{bankAccount.bic}</dd>
                   </>
                 )}
-                {bankAccount.purpose && (
+                {remittance && (
                   <>
                     <dt style={TRANSFER_LABEL_STYLE}>{text.fieldPurpose}</dt>
-                    <dd className={TRANSFER_VALUE_CLASS}>{bankAccount.purpose}</dd>
+                    <dd className={TRANSFER_VALUE_CLASS}>{remittance}</dd>
                   </>
                 )}
                 <dt style={TRANSFER_LABEL_STYLE}>{text.fieldAmount}</dt>
@@ -826,12 +1057,15 @@ export default function SupportLadder({
 
       {/* The document decides the order. PayPal.Me pays once, so it stands
           under the single payment only; Sponsors carries a subscription and
-          therefore stands under both. */}
-      {routes
-        .filter((route) => route.token !== "paypalme" || intervalKey === "once")
-        .map((route) => (
-          <OutboundRoute key={`${route.token}-${route.url}`} route={route} />
-        ))}
+          therefore stands under both. A sponsorship goes by transfer alone, so
+          that tab shows neither: the name on the statement is what the year is
+          recorded against, and a third party's payment does not carry it. */}
+      {routes.flatMap((route) =>
+        shownKey !== "sponsor" && (route.token !== "paypalme" || shownKey === "once")
+          ? [<OutboundRoute key={`${route.token}-${route.url}`} route={route} />]
+          : [],
+      )}
+      </div>
     </section>
   );
 }

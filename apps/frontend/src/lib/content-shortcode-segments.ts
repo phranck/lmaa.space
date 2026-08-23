@@ -34,19 +34,36 @@ export interface SupportLadderCustomAmount {
   text: string;
 }
 
+/**
+ * What one tab of the ladder stands for.
+ *
+ * `sponsor` is not a frequency but a standing: it is paid once for a year, it
+ * carries no suggested amounts, and it goes by transfer alone.
+ */
+export type SupportLadderIntervalKey = "once" | "monthly" | "sponsor";
+
 /** One frequency tab and the amounts it offers. */
 export interface SupportLadderInterval {
-  key: "once" | "monthly";
+  key: SupportLadderIntervalKey;
   label: string;
   text: string;
   options: SupportLadderOption[];
   /** Absent when the interval offers no free amount. */
   custom?: SupportLadderCustomAmount;
+  /** A notice shown under the switch. Empty when the interval names none. */
+  hint?: string;
+  /**
+   * What to say when the amount falls short of what this tab asks for.
+   *
+   * `{min}` stands for that amount. Empty when the interval names nothing, and
+   * then nothing is said.
+   */
+  belowMinimum?: string;
 }
 
 /** How a payment block presents itself for one interval. */
 export interface SupportLadderVariant {
-  key: "once" | "monthly";
+  key: SupportLadderIntervalKey;
   title: string;
   text: string;
   /** Draws the block as the suggested route for that interval. */
@@ -80,7 +97,16 @@ export interface SupportLadderBankAccount {
   beneficiaryName: string;
   iban: string;
   bic?: string;
-  purpose?: string;
+  /** What the payer writes on an ordinary transfer. */
+  purposeDonation?: string;
+  /**
+   * What they write instead once the amount earns a sponsorship.
+   *
+   * Both references live here, because what a payment is called belongs to the
+   * payment rather than to the tab it was chosen on. Below what the sponsor tab
+   * asks for, the ordinary one applies again.
+   */
+  purposeSponsor?: string;
   variants: SupportLadderVariant[];
 }
 
@@ -203,8 +229,8 @@ function childrenOf(node: ParsedMarkdownShortcode, token: string): ParsedMarkdow
   return node.children.filter((child) => child.token === token);
 }
 
-function asIntervalKey(value: string | undefined): "once" | "monthly" | null {
-  return value === "once" || value === "monthly" ? value : null;
+function asIntervalKey(value: string | undefined): SupportLadderIntervalKey | null {
+  return value === "once" || value === "monthly" || value === "sponsor" ? value : null;
 }
 
 /**
@@ -254,15 +280,19 @@ function readIntervals(ladder: ParsedMarkdownShortcode): SupportLadderInterval[]
     if (!key || seen.has(key)) continue;
 
     const options = readOptions(node);
-    if (options.length === 0) continue;
-
     const customNode = childrenOf(node, "custom")[0];
+    // A tab needs something to choose from. Suggested amounts are the usual
+    // way, a free field on its own is the other, and neither is nothing.
+    if (options.length === 0 && !customNode) continue;
 
     seen.add(key);
     intervals.push({
       key,
       label: getStringParam(node.params.label)?.trim() ?? "",
       text: unescapeText(getStringParam(node.params.text)?.trim() ?? ""),
+      hint: unescapeText(getStringParam(node.params.hint)?.trim() ?? "") || undefined,
+      belowMinimum:
+        unescapeText(getStringParam(node.params.belowMinimum)?.trim() ?? "") || undefined,
       options,
       custom: customNode
         ? {
@@ -330,7 +360,11 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
     beneficiaryName,
     iban,
     bic: getStringParam(node.params.bic)?.trim() || undefined,
-    purpose: getStringParam(node.params.purpose)?.trim() || undefined,
+    purposeDonation:
+      getStringParam(node.params.purposeDonation)?.trim() ||
+      getStringParam(node.params.purpose)?.trim() ||
+      undefined,
+    purposeSponsor: getStringParam(node.params.purposeSponsor)?.trim() || undefined,
     variants,
   };
 }

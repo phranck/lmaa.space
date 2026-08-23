@@ -1,11 +1,17 @@
 ---
 import SponsorCard from "@/components/SponsorCard.astro";
-import { apiGet } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
 import type { SponsorsPayload } from "@lmaa/contracts";
 import { daysLeft, fullName } from "@lmaa/shared";
 
 interface Props {
+  /**
+   * The current sponsors and the year's figures.
+   *
+   * Handed in rather than fetched here, because the sponsor tab of the ladder
+   * reads the same figures and the page asks for them once.
+   */
+  payload: SponsorsPayload;
   /**
    * How the block is introduced, in Markdown.
    *
@@ -22,7 +28,7 @@ interface Props {
   missing: string;
 }
 
-const { text, covered: coveredText, missing: missingText } = Astro.props;
+const { payload, text, covered: coveredText, missing: missingText } = Astro.props;
 
 /**
  * What the block says about the year's costs when the page says nothing.
@@ -33,26 +39,6 @@ const { text, covered: coveredText, missing: missingText } = Astro.props;
 const COVERED_DEFAULT =
   "Die laufenden Kosten dieses Jahres sind damit gedeckt. Jeder weitere Beitrag geht in die Arbeit am Verzeichnis.";
 const MISSING_DEFAULT = "Noch {missing} bis die laufenden Kosten dieses Jahres gedeckt sind.";
-
-/**
- * The people who carry the running costs right now.
- *
- * Rendered on the server, because nothing here depends on the reader: who is
- * listed follows from who paid within the last year, and that is the same for
- * everybody.
- */
-let payload: SponsorsPayload = {
-  sponsors: [],
-  costsTotalCents: 0,
-  coveredCents: 0,
-  minAmountCents: 3000,
-};
-
-try {
-  payload = await apiGet<SponsorsPayload>("/sponsors");
-} catch {
-  // A missing list is worth less than a broken page.
-}
 
 const introHtml = text ? await renderMarkdown(text, {}, { breaks: true }) : "";
 const claims = await Promise.all(

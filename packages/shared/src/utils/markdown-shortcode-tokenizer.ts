@@ -11,8 +11,8 @@
  *
  * It tracks quotes. An attribute value in single or double quotes runs to its
  * closing quote and everything inside it is text, including newlines, `[[` and
- * `]]`. That is what lets a description contain a placeholder such as
- * `[[annualAmount]]` without becoming a node.
+ * `]]`. A description may therefore write a pair of brackets without it
+ * becoming a node.
  *
  * It closes only on `]]` outside a quoted value, so a single `]` in prose is
  * ordinary text.

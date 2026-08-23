@@ -77,6 +77,10 @@ async function renderSupportLadderProse(segment: SupportLadderIsland): Promise<S
       segment.intervals.map(async (interval) => ({
         ...interval,
         text: await renderMarkdown(interval.text, { breaks: true }),
+        hint: interval.hint ? await renderMarkdown(interval.hint, { breaks: true }) : undefined,
+        belowMinimum: interval.belowMinimum
+          ? await renderMarkdown(interval.belowMinimum, { breaks: true })
+          : undefined,
         options: await Promise.all(
           interval.options.map(async (option) => ({
             ...option,
