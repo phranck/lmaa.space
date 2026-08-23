@@ -1,11 +1,16 @@
 import { randomBytes } from "node:crypto";
 
 import type { PendingSponsorshipInput } from "@lmaa/contracts";
-import { buildCreditorReference, classifyProfileLink, randomReferenceBody } from "@lmaa/shared";
+import {
+  buildCreditorReference,
+  classifyProfileLink,
+  normalizeCreditorReference,
+  randomReferenceBody,
+} from "@lmaa/shared";
 
 import { resolveSponsorAvatar } from "./sponsor-avatar.js";
 import { getSponsoringConfig } from "./sponsors.js";
-import type { PendingSponsorshipRow, SponsorRow } from "../db/schema.js";
+import type { PendingSponsorshipInsert, PendingSponsorshipRow, SponsorRow } from "../db/schema.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
 import { logger } from "../lib/logger.js";
 import { type Result, failure, success } from "../lib/result.js";
@@ -13,6 +18,7 @@ import {
   deletePendingSponsorship,
   getPendingSponsorship,
   insertPendingSponsorship,
+  updatePendingSponsorshipByReference,
 } from "../repositories/pending-sponsorships.js";
 import { insertSponsor } from "../repositories/sponsors.js";
 
@@ -85,14 +91,19 @@ function drawReference(): string {
  *   reference was already taken, which means the draw is broken rather than
  *   unlucky.
  */
-export async function createPendingSponsorship(
+/** What both writing paths refuse a form for, before anything is stored. */
+type FormRefusal = "amount_too_low" | "link_unusable";
+
+/**
+ * Turns a validated form into the columns of a row, or says why it cannot.
+ *
+ * Shared by the two writing paths, so announcing and correcting are measured
+ * against the same figure and sort an address the same way. A rule that held on
+ * one of them and not the other is a rule that does not hold.
+ */
+async function toStoredFields(
   input: PendingSponsorshipInput,
-): Promise<
-  Result<
-    { pending: PendingSponsorshipRow },
-    "amount_too_low" | "link_unusable" | "reference_unavailable"
-  >
-> {
+): Promise<Result<{ fields: Omit<PendingSponsorshipInsert, "id" | "reference" | "createdAt"> }, FormRefusal>> {
   const { minAmountCents } = await getSponsoringConfig();
   if (input.amountCents < minAmountCents) return failure("amount_too_low");
 
@@ -101,18 +112,29 @@ export async function createPendingSponsorship(
   // the entry without it would leave somebody believing they had given it.
   if (input.link && !classified) return failure("link_unusable");
 
-  const socialMedia = classified ? { [classified.platform]: classified.url } : {};
+  return success({
+    fields: {
+      firstName: input.firstName,
+      lastName: input.lastName,
+      socialMedia: classified ? { [classified.platform]: classified.url } : {},
+      claim: input.claim,
+      amountCents: input.amountCents,
+      published: input.published,
+    },
+  });
+}
+
+export async function createPendingSponsorship(
+  input: PendingSponsorshipInput,
+): Promise<Result<{ pending: PendingSponsorshipRow }, FormRefusal | "reference_unavailable">> {
+  const prepared = await toStoredFields(input);
+  if (!prepared.ok) return prepared;
 
   for (let attempt = 1; attempt <= REFERENCE_ATTEMPTS; attempt++) {
     try {
       const pending = await insertPendingSponsorship({
         reference: drawReference(),
-        firstName: input.firstName,
-        lastName: input.lastName,
-        socialMedia,
-        claim: input.claim,
-        amountCents: input.amountCents,
-        published: input.published,
+        ...prepared.fields,
       });
       return success({ pending });
     } catch (error) {
@@ -126,6 +148,37 @@ export async function createPendingSponsorship(
   }
 
   return failure("reference_unavailable");
+}
+
+/**
+ * Rewrites an entry somebody has already announced, keeping their reference.
+ *
+ * Whoever holds the reference may change what stands behind it. That is the
+ * same trust the reference already carries: it is theirs, it is not guessable,
+ * and it addresses nothing but their own row.
+ *
+ * The reference itself is never reissued, because by this point it may already
+ * be written into a banking app and a new one would leave that payment pointing
+ * at nothing.
+ *
+ * @param reference - The reference as it arrived, spaces and any case allowed.
+ * @param input - The form as it was validated.
+ * @returns The row afterwards, or why it was refused.
+ */
+export async function updatePendingSponsorship(
+  reference: string,
+  input: PendingSponsorshipInput,
+): Promise<Result<{ pending: PendingSponsorshipRow }, FormRefusal | "not_found">> {
+  const stored = normalizeCreditorReference(reference);
+  if (!stored) return failure("not_found");
+
+  const prepared = await toStoredFields(input);
+  if (!prepared.ok) return prepared;
+
+  const pending = await updatePendingSponsorshipByReference(stored, prepared.fields);
+  if (!pending) return failure("not_found");
+
+  return success({ pending });
 }
 
 /**

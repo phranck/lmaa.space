@@ -13,6 +13,13 @@ function stored(overrides: Record<string, unknown> = {}): string {
     reference: "RF18SPON26001",
     referenceFormatted: "RF18 SPON 2600 1",
     issuedAt: NOW,
+    announced: {
+      firstName: "Kim",
+      lastName: "Lorenz",
+      link: "https://github.com/kim",
+      claim: "Weil es sonst niemand macht.",
+      published: false,
+    },
     ...overrides,
   });
 }
@@ -23,6 +30,13 @@ describe("parseIssuedSponsorship", () => {
       reference: "RF18SPON26001",
       referenceFormatted: "RF18 SPON 2600 1",
       issuedAt: NOW,
+      announced: {
+        firstName: "Kim",
+        lastName: "Lorenz",
+        link: "https://github.com/kim",
+        claim: "Weil es sonst niemand macht.",
+        published: false,
+      },
     });
   });
 
@@ -45,6 +59,21 @@ describe("parseIssuedSponsorship", () => {
   it("keeps an entry the server still holds", () => {
     const issuedAt = NOW - (PENDING_SPONSORSHIP_DAYS - 1) * DAY_MS;
     expect(parseIssuedSponsorship(stored({ issuedAt }), NOW)?.issuedAt).toBe(issuedAt);
+  });
+
+  it("gives an empty announcement for an entry stored before it was kept", () => {
+    // An older entry still has a reference worth showing; only the form behind
+    // it starts blank.
+    const entry = parseIssuedSponsorship(stored({ announced: undefined }), NOW);
+
+    expect(entry?.reference).toBe("RF18SPON26001");
+    expect(entry?.announced).toEqual({
+      firstName: "",
+      lastName: "",
+      link: "",
+      claim: "",
+      published: true,
+    });
   });
 
   it("drops an entry the server has removed by now", () => {

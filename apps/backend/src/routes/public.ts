@@ -43,7 +43,10 @@ import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
 import { getCurrentHeroImage } from "../services/hero.js";
-import { createPendingSponsorship } from "../services/pending-sponsorships.js";
+import {
+  createPendingSponsorship,
+  updatePendingSponsorship,
+} from "../services/pending-sponsorships.js";
 import {
   validateShopUrl,
   normalizeSubmittedShopUrl,
@@ -389,6 +392,57 @@ publicRoutes.post(
 
     c.header("Cache-Control", CACHE_NONE);
     return ok(c, receipt, 201);
+  },
+);
+
+// PUT /api/sponsorships/:reference – correct what was announced
+//
+// Whoever holds the reference may change what stands behind it, which is the
+// trust the reference already carries: it is theirs, it is not guessable, and
+// it addresses nothing but their own row. The reference itself never changes,
+// because by now it may be written into a banking app.
+publicRoutes.put(
+  "/sponsorships/:reference",
+  bodyLimit({
+    maxSize: PENDING_SPONSORSHIP_BODY_BYTES,
+    onError: (c) => fail(c, 413, "Diese Anfrage ist zu gross.", "payload_too_large"),
+  }),
+  rateLimit({ max: PENDING_SPONSORSHIP_MAX_PER_HOUR, windowMs: 60 * 60 * 1000 }),
+  validate("param", z.object({ reference: z.string().trim().min(5).max(32) })),
+  validate("json", pendingSponsorshipInputSchema),
+  async (c) => {
+    const result = await updatePendingSponsorship(
+      c.req.valid("param").reference,
+      c.req.valid("json"),
+    );
+
+    if (!result.ok && result.reason === "amount_too_low") {
+      return fail(
+        c,
+        400,
+        "Unter dem Mindestbetrag ist das eine Spende und keine Sponsorschaft.",
+        "amount_too_low",
+      );
+    }
+
+    if (!result.ok && result.reason === "link_unusable") {
+      return fail(
+        c,
+        400,
+        "Diese Adresse können wir nicht zuordnen. Bitte gib eine Website oder ein Profil an.",
+        "link_unusable",
+      );
+    }
+
+    if (!result.ok) return fail(c, 404, "Not found");
+
+    const receipt: PendingSponsorshipReceipt = {
+      reference: result.pending.reference,
+      referenceFormatted: formatCreditorReference(result.pending.reference),
+    };
+
+    c.header("Cache-Control", CACHE_NONE);
+    return ok(c, receipt);
   },
 );
 

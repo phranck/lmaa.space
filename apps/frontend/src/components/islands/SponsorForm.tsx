@@ -14,6 +14,7 @@ import {
   inputClass,
   labelClass,
 } from "@/lib/form-styles";
+import type { AnnouncedSponsorship } from "@/lib/pending-sponsorship-store";
 
 /**
  * Props for {@link SponsorForm}.
@@ -23,16 +24,21 @@ import {
  * @property earnsSponsorship - Whether that amount reaches what a sponsorship
  *   costs. Below it there is nothing to announce, and the server says the same
  *   thing to anybody who asks anyway.
+ * @property correcting - The reference and the values of an announcement being
+ *   changed. Given, the form opens on what was said and writes back to that
+ *   reference rather than asking for a second one.
  * @property labels - Every word the form says, from the page's own
  *   `[[sponsorform]]` node.
  * @property onIssued - Told the reference once the site has answered with one,
- *   so the transfer details can start quoting it.
+ *   along with what was said, so the transfer details can quote the one and the
+ *   form can open on the other next time.
  */
 interface SponsorFormProps {
   amountEur: number;
   earnsSponsorship: boolean;
+  correcting?: { reference: string; announced: AnnouncedSponsorship };
   labels: Record<SponsorFormLabelKey, string>;
-  onIssued: (receipt: PendingSponsorshipReceipt) => void;
+  onIssued: (receipt: PendingSponsorshipReceipt, announced: AnnouncedSponsorship) => void;
 }
 
 /** How long a given name or a family name may be, matching the contract. */
@@ -56,17 +62,23 @@ interface FormState {
   failure: string | null;
 }
 
-/** The form as nobody has touched it yet. */
-const EMPTY_FORM: FormState = {
-  firstName: "",
-  lastName: "",
-  link: "",
-  claim: "",
-  published: true,
-  sending: false,
-  linkError: null,
-  failure: null,
-};
+/**
+ * The form as it opens: empty, or on what was announced before.
+ *
+ * @param announced - What was said last time, when this is a correction.
+ */
+function openingForm(announced: AnnouncedSponsorship | undefined): FormState {
+  return {
+    firstName: announced?.firstName ?? "",
+    lastName: announced?.lastName ?? "",
+    link: announced?.link ?? "",
+    claim: announced?.claim ?? "",
+    published: announced?.published ?? true,
+    sending: false,
+    linkError: null,
+    failure: null,
+  };
+}
 
 /** Everything that happens to the form. */
 type FormAction =
@@ -130,10 +142,11 @@ function Required() {
 export default function SponsorForm({
   amountEur,
   earnsSponsorship,
+  correcting,
   labels,
   onIssued,
 }: SponsorFormProps) {
-  const [form, dispatch] = useReducer(reduce, EMPTY_FORM);
+  const [form, dispatch] = useReducer(reduce, correcting?.announced, openingForm);
   const remaining = MAX_PENDING_CLAIM - form.claim.length;
   // Everything is asked for, so nothing is sent until everything is there and
   // the amount reaches what a sponsorship costs. The button says as much by
@@ -158,21 +171,29 @@ export default function SponsorForm({
     dispatch({ type: "sending" });
 
     try {
-      const response = await fetch(`${API_BASE}/sponsorships`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: form.firstName.trim(),
-          lastName: form.lastName.trim(),
-          link: trimmedLink,
-          claim: form.claim.trim(),
-          // What stands on the ladder at this moment, which is what the code
-          // beneath the form carries. Whether that is what arrives is settled
-          // against the statement rather than here.
-          amountCents: Math.round(amountEur * 100),
-          published: form.published,
-        }),
-      });
+      // A reference in hand means the row exists, so it is rewritten rather
+      // than a second one asked for. The reference itself never changes: it may
+      // already stand in a banking app.
+      const response = await fetch(
+        correcting
+          ? `${API_BASE}/sponsorships/${encodeURIComponent(correcting.reference)}`
+          : `${API_BASE}/sponsorships`,
+        {
+          method: correcting ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: form.firstName.trim(),
+            lastName: form.lastName.trim(),
+            link: trimmedLink,
+            claim: form.claim.trim(),
+            // What stands on the ladder at this moment, which is what the code
+            // beneath the form carries. Whether that is what arrives is settled
+            // against the statement rather than here.
+            amountCents: Math.round(amountEur * 100),
+            published: form.published,
+          }),
+        },
+      );
 
       if (!response.ok) {
         dispatch({
@@ -185,7 +206,13 @@ export default function SponsorForm({
       // Nothing is dispatched afterwards: what stands here is replaced by the
       // reference the moment the page above has it.
       const answered = (await response.json()) as { data: PendingSponsorshipReceipt };
-      onIssued(answered.data);
+      onIssued(answered.data, {
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        link: trimmedLink,
+        claim: form.claim.trim(),
+        published: form.published,
+      });
     } catch {
       dispatch({ type: "failed", message: labels.failureOffline });
     }

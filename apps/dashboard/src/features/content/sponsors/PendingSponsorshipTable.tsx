@@ -99,11 +99,12 @@ function PendingSponsorshipTableComponent({
         id: "amount",
         // What they said they would give rather than what arrived, which is why
         // the takeover asks again against the statement.
-        header: text.announcedAmountLabel,
-        className: "w-32",
+        header: sponsorText.amountLabel,
+        // Money is read against money, so it ends where the next figure ends.
+        className: "w-32 text-right",
         sortKey: (entry) => entry.amountCents,
         cell: (entry) => (
-          <span className="text-sm tabular-nums whitespace-nowrap text-[var(--ds-text-muted)]">
+          <span className="block text-right text-sm tabular-nums whitespace-nowrap text-[var(--ds-text-muted)]">
             {entry.amountCents > 0 ? formatEuroCents(entry.amountCents) : "—"}
           </span>
         ),

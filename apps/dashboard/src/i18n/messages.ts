@@ -1294,7 +1294,6 @@ export interface DashboardMessages {
       emptyHint: string;
       referenceLabel: string;
       announcedLabel: string;
-      announcedAmountLabel: string;
       takeOver: string;
       takeOverTitle: string;
       takeOverHint: string;
@@ -2966,7 +2965,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emptyHint: "Hier stehen die Angaben von allen, die auf der Seite Sponsor werden wollen.",
         referenceLabel: "Referenz",
         announcedLabel: "Angemeldet",
-        announcedAmountLabel: "Angekündigt",
         takeOver: "Als Sponsor übernehmen",
         takeOverTitle: "Als Sponsor übernehmen",
         takeOverHint:
@@ -4655,7 +4653,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emptyHint: "Everybody who asked to become a sponsor on the site stands here.",
         referenceLabel: "Reference",
         announcedLabel: "Announced",
-        announcedAmountLabel: "Announced amount",
         takeOver: "Make a sponsor",
         takeOverTitle: "Make a sponsor",
         takeOverHint:

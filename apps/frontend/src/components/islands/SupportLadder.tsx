@@ -27,7 +27,7 @@ import type {
 } from "@/lib/content-shortcode-segments";
 import { buttonBaseClass } from "@/lib/form-styles";
 import {
-  forgetIssuedSponsorship,
+  type AnnouncedSponsorship,
   getIssuedSponsorship,
   getServerIssuedSponsorship,
   rememberIssuedSponsorship,
@@ -115,8 +115,8 @@ const REFERENCE_MASK = "XXXX XXXX XXXX XXXX XXXX";
  * is when this browser stops showing the reference, and that is a decision
  * about this browser.
  */
-function keepIssued(receipt: PendingSponsorshipReceipt) {
-  rememberIssuedSponsorship({ ...receipt, issuedAt: Date.now() });
+function keepIssued(receipt: PendingSponsorshipReceipt, announced: AnnouncedSponsorship) {
+  rememberIssuedSponsorship({ ...receipt, issuedAt: Date.now(), announced });
 }
 
 /** Fallbacks for anything the page's `[[qrcode]]` node does not name. */
@@ -730,6 +730,13 @@ export default function SupportLadder({
     getIssuedSponsorship,
     getServerIssuedSponsorship,
   );
+  /**
+   * Whether the form is open on an announcement that already exists.
+   *
+   * The reference is kept whilst it is: it may already stand in a banking app,
+   * and a second one would leave that payment pointing at nothing.
+   */
+  const [correcting, setCorrecting] = useState(false);
 
 
 
@@ -1009,7 +1016,7 @@ export default function SupportLadder({
             bare
           />
 
-          {issued ? (
+          {issued && !correcting ? (
             <NoticeCard tone="success" title={sponsorForm.issuedTitle}>
               <p className="m-0 mt-1" style={{ color: "var(--ds-text-muted)" }}>
                 {sponsorForm.issuedText}
@@ -1017,7 +1024,7 @@ export default function SupportLadder({
               <div className="mt-3 flex justify-end">
                 <button
                   type="button"
-                  onClick={forgetIssuedSponsorship}
+                  onClick={() => setCorrecting(true)}
                   className={`${buttonBaseClass} border`}
                   style={{
                     background: "var(--ds-surface)",
@@ -1033,8 +1040,14 @@ export default function SupportLadder({
             <SponsorForm
               amountEur={amountEur}
               earnsSponsorship={earnsSponsorship}
+              correcting={
+                issued ? { reference: issued.reference, announced: issued.announced } : undefined
+              }
               labels={sponsorForm}
-              onIssued={keepIssued}
+              onIssued={(receipt, announced) => {
+                keepIssued(receipt, announced);
+                setCorrecting(false);
+              }}
             />
           )}
 

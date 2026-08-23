@@ -67,10 +67,11 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
       {
         id: "amount",
         header: text.amountLabel,
-        className: "w-32",
+        // Money is read against money, so it ends where the next figure ends.
+        className: "w-32 text-right",
         sortKey: (sponsor) => sponsor.amountCents,
         cell: (sponsor) => (
-          <span className="text-sm tabular-nums text-[var(--ds-text-muted)]">
+          <span className="block text-right text-sm tabular-nums text-[var(--ds-text-muted)]">
             {formatEuroCents(sponsor.amountCents)}
           </span>
         ),

@@ -4,6 +4,7 @@ import { isValidCreditorReference } from "@lmaa/shared";
 
 const repoMocks = vi.hoisted(() => ({
   insertPendingSponsorship: vi.fn(),
+  updatePendingSponsorshipByReference: vi.fn(),
   getPendingSponsorship: vi.fn(),
   deletePendingSponsorship: vi.fn(),
 }));
@@ -31,6 +32,7 @@ vi.mock("../lib/logger.js", () => ({
 import {
   createPendingSponsorship,
   takeOverPendingSponsorship,
+  updatePendingSponsorship,
 } from "../services/pending-sponsorships.js";
 
 /** A form as the contract hands it over, with anything the test cares about on top. */
@@ -180,6 +182,68 @@ describe("createPendingSponsorship", () => {
 
     await expect(createPendingSponsorship(form())).rejects.toThrow("connection lost");
     expect(repoMocks.insertPendingSponsorship).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("updatePendingSponsorship", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    configMocks.getSponsoringConfig.mockResolvedValue({ costs: [], minAmountCents: 4500 });
+    repoMocks.updatePendingSponsorshipByReference.mockImplementation(
+      async (reference: string, data: Record<string, unknown>) => ({
+        id: "row-1",
+        reference,
+        createdAt: new Date(),
+        ...data,
+      }),
+    );
+  });
+
+  it("writes to the reference it was given and never issues a second", async () => {
+    const result = await updatePendingSponsorship("RF18SPON26001", form({ claim: "Neuer Satz." }));
+
+    expect(result.ok).toBe(true);
+    const [reference, data] = repoMocks.updatePendingSponsorshipByReference.mock.calls[0];
+    expect(reference).toBe("RF18SPON26001");
+    expect(data.claim).toBe("Neuer Satz.");
+    expect(data).not.toHaveProperty("reference");
+    expect(repoMocks.insertPendingSponsorship).not.toHaveBeenCalled();
+  });
+
+  it("reads a reference in the form it is printed in", async () => {
+    await updatePendingSponsorship("rf18 spon 2600 1", form());
+
+    const [reference] = repoMocks.updatePendingSponsorshipByReference.mock.calls[0];
+    expect(reference).toBe("RF18SPON26001");
+  });
+
+  it("refuses a reference that does not hold up, without asking the database", async () => {
+    const result = await updatePendingSponsorship("RF19SPON26001", form());
+
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+    expect(repoMocks.updatePendingSponsorshipByReference).not.toHaveBeenCalled();
+  });
+
+  it("says so when no entry carries it", async () => {
+    repoMocks.updatePendingSponsorshipByReference.mockResolvedValue(null);
+
+    const result = await updatePendingSponsorship("RF18SPON26001", form());
+
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+  });
+
+  it("measures the amount the same way announcing does", async () => {
+    const result = await updatePendingSponsorship("RF18SPON26001", form({ amountCents: 4499 }));
+
+    expect(result).toEqual({ ok: false, reason: "amount_too_low" });
+    expect(repoMocks.updatePendingSponsorshipByReference).not.toHaveBeenCalled();
+  });
+
+  it("sorts an address the same way announcing does", async () => {
+    await updatePendingSponsorship("RF18SPON26001", form({ link: "@kim@chaos.social" }));
+
+    const [, data] = repoMocks.updatePendingSponsorshipByReference.mock.calls[0];
+    expect(data.socialMedia).toEqual({ mastodon: "https://chaos.social/@kim" });
   });
 });
 

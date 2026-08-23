@@ -17,6 +17,15 @@ export const PENDING_SPONSORSHIP_STORAGE_KEY = "lmaa-sponsorship:v1";
 /** A day in milliseconds, which is what the lifetime is counted in. */
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** What somebody said about themselves, as the form takes it. */
+export interface AnnouncedSponsorship {
+  firstName: string;
+  lastName: string;
+  link: string;
+  claim: string;
+  published: boolean;
+}
+
 /** What the site remembers after somebody has announced a sponsorship. */
 export interface IssuedSponsorship {
   /** The reference as it travels, which is what the payment carries. */
@@ -25,6 +34,41 @@ export interface IssuedSponsorship {
   referenceFormatted: string;
   /** When it was issued, as milliseconds since the epoch. */
   issuedAt: number;
+  /**
+   * What was announced, so correcting it starts from what was said.
+   *
+   * Kept here rather than asked back from the server, because a route that
+   * answers what stands behind a reference would be a way to read somebody's
+   * entry with nothing but their reference.
+   */
+  announced: AnnouncedSponsorship;
+}
+
+/** An announcement with nothing in it, for an entry stored before this was kept. */
+const NOTHING_ANNOUNCED: AnnouncedSponsorship = {
+  firstName: "",
+  lastName: "",
+  link: "",
+  claim: "",
+  published: true,
+};
+
+/**
+ * Reads back what was announced, taking only what is of the right shape.
+ *
+ * @param value - Whatever the storage held under `announced`.
+ */
+function parseAnnounced(value: unknown): AnnouncedSponsorship {
+  if (typeof value !== "object" || value === null) return NOTHING_ANNOUNCED;
+  const candidate = value as Partial<AnnouncedSponsorship>;
+
+  return {
+    firstName: typeof candidate.firstName === "string" ? candidate.firstName : "",
+    lastName: typeof candidate.lastName === "string" ? candidate.lastName : "",
+    link: typeof candidate.link === "string" ? candidate.link : "",
+    claim: typeof candidate.claim === "string" ? candidate.claim : "",
+    published: candidate.published !== false,
+  };
 }
 
 /**
@@ -65,6 +109,7 @@ export function parseIssuedSponsorship(raw: string | null, now: number): IssuedS
     reference: candidate.reference,
     referenceFormatted: candidate.referenceFormatted,
     issuedAt,
+    announced: parseAnnounced(candidate.announced),
   };
 }
 
@@ -145,15 +190,5 @@ export function rememberIssuedSponsorship(issued: IssuedSponsorship): void {
     window.localStorage.setItem(PENDING_SPONSORSHIP_STORAGE_KEY, JSON.stringify(issued));
   } catch {
     // It is on screen either way, which is what the reader needs right now.
-  }
-}
-
-/** Forgets the reference, so the form is asked again. */
-export function forgetIssuedSponsorship(): void {
-  announce(null);
-  try {
-    window.localStorage.removeItem(PENDING_SPONSORSHIP_STORAGE_KEY);
-  } catch {
-    // Nothing was stored, so nothing has to be removed.
   }
 }

@@ -24,6 +24,28 @@ export async function insertPendingSponsorship(
 }
 
 /**
+ * Rewrites what somebody said about themselves, keeping their reference.
+ *
+ * The reference may already stand in a banking app by the time this runs, so it
+ * is the one thing an update never touches.
+ *
+ * @param reference - The reference as it is stored, without spaces, upper case.
+ * @param data - The fields to write.
+ * @returns The row afterwards, or `null` when no entry carries that reference.
+ */
+export async function updatePendingSponsorshipByReference(
+  reference: string,
+  data: Omit<PendingSponsorshipInsert, "id" | "reference" | "createdAt">,
+): Promise<PendingSponsorshipRow | null> {
+  const [updated] = await db
+    .update(pendingSponsorships)
+    .set(data)
+    .where(eq(pendingSponsorships.reference, reference))
+    .returning();
+  return updated ?? null;
+}
+
+/**
  * Returns every entry nobody has turned into a sponsor yet, oldest first.
  *
  * Oldest first, because that one is both the likeliest to have been paid by now
