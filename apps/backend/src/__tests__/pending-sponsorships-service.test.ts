@@ -16,9 +16,14 @@ const avatarMocks = vi.hoisted(() => ({
   resolveSponsorAvatar: vi.fn(),
 }));
 
+const configMocks = vi.hoisted(() => ({
+  getSponsoringConfig: vi.fn(),
+}));
+
 vi.mock("../repositories/pending-sponsorships.js", () => repoMocks);
 vi.mock("../repositories/sponsors.js", () => sponsorRepoMocks);
 vi.mock("../services/sponsor-avatar.js", () => avatarMocks);
+vi.mock("../services/sponsors.js", () => configMocks);
 vi.mock("../lib/logger.js", () => ({
   logger: { warn: vi.fn(), info: vi.fn() },
 }));
@@ -47,9 +52,32 @@ const referenceTaken = { code: "23505", constraint_name: "pending_sponsorships_r
 describe("createPendingSponsorship", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    configMocks.getSponsoringConfig.mockResolvedValue({ costs: [], minAmountCents: 4500 });
     repoMocks.insertPendingSponsorship.mockImplementation(
       async (data: Record<string, unknown>) => ({ id: "row-1", createdAt: new Date(), ...data }),
     );
+  });
+
+  it("refuses an amount below what a sponsorship costs", async () => {
+    // The form checks this too, but the form runs in a browser the caller owns.
+    const result = await createPendingSponsorship(form({ amountCents: 4499 }));
+
+    expect(result).toEqual({ ok: false, reason: "amount_too_low" });
+    expect(repoMocks.insertPendingSponsorship).not.toHaveBeenCalled();
+  });
+
+  it("takes the minimum itself", async () => {
+    const result = await createPendingSponsorship(form({ amountCents: 4500 }));
+
+    expect(result.ok).toBe(true);
+  });
+
+  it("measures against the figure in the dashboard rather than a fixed one", async () => {
+    configMocks.getSponsoringConfig.mockResolvedValue({ costs: [], minAmountCents: 12_000 });
+
+    const result = await createPendingSponsorship(form({ amountCents: 4500 }));
+
+    expect(result).toEqual({ ok: false, reason: "amount_too_low" });
   });
 
   it("issues a reference that holds up and says what it is for", async () => {

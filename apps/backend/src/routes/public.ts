@@ -341,6 +341,15 @@ publicRoutes.post(
   async (c) => {
     const result = await createPendingSponsorship(c.req.valid("json"));
 
+    if (!result.ok && result.reason === "amount_too_low") {
+      return fail(
+        c,
+        400,
+        "Unter dem Mindestbetrag ist das eine Spende und keine Sponsorschaft.",
+        "amount_too_low",
+      );
+    }
+
     if (!result.ok && result.reason === "link_unusable") {
       return fail(
         c,

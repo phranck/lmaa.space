@@ -105,6 +105,28 @@ describe("SupportLadder", () => {
     expect(html).not.toContain('placeholder="40"');
   });
 
+  it("names the sponsorship on the transfer once the amount earns one", () => {
+    // The tab opens on the floor, which is exactly what a sponsorship costs.
+    const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);
+
+    expect(html).toContain("Sponsor: lmaa.space");
+    expect(html).not.toContain("Spende: lmaa.space");
+  });
+
+  it("falls back to an ordinary donation below the floor", () => {
+    // A tab that opens on a suggested amount under the minimum. Nothing about
+    // it may say sponsorship: not the words on the transfer, and not the line
+    // waiting for a reference.
+    const html = render(account(SPONSOR_FORM_DEFAULTS), {
+      ...sponsorInterval,
+      options: [{ amountEur: 5, description: "", recommended: true }],
+    });
+
+    expect(html).toContain("Spende: lmaa.space");
+    expect(html).not.toContain("Sponsor: lmaa.space");
+    expect(html).not.toContain("XXXX XXXX XXXX XXXX XXXX");
+  });
+
   it("keeps the reference line in the transfer card, masked until there is one", () => {
     const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);
 

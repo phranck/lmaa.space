@@ -4,6 +4,7 @@ import type { PendingSponsorshipInput } from "@lmaa/contracts";
 import { buildCreditorReference, classifyProfileLink, randomReferenceBody } from "@lmaa/shared";
 
 import { resolveSponsorAvatar } from "./sponsor-avatar.js";
+import { getSponsoringConfig } from "./sponsors.js";
 import type { PendingSponsorshipRow, SponsorRow } from "../db/schema.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
 import { logger } from "../lib/logger.js";
@@ -72,16 +73,29 @@ function drawReference(): string {
  * anybody, and resolving an address given by a stranger would make it a way to
  * have this server fetch whatever the caller names.
  *
+ * The announced amount is measured against the minimum here and nowhere else
+ * that matters. The form checks it too, but the form runs in a browser the
+ * caller owns: what decides whether an entry exists is this comparison against
+ * the figure the operator set in the dashboard.
+ *
  * @param input - The form as it was validated.
- * @returns The stored row, `link_unusable` when an address was given that names
- *   nothing reachable, or `reference_unavailable` when every drawn reference was
- *   already taken, which means the draw is broken rather than unlucky.
+ * @returns The stored row, `amount_too_low` when what was announced falls short
+ *   of what a sponsorship costs, `link_unusable` when an address was given that
+ *   names nothing reachable, or `reference_unavailable` when every drawn
+ *   reference was already taken, which means the draw is broken rather than
+ *   unlucky.
  */
 export async function createPendingSponsorship(
   input: PendingSponsorshipInput,
 ): Promise<
-  Result<{ pending: PendingSponsorshipRow }, "link_unusable" | "reference_unavailable">
+  Result<
+    { pending: PendingSponsorshipRow },
+    "amount_too_low" | "link_unusable" | "reference_unavailable"
+  >
 > {
+  const { minAmountCents } = await getSponsoringConfig();
+  if (input.amountCents < minAmountCents) return failure("amount_too_low");
+
   const classified = input.link ? classifyProfileLink(input.link) : null;
   // An address that sorts into nothing is said so rather than dropped. Storing
   // the entry without it would leave somebody believing they had given it.

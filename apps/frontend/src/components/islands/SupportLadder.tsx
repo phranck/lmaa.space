@@ -763,23 +763,6 @@ export default function SupportLadder({
 
 
   /**
-   * What the payer should write on the transfer.
-   *
-   * A sponsorship has to be recognisable as one on the statement, which the
-   * ordinary reference is not, so the account names a second one for it. It
-   * applies whilst the amount earns it: below what the sponsor tab asks for the
-   * payment is a donation, and the reference is what it gets booked as.
-   */
-  const earnsSponsorPurpose =
-    shownKey === "sponsor" && minSponsorAmountEur > 0 && amountEur >= minSponsorAmountEur;
-  /**
-   * The reference the transfer carries, once this reader has been given one.
-   *
-   * It replaces the sentence rather than joining it: the code holds one of the
-   * two and never both, and the reference is the half that survives the payer's
-   * app and the banks in between.
-   */
-  /**
    * The wording of the form, when the tab in view carries one.
    *
    * Its presence is what decides whether this tab asks anything of the reader
@@ -787,10 +770,32 @@ export default function SupportLadder({
    * deciding it from a key.
    */
   const sponsorForm = qrVariant?.sponsorForm;
-  const creditorReference = sponsorForm ? issued?.reference : undefined;
+
+  /**
+   * Whether what stands on the ladder buys a sponsorship at all.
+   *
+   * Below the floor the payment is a donation whatever was announced, so it is
+   * this and not the tab that decides both the reference and the words on the
+   * transfer.
+   */
+  const earnsSponsorship =
+    Boolean(sponsorForm) && minSponsorAmountEur > 0 && amountEur >= minSponsorAmountEur;
+
+  /**
+   * The reference the transfer carries, once it has been earned and issued.
+   *
+   * It replaces the sentence rather than joining it: the code holds one of the
+   * two and never both, and the reference is the half that survives the payer's
+   * app and the banks in between.
+   *
+   * Lowering the amount takes it back out. A code that named a sponsorship
+   * whilst carrying less than one costs would put an entry in front of the
+   * operator that the money never earned.
+   */
+  const creditorReference = earnsSponsorship ? issued?.reference : undefined;
   const remittance = creditorReference
     ? undefined
-    : (earnsSponsorPurpose ? bankAccount?.purposeSponsor : undefined) ||
+    : (earnsSponsorship ? bankAccount?.purposeSponsor : undefined) ||
       bankAccount?.purposeDonation;
 
   const payload = useMemo(() => {
@@ -1034,7 +1039,12 @@ export default function SupportLadder({
               </div>
             </NoticeCard>
           ) : (
-            <SponsorForm amountEur={amountEur} labels={sponsorForm} onIssued={keepIssued} />
+            <SponsorForm
+              amountEur={amountEur}
+              earnsSponsorship={earnsSponsorship}
+              labels={sponsorForm}
+              onIssued={keepIssued}
+            />
           )}
 
           {/* Last, because it is the thing to read once before acting rather
@@ -1150,7 +1160,10 @@ export default function SupportLadder({
                     <dd className={TRANSFER_VALUE_CLASS}>{remittance}</dd>
                   </>
                 )}
-                {shownKey === "sponsor" && (
+                {/* Shown whilst the amount earns a sponsorship, whether or not
+                    one has been announced yet. Below the floor the transfer is
+                    an ordinary donation and has no reference to wait for. */}
+                {earnsSponsorship && (
                   <>
                     <dt style={TRANSFER_LABEL_STYLE}>{text.fieldReference}</dt>
                     <dd

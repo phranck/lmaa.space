@@ -20,6 +20,9 @@ import {
  *
  * @property amountEur - What the ladder above currently stands on, which is the
  *   amount the code they scan carries and therefore the one they announced.
+ * @property earnsSponsorship - Whether that amount reaches what a sponsorship
+ *   costs. Below it there is nothing to announce, and the server says the same
+ *   thing to anybody who asks anyway.
  * @property labels - Every word the form says, from the page's own
  *   `[[sponsorform]]` node.
  * @property onIssued - Told the reference once the site has answered with one,
@@ -27,6 +30,7 @@ import {
  */
 interface SponsorFormProps {
   amountEur: number;
+  earnsSponsorship: boolean;
   labels: Record<SponsorFormLabelKey, string>;
   onIssued: (receipt: PendingSponsorshipReceipt) => void;
 }
@@ -123,13 +127,20 @@ function Required() {
  * belongs to is worked out from the address itself, here so a mistyped one is
  * answered at once, and again on the server, which is the side that decides.
  */
-export default function SponsorForm({ amountEur, labels, onIssued }: SponsorFormProps) {
+export default function SponsorForm({
+  amountEur,
+  earnsSponsorship,
+  labels,
+  onIssued,
+}: SponsorFormProps) {
   const [form, dispatch] = useReducer(reduce, EMPTY_FORM);
   const remaining = MAX_PENDING_CLAIM - form.claim.length;
-  // Everything is asked for, so nothing is sent until everything is there. The
-  // button says as much by being unavailable rather than by complaining after
-  // the fact.
+  // Everything is asked for, so nothing is sent until everything is there and
+  // the amount reaches what a sponsorship costs. The button says as much by
+  // being unavailable rather than by complaining after the fact, whilst the
+  // notice above the form is what explains the amount.
   const complete =
+    earnsSponsorship &&
     form.firstName.trim() !== "" &&
     form.lastName.trim() !== "" &&
     form.link.trim() !== "" &&
