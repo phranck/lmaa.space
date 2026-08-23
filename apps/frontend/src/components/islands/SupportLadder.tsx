@@ -768,10 +768,12 @@ export default function SupportLadder({
   const showQr = shownKey !== "monthly" && Boolean(bankAccount);
   // A tab that draws no block of its own borrows the single payment's, because
   // that is the same transfer with a different reference.
-  const qrVariant =
-    bankAccount?.variants.find((entry) => entry.key === shownKey) ??
-    bankAccount?.variants.find((entry) => entry.key === "once");
-  const qr = qrVariant?.qr;
+  const onceVariant = bankAccount?.variants.find((entry) => entry.key === "once");
+  const qrVariant = bankAccount?.variants.find((entry) => entry.key === shownKey) ?? onceVariant;
+  // The code's appearance falls back on its own, so a tab may state a title and
+  // a text of its own without having to restate every colour and size to keep
+  // the code looking the way it does everywhere else.
+  const qr = qrVariant?.qr ?? onceVariant?.qr;
   const qrSize = qr?.size ?? QR_DEFAULTS.size;
   const qrBackground = qr?.background ?? QR_DEFAULTS.background;
   const qrMargin = qr?.margin ?? QR_DEFAULTS.margin;

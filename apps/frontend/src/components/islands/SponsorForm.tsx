@@ -160,7 +160,16 @@ export default function SponsorForm({ onIssued }: SponsorFormProps) {
         event.preventDefault();
         void submit();
       }}
-      className="mt-6 grid gap-4"
+      className="lmaa-card mt-6 grid gap-4"
+      // The same surface the payment below it stands on, because the two are
+      // one step each of the same errand.
+      style={{
+        border: "var(--card-border-width) solid",
+        padding: "var(--card-padding)",
+        borderRadius: "var(--radius-card)",
+        background: "var(--ds-surface)",
+        borderColor: "var(--ds-border-subtle)",
+      }}
       aria-label="Angaben für die Sponsorenliste"
     >
       {/* The three answers a person gives about themselves stand in one row of
