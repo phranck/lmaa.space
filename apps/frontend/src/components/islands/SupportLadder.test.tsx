@@ -76,7 +76,7 @@ describe("SupportLadder", () => {
 
   it("stands the amount, the form and the notice on one card", () => {
     const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);
-    const card = html.slice(html.indexOf("var(--ds-accent-tint)"));
+    const card = html.slice(html.indexOf("var(--ds-surface-form)"));
 
     // All three inside the one surface, in the order the errand runs.
     const amount = card.indexOf("Dein Beitrag");

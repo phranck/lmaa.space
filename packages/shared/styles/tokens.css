@@ -92,6 +92,11 @@
      without taking the full weight of a card. Derived from the two it sits
      between, so it follows both themes without a value of its own. */
   --ds-surface-soft: color-mix(in srgb, var(--ds-surface) 55%, var(--ds-bg));
+  /* Warm paper, for a card somebody fills in rather than reads. Stated rather
+     than derived, because it is a chosen colour rather than a step off an
+     existing one, and it carries its own alpha so what stands behind it shows
+     through. */
+  --ds-surface-form: #efeee5bf;
   --ds-input-bg: var(--ds-surface);
 
   /* Borders */
@@ -299,6 +304,9 @@
   --ds-L-subtle: 0.5;
 
   --ds-text-inverse: oklch(var(--ds-L-inset) 0 0);
+  /* Warm paper has no counterpart on a dark page, so the role falls back to the
+     neutral surface that means the same thing there: half a step off the page. */
+  --ds-surface-form: var(--ds-surface-soft);
   --ds-input-bg: var(--ds-bg-elevated);
 
   /* Borders — borderColor-default #3d444d · muted rgba · emphasis #656c76 */

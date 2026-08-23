@@ -964,10 +964,10 @@ export default function SupportLadder({
             border: "var(--card-border-width) dashed",
             padding: "var(--card-padding)",
             borderRadius: "var(--radius-card)",
-            // The colours of the free-amount field this card grew out of: it is
-            // still a thing to fill in rather than a thing to read.
+            // Warm paper with the accent line of the free-amount field this card
+            // grew out of: it is still a thing to fill in rather than to read.
             borderColor: "var(--ds-accent)",
-            background: "var(--ds-accent-tint)",
+            background: "var(--ds-surface-form)",
           }}
         >
           <AmountGrid
