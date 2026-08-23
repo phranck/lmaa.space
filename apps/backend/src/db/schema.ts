@@ -1358,3 +1358,12 @@ export type SponsorRow = typeof sponsors.$inferSelect;
  * Inferred insert type for `sponsors`.
  */
 export type SponsorInsert = typeof sponsors.$inferInsert;
+
+/**
+ * Inferred select type for `pending_sponsorships`.
+ */
+export type PendingSponsorshipRow = typeof pendingSponsorships.$inferSelect;
+/**
+ * Inferred insert type for `pending_sponsorships`.
+ */
+export type PendingSponsorshipInsert = typeof pendingSponsorships.$inferInsert;
