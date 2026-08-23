@@ -69,6 +69,23 @@ async function loadSiteVariables(): Promise<SiteVariableValues | null> {
 }
 
 /**
+ * Puts the figures the settings own in place of their names.
+ *
+ * Called as early as a text is read rather than only before it is rendered, so
+ * a variable works the same inside a shortcode's attribute as it does in the
+ * prose around it. Running twice over the same text changes nothing, because
+ * what it replaced is no longer a name.
+ *
+ * @param text - What was written, with or without variables in it.
+ * @returns The text with every known variable replaced, or unchanged when the
+ *   figures have never been read.
+ */
+export async function expandVariablesSSR(text: string): Promise<string> {
+  const variables = await loadSiteVariables();
+  return variables ? expandSiteVariables(text, variables, formatEuroCents) : text;
+}
+
+/**
  * Renders Markdown into sanitized HTML, resolving media aliases via the backend API.
  *
  * The figures the settings own are put in place of their names first, so a page
@@ -86,9 +103,6 @@ export async function renderMarkdownSSR(
   content: string,
   options: { breaks?: boolean } = {},
 ): Promise<string> {
-  const [aliases, variables] = await Promise.all([loadMediaAliases(), loadSiteVariables()]);
-  const expanded = variables
-    ? expandSiteVariables(content, variables, formatEuroCents)
-    : content;
+  const [aliases, expanded] = await Promise.all([loadMediaAliases(), expandVariablesSSR(content)]);
   return renderMarkdown(expanded, aliases, options);
 }
