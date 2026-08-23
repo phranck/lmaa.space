@@ -578,7 +578,11 @@ function AmountGrid({
           <span className={`flex items-center gap-2 ${bare ? "justify-center" : ""}`}>
             <span
               aria-hidden="true"
-              className="leading-none font-bold"
+              // On the sponsor card the currency follows the figure, the way an
+              // amount is written rather than the way a form labels a field.
+              // Moved by order alone, because it is hidden from a screen reader
+              // and its place in the markup decides nothing.
+              className={`leading-none font-bold ${bare ? "order-2" : ""}`}
               style={{
                 fontFamily: "var(--ds-font-serif)",
                 // Bigger where the amount is the first thing to settle rather
@@ -601,17 +605,20 @@ function AmountGrid({
               onBlur={() => setLeftTheField(true)}
               // Wide enough for a five-figure amount and no wider, because the
               // field should look like what belongs in it.
-              className={`px-3 border rounded-control tabular-nums ${
-                bare ? "h-12 w-32 text-center" : "h-9 w-24"
+              className={`tabular-nums ${
+                bare
+                  ? // A line to write on rather than a box to fill: no surface of
+                    // its own, no corners, and the figure sitting on the rule.
+                    "h-12 w-32 pr-2 border-0 border-b rounded-none bg-transparent text-right font-mono"
+                  : "h-9 w-24 px-3 border rounded-control"
               }`}
               style={{
-                background: "var(--ds-surface)",
+                background: bare ? undefined : "var(--ds-surface)",
                 borderColor: "var(--ds-border)",
                 color: "var(--ds-text)",
                 // The amount is what the whole card is about, so it is set at
                 // the size the figure deserves rather than at field size.
                 fontSize: bare ? "var(--ds-text-2xl)" : undefined,
-                fontFamily: bare ? "var(--ds-font-serif)" : undefined,
                 fontWeight: bare ? 700 : undefined,
               }}
             />
