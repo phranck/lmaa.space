@@ -5,6 +5,7 @@ import { SPONSORING_DEFAULTS, type RunningCostItem, type SponsoringConfig } from
 import { formatEuroCents } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
+import { CopyableCode } from "@/components/ui/CopyableCode.tsx";
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardInput, DashboardNumberInput } from "@/components/ui/DashboardControls.tsx";
@@ -84,6 +85,24 @@ function toConfig(draft: CostDraft): SponsoringConfig {
  * how much is still missing. Neither figure belongs to any one sponsor, which
  * is why they are set here rather than beside the list of them.
  */
+/**
+ * The name of a variable a field publishes, ready to be copied.
+ *
+ * @param name - The variable, without its braces.
+ * @param before - A sentence that belongs in front of it, where the field has
+ *   something else to say as well.
+ */
+function VariableHint({ name, before }: { name: string; before?: string }) {
+  const { messages } = useI18n();
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-1.5 gap-y-1">
+      {before}
+      {messages.system.sponsors.variableLabel}
+      <CopyableCode value={`{${name}}`} copyLabel={messages.common.copy} />
+    </span>
+  );
+}
+
 export function SponsoringSettingsPage() {
   const { messages } = useI18n();
   const common = messages.common;
@@ -192,7 +211,11 @@ export function SponsoringSettingsPage() {
                     {text.addCost}
                   </DashboardButton>
 
-                  <p className="text-xs text-[var(--ds-text-subtle)]">{text.costsVariables}</p>
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--ds-text-subtle)]">
+                    {text.variableLabel}
+                    <CopyableCode value="{annualCost}" copyLabel={common.copy} />
+                    <CopyableCode value="{monthlyCost}" copyLabel={common.copy} />
+                  </p>
                 </div>
               </DashboardSection.Body>
             </DashboardSection>
@@ -233,19 +256,19 @@ export function SponsoringSettingsPage() {
               <div className="grid gap-4 md:grid-cols-3">
                 <DashboardInput
                   label={text.payeeNameLabel}
-                  hint={`${text.variableLabel} {payeeName}`}
+                  hint={<VariableHint name="payeeName" />}
                   value={current.payeeName}
                   onChange={(event) => updateConfig({ ...current, payeeName: event.target.value })}
                 />
                 <DashboardInput
                   label={text.payeeIbanLabel}
-                  hint={`${text.variableLabel} {payeeIban}`}
+                  hint={<VariableHint name="payeeIban" />}
                   value={current.payeeIban}
                   onChange={(event) => updateConfig({ ...current, payeeIban: event.target.value })}
                 />
                 <DashboardInput
                   label={text.payeeBicLabel}
-                  hint={`${text.payeeBicHint} ${text.variableLabel} {payeeBic}`}
+                  hint={<VariableHint name="payeeBic" before={text.payeeBicHint} />}
                   value={current.payeeBic}
                   onChange={(event) => updateConfig({ ...current, payeeBic: event.target.value })}
                 />

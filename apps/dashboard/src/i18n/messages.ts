@@ -28,6 +28,7 @@ export interface DashboardMessages {
     duplicate: string;
     copy: string;
     copyUrl: string;
+    availableVariables: string;
     import: string;
     export: string;
     approve: string;
@@ -1639,6 +1640,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       duplicate: "Duplizieren",
       copy: "Kopieren",
       copyUrl: "URL kopieren",
+      availableVariables: "Verfügbare Variablen",
       import: "Importieren",
       export: "Exportieren",
       approve: "Freischalten",
@@ -3336,6 +3338,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       duplicate: "Duplicate",
       copy: "Copy",
       copyUrl: "Copy URL",
+      availableVariables: "Available variables",
       import: "Import",
       export: "Export",
       approve: "Approve",
