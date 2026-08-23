@@ -12,6 +12,13 @@ import { fieldKey, type SimpleFields } from "@/components/islands/dynamic-form-u
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
 import { API_BASE } from "@/lib/client-api";
+import {
+  buttonBaseClass,
+  buttonFilledClass,
+  errorClass,
+  inputClass,
+  labelClass,
+} from "@/lib/form-styles";
 import { getSafeActionUrl } from "@/lib/safe-url";
 
 const MarkdownEditor = lazy(() =>
@@ -28,12 +35,6 @@ const RegionSelect = lazy(() =>
 
 const REGION_OPTIONS = createDefaultRegionOptions("de");
 
-const inputClass =
-  "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
-
-const errorClass = "text-[var(--ds-danger-text)] text-xs mt-1";
-
-const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5 px-1";
 const HEADLINE_CLASSES: Record<string, string> = {
   h1: "text-3xl text-[var(--ds-text)]",
   h2: "text-2xl text-[var(--ds-text)]",
@@ -755,7 +756,7 @@ function ButtonField({
               }
             : undefined
         }
-        className={`flex items-center gap-1.5 h-9 px-3 rounded-control font-medium text-sm transition-colors ${
+        className={`${buttonBaseClass} ${
           btnWidth === "full"
             ? "w-full justify-center"
             : isSubmit
@@ -763,7 +764,7 @@ function ButtonField({
               : ""
         } ${
           isSubmit
-            ? "bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-60"
+            ? buttonFilledClass
             : "border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] disabled:opacity-60"
         }`}
       >
