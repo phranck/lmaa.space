@@ -1,16 +1,19 @@
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { z } from "zod";
 
 import {
   PUBLIC_REJECTED_SHOP_DEFAULT_PAGE_SIZE,
   PUBLIC_REJECTED_SHOP_PAGE_SIZES,
   PUBLIC_REJECTED_SHOP_SORT_FIELDS,
+  type PendingSponsorshipReceipt,
   type PublicRejectedShopPageSize,
   type PublicRejectedShopSortDirection,
   type PublicRejectedShopSortField,
   type SponsorsPayload,
+  pendingSponsorshipInputSchema,
 } from "@lmaa/contracts";
-import { decodeShopToken } from "@lmaa/shared";
+import { decodeShopToken, formatCreditorReference } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
 import {
@@ -22,6 +25,7 @@ import {
   CACHE_VOLATILE,
 } from "../lib/cache-control.js";
 import { fail, ok } from "../lib/http.js";
+import { logger } from "../lib/logger.js";
 import { shopFilterSchema } from "../lib/shop-filters.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
 import { validate } from "../middleware/validate-request.js";
@@ -39,6 +43,7 @@ import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
 import { getCurrentHeroImage } from "../services/hero.js";
+import { createPendingSponsorship } from "../services/pending-sponsorships.js";
 import {
   validateShopUrl,
   normalizeSubmittedShopUrl,
@@ -70,9 +75,29 @@ import { getSupportPromptLimits } from "../services/support-prompts.js";
 /**
  * Public API routes consumed by the website and external clients.
  */
-export const publicRoutes = new Hono();
+export const publicRoutes = new Hono<{ Variables: { requestId: string } }>();
 
 const publicReadLimit = rateLimit({ max: 100, windowMs: 60 * 1000 });
+
+/**
+ * How large a sponsorship form may be.
+ *
+ * The contract caps its four text fields at 610 characters between them, which
+ * is 2440 bytes where every one of them is four bytes of UTF-8, plus about
+ * eighty for the keys and the quoting. Four kilobytes leaves room for that and
+ * refuses anything that is not a filled-in form. The service's own limit of ten
+ * megabytes is meant for media and says nothing useful here.
+ */
+const PENDING_SPONSORSHIP_BODY_BYTES = 4 * 1024;
+
+/**
+ * How often one source may announce a sponsorship in an hour.
+ *
+ * Lower than the twenty a shop submission gets, because each of these writes
+ * somebody's name and sentence into a table and stands there for sixty days.
+ * Filling the form in once and correcting it twice fits.
+ */
+const PENDING_SPONSORSHIP_MAX_PER_HOUR = 5;
 const concernBodySchema = z.object({ reason: z.string().min(1).max(2000) });
 const rejectedShopsQuerySchema = z.object({
   q: z.string().max(200).optional().default(""),
@@ -299,6 +324,49 @@ publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
   c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, payload);
 });
+
+// POST /api/sponsorships – what somebody says about themselves before they pay
+//
+// A transfer carries either a sentence or a reference and never both, so the
+// name, the address, the claim and the answer about being named are said here
+// and the payment carries only the reference this answers with.
+publicRoutes.post(
+  "/sponsorships",
+  bodyLimit({
+    maxSize: PENDING_SPONSORSHIP_BODY_BYTES,
+    onError: (c) => fail(c, 413, "Diese Anfrage ist zu gross.", "payload_too_large"),
+  }),
+  rateLimit({ max: PENDING_SPONSORSHIP_MAX_PER_HOUR, windowMs: 60 * 60 * 1000 }),
+  validate("json", pendingSponsorshipInputSchema),
+  async (c) => {
+    const result = await createPendingSponsorship(c.req.valid("json"));
+
+    if (!result.ok) {
+      // Three drawn references in a row were already taken, which at 60 bits
+      // says the draw is broken rather than that somebody was unlucky. Nothing
+      // the caller typed goes into the line; the request id ties it to the
+      // response they hold.
+      logger.error(
+        { event: "pending_sponsorship.not_created", requestId: c.get("requestId") },
+        "No creditor reference could be issued",
+      );
+      return fail(
+        c,
+        503,
+        "Das hat gerade nicht geklappt. Bitte versuche es in ein paar Minuten noch einmal.",
+        "reference_unavailable",
+      );
+    }
+
+    const receipt: PendingSponsorshipReceipt = {
+      reference: result.pending.reference,
+      referenceFormatted: formatCreditorReference(result.pending.reference),
+    };
+
+    c.header("Cache-Control", CACHE_NONE);
+    return ok(c, receipt, 201);
+  },
+);
 
 // GET /api/support-prompts – what may be shown inside the site today
 //

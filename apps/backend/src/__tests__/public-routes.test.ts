@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MAX_PENDING_CLAIM } from "@lmaa/contracts";
+
 vi.mock("../config/env.js", () => ({
   env: { NODE_ENV: "development", LOG_LEVEL: "silent" },
 }));
@@ -79,6 +81,10 @@ const supportPromptServiceMocks = vi.hoisted(() => ({
   getSupportPromptLimits: vi.fn(),
 }));
 
+const pendingSponsorshipMocks = vi.hoisted(() => ({
+  createPendingSponsorship: vi.fn(),
+}));
+
 vi.mock("../services/public.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/public.js")>();
   return { ...actual, ...publicServiceMocks };
@@ -95,6 +101,7 @@ vi.mock("../services/form-submission.js", () => formSubmissionMocks);
 vi.mock("../services/form-validation.js", () => formValidationMocks);
 vi.mock("../repositories/support-prompts.js", () => supportPromptMocks);
 vi.mock("../services/support-prompts.js", () => supportPromptServiceMocks);
+vi.mock("../services/pending-sponsorships.js", () => pendingSponsorshipMocks);
 vi.mock("../middleware/rate-limit.js", () => ({
   rateLimit: vi.fn(() => (_c: unknown, next: () => Promise<void>) => next()),
   resolveClientIp: vi.fn(() => "127.0.0.1"),
@@ -433,6 +440,136 @@ describe("publicRoutes", () => {
 
       expect(res.status).toBe(400);
       expect(publicServiceMocks.toggleShopLike).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("POST /sponsorships", () => {
+    /** A filled-in form, with anything a single test cares about on top. */
+    function body(overrides: Record<string, unknown> = {}) {
+      return JSON.stringify({
+        firstName: "Kim",
+        lastName: "Lorenz",
+        link: "https://github.com/kim",
+        claim: "Weil es sonst niemand macht.",
+        published: true,
+        ...overrides,
+      });
+    }
+
+    it("answers with the reference, raw and as it is printed", async () => {
+      pendingSponsorshipMocks.createPendingSponsorship.mockResolvedValue({
+        ok: true,
+        pending: { id: "row-1", reference: "RF18SPON26001" },
+      });
+
+      const res = await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body(),
+      });
+
+      expect(res.status).toBe(201);
+      expect(await res.json()).toEqual({
+        data: { reference: "RF18SPON26001", referenceFormatted: "RF18 SPON 2600 1" },
+      });
+    });
+
+    it("hands the service what the form said", async () => {
+      pendingSponsorshipMocks.createPendingSponsorship.mockResolvedValue({
+        ok: true,
+        pending: { id: "row-1", reference: "RF18SPON26001" },
+      });
+
+      await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body({ published: false }),
+      });
+
+      expect(pendingSponsorshipMocks.createPendingSponsorship).toHaveBeenCalledWith({
+        firstName: "Kim",
+        lastName: "Lorenz",
+        link: "https://github.com/kim",
+        claim: "Weil es sonst niemand macht.",
+        published: false,
+      });
+    });
+
+    it("is never cached, because the answer belongs to one person", async () => {
+      pendingSponsorshipMocks.createPendingSponsorship.mockResolvedValue({
+        ok: true,
+        pending: { id: "row-1", reference: "RF18SPON26001" },
+      });
+
+      const res = await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body(),
+      });
+
+      expect(res.headers.get("Cache-Control")).toBe("no-store");
+    });
+
+    it("refuses a claim longer than the form allows", async () => {
+      const res = await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body({ claim: "x".repeat(MAX_PENDING_CLAIM + 1) }),
+      });
+
+      expect(res.status).toBe(400);
+      expect(pendingSponsorshipMocks.createPendingSponsorship).not.toHaveBeenCalled();
+    });
+
+    it("refuses a body carrying anything the form does not ask for", async () => {
+      const res = await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body({ amountCents: 12000, imageUrl: "https://example.test/kim.png" }),
+      });
+
+      expect(res.status).toBe(400);
+      expect(pendingSponsorshipMocks.createPendingSponsorship).not.toHaveBeenCalled();
+    });
+
+    it("names no request field when refusing a body", async () => {
+      const res = await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const answered = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(answered).toEqual({ error: { message: "Invalid request", code: "invalid_request" } });
+      expect(JSON.stringify(answered)).not.toContain("published");
+    });
+
+    it("refuses a body far larger than a filled-in form", async () => {
+      const res = await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body({ claim: "x".repeat(8 * 1024) }),
+      });
+
+      expect(res.status).toBe(413);
+      expect(pendingSponsorshipMocks.createPendingSponsorship).not.toHaveBeenCalled();
+    });
+
+    it("says to try again when no reference could be issued", async () => {
+      pendingSponsorshipMocks.createPendingSponsorship.mockResolvedValue({
+        ok: false,
+        reason: "reference_unavailable",
+      });
+
+      const res = await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body(),
+      });
+
+      expect(res.status).toBe(503);
+      expect((await res.json()).error.code).toBe("reference_unavailable");
     });
   });
 
