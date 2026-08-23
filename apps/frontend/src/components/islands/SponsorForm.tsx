@@ -163,7 +163,10 @@ export default function SponsorForm({ onIssued }: SponsorFormProps) {
       className="mt-6 grid gap-4"
       aria-label="Angaben für die Sponsorenliste"
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* The three answers a person gives about themselves stand in one row of
+          equal columns, so none of them reads as the important one. They stack
+          on a narrow screen. */}
+      <div className="grid gap-4 sm:grid-cols-3">
         <label className="block">
           <span className={labelClass}>Vorname</span>
           <input
@@ -189,26 +192,27 @@ export default function SponsorForm({ onIssued }: SponsorFormProps) {
             }
           />
         </label>
+        <label className="block">
+          <span className={labelClass}>Website oder Profil</span>
+          <input
+            className={inputClass}
+            value={form.link}
+            maxLength={MAX_LINK}
+            inputMode="url"
+            placeholder="deine-seite.at"
+            onChange={(event) => dispatch({ type: "editLink", value: event.target.value })}
+          />
+        </label>
       </div>
 
-      <label className="block">
-        <span className={labelClass}>Website oder Profil</span>
-        <input
-          className={inputClass}
-          value={form.link}
-          maxLength={MAX_LINK}
-          inputMode="url"
-          placeholder="deine-seite.at, @du@mastodon.social, github.com/du"
-          onChange={(event) => dispatch({ type: "editLink", value: event.target.value })}
-        />
-        {form.linkError ? (
-          <span className={`block ${errorClass}`}>{form.linkError}</span>
-        ) : (
-          <span className="block text-xs text-[var(--ds-text-subtle)] mt-1.5 px-1">
-            Eine Adresse genügt. Welcher Dienst dahintersteckt, erkennen wir selbst.
-          </span>
-        )}
-      </label>
+      {form.linkError ? (
+        <p className={`${errorClass} px-1 -mt-2`}>{form.linkError}</p>
+      ) : (
+        <p className="text-xs text-[var(--ds-text-subtle)] px-1 -mt-2">
+          Eine Adresse genügt, ob eigene Seite, Mastodon, Bluesky oder GitHub. Welcher Dienst es
+          ist, erkennen wir selbst.
+        </p>
+      )}
 
       <label className="block">
         <span className="flex items-baseline justify-between gap-4">
