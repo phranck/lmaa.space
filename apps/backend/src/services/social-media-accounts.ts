@@ -15,6 +15,7 @@ import type {
   SocialMediaAccount as SocialMediaAccountRow,
   SocialMediaAccountInsert,
 } from "../db/schema.js";
+import { isUniqueViolation } from "../lib/db-errors.js";
 import { isPublicFetchTarget } from "../lib/validate.js";
 import {
   deleteAccount,
@@ -27,6 +28,9 @@ import {
 } from "../repositories/social-media-accounts.js";
 
 const POSTING_PLATFORMS = new Set<SocialMediaPlatformKey>(POSTING_PLATFORM_KEYS);
+
+/** The constraint that holds one posting account per platform. */
+const POST_UNIQUE_CONSTRAINT = "social_media_accounts_post_unique";
 
 function normalizeInstanceUrl(raw: string): string {
   const url = new URL(raw);
@@ -203,12 +207,6 @@ async function buildInsertable(
   };
 }
 
-function isUniqueViolation(err: unknown): boolean {
-  if (typeof err !== "object" || err === null) return false;
-  const e = err as { code?: string; constraint_name?: string };
-  return e.code === "23505" && e.constraint_name === "social_media_accounts_post_unique";
-}
-
 export async function createSocialMediaAccount(
   input: SocialMediaAccountCreateInput,
 ): Promise<CreateResult> {
@@ -219,7 +217,7 @@ export async function createSocialMediaAccount(
     const row = await insertAccount(built.data);
     return { ok: true, data: rowToSocialMediaAccount(row) };
   } catch (err) {
-    if (isUniqueViolation(err)) return { ok: false, reason: "conflict" };
+    if (isUniqueViolation(err, POST_UNIQUE_CONSTRAINT)) return { ok: false, reason: "conflict" };
     throw err;
   }
 }
@@ -287,7 +285,7 @@ export async function updateSocialMediaAccount(
     if (!row) return { ok: false, reason: "not_found" };
     return { ok: true, data: rowToSocialMediaAccount(row) };
   } catch (err) {
-    if (isUniqueViolation(err)) return { ok: false, reason: "conflict" };
+    if (isUniqueViolation(err, POST_UNIQUE_CONSTRAINT)) return { ok: false, reason: "conflict" };
     throw err;
   }
 }
