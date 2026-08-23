@@ -1275,6 +1275,8 @@ export interface DashboardMessages {
       payeeIbanLabel: string;
       payeeBicLabel: string;
       payeeBicHint: string;
+      variableLabel: string;
+      costsVariables: string;
       costsHint: string;
       costLabelLabel: string;
       costAmountLabel: string;
@@ -2944,13 +2946,15 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         payeeIbanLabel: "IBAN",
         payeeBicLabel: "BIC",
         payeeBicHint: "Innerhalb des EWR nicht nötig.",
+        variableLabel: "Als Variable:",
+        costsVariables: "Als Variablen im Text: {annualCost} und {monthlyCost}",
         costsHint: "Summe im Jahr",
         costLabelLabel: "Posten",
         costAmountLabel: "€ pro Jahr",
         addCost: "Posten hinzufügen",
         minAmountTitle: "Mindestbetrag",
         minAmountLabel: "Mindestbetrag (€)",
-        minAmountHint: "Ab diesem Betrag steht jemand ein Jahr lang auf der Seite.",
+        minAmountHint: "Das ist der Mindestbetrag, den ein Sponsor zahlen muss.",
         deleteTitle: "Sponsor löschen",
         deleteMessage: "Der Eintrag verschwindet sofort von der Seite.",
       },
@@ -4630,13 +4634,15 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         payeeIbanLabel: "IBAN",
         payeeBicLabel: "BIC",
         payeeBicHint: "Not needed inside the EEA.",
+        variableLabel: "As a variable:",
+        costsVariables: "As variables in a text: {annualCost} and {monthlyCost}",
         costsHint: "Total per year",
         costLabelLabel: "Item",
         costAmountLabel: "€ per year",
         addCost: "Add item",
         minAmountTitle: "Minimum",
         minAmountLabel: "Minimum (€)",
-        minAmountHint: "From this amount somebody stands on the site for a year.",
+        minAmountHint: "The least a sponsor has to pay.",
         deleteTitle: "Delete sponsor",
         deleteMessage: "The entry disappears from the site at once.",
       },

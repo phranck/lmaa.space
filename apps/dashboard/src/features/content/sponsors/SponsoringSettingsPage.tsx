@@ -125,99 +125,104 @@ export function SponsoringSettingsPage() {
         {/* The items on the left and the payee on the right, because the list
             is read down whilst the three lines beside it are read across. */}
         <div className="grid gap-4 md:grid-cols-7 items-start">
-          <DashboardSection className="md:col-span-3">
-            <DashboardSection.Header
-              icon={<CoinsIcon weight="duotone" className="size-4" />}
-              title={text.costsTitle}
-              addOn={
-                // The sum stands in the header's own row rather than under the
-                // title, because it is the answer this card exists to give and a
-                // subtitle is where explanations go.
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-[var(--ds-text-muted)]">{text.costsHint}</span>
-                  <span className="text-lg font-semibold tabular-nums text-[var(--ds-text)]">
-                    {formatEuroCents(totalCents)}
-                  </span>
-                </div>
-              }
-            />
-            <DashboardSection.Body>
-              <div className="space-y-3">
-                {current.costs.map((item, index) => (
-                  <div key={item.id} className="flex items-end gap-3">
-                    <DashboardInput
-                      label={index === 0 ? text.costLabelLabel : undefined}
-                      value={item.label}
-                      fieldClassName="flex-1"
-                      onChange={(event) => updateCost(item.id, { label: event.target.value })}
-                    />
-                    <DashboardNumberInput
-                      label={index === 0 ? text.costAmountLabel : undefined}
-                      value={item.amountCents / 100}
-                      min={0}
-                      step={1}
-                      className="w-32"
-                      onChange={(event) =>
-                        updateCost(item.id, {
-                          amountCents: Math.round(Number(event.target.value) * 100),
-                        })
-                      }
-                    />
-                    <DashboardButton
-                      variant="ghost"
-                      aria-label={common.delete}
-                      onClick={() =>
-                        updateConfig({
-                          ...current,
-                          costs: current.costs.filter((row) => row.id !== item.id),
-                        })
-                      }
-                    >
-                      <TrashIcon weight="duotone" className="size-4" />
-                    </DashboardButton>
+          <div className="grid gap-4 md:col-span-3">
+            <DashboardSection>
+              <DashboardSection.Header
+                icon={<CoinsIcon weight="duotone" className="size-4" />}
+                title={text.costsTitle}
+                addOn={
+                  // The sum stands in the header's own row rather than under the
+                  // title, because it is the answer this card exists to give and a
+                  // subtitle is where explanations go.
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-[var(--ds-text-muted)]">{text.costsHint}</span>
+                    <span className="text-lg font-semibold tabular-nums text-[var(--ds-text)]">
+                      {formatEuroCents(totalCents)}
+                    </span>
                   </div>
-                ))}
-
-                <DashboardButton
-                  variant="ghost"
-                  onClick={() =>
-                    updateConfig({
-                      ...current,
-                      costs: [...current.costs, { id: nextCostId(), label: "", amountCents: 0 }],
-                    })
-                  }
-                >
-                  <PlusIcon weight="bold" className="size-4" />
-                  {text.addCost}
-                </DashboardButton>
-              </div>
-            </DashboardSection.Body>
-          </DashboardSection>
-          {/* Its own card, because it answers a different question from the
-              items above it: not what the year costs, but what it takes to be
-              named for one. */}
-          <DashboardSection className="md:col-span-3">
-            <DashboardSection.Header
-              icon={<MedalIcon weight="duotone" className="size-4" />}
-              title={text.minAmountTitle}
-            />
-            <DashboardSection.Body>
-              <DashboardNumberInput
-                label={text.minAmountLabel}
-                hint={text.minAmountHint}
-                value={current.minAmountCents / 100}
-                min={0}
-                step={1}
-                className="w-32"
-                onChange={(event) =>
-                  updateConfig({
-                    ...current,
-                    minAmountCents: Math.round(Number(event.target.value) * 100),
-                  })
                 }
               />
-            </DashboardSection.Body>
-          </DashboardSection>
+              <DashboardSection.Body>
+                <div className="space-y-3">
+                  {current.costs.map((item, index) => (
+                    <div key={item.id} className="flex items-end gap-3">
+                      <DashboardInput
+                        label={index === 0 ? text.costLabelLabel : undefined}
+                        value={item.label}
+                        fieldClassName="flex-1"
+                        onChange={(event) => updateCost(item.id, { label: event.target.value })}
+                      />
+                      <DashboardNumberInput
+                        label={index === 0 ? text.costAmountLabel : undefined}
+                        value={item.amountCents / 100}
+                        min={0}
+                        step={1}
+                        className="w-32"
+                        onChange={(event) =>
+                          updateCost(item.id, {
+                            amountCents: Math.round(Number(event.target.value) * 100),
+                          })
+                        }
+                      />
+                      <DashboardButton
+                        variant="ghost"
+                        aria-label={common.delete}
+                        onClick={() =>
+                          updateConfig({
+                            ...current,
+                            costs: current.costs.filter((row) => row.id !== item.id),
+                          })
+                        }
+                      >
+                        <TrashIcon weight="duotone" className="size-4" />
+                      </DashboardButton>
+                    </div>
+                  ))}
+
+                  <DashboardButton
+                    variant="ghost"
+                    onClick={() =>
+                      updateConfig({
+                        ...current,
+                        costs: [...current.costs, { id: nextCostId(), label: "", amountCents: 0 }],
+                      })
+                    }
+                  >
+                    <PlusIcon weight="bold" className="size-4" />
+                    {text.addCost}
+                  </DashboardButton>
+
+                  <p className="text-xs text-[var(--ds-text-subtle)]">{text.costsVariables}</p>
+                </div>
+              </DashboardSection.Body>
+            </DashboardSection>
+            {/* Its own card, because it answers a different question from the
+              items above it: not what the year costs, but what it takes to be
+              named for one. */}
+            <DashboardSection>
+              <DashboardSection.Header
+                icon={<MedalIcon weight="duotone" className="size-4" />}
+                title={text.minAmountTitle}
+              />
+              <DashboardSection.Body>
+                <DashboardNumberInput
+                  label={text.minAmountLabel}
+                  hint={text.minAmountHint}
+                  value={current.minAmountCents / 100}
+                  min={0}
+                  step={1}
+                  className="w-32"
+                  onChange={(event) =>
+                    updateConfig({
+                      ...current,
+                      minAmountCents: Math.round(Number(event.target.value) * 100),
+                    })
+                  }
+                />
+              </DashboardSection.Body>
+            </DashboardSection>
+          </div>
+
           <DashboardSection className="md:col-span-4">
             <DashboardSection.Header
               icon={<BankIcon weight="duotone" className="size-4" />}
@@ -228,17 +233,19 @@ export function SponsoringSettingsPage() {
               <div className="grid gap-4 md:grid-cols-3">
                 <DashboardInput
                   label={text.payeeNameLabel}
+                  hint={`${text.variableLabel} {payeeName}`}
                   value={current.payeeName}
                   onChange={(event) => updateConfig({ ...current, payeeName: event.target.value })}
                 />
                 <DashboardInput
                   label={text.payeeIbanLabel}
+                  hint={`${text.variableLabel} {payeeIban}`}
                   value={current.payeeIban}
                   onChange={(event) => updateConfig({ ...current, payeeIban: event.target.value })}
                 />
                 <DashboardInput
                   label={text.payeeBicLabel}
-                  hint={text.payeeBicHint}
+                  hint={`${text.payeeBicHint} ${text.variableLabel} {payeeBic}`}
                   value={current.payeeBic}
                   onChange={(event) => updateConfig({ ...current, payeeBic: event.target.value })}
                 />
