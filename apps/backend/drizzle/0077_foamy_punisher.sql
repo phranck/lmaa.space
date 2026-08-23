@@ -1,0 +1,1 @@
+ALTER TABLE "pending_sponsorships" DROP COLUMN "website";

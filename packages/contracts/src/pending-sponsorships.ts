@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { socialMediaSchema } from "@lmaa/shared";
-
 /**
  * What somebody says about themselves before they pay.
  *
@@ -26,12 +24,14 @@ export const pendingSponsorshipInputSchema = z
     /** The family name, empty for anybody who wants one name only. */
     lastName: z.string().trim().max(80).default(""),
     /**
-     * Their own address on the web, kept apart from the services below so
-     * somebody who has one need not look for it in a list.
+     * Where they can be found, as one address of any kind.
+     *
+     * One field rather than one per service, because somebody giving their
+     * address should not first have to say what kind it is. Which service it
+     * belongs to is worked out from the address itself, and an address on none
+     * of the known ones is a website.
      */
-    website: z.string().trim().max(200).default(""),
-    /** Where else they can be found, as a platform key against an address. */
-    socialMedia: socialMediaSchema,
+    link: z.string().trim().max(200).default(""),
     /** Their own sentence, shorter here than in the dashboard. */
     claim: z.string().trim().max(MAX_PENDING_CLAIM).default(""),
     /**
@@ -45,11 +45,16 @@ export const pendingSponsorshipInputSchema = z
   .strict();
 
 /** A pending sponsorship as the site reads it back. */
-export const pendingSponsorshipSchema = pendingSponsorshipInputSchema.extend({
+export const pendingSponsorshipSchema = pendingSponsorshipInputSchema.omit({ link: true }).extend({
   id: z.string(),
   /** The reference the transfer carries, in the form it travels. */
   reference: z.string(),
-  /** Always a map when read back, because the column holds `{}` when empty. */
+  /**
+   * The address, sorted into the service it belongs to.
+   *
+   * Stored as the map a sponsor already carries, so what the form takes in one
+   * field arrives where the rest of the site expects to read it.
+   */
   socialMedia: z.record(z.string(), z.string()),
   /** When they said it, which is what makes the consent a record. */
   createdAt: z.string(),

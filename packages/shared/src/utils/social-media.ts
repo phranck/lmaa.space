@@ -677,6 +677,31 @@ export function normalizeSocialMediaValue(platform: string, input: string): stri
 }
 
 /**
+ * Sorts one address a person typed into the service it belongs to.
+ *
+ * Somebody giving their address should not first have to say what kind it is.
+ * The list of services and the shapes their addresses take is already here, so
+ * the sorting is ours to do rather than theirs.
+ *
+ * An address on none of the known services is a website, which is a service in
+ * its own right here rather than a leftover.
+ *
+ * @param input - What the person typed, with or without a scheme.
+ * @returns The platform key and the canonical address, or `null` when the input
+ *   is not an address at all.
+ */
+export function classifyProfileLink(
+  input: string,
+): { platform: SocialPlatformKey; url: string } | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const platform = detectPlatformFromUrl(trimmed) ?? "website";
+  const url = normalizeSocialMediaValue(platform, trimmed);
+  return url ? { platform, url } : null;
+}
+
+/**
  * Zod schema that validates and normalizes a social media map.
  *
  * Accepts a `Record<string, string>` where each key is a platform key and each

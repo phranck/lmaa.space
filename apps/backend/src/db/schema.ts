@@ -1335,8 +1335,12 @@ export const pendingSponsorships = pgTable(
     reference: text("reference").notNull().unique(),
     firstName: text("first_name").notNull(),
     lastName: text("last_name").notNull().default(""),
-    /** Their own address on the web, asked for apart from the services. */
-    website: text("website").notNull().default(""),
+    /**
+     * The one address they gave, sorted into the service it belongs to.
+     *
+     * The form asks for it in a single field and works out the rest, so this is
+     * the same map a sponsor carries and nothing has to be merged later.
+     */
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
     claim: text("claim").notNull().default(""),
     /** Whether they want to be named, said in a form rather than in a payment. */
