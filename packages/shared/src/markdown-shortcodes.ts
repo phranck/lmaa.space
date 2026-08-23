@@ -60,6 +60,7 @@ export const SUPPORT_LADDER_LABELS = {
   fieldIban: { value: "IBAN", label: "Beschriftung der Zeile IBAN" },
   fieldBic: { value: "BIC", label: "Beschriftung der Zeile BIC" },
   fieldPurpose: { value: "Verwendung", label: "Beschriftung der Zeile Verwendungszweck" },
+  fieldReference: { value: "Referenz", label: "Beschriftung der Zeile Referenz" },
   fieldAmount: { value: "Betrag", label: "Beschriftung der Zeile Betrag" },
   amountOpen: { value: "du entscheidest", label: "Text, wenn kein Betrag gewählt ist" },
 } as const satisfies Record<string, { value: string; label: string }>;

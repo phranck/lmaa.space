@@ -4,8 +4,9 @@ import {
   InfoIcon,
 } from "@phosphor-icons/react";
 import type * as React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
+import type { PendingSponsorshipReceipt } from "@lmaa/contracts";
 import {
   buildEpcQrPayload,
   SUPPORT_LADDER_LABEL_DEFAULTS,
@@ -17,12 +18,21 @@ import { PAYMENT_METHOD_MAP } from "@lmaa/ui";
 import githubLockupUrl from "@/assets/brands/github-lockup.svg?url";
 import paypalLockupUrl from "@/assets/brands/paypal-lockup.svg?url";
 import sepaLockupUrl from "@/assets/brands/sepa-lockup.svg?url";
+import SponsorForm from "@/components/islands/SponsorForm";
 import { normalizeAmountInput, readAmountInput } from "@/lib/amount-input";
 import type {
   SupportLadderBankAccount,
   SupportLadderInterval,
   SupportLadderRoute,
 } from "@/lib/content-shortcode-segments";
+import { buttonBaseClass } from "@/lib/form-styles";
+import {
+  forgetIssuedSponsorship,
+  getIssuedSponsorship,
+  getServerIssuedSponsorship,
+  rememberIssuedSponsorship,
+  subscribeIssuedSponsorship,
+} from "@/lib/pending-sponsorship-store";
 
 /**
  * Props for {@link SupportLadder}.
@@ -102,6 +112,17 @@ const TRANSFER_VALUE_CLASS = "m-0 font-mono font-semibold text-[0.92em]";
  */
 const CURRENCY_SYMBOL =
   EURO_WHOLE.formatToParts(0).find((part) => part.type === "currency")?.value ?? "€";
+
+/**
+ * Notes the reference the site has just issued, with the moment it happened.
+ *
+ * The moment is taken here rather than from the server, because what it decides
+ * is when this browser stops showing the reference, and that is a decision
+ * about this browser.
+ */
+function keepIssued(receipt: PendingSponsorshipReceipt) {
+  rememberIssuedSponsorship({ ...receipt, issuedAt: Date.now() });
+}
 
 /** Fallbacks for anything the page's `[[qrcode]]` node does not name. */
 const QR_DEFAULTS = {
@@ -716,6 +737,21 @@ export default function SupportLadder({
 
   const qrRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * The reference this reader has already been given, if any.
+   *
+   * It lives in the browser rather than in this component, so the page can be
+   * rendered on the server without it and a second tab of the same site does
+   * not go on showing a reference this one has replaced.
+   */
+  const issued = useSyncExternalStore(
+    subscribeIssuedSponsorship,
+    getIssuedSponsorship,
+    getServerIssuedSponsorship,
+  );
+
+
+
   // A recurring payment is a standing order the payer sets up, so there is
   // nothing for a one-off transfer code to carry. A sponsorship is paid once
   // for the year, so it carries one like any other single transfer.
@@ -742,9 +778,18 @@ export default function SupportLadder({
    */
   const earnsSponsorPurpose =
     shownKey === "sponsor" && minSponsorAmountEur > 0 && amountEur >= minSponsorAmountEur;
-  const remittance =
-    (earnsSponsorPurpose ? bankAccount?.purposeSponsor : undefined) ||
-    bankAccount?.purposeDonation;
+  /**
+   * The reference the transfer carries, once this reader has been given one.
+   *
+   * It replaces the sentence rather than joining it: the code holds one of the
+   * two and never both, and the reference is the half that survives the payer's
+   * app and the banks in between.
+   */
+  const creditorReference = shownKey === "sponsor" ? issued?.reference : undefined;
+  const remittance = creditorReference
+    ? undefined
+    : (earnsSponsorPurpose ? bankAccount?.purposeSponsor : undefined) ||
+      bankAccount?.purposeDonation;
 
   const payload = useMemo(() => {
     if (!showQr || !bankAccount) return null;
@@ -755,13 +800,14 @@ export default function SupportLadder({
         bic: bankAccount.bic,
         amountEur: amountEur > 0 ? amountEur : undefined,
         remittance,
+        creditorReference,
       });
     } catch {
       // A malformed payee is a content mistake. The details stay readable as
       // text below, so the block degrades to something still usable.
       return null;
     }
-  }, [showQr, bankAccount, amountEur, remittance]);
+  }, [showQr, bankAccount, amountEur, remittance, creditorReference]);
 
   useEffect(() => {
     if (!qrRef.current || !payload) return;
@@ -962,6 +1008,53 @@ export default function SupportLadder({
         />
       </div>
 
+      {/* The sponsor tab asks for what the payment cannot carry, before it shows
+          the payment. Reading down the tab then runs in the order the thing
+          actually happens: choose the amount, say who you are, take the
+          reference to the bank. */}
+      {shownKey === "sponsor" &&
+        (issued ? (
+          <div
+            className="lmaa-card mt-6"
+            style={{
+              border: "var(--card-border-width) solid",
+              padding: "var(--card-padding)",
+              borderRadius: "var(--radius-card)",
+              background: "var(--ds-surface)",
+              borderColor: "color-mix(in srgb, var(--ds-accent) 45%, transparent)",
+            }}
+          >
+            <div className="flex items-start gap-3">
+              <CheckCircleIcon
+                weight="duotone"
+                className="size-5 shrink-0 mt-0.5"
+                style={{ color: "var(--ds-accent)" }}
+                aria-hidden="true"
+              />
+              <div className="min-w-0">
+                <p className="m-0 font-semibold">Deine Angaben stehen bereit.</p>
+                <p className="m-0 mt-1 text-sm" style={{ color: "var(--ds-text-muted)" }}>
+                  Die Überweisung unten trägt jetzt deine Referenz. Sobald das Geld da ist,
+                  erscheinst du auf der Seite.
+                </p>
+                <button
+                  type="button"
+                  onClick={forgetIssuedSponsorship}
+                  className={`${buttonBaseClass} mt-3 border`}
+                  style={{
+                    borderColor: "var(--ds-btn-neutral-border)",
+                    color: "var(--ds-btn-neutral-text)",
+                  }}
+                >
+                  Angaben ändern
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <SponsorForm onIssued={keepIssued} />
+        ))}
+
       {bankAccount && variant && (
         <div
           className="lmaa-card lmaa-payment-card mt-6"
@@ -1040,6 +1133,12 @@ export default function SupportLadder({
                   <>
                     <dt style={TRANSFER_LABEL_STYLE}>{text.fieldPurpose}</dt>
                     <dd className={TRANSFER_VALUE_CLASS}>{remittance}</dd>
+                  </>
+                )}
+                {creditorReference && issued && (
+                  <>
+                    <dt style={TRANSFER_LABEL_STYLE}>{text.fieldReference}</dt>
+                    <dd className={TRANSFER_VALUE_CLASS}>{issued.referenceFormatted}</dd>
                   </>
                 )}
                 <dt style={TRANSFER_LABEL_STYLE}>{text.fieldAmount}</dt>
