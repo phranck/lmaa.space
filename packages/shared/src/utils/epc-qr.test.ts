@@ -74,3 +74,52 @@ describe("buildEpcQrPayload", () => {
     expect(new TextEncoder().encode(asciiFits).length).toBeLessThanOrEqual(331);
   });
 });
+
+describe("the structured creditor reference", () => {
+  const account = {
+    beneficiaryName: "Frank Gregor",
+    iban: "AT55 1900 1047 0466 6811",
+    bic: "TRBKATW2XXX",
+  };
+
+  it("goes into the tenth element, leaving the eleventh empty", () => {
+    const payload = buildEpcQrPayload({
+      ...account,
+      amountEur: 45,
+      creditorReference: "RF18SPON26001",
+    });
+    const lines = payload.split("\n");
+
+    expect(lines[9]).toBe("RF18SPON26001");
+    expect(lines).toHaveLength(10);
+  });
+
+  it("takes the printed form and stores it without its spaces", () => {
+    const payload = buildEpcQrPayload({ ...account, creditorReference: "RF18 SPON 2600 1" });
+    expect(payload.split("\n")[9]).toBe("RF18SPON26001");
+  });
+
+  it("refuses a reference whose check digits do not hold", () => {
+    expect(() => buildEpcQrPayload({ ...account, creditorReference: "RF19SPON26001" })).toThrow(
+      expect.objectContaining({ code: "creditor-reference-invalid" }),
+    );
+  });
+
+  it("refuses a payload that would carry a reference and a sentence at once", () => {
+    expect(() =>
+      buildEpcQrPayload({
+        ...account,
+        creditorReference: "RF18SPON26001",
+        remittance: "Spende: lmaa.space",
+      }),
+    ).toThrow(expect.objectContaining({ code: "remittance-conflict" }));
+  });
+
+  it("still writes a sentence when no reference is given", () => {
+    const payload = buildEpcQrPayload({ ...account, remittance: "Spende: lmaa.space" });
+    const lines = payload.split("\n");
+
+    expect(lines[9]).toBe("");
+    expect(lines[10]).toBe("Spende: lmaa.space");
+  });
+});
