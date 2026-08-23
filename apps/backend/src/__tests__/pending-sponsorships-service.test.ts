@@ -35,6 +35,7 @@ function form(overrides: Partial<Parameters<typeof createPendingSponsorship>[0]>
     lastName: "Lorenz",
     link: "",
     claim: "",
+    amountCents: 4500,
     published: true,
     ...overrides,
   };
@@ -114,6 +115,13 @@ describe("createPendingSponsorship", () => {
       claim: "Weil es sonst niemand macht.",
       published: false,
     });
+  });
+
+  it("keeps the amount the ladder stood on, which is the one their code carries", async () => {
+    await createPendingSponsorship(form({ amountCents: 12_000 }));
+
+    const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
+    expect(stored.amountCents).toBe(12_000);
   });
 
   it("draws again when the reference is already taken", async () => {

@@ -18,6 +18,8 @@ export interface PendingSponsorshipRow {
   lastName: string;
   socialMedia: Record<string, string>;
   claim: string;
+  /** What they said they would give, in cents, from the ladder above the form. */
+  amountCents: number;
   published: boolean;
   createdAt: string;
 }

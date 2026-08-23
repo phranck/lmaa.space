@@ -1,0 +1,1 @@
+ALTER TABLE "pending_sponsorships" ADD COLUMN "amount_cents" integer DEFAULT 0 NOT NULL;

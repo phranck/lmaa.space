@@ -1343,6 +1343,14 @@ export const pendingSponsorships = pgTable(
      */
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
     claim: text("claim").notNull().default(""),
+    /**
+     * What they said they would give, in cents.
+     *
+     * The amount is chosen on the ladder above the form and travels inside the
+     * code they scan, so it is known here. It is what was announced rather than
+     * what arrived: the statement decides when the entry is taken over.
+     */
+    amountCents: integer("amount_cents").notNull().default(0),
     /** Whether they want to be named, said in a form rather than in a payment. */
     published: boolean("published").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),

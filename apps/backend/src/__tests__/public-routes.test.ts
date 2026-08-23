@@ -451,6 +451,7 @@ describe("publicRoutes", () => {
         lastName: "Lorenz",
         link: "https://github.com/kim",
         claim: "Weil es sonst niemand macht.",
+        amountCents: 4500,
         published: true,
         ...overrides,
       });
@@ -491,6 +492,7 @@ describe("publicRoutes", () => {
         lastName: "Lorenz",
         link: "https://github.com/kim",
         claim: "Weil es sonst niemand macht.",
+        amountCents: 4500,
         published: false,
       });
     });

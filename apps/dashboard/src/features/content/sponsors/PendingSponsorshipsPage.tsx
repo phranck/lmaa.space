@@ -55,11 +55,12 @@ export function PendingSponsorshipsPage() {
   const [payment, setPayment] = useState<PaymentDraft>({ amountEur: 0, paidAt: "" });
 
   function openTakeOver(entry: PendingSponsorshipRow) {
-    // What is offered is what a sponsorship costs at least and the day the
-    // operator is looking at the statement. Both are read off it and corrected
-    // here, because neither is anything the payer could have typed.
+    // The amount they announced, which is the one their code carried, and today
+    // for the day. Both are offered rather than taken: the statement says what
+    // actually arrived and when, and it may differ from what was announced.
     const minimumCents = config?.minAmountCents ?? SPONSORING_DEFAULTS.minAmountCents;
-    setPayment({ amountEur: minimumCents / 100, paidAt: new Date().toISOString().slice(0, 10) });
+    const announcedCents = entry.amountCents > 0 ? entry.amountCents : minimumCents;
+    setPayment({ amountEur: announcedCents / 100, paidAt: new Date().toISOString().slice(0, 10) });
     setTakingOver(entry);
   }
 

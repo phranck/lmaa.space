@@ -17,10 +17,13 @@ import {
 /**
  * Props for {@link SponsorForm}.
  *
+ * @property amountEur - What the ladder above currently stands on, which is the
+ *   amount the code they scan carries and therefore the one they announced.
  * @property onIssued - Told the reference once the site has answered with one,
  *   so the transfer details can start quoting it.
  */
 interface SponsorFormProps {
+  amountEur: number;
   onIssued: (receipt: PendingSponsorshipReceipt) => void;
 }
 
@@ -100,7 +103,7 @@ function reduce(state: FormState, action: FormAction): FormState {
  * belongs to is worked out from the address itself, here so a mistyped one is
  * answered at once, and again on the server, which is the side that decides.
  */
-export default function SponsorForm({ onIssued }: SponsorFormProps) {
+export default function SponsorForm({ amountEur, onIssued }: SponsorFormProps) {
   const [form, dispatch] = useReducer(reduce, EMPTY_FORM);
   const remaining = MAX_PENDING_CLAIM - form.claim.length;
 
@@ -127,6 +130,10 @@ export default function SponsorForm({ onIssued }: SponsorFormProps) {
           lastName: form.lastName.trim(),
           link: trimmedLink,
           claim: form.claim.trim(),
+          // What stands on the ladder at this moment, which is what the code
+          // beneath the form carries. Whether that is what arrives is settled
+          // against the statement rather than here.
+          amountCents: Math.round(amountEur * 100),
           published: form.published,
         }),
       });

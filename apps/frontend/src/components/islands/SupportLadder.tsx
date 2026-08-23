@@ -1064,7 +1064,7 @@ export default function SupportLadder({
             </div>
           </div>
         ) : (
-          <SponsorForm onIssued={keepIssued} />
+          <SponsorForm amountEur={amountEur} onIssued={keepIssued} />
         ))}
 
       {bankAccount && variant && (

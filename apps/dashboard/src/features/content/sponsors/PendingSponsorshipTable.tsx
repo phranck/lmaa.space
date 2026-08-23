@@ -9,6 +9,7 @@ import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import type { PendingSponsorshipRow } from "@/features/content/sponsors/hooks/usePendingSponsorships.ts";
+import { formatEuro } from "@/features/content/sponsors/sponsor-format.ts";
 
 interface PendingSponsorshipTableProps {
   entries: PendingSponsorshipRow[];
@@ -92,6 +93,19 @@ function PendingSponsorshipTableComponent({
           // of the longest one.
           <span className="block truncate text-sm text-[var(--ds-text-muted)]" title={entry.claim}>
             {entry.claim}
+          </span>
+        ),
+      },
+      {
+        id: "amount",
+        // What they said they would give rather than what arrived, which is why
+        // the takeover asks again against the statement.
+        header: text.announcedAmountLabel,
+        className: "w-32",
+        sortKey: (entry) => entry.amountCents,
+        cell: (entry) => (
+          <span className="text-sm tabular-nums whitespace-nowrap text-[var(--ds-text-muted)]">
+            {entry.amountCents > 0 ? formatEuro(entry.amountCents) : "—"}
           </span>
         ),
       },

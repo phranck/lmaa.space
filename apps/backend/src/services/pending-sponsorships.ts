@@ -97,6 +97,7 @@ export async function createPendingSponsorship(
         lastName: input.lastName,
         socialMedia,
         claim: input.claim,
+        amountCents: input.amountCents,
         published: input.published,
       });
       return success({ pending });

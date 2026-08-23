@@ -35,6 +35,14 @@ export const pendingSponsorshipInputSchema = z
     /** Their own sentence, shorter here than in the dashboard. */
     claim: z.string().trim().max(MAX_PENDING_CLAIM).default(""),
     /**
+     * What they said they would give, in cents.
+     *
+     * Known here because the amount is chosen on the ladder above the form and
+     * travels inside the code they scan. It is what they announced rather than
+     * what arrived, so the statement still decides when the entry is taken over.
+     */
+    amountCents: z.coerce.number().int().min(0).max(1_000_000).default(0),
+    /**
      * Whether they want to be named on the site.
      *
      * Asked here rather than carried in the payment, because a flag a bank may
