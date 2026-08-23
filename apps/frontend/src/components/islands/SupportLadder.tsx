@@ -566,7 +566,7 @@ function AmountGrid({
               because it names what the card is rather than labelling the field
               inside it. The field states its own name to a screen reader. */}
           <h3
-            className="font-semibold"
+            className={`font-semibold ${bare ? "text-center" : ""}`}
             style={{
               fontFamily: "var(--ds-font-serif)",
               fontSize: "var(--ds-text-lg)",
@@ -575,11 +575,16 @@ function AmountGrid({
           >
             {interval.custom.label}
           </h3>
-          <span className="flex items-center gap-2">
+          <span className={`flex items-center gap-2 ${bare ? "justify-center" : ""}`}>
             <span
               aria-hidden="true"
-              className="text-xl leading-none font-bold"
-              style={{ fontFamily: "var(--ds-font-serif)" }}
+              className="leading-none font-bold"
+              style={{
+                fontFamily: "var(--ds-font-serif)",
+                // Bigger where the amount is the first thing to settle rather
+                // than one section among several.
+                fontSize: bare ? "var(--ds-text-2xl)" : "var(--ds-text-xl)",
+              }}
             >
               {CURRENCY_SYMBOL}
             </span>
@@ -596,11 +601,18 @@ function AmountGrid({
               onBlur={() => setLeftTheField(true)}
               // Wide enough for a five-figure amount and no wider, because the
               // field should look like what belongs in it.
-              className="h-9 w-24 px-3 border rounded-control tabular-nums"
+              className={`px-3 border rounded-control tabular-nums ${
+                bare ? "h-12 w-32 text-center" : "h-9 w-24"
+              }`}
               style={{
                 background: "var(--ds-surface)",
                 borderColor: "var(--ds-border)",
                 color: "var(--ds-text)",
+                // The amount is what the whole card is about, so it is set at
+                // the size the figure deserves rather than at field size.
+                fontSize: bare ? "var(--ds-text-2xl)" : undefined,
+                fontFamily: bare ? "var(--ds-font-serif)" : undefined,
+                fontWeight: bare ? 700 : undefined,
               }}
             />
             {interval.key === "monthly" && (
@@ -612,7 +624,7 @@ function AmountGrid({
           {interval.custom.text && (
             <RichText
               html={interval.custom.text}
-              className="text-sm"
+              className={`text-sm ${bare ? "text-center" : ""}`}
               style={{ color: "var(--ds-text-muted)" }}
             />
           )}
@@ -622,7 +634,7 @@ function AmountGrid({
           {belowMinimum && minimumNotice && (
             <RichText
               html={minimumNotice}
-              className="text-sm"
+              className={`text-sm ${bare ? "text-center" : ""}`}
               role="status"
               style={{ color: "var(--ds-warning-text)" }}
             />
