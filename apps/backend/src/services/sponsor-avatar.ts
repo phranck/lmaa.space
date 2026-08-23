@@ -1,19 +1,56 @@
 import { logger } from "../lib/logger.js";
+import { fetchPreviewImage } from "../lib/og.js";
 import { isExternalUrl, isPublicFetchTarget } from "../lib/validate.js";
 
 /** How long a lookup at somebody else's instance may take. */
 const LOOKUP_TIMEOUT_MS = 5000;
 
 /**
- * The profile picture behind a sponsor's social media address.
+ * The services that hand out a portrait when asked directly.
+ *
+ * Measured on 2026-08-23: a Mastodon instance answers through its account
+ * lookup, Bluesky through its public profile API, and GitHub and Codeberg both
+ * serve a picture at the account's own address with `.png` appended. GitLab's
+ * public user lookup answers a username with an empty list, so it is not here.
+ */
+const DIRECT_LOOKUPS: Readonly<Record<string, (address: string) => Promise<string | null>>> = {
+  mastodon: lookupMastodonAvatar,
+  bluesky: lookupBlueskyAvatar,
+  github: lookupForgeAvatar,
+  codeberg: lookupForgeAvatar,
+};
+
+/**
+ * The order the addresses are tried in, from the closest likeness to the
+ * loosest.
+ *
+ * A service that answers directly comes first, because what it returns is a
+ * portrait of the person. Every other address is read as a page, which usually
+ * yields the picture the profile itself shows. A website comes last: it has no
+ * portrait, only its own mark, which is the right answer for somebody who gave
+ * nothing else and the wrong one for somebody who did.
+ */
+function lookupOrder(socialMedia: Record<string, string>): string[] {
+  const direct = Object.keys(DIRECT_LOOKUPS).filter((platform) => socialMedia[platform]);
+  const rest = Object.keys(socialMedia).filter(
+    (platform) => !direct.includes(platform) && platform !== "website",
+  );
+  return [...direct, ...rest.sort(), ...(socialMedia.website ? ["website"] : [])];
+}
+
+/**
+ * The profile picture behind one of a sponsor's addresses.
  *
  * Resolved on the server and stored with the sponsor, so a visitor's browser
  * never asks a foreign instance for a picture and the site keeps working when
  * that instance is down or gone.
  *
- * Mastodon and Bluesky are the two that answer such a question without a
- * credential. An address on any other platform yields nothing, and the editor
- * then gives the picture themselves.
+ * Every service is covered, including the ones nobody has heard of, because a
+ * platform without an API of its own is still a page, and the site's own
+ * preview reader knows how to take a picture from a page. What it finds is
+ * whatever that profile shows the world, which on most platforms is the
+ * portrait and on a few is the platform's own banner. Whoever enters the
+ * sponsor sees the result and can drop it.
  *
  * @param socialMedia - Platform keys against canonical profile addresses.
  * @returns The address of the picture, or `null` when none could be resolved.
@@ -21,15 +58,12 @@ const LOOKUP_TIMEOUT_MS = 5000;
 export async function resolveSponsorAvatar(
   socialMedia: Record<string, string>,
 ): Promise<string | null> {
-  const mastodon = socialMedia.mastodon;
-  if (mastodon) {
-    const avatar = await lookupMastodonAvatar(mastodon);
-    if (avatar) return avatar;
-  }
+  for (const platform of lookupOrder(socialMedia)) {
+    const address = socialMedia[platform];
+    if (!address) continue;
 
-  const bluesky = socialMedia.bluesky;
-  if (bluesky) {
-    const avatar = await lookupBlueskyAvatar(bluesky);
+    const lookUp = DIRECT_LOOKUPS[platform] ?? lookupSiteImage;
+    const avatar = await lookUp(address);
     if (avatar) return avatar;
   }
 
@@ -72,6 +106,71 @@ async function lookupBlueskyAvatar(profileUrl: string): Promise<string | null> {
   const lookupUrl = `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(handle)}`;
   const data = await fetchJson<{ avatar?: string }>(lookupUrl);
   return pictureUrl(data?.avatar);
+}
+
+/**
+ * Asks a Gitea-style forge for the picture of one of its accounts.
+ *
+ * GitHub and Codeberg both serve it at the account's own address with `.png`
+ * appended, and both answer without a credential. Verified on 2026-08-23:
+ * `https://github.com/phranck.png` answers 200 with a JPEG, and
+ * `https://codeberg.org/phranck.png` answers 200 with a PNG.
+ *
+ * @param profileUrl - A canonical profile address such as `https://host/name`.
+ * @returns The address of the picture, or `null`.
+ */
+async function lookupForgeAvatar(profileUrl: string): Promise<string | null> {
+  let parsed: URL;
+  try {
+    parsed = new URL(profileUrl);
+  } catch {
+    return null;
+  }
+
+  const account = parsed.pathname.replace(/^\/+|\/+$/g, "");
+  if (!account || account.includes("/")) return null;
+
+  const candidate = `${parsed.origin}/${encodeURIComponent(account)}.png`;
+  if (!(await isPublicFetchTarget(candidate, { httpsOnly: true }))) return null;
+
+  try {
+    // Only the headers are needed. Whether the address answers with an image is
+    // the whole question, and the picture itself is fetched by the reader.
+    const response = await fetch(candidate, {
+      method: "HEAD",
+      redirect: "follow",
+      signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
+    });
+    if (!response.ok) return null;
+    if (!response.headers.get("content-type")?.startsWith("image/")) return null;
+    return pictureUrl(candidate);
+  } catch (err) {
+    logger.warn({ err, url: candidate }, "sponsor avatar lookup failed");
+    return null;
+  }
+}
+
+/**
+ * Takes the picture a page shows of itself.
+ *
+ * The site's preview reader already answers this question for shops: it reads
+ * the page's own image, its icons and its manifest, measures every candidate
+ * and takes the largest of the best kind. Pointed at a profile on any service,
+ * that is usually the portrait the profile shows; pointed at a website, it is
+ * the site's own mark. It needs to know nothing about the service, which is why
+ * it covers the ones nobody has heard of.
+ *
+ * @param pageUrl - The address the sponsor gave.
+ * @returns The address of the picture, or `null`.
+ */
+async function lookupSiteImage(pageUrl: string): Promise<string | null> {
+  try {
+    const found = await fetchPreviewImage(pageUrl);
+    return found ? pictureUrl(found.url) : null;
+  } catch (err) {
+    logger.warn({ err, url: pageUrl }, "sponsor avatar lookup failed");
+    return null;
+  }
 }
 
 /**
