@@ -1318,6 +1318,32 @@ export const sponsors = pgTable(
     index("idx_sponsors_paid_at").on(table.paidAt),
     check("sponsors_amount_nonnegative", sql`${table.amountCents} >= 0`),
   ],
+)
+
+/**
+ * What somebody said about themselves before they paid.
+ *
+ * A transfer carries a reference rather than a sentence, and this is what the
+ * reference points at. It stands here until the money arrives and it becomes a
+ * sponsor, or until it has stood long enough unclaimed to be removed.
+ */
+export const pendingSponsorships = pgTable(
+  "pending_sponsorships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** The reference the transfer carries, without its printed spaces. */
+    reference: text("reference").notNull().unique(),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull().default(""),
+    /** Their own address on the web, asked for apart from the services. */
+    website: text("website").notNull().default(""),
+    socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    claim: text("claim").notNull().default(""),
+    /** Whether they want to be named, said in a form rather than in a payment. */
+    published: boolean("published").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("idx_pending_sponsorships_created_at").on(table.createdAt)],
 );
 
 /**
