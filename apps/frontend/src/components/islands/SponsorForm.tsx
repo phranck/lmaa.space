@@ -271,7 +271,9 @@ export default function SponsorForm({
           </span>
         </span>
         <textarea
-          className={`${inputClass} h-auto py-2 resize-none`}
+          // Bold like the fields above it: this sentence stands on the page
+          // under their name too.
+          className={`${inputClass} h-auto py-2 resize-none font-semibold`}
           rows={3}
           value={form.claim}
           required
