@@ -71,6 +71,7 @@ export interface DashboardMessages {
       supportPrompts: string;
       sponsors: string;
       sponsorRequests: string;
+      sponsoringSettings: string;
       sectionSponsoring: string;
       systemSettings: string;
       redirectUrls: string;
@@ -1671,6 +1672,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         supportPrompts: "Einblendungen",
         sponsors: "Jahressponsoren",
         sponsorRequests: "Sponsor Requests",
+        sponsoringSettings: "Einstellungen",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Einstellungen",
         redirectUrls: "Redirect URLs",
@@ -3357,6 +3359,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         supportPrompts: "Support prompts",
         sponsors: "Yearly sponsors",
         sponsorRequests: "Sponsor requests",
+        sponsoringSettings: "Settings",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Settings",
         redirectUrls: "Redirect URLs",

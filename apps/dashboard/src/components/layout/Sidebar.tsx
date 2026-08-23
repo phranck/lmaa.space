@@ -15,6 +15,7 @@ import {
   CheckCircleIcon,
   CircleIcon,
   ClockIcon,
+  CoinsIcon,
   CopyIcon,
   EnvelopeOpenIcon,
   EnvelopeSimpleIcon,
@@ -925,6 +926,15 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<MegaphoneSimpleIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.supportPrompts}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/sponsoring-settings" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<CoinsIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.sponsoringSettings}
                         active={isActive}
                       />
                     )}

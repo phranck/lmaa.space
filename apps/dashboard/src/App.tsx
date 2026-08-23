@@ -111,6 +111,11 @@ const PendingSponsorshipsPage = lazy(() =>
     default: m.PendingSponsorshipsPage,
   })),
 );
+const SponsoringSettingsPage = lazy(() =>
+  import("@/features/content/sponsors/SponsoringSettingsPage.tsx").then((m) => ({
+    default: m.SponsoringSettingsPage,
+  })),
+);
 const SponsorsPage = lazy(() =>
   import("@/features/content/sponsors/SponsorsPage.tsx").then((m) => ({ default: m.SponsorsPage })),
 );
@@ -449,6 +454,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <PendingSponsorshipsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="sponsoring-settings"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SponsoringSettingsPage />
                   </Suspense>
                 }
               />
