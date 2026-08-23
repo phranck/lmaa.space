@@ -1299,6 +1299,14 @@ export const sponsors = pgTable(
     imageUrl: text("image_url").notNull().default(""),
     /** Their own sentence about why they did it. */
     claim: text("claim").notNull().default(""),
+    /**
+     * Whether they want to be named on the site.
+     *
+     * What they gave counts towards the year either way. Only the name is
+     * withheld, because somebody may carry the costs without wanting to be
+     * seen doing it.
+     */
+    published: boolean("published").notNull().default(true),
     /** What they gave, in cents. Never shown beside a name. */
     amountCents: integer("amount_cents").notNull().default(0),
     /** The day they paid, which starts their year. */

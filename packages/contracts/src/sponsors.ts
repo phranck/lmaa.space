@@ -32,6 +32,14 @@ export const sponsorInputSchema = z.object({
   /** Their own sentence about why they did it. Optional, as it should be. */
   claim: z.string().trim().max(600).default(""),
   /**
+   * Whether they want to be named on the site.
+   *
+   * What they gave counts towards the year either way. Only the name is
+   * withheld, because somebody may carry the costs without wanting to be seen
+   * doing it.
+   */
+  published: z.boolean().default(true),
+  /**
    * What they gave, in cents.
    *
    * Kept because the site needs the sum to say whether the year is covered. It

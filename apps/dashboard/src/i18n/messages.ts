@@ -1254,6 +1254,9 @@ export interface DashboardMessages {
       noPictureFound: string;
       claimLabel: string;
       claimHint: string;
+      publishedLabel: string;
+      publishedHint: string;
+      hiddenBadge: string;
       amountLabel: string;
       amountHint: string;
       paidAtLabel: string;
@@ -2897,6 +2900,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noPictureFound: "Hinter dieser Adresse liegt kein Bild.",
         claimLabel: "Sein Satz",
         claimHint: "Warum er oder sie das macht. Freiwillig.",
+        publishedLabel: "Auf der Seite nennen",
+        publishedHint:
+          "Aus heisst: der Beitrag zählt für das Jahr, der Name steht aber nicht auf der Seite.",
+        hiddenBadge: "Nicht genannt",
         amountLabel: "Betrag",
         amountHint: "In Euro. Steht nie neben einem Namen auf der Seite.",
         paidAtLabel: "Bezahlt am",
@@ -4556,6 +4563,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noPictureFound: "There is no picture behind this address.",
         claimLabel: "Their sentence",
         claimHint: "Why they did it. Optional.",
+        publishedLabel: "Name them on the site",
+        publishedHint:
+          "Off means the contribution still counts towards the year, but the name stays off the page.",
+        hiddenBadge: "Not named",
         amountLabel: "Amount",
         amountHint: "In euro. Never shown beside a name on the site.",
         paidAtLabel: "Paid on",

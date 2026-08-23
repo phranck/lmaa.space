@@ -43,6 +43,13 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
             <div className="flex items-center gap-3">
               <Avatar name={name} imageUrl={sponsor.imageUrl} size="sm" />
               <span className="text-sm font-medium text-[var(--ds-text)]">{name}</span>
+              {/* Said in the list, because whether somebody is named is the one
+                  thing about them that the page does not show. */}
+              {!sponsor.published && (
+                <Badge className="shrink-0" colorClass="bg-stone-500/10 text-stone-400">
+                  {text.hiddenBadge}
+                </Badge>
+              )}
             </div>
           );
         },

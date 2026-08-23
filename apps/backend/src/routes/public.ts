@@ -268,20 +268,29 @@ publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
   ]);
 
   const costsTotalCents = config.costs.reduce((sum, item) => sum + item.amountCents, 0);
+  // Everybody who paid counts towards the year, including whoever asked not to
+  // be named: the costs are carried by the money rather than by the mention.
   const coveredCents = current.reduce((sum, sponsor) => sum + sponsor.amountCents, 0);
 
   // Named against the contract the site reads, so a field renamed on one side
-  // cannot quietly go missing on the other. The amounts stay out of it.
+  // cannot quietly go missing on the other. The amounts stay out of it, and so
+  // does anybody who does not want to be named.
   const payload: SponsorsPayload = {
-    sponsors: current.map((sponsor) => ({
-      id: sponsor.id,
-      firstName: sponsor.firstName,
-      lastName: sponsor.lastName,
-      socialMedia: sponsor.socialMedia,
-      imageUrl: sponsor.imageUrl,
-      claim: sponsor.claim,
-      paidAt: sponsor.paidAt,
-    })),
+    sponsors: current.flatMap((sponsor) =>
+      sponsor.published
+        ? [
+            {
+              id: sponsor.id,
+              firstName: sponsor.firstName,
+              lastName: sponsor.lastName,
+              socialMedia: sponsor.socialMedia,
+              imageUrl: sponsor.imageUrl,
+              claim: sponsor.claim,
+              paidAt: sponsor.paidAt,
+            },
+          ]
+        : [],
+    ),
     costsTotalCents,
     coveredCents,
     minAmountCents: config.minAmountCents,
