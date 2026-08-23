@@ -42,7 +42,7 @@ function PendingSponsorshipTableComponent({
         className: "w-64",
         sortKey: (entry) => entry.reference,
         cell: (entry) => (
-          <span className="text-sm font-mono text-[var(--ds-text)]">
+          <span className="text-sm font-mono whitespace-nowrap text-[var(--ds-text)]">
             {formatCreditorReference(entry.reference)}
           </span>
         ),
@@ -53,7 +53,9 @@ function PendingSponsorshipTableComponent({
         sortKey: (entry) => fullName(entry.firstName, entry.lastName),
         cell: (entry) => (
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-[var(--ds-text)]">
+            {/* A name is one thing and is read as one, so it keeps its line and
+                takes the width it needs. */}
+            <span className="text-sm font-medium text-[var(--ds-text)] whitespace-nowrap">
               {fullName(entry.firstName, entry.lastName)}
             </span>
             {!entry.published && (
@@ -78,9 +80,19 @@ function PendingSponsorshipTableComponent({
       },
       {
         id: "claim",
+        // The sentence takes whatever the row has left after the fixed columns,
+        // which is what `max-w-0` on the cell means in a table sized by its
+        // contents: without it the cell grows to the longest sentence and there
+        // is nothing left to truncate against.
+        className: "w-full max-w-0",
         header: sponsorText.claimLabel,
         cell: (entry) => (
-          <span className="text-sm text-[var(--ds-text-muted)] line-clamp-2">{entry.claim}</span>
+          // One line, cut where the column ends. The whole sentence is a
+          // hover away rather than pushing every row to two lines for the sake
+          // of the longest one.
+          <span className="block truncate text-sm text-[var(--ds-text-muted)]" title={entry.claim}>
+            {entry.claim}
+          </span>
         ),
       },
       {
@@ -89,7 +101,7 @@ function PendingSponsorshipTableComponent({
         className: "w-36",
         sortKey: (entry) => entry.createdAt,
         cell: (entry) => (
-          <span className="text-sm tabular-nums text-[var(--ds-text-muted)]">
+          <span className="text-sm tabular-nums whitespace-nowrap text-[var(--ds-text-muted)]">
             {entry.createdAt.slice(0, 10)}
           </span>
         ),
