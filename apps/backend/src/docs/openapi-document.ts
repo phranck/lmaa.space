@@ -1152,6 +1152,8 @@ export const excludedPublicRouteKeys = [
   // The site's own asks, read by the website to decide what to show a reader.
   // Of no use to anybody else, and its shape follows the dashboard.
   "GET /api/v1/support-prompts",
+  // The current sponsors and what the year costs, read by the website itself.
+  "GET /api/v1/sponsors",
 ] as const;
 
 function operationKey(operation: Pick<OpenApiOperation, "method" | "path">): string {

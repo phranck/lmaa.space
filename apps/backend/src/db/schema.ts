@@ -1273,3 +1273,50 @@ export type SupportPromptRow = typeof supportPrompts.$inferSelect;
  * Inferred insert type for `support_prompts`.
  */
 export type SupportPromptInsert = typeof supportPrompts.$inferInsert;
+
+// ---------------------------------------------------------------------------
+// Yearly sponsors
+// ---------------------------------------------------------------------------
+
+/**
+ * The people who carry the running costs for a year.
+ *
+ * A sponsorship runs from the day it was paid rather than with the calendar, so
+ * the list on the site is whoever paid within the last year. Nothing rolls over
+ * and nothing has to be cleaned up.
+ */
+export const sponsors = pgTable(
+  "sponsors",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** The given name, which the site leads with. */
+    firstName: text("first_name").notNull(),
+    /** The family name, empty for anybody listed under one name only. */
+    lastName: text("last_name").notNull().default(""),
+    /** Where they can be found, as a platform key against a profile address. */
+    socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    /** A picture. Empty means none is shown. */
+    imageUrl: text("image_url").notNull().default(""),
+    /** Their own sentence about why they did it. */
+    claim: text("claim").notNull().default(""),
+    /** What they gave, in cents. Never shown beside a name. */
+    amountCents: integer("amount_cents").notNull().default(0),
+    /** The day they paid, which starts their year. */
+    paidAt: text("paid_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_sponsors_paid_at").on(table.paidAt),
+    check("sponsors_amount_nonnegative", sql`${table.amountCents} >= 0`),
+  ],
+);
+
+/**
+ * Inferred select type for `sponsors`.
+ */
+export type SponsorRow = typeof sponsors.$inferSelect;
+/**
+ * Inferred insert type for `sponsors`.
+ */
+export type SponsorInsert = typeof sponsors.$inferInsert;

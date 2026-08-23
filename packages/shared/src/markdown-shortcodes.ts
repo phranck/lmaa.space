@@ -94,6 +94,7 @@ export const MARKDOWN_SHORTCODE_TOKENS = {
   youtube: "youtube",
   rejectedShopsTable: "rejected-shops-table",
   supportLadder: "support-ladder",
+  sponsors: "sponsors",
 } as const;
 
 /**
@@ -171,7 +172,13 @@ const SUPPORT_LADDER_VARIANT: MarkdownShortcodeDefinition = {
   description: "Überschrift und Text der Bankverbindung für ein Intervall. Bei once erscheint der GiroCode, bei monthly die Anleitung für den Dauerauftrag.",
   examples: ['[[variant key="once" title="Überweisung" text="Kommt ohne Umweg an."]]'],
   params: [
-    { name: "key", type: "enum", values: ["once", "monthly"], required: true, label: "Intervall, once oder monthly" },
+    {
+      name: "key",
+      type: "enum",
+      values: ["once", "monthly", "sponsor"],
+      required: true,
+      label: "Reiter: once, monthly oder sponsor",
+    },
     { name: "title", type: "string", aliases: ["label"], label: "Überschrift" },
     { name: "text", type: "string", aliases: ["description"], label: "Beschreibender Text" },
     { name: "recommended", type: "boolean", label: "Hervorheben und vorauswählen" },
@@ -239,7 +246,17 @@ const SUPPORT_LADDER_BANK_ACCOUNT: MarkdownShortcodeDefinition = {
     { name: "name", type: "string", required: true, label: "Kontoinhaber" },
     { name: "iban", type: "string", required: true, label: "IBAN" },
     { name: "bic", type: "string", label: "BIC" },
-    { name: "purpose", type: "string", label: "Verwendungszweck" },
+    {
+      name: "purposeDonation",
+      type: "string",
+      aliases: ["purpose"],
+      label: "Verwendungszweck einer Spende",
+    },
+    {
+      name: "purposeSponsor",
+      type: "string",
+      label: "Verwendungszweck ab dem Mindestbetrag im Sponsor-Reiter",
+    },
   ],
   children: [SUPPORT_LADDER_VARIANT],
 };
@@ -251,14 +268,35 @@ const SUPPORT_LADDER_INTERVAL: MarkdownShortcodeDefinition = {
   target: "forbidden",
   placement: "block",
   label: "Intervall",
-  description: "Ein Reiter der Leiter, also einmalig oder monatlich, mit seinen Beträgen. Enthält option und custom.",
-  examples: ['[[interval key="once" title="Einmalig" text="Einmalig ist vorausgewählt."]]'],
+  description:
+    "Ein Reiter der Leiter: einmalig, monatlich oder Sponsor. Enthält option und custom. Der Sponsor-Reiter kommt ohne option aus und zeigt nur das freie Feld.",
+  examples: [
+    '[[interval key="once" title="Einmalig" text="Einmalig ist vorausgewählt."]]',
+    '[[interval key="sponsor" title="Sponsor werden" purpose="Sponsor: lmaa.space"]]',
+  ],
   params: [
-    { name: "key", type: "enum", values: ["once", "monthly"], required: true, label: "Intervall, once oder monthly" },
+    {
+      name: "key",
+      type: "enum",
+      values: ["once", "monthly", "sponsor"],
+      required: true,
+      label: "Reiter: once, monthly oder sponsor",
+    },
     // The author writes "label" on an interval and "title" on a variant, so
     // both are accepted everywhere and neither has to be remembered.
     { name: "label", type: "string", aliases: ["title"], label: "Beschriftung" },
-    { name: "text", type: "string", aliases: ["description"], label: "Beschreibender Text" },
+    {
+      name: "text",
+      type: "string",
+      aliases: ["description"],
+      label: "Beschreibender Text. {annualAmount} wird durch die Jahressumme ersetzt",
+    },
+    { name: "hint", type: "string", label: "Hinweis unter dem Schalter" },
+    {
+      name: "belowMinimum",
+      type: "string",
+      label: "Hinweis, wenn der Betrag zu klein ist. {min} wird durch den Mindestbetrag ersetzt",
+    },
   ],
   children: [SUPPORT_LADDER_OPTION, SUPPORT_LADDER_CUSTOM],
 };
@@ -486,6 +524,32 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
         name: "id",
         type: "string",
         label: "Eigene Kennung",
+      },
+    ],
+  },
+  {
+    token: MARKDOWN_SHORTCODE_TOKENS.sponsors,
+    renderMode: "island",
+    target: "forbidden",
+    placement: "block",
+    label: "Jahres-Sponsoren",
+    description:
+      "Die Menschen, die gerade die laufenden Kosten tragen. Wer dort steht, pflegst du unter Sponsoring; hier stehen nur Überschrift und Text.",
+    examples: [
+      '[[sponsors title="Die aktuellen Jahres-Sponsoren" text="Danke an alle, die das hier tragen."]]',
+    ],
+    params: [
+      { name: "title", type: "string", label: "Überschrift" },
+      { name: "text", type: "string", aliases: ["description"], label: "Text darüber" },
+      {
+        name: "covered",
+        type: "string",
+        label: "Satz, wenn die Kosten gedeckt sind",
+      },
+      {
+        name: "missing",
+        type: "string",
+        label: "Satz, solange etwas fehlt. {missing} wird durch den Betrag ersetzt",
       },
     ],
   },

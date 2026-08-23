@@ -106,9 +106,17 @@ const NavManagerPage = lazy(() =>
   })),
 );
 
+const SponsorsPage = lazy(() =>
+  import("@/features/content/sponsors/SponsorsPage.tsx").then((m) => ({ default: m.SponsorsPage })),
+);
 const SupportPromptsPage = lazy(() =>
-  import("@/features/system/SupportPromptsPage.tsx").then((m) => ({
+  import("@/features/content/support-prompts/SupportPromptsPage.tsx").then((m) => ({
     default: m.SupportPromptsPage,
+  })),
+);
+const SupportPromptEditorPage = lazy(() =>
+  import("@/features/content/support-prompts/SupportPromptEditorPage.tsx").then((m) => ({
+    default: m.SupportPromptEditorPage,
   })),
 );
 const MarkdownWidgetsPage = lazy(() =>
@@ -424,10 +432,26 @@ function AppRoutes() {
                 }
               />
               <Route
+                path="sponsors"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SponsorsPage />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="support-prompts"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <SupportPromptsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="support-prompts/:promptId"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SupportPromptEditorPage />
                   </Suspense>
                 }
               />

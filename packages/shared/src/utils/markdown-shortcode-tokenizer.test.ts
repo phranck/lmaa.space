@@ -56,8 +56,8 @@ describe("tokenizeShortcodes", () => {
   });
 
   it("keeps a closing pair inside a quoted value as text", () => {
-    const [node] = tokenizeShortcodes('[[interval text="Das sind [[annualAmount]] im Jahr." key="m"]]');
-    expect(node.attributes.text).toBe("Das sind [[annualAmount]] im Jahr.");
+    const [node] = tokenizeShortcodes('[[interval text="Ein Paar [[Klammern]] im Satz." key="m"]]');
+    expect(node.attributes.text).toBe("Ein Paar [[Klammern]] im Satz.");
     expect(node.attributes.key).toBe("m");
     expect(node.children).toEqual([]);
   });

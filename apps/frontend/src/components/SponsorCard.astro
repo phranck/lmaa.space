@@ -1,0 +1,78 @@
+---
+import { SocialMediaIcons } from "@lmaa/ui";
+
+interface Props {
+  /** The name as the page shows it, both parts already joined. */
+  name: string;
+  /** The picture, or an empty string for the initial instead. */
+  imageUrl: string;
+  /** Platform keys against profile addresses. */
+  socialMedia: Record<string, string>;
+  /** Their own sentence, already rendered from Markdown. Empty for none. */
+  claimHtml: string;
+  /** The day their year began, written out, as the wide card shows it. */
+  since: string;
+  /** The same day in figures, for a card too narrow for the month's name. */
+  sinceShort: string;
+  /** What is left of their year, as a phrase. */
+  left: string;
+  /**
+   * Whether this is the second run of the row rather than the first.
+   *
+   * The copy is what the first run gives way to, so it says nothing a reader
+   * has not already been told and is kept out of the reading and tab order.
+   */
+  duplicate?: boolean;
+}
+
+const {
+  name,
+  imageUrl,
+  socialMedia,
+  claimHtml,
+  since,
+  sinceShort,
+  left,
+  duplicate = false,
+} = Astro.props;
+---
+
+<li
+  class="lmaa-card flex flex-col gap-3"
+  aria-hidden={duplicate ? "true" : undefined}
+  inert={duplicate}
+>
+  <div class="flex items-center gap-3">
+    {
+      imageUrl ? (
+        <img
+          src={imageUrl}
+          alt=""
+          width="48"
+          height="48"
+          class="size-12 rounded-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span class="lmaa-sponsor-initial" aria-hidden="true">
+          {name.slice(0, 1)}
+        </span>
+      )
+    }
+    <span class="min-w-0">
+      <span class="block font-semibold">{name}</span>
+      <SocialMediaIcons socialMedia={socialMedia} className="flex items-center gap-2 mt-1" />
+    </span>
+  </div>
+  {claimHtml && <div class="lmaa-rich text-sm" set:html={claimHtml} />}
+  <p class="lmaa-sponsor-term">
+    <span>
+      Sponsor seit <span class="lmaa-sponsor-date-long">{since}</span><span
+        class="lmaa-sponsor-date-short">{sinceShort}</span
+      >
+    </span>
+    <span aria-hidden="true">·</span>
+    <span>{left}</span>
+  </p>
+</li>

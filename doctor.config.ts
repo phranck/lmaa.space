@@ -29,6 +29,13 @@ export default {
         files: ["src/features/system/SocialPreviewPage.tsx"],
         rules: ["react-doctor/prefer-useReducer"],
       },
+      // The support ladder carries the whole donation interface in one island.
+      // Splitting it and modelling its tab and amount as one machine is tracked
+      // in issue #138, rather than reported as a regression on every scan.
+      {
+        files: ["src/components/islands/SupportLadder.tsx"],
+        rules: ["react-doctor/no-giant-component", "react-doctor/prefer-useReducer"],
+      },
       // Controlled preference wrappers restore a parent-owned value exactly once.
       {
         files: ["src/components/ui/FilterDropdown.tsx", "src/components/ui/SegmentedControl.tsx"],
@@ -159,6 +166,9 @@ export default {
           "src/features/content/shops/ShopEditorFormContent.tsx",
           "src/features/content/shops/ShopEditorPage.tsx",
           "src/features/content/shops/ShopReminderSection.tsx",
+          "src/features/content/sponsors/SponsorsPage.tsx",
+          "src/features/content/support-prompts/SupportPromptEditorPage.tsx",
+          "src/features/content/support-prompts/SupportPromptsPage.tsx",
           "src/features/overview/SubmissionDialogs.tsx",
           "src/features/overview/SubmissionReviewPanel.tsx",
           "src/features/social/AccountFormDialog.tsx",
@@ -213,6 +223,7 @@ export default {
         files: [
           "src/features/content/hooks/useFooterConfig.ts",
           "src/features/content/shops/hooks/useAdminShops.ts",
+          "src/features/content/sponsors/hooks/useSponsors.ts",
           "src/features/system/hooks/useAdminMedia.ts",
           "src/features/templates/hooks/useEmailTemplates.ts",
         ],

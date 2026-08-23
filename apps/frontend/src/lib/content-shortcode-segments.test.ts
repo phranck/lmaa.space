@@ -34,4 +34,95 @@ describe("parseContentShortcodeSegments", () => {
       { type: "markdown", content: "[[rejected-shops-table:foo]]" },
     ]);
   });
+
+  it("carries both sentences about the year's costs from the sponsors block", () => {
+    expect(
+      parseContentShortcodeSegments(
+        '[[sponsors title="Sponsoren" covered="Alles gedeckt." missing="Es fehlen noch {missing}."]]',
+      ),
+    ).toEqual([
+      {
+        type: "sponsors",
+        title: "Sponsoren",
+        text: "",
+        covered: "Alles gedeckt.",
+        missing: "Es fehlen noch {missing}.",
+      },
+    ]);
+  });
+
+  it("keeps a tab that offers only a free amount", () => {
+    const [segment] = parseContentShortcodeSegments(
+      [
+        "[[support-ladder",
+        '  [[interval key="sponsor" label="Sponsor werden" hint="Ab 40 Euro." belowMinimum="Unter {min} ist es eine Spende."',
+        '    [[custom label="Dein Betrag" placeholder="40"]]',
+        "  ]]",
+        "]]",
+      ].join("\n"),
+    );
+
+    expect(segment).toMatchObject({
+      type: "support-ladder",
+      intervals: [
+        {
+          key: "sponsor",
+          label: "Sponsor werden",
+          hint: "Ab 40 Euro.",
+          belowMinimum: "Unter {min} ist es eine Spende.",
+          options: [],
+          custom: { label: "Dein Betrag", placeholder: "40" },
+        },
+      ],
+    });
+  });
+
+  it("reads both references from the account", () => {
+    const [segment] = parseContentShortcodeSegments(
+      [
+        "[[support-ladder",
+        '  [[bankaccount name="Frank Gregor" iban="AT55 1900 1047 0466 6811" purposeDonation="Spende: lmaa.space" purposeSponsor="Sponsor: lmaa.space"]]',
+        '  [[interval key="once" label="Einmalig" [[option amount=5]] ]]',
+        "]]",
+      ].join("\n"),
+    );
+
+    expect(segment).toMatchObject({
+      type: "support-ladder",
+      bankAccount: {
+        purposeDonation: "Spende: lmaa.space",
+        purposeSponsor: "Sponsor: lmaa.space",
+      },
+    });
+  });
+
+  it("still reads a reference written under the old name", () => {
+    const [segment] = parseContentShortcodeSegments(
+      [
+        "[[support-ladder",
+        '  [[bankaccount name="Frank Gregor" iban="AT55 1900 1047 0466 6811" purpose="Spende: lmaa.space"]]',
+        '  [[interval key="once" label="Einmalig" [[option amount=5]] ]]',
+        "]]",
+      ].join("\n"),
+    );
+
+    expect(segment).toMatchObject({
+      type: "support-ladder",
+      bankAccount: { purposeDonation: "Spende: lmaa.space" },
+    });
+  });
+
+  it("drops a tab that offers neither an amount nor a field", () => {
+    const [segment] = parseContentShortcodeSegments(
+      ['[[support-ladder', '  [[interval key="sponsor" label="Sponsor werden"]]', "]]"].join("\n"),
+    );
+
+    expect(segment).toMatchObject({ type: "markdown" });
+  });
+
+  it("leaves both sentences empty when the block names neither", () => {
+    expect(parseContentShortcodeSegments("[[sponsors]]")).toEqual([
+      { type: "sponsors", title: "", text: "", covered: "", missing: "" },
+    ]);
+  });
 });

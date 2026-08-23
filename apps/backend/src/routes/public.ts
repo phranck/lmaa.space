@@ -8,6 +8,7 @@ import {
   type PublicRejectedShopPageSize,
   type PublicRejectedShopSortDirection,
   type PublicRejectedShopSortField,
+  type SponsorsPayload,
 } from "@lmaa/contracts";
 import { decodeShopToken } from "@lmaa/shared";
 
@@ -26,6 +27,7 @@ import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
 import { validate } from "../middleware/validate-request.js";
 import { getFooterConfig } from "../repositories/footer-config.js";
 import { getEnabledMarkdownWidgetByKey } from "../repositories/markdown-widgets.js";
+import { listCurrentSponsors } from "../repositories/sponsors.js";
 import { listPublishedSupportPrompts } from "../repositories/support-prompts.js";
 import {
   getManagedPublicFormConfig,
@@ -62,6 +64,7 @@ import {
 } from "../services/public.js";
 import { listFooterSocialMediaAccounts } from "../services/social-media-accounts.js";
 import { getSocialPreviewImage } from "../services/social-preview-images.js";
+import { getSponsoringConfig, sponsorYearStart } from "../services/sponsors.js";
 import { getSupportPromptLimits } from "../services/support-prompts.js";
 
 /**
@@ -250,6 +253,42 @@ publicRoutes.get("/content", publicReadLimit, async (c) => {
   const rows = await getManagedPublicContentPages();
   c.header("Cache-Control", CACHE_REVALIDATE);
   return ok(c, rows);
+});
+
+// GET /api/sponsors – who carries the running costs right now
+//
+// The amounts never leave the server. What a person gave is needed to say
+// whether the year is covered, and for nothing else: an amount printed beside a
+// name turns a list of people into a ranking.
+publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const [current, config] = await Promise.all([
+    listCurrentSponsors(sponsorYearStart(today)),
+    getSponsoringConfig(),
+  ]);
+
+  const costsTotalCents = config.costs.reduce((sum, item) => sum + item.amountCents, 0);
+  const coveredCents = current.reduce((sum, sponsor) => sum + sponsor.amountCents, 0);
+
+  // Named against the contract the site reads, so a field renamed on one side
+  // cannot quietly go missing on the other. The amounts stay out of it.
+  const payload: SponsorsPayload = {
+    sponsors: current.map((sponsor) => ({
+      id: sponsor.id,
+      firstName: sponsor.firstName,
+      lastName: sponsor.lastName,
+      socialMedia: sponsor.socialMedia,
+      imageUrl: sponsor.imageUrl,
+      claim: sponsor.claim,
+      paidAt: sponsor.paidAt,
+    })),
+    costsTotalCents,
+    coveredCents,
+    minAmountCents: config.minAmountCents,
+  };
+
+  c.header("Cache-Control", CACHE_EDITABLE);
+  return ok(c, payload);
 });
 
 // GET /api/support-prompts – what may be shown inside the site today

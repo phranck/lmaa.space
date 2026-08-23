@@ -3,6 +3,7 @@ import { createDefaultRegionOptions } from "@lmaa/ui/region-select";
 import { type ShopEditFormMessages } from "@lmaa/ui/shop-edit-form";
 
 import type { DashboardLocale } from "@/i18n/messages.ts";
+import { getSocialMediaEditorMessages } from "@/i18n/social-media-editor.ts";
 
 /**
  * Returns localized region options for the shop editor.
@@ -71,14 +72,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         mapStandardLabel: "Standard",
         mapSatelliteLabel: "Satellite",
         socialMediaLabel: "Social Media",
-        socialMedia: {
-          urlPlaceholder: "Paste URL",
-          addAriaLabel: "Add link",
-          removeAriaLabel: "Remove link",
-          openAriaLabel: "Open link",
-          selectPlatformAriaLabel: "Select platform",
-          invalidUrlMessage: (platformLabel) => `Invalid ${platformLabel} URL.`,
-        },
+        socialMedia: getSocialMediaEditorMessages("en"),
         shopCheckNotesSectionLabel: "Shopcheck Notes",
         shopCheckFocusLabel: "Focus",
         shopCheckFocusPlaceholder: "e.g. sustainable fashion\nlocal production\ncustom prints",
@@ -161,14 +155,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       mapStandardLabel: "Standard",
       mapSatelliteLabel: "Satellit",
       socialMediaLabel: "Social Media",
-      socialMedia: {
-        urlPlaceholder: "URL einfügen",
-        addAriaLabel: "Link hinzufügen",
-        removeAriaLabel: "Link entfernen",
-        openAriaLabel: "Link öffnen",
-        selectPlatformAriaLabel: "Plattform wählen",
-        invalidUrlMessage: (platformLabel) => `Ungültige ${platformLabel}-URL.`,
-      },
+      socialMedia: getSocialMediaEditorMessages("de"),
       shopCheckNotesSectionLabel: "Shopcheck-Notizen",
       shopCheckFocusLabel: "Fokus",
       shopCheckFocusPlaceholder: "z.B. nachhaltige Mode\nlokale Produktion\nindividuelle Prints",

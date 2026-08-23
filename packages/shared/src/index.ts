@@ -34,6 +34,10 @@ export * from "./utils/rejection-token.js";
 export * from "./utils/shop-token.js";
 /** User-friendly token expansion (`U+XXXX`, `{nbhy}`, `&#8209;`) for plain-text fields. */
 export * from "./utils/text-tokens.js";
+/** How long a sponsorship stands and how much of it is left. */
+export * from "./utils/sponsor-year.js";
+/** Given name and family name joined into one display name. */
+export * from "./utils/person-name.js";
 /** Logo background color helper for shop avatars. */
 export * from "./utils/logo-background.js";
 

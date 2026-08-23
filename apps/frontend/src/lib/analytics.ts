@@ -5,7 +5,12 @@ type WebsiteAnalyticsEventName =
   | "site-search"
   | "category-click"
   | "shop-visit-click"
-  | "site-link-click";
+  | "site-link-click"
+  // What a support prompt did, keyed by prompt and slot. Without these, more
+  // prompts are only more noise: nothing says which text or which place worked.
+  | "support-prompt-shown"
+  | "support-prompt-clicked"
+  | "support-prompt-dismissed";
 
 /** Arbitrary key-value event data attached to a tracked analytics event. */
 export type WebsiteAnalyticsPayload = Record<string, AnalyticsPrimitive>;
