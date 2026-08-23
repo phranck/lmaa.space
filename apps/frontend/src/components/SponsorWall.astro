@@ -2,7 +2,7 @@
 import SponsorCard from "@/components/SponsorCard.astro";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { SponsorsPayload } from "@lmaa/contracts";
-import { daysLeft, fullName } from "@lmaa/shared";
+import { daysLeft, formatEuroWhole, fullName } from "@lmaa/shared";
 
 interface Props {
   /**
@@ -47,19 +47,13 @@ const claims = await Promise.all(
   ),
 );
 
-const euro = new Intl.NumberFormat("de-DE", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-});
-
 const covered = payload.coveredCents >= payload.costsTotalCents && payload.costsTotalCents > 0;
 const missingCents = Math.max(payload.costsTotalCents - payload.coveredCents, 0);
 
 /** The sentence under the row, with the outstanding amount written into it. */
 const costsLine = covered
   ? coveredText || COVERED_DEFAULT
-  : (missingText || MISSING_DEFAULT).replaceAll("{missing}", euro.format(missingCents / 100));
+  : (missingText || MISSING_DEFAULT).replaceAll("{missing}", formatEuroWhole(missingCents / 100));
 
 const names = payload.sponsors.map((sponsor) => fullName(sponsor.firstName, sponsor.lastName));
 

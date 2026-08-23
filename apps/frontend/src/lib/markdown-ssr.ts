@@ -2,7 +2,7 @@
  * Server-side Markdown renderer with media alias resolution.
  * For Astro SSR / frontmatter use only — never import this in React islands.
  */
-import { expandSiteVariables, type SiteVariableValues } from "@lmaa/shared";
+import { expandSiteVariables, formatEuroCents, type SiteVariableValues } from "@lmaa/shared";
 
 import { apiGet } from "./api";
 import { type MarkdownMediaAliases, renderMarkdown } from "./markdown";
@@ -33,20 +33,6 @@ async function loadMediaAliases(): Promise<MarkdownMediaAliases> {
 
   return cachedAliases;
 }
-
-/**
- * Money as this site writes it.
- *
- * Built once at module scope rather than per rendered text, because the call
- * that formats is also the call that builds the formatter. Austrian, like the
- * amounts the support ladder shows, so a figure named in a sentence and the
- * same figure shown beside a field are written the same way.
- */
-const EURO = new Intl.NumberFormat("de-AT", {
-  style: "currency",
-  currency: "EUR",
-  minimumFractionDigits: 2,
-});
 
 let cachedVariables: SiteVariableValues | null = null;
 let variablesTimestamp = 0;
@@ -96,7 +82,7 @@ export async function renderMarkdownSSR(
 ): Promise<string> {
   const [aliases, variables] = await Promise.all([loadMediaAliases(), loadSiteVariables()]);
   const expanded = variables
-    ? expandSiteVariables(content, variables, (cents) => EURO.format(cents / 100))
+    ? expandSiteVariables(content, variables, formatEuroCents)
     : content;
   return renderMarkdown(expanded, aliases, options);
 }

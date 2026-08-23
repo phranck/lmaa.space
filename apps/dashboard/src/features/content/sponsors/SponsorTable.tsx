@@ -2,7 +2,7 @@ import { FileTextIcon } from "@phosphor-icons/react";
 import { memo, useMemo } from "react";
 
 import type { Sponsor } from "@lmaa/contracts";
-import { daysLeft, fullName } from "@lmaa/shared";
+import { daysLeft, formatEuroCents, fullName } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
 import { Avatar } from "@/components/ui/Avatar.tsx";
@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/Badge.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { formatEuro } from "@/features/content/sponsors/sponsor-format.ts";
 
 interface SponsorTableProps {
   sponsors: Sponsor[];
@@ -72,7 +71,7 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
         sortKey: (sponsor) => sponsor.amountCents,
         cell: (sponsor) => (
           <span className="text-sm tabular-nums text-[var(--ds-text-muted)]">
-            {formatEuro(sponsor.amountCents)}
+            {formatEuroCents(sponsor.amountCents)}
           </span>
         ),
       },

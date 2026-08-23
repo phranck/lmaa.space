@@ -1,7 +1,7 @@
 import { HandHeartIcon, TrashIcon } from "@phosphor-icons/react";
 import { memo, useMemo } from "react";
 
-import { formatCreditorReference, fullName } from "@lmaa/shared";
+import { formatCreditorReference, formatEuroCents, fullName } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
 import { Badge } from "@/components/ui/Badge.tsx";
@@ -9,7 +9,6 @@ import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import type { PendingSponsorshipRow } from "@/features/content/sponsors/hooks/usePendingSponsorships.ts";
-import { formatEuro } from "@/features/content/sponsors/sponsor-format.ts";
 
 interface PendingSponsorshipTableProps {
   entries: PendingSponsorshipRow[];
@@ -105,7 +104,7 @@ function PendingSponsorshipTableComponent({
         sortKey: (entry) => entry.amountCents,
         cell: (entry) => (
           <span className="text-sm tabular-nums whitespace-nowrap text-[var(--ds-text-muted)]">
-            {entry.amountCents > 0 ? formatEuro(entry.amountCents) : "—"}
+            {entry.amountCents > 0 ? formatEuroCents(entry.amountCents) : "—"}
           </span>
         ),
       },

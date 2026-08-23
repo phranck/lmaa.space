@@ -5,6 +5,9 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import type { PendingSponsorshipReceipt } from "@lmaa/contracts";
 import {
   buildEpcQrPayload,
+  EURO_SYMBOL,
+  formatEuro,
+  formatEuroWhole,
   SUPPORT_LADDER_LABEL_DEFAULTS,
   type SupportLadderLabelKey,
 } from "@lmaa/shared";
@@ -64,22 +67,6 @@ interface SupportLadderProps {
   minSponsorAmountEur?: number;
 }
 
-/**
- * Constructed once at module scope rather than inside the render, because the
- * call that formats is also the call that builds the formatter.
- */
-const EURO_WHOLE = new Intl.NumberFormat("de-AT", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-});
-
-const EURO_EXACT = new Intl.NumberFormat("de-AT", {
-  style: "currency",
-  currency: "EUR",
-  minimumFractionDigits: 2,
-});
-
 const MONTHS_PER_YEAR = 12;
 
 /**
@@ -102,13 +89,6 @@ const TRANSFER_LABEL_STYLE = { color: "var(--ds-text-subtle)" };
  * monospaced face gains over the body face at the same size.
  */
 const TRANSFER_VALUE_CLASS = "m-0 font-mono font-semibold text-[0.92em]";
-
-/**
- * The currency symbol, taken from the formatter rather than typed out, so it
- * follows the locale the amounts are already formatted in.
- */
-const CURRENCY_SYMBOL =
-  EURO_WHOLE.formatToParts(0).find((part) => part.type === "currency")?.value ?? "€";
 
 /**
  * The reference line before there is a reference.
@@ -501,7 +481,7 @@ function AmountGrid({
               className="text-xl leading-none font-bold tabular-nums"
               style={{ fontFamily: "var(--ds-font-serif)" }}
             >
-              {EURO_WHOLE.format(option.amountEur)}
+              {formatEuroWhole(option.amountEur)}
               {interval.key === "monthly" && (
                 <span
                   className="ml-1 text-sm font-medium"
@@ -590,7 +570,7 @@ function AmountGrid({
                 fontSize: bare ? "var(--ds-text-2xl)" : "var(--ds-text-xl)",
               }}
             >
-              {CURRENCY_SYMBOL}
+              {EURO_SYMBOL}
             </span>
             <input
               type="text"
@@ -907,7 +887,7 @@ export default function SupportLadder({
   const yearlyTotal = amountEur * MONTHS_PER_YEAR;
   const intervalText = interval.text.replaceAll(
     YEARLY_TOTAL_PLACEHOLDER,
-    EURO_WHOLE.format(yearlyTotal),
+    formatEuroWhole(yearlyTotal),
   );
 
   return (
@@ -1013,7 +993,7 @@ export default function SupportLadder({
             minimumEur={minSponsorAmountEur}
             minimumNotice={(interval.belowMinimum ?? "").replaceAll(
               "{min}",
-              EURO_WHOLE.format(minSponsorAmountEur),
+              formatEuroWhole(minSponsorAmountEur),
             )}
             bare
           />
@@ -1179,7 +1159,7 @@ export default function SupportLadder({
                 )}
                 <dt style={TRANSFER_LABEL_STYLE}>{text.fieldAmount}</dt>
                 <dd className={TRANSFER_VALUE_CLASS}>
-                  {amountEur > 0 ? EURO_EXACT.format(amountEur) : text.amountOpen}
+                  {amountEur > 0 ? formatEuro(amountEur) : text.amountOpen}
                   {interval.key === "monthly" && amountEur > 0 ? ` ${text.perMonth}` : ""}
                 </dd>
               </dl>

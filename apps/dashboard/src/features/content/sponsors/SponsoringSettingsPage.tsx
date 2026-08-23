@@ -6,6 +6,7 @@ import {
   type RunningCostItem,
   type SponsoringConfig,
 } from "@lmaa/contracts";
+import { formatEuroCents } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
@@ -14,7 +15,6 @@ import { DashboardInput, DashboardNumberInput } from "@/components/ui/DashboardC
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { formatEuro } from "@/features/content/sponsors/sponsor-format.ts";
 
 import { useSaveSponsoringConfig, useSponsoringConfig } from "./hooks/useSponsors.ts";
 
@@ -112,7 +112,7 @@ export function SponsoringSettingsPage() {
           <DashboardSection.Header
             icon={<CoinsIcon weight="duotone" className="size-4" />}
             title={text.costsTitle}
-            subtitle={`${text.costsHint} ${formatEuro(totalCents)}`}
+            subtitle={`${text.costsHint} ${formatEuroCents(totalCents)}`}
             addOn={
               <SaveActionButton
                 onClick={() =>
