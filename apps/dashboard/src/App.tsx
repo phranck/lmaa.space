@@ -106,6 +106,11 @@ const NavManagerPage = lazy(() =>
   })),
 );
 
+const PendingSponsorshipsPage = lazy(() =>
+  import("@/features/content/sponsors/PendingSponsorshipsPage.tsx").then((m) => ({
+    default: m.PendingSponsorshipsPage,
+  })),
+);
 const SponsorsPage = lazy(() =>
   import("@/features/content/sponsors/SponsorsPage.tsx").then((m) => ({ default: m.SponsorsPage })),
 );
@@ -436,6 +441,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <SponsorsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="sponsor-requests"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <PendingSponsorshipsPage />
                   </Suspense>
                 }
               />

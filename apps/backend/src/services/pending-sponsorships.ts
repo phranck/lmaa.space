@@ -3,11 +3,17 @@ import { randomBytes } from "node:crypto";
 import type { PendingSponsorshipInput } from "@lmaa/contracts";
 import { buildCreditorReference, classifyProfileLink, randomReferenceBody } from "@lmaa/shared";
 
-import type { PendingSponsorshipRow } from "../db/schema.js";
+import { resolveSponsorAvatar } from "./sponsor-avatar.js";
+import type { PendingSponsorshipRow, SponsorRow } from "../db/schema.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
 import { logger } from "../lib/logger.js";
 import { type Result, failure, success } from "../lib/result.js";
-import { insertPendingSponsorship } from "../repositories/pending-sponsorships.js";
+import {
+  deletePendingSponsorship,
+  getPendingSponsorship,
+  insertPendingSponsorship,
+} from "../repositories/pending-sponsorships.js";
+import { insertSponsor } from "../repositories/sponsors.js";
 
 /**
  * What every reference opens with, so a statement says what the payment is.
@@ -105,4 +111,53 @@ export async function createPendingSponsorship(
   }
 
   return failure("reference_unavailable");
+}
+
+/**
+ * Turns one pending entry into a sponsor and removes the entry.
+ *
+ * The picture is looked for here rather than when the form was filled in,
+ * because the form stands behind a route open to anybody and resolving an
+ * address given by a stranger would make this server fetch whatever they name.
+ * By this point the operator has read the entry and seen the money arrive.
+ *
+ * What the entry says about the person is taken as given: the name, the
+ * address, the sentence and the answer about being named are theirs. What they
+ * paid and when is not in the entry at all and comes from the statement.
+ *
+ * @param id - The pending entry to take over.
+ * @param payment - What arrived, in cents, and the day it did as `YYYY-MM-DD`.
+ * @returns The sponsor as stored, or `not_found` when the entry is gone.
+ */
+export async function takeOverPendingSponsorship(
+  id: string,
+  payment: { amountCents: number; paidAt: string },
+): Promise<Result<{ sponsor: SponsorRow }, "not_found">> {
+  const pending = await getPendingSponsorship(id);
+  if (!pending) return failure("not_found");
+
+  const imageUrl = await resolveSponsorAvatar(pending.socialMedia);
+
+  const sponsor = await insertSponsor({
+    firstName: pending.firstName,
+    lastName: pending.lastName,
+    socialMedia: pending.socialMedia,
+    imageUrl: imageUrl ?? "",
+    claim: pending.claim,
+    published: pending.published,
+    amountCents: payment.amountCents,
+    paidAt: payment.paidAt,
+  });
+
+  // Removed only once the sponsor is written, so a failure above leaves the
+  // entry standing and the operator can try again rather than losing what
+  // somebody typed.
+  await deletePendingSponsorship(id);
+
+  logger.info(
+    { event: "pending_sponsorship.taken_over", sponsorId: sponsor.id },
+    "A pending sponsorship became a sponsor",
+  );
+
+  return success({ sponsor });
 }

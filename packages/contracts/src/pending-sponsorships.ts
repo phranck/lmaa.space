@@ -68,8 +68,29 @@ export const pendingSponsorshipReceiptSchema = z.object({
   referenceFormatted: z.string(),
 });
 
+/**
+ * What the operator supplies to turn one entry into a sponsor.
+ *
+ * Only these two, because everything else about the person is already in the
+ * entry. Neither is: what arrived and when is read off the statement rather
+ * than from anything the payer typed.
+ */
+export const pendingSponsorshipTakeoverSchema = z
+  .object({
+    /** What arrived, in cents. */
+    amountCents: z.coerce.number().int().min(0).max(1_000_000),
+    /** The day it arrived, which starts the sponsor's year. */
+    paidAt: z
+      .string()
+      .trim()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a day as YYYY-MM-DD"),
+  })
+  .strict();
+
 /** Everything the form asks of somebody who means to become a sponsor. */
 export type PendingSponsorshipInput = z.infer<typeof pendingSponsorshipInputSchema>;
+/** What the operator supplies to turn one entry into a sponsor. */
+export type PendingSponsorshipTakeover = z.infer<typeof pendingSponsorshipTakeoverSchema>;
 /** A pending sponsorship as the site reads it back. */
 export type PendingSponsorship = z.infer<typeof pendingSponsorshipSchema>;
 /** What the site answers once the form has been taken. */

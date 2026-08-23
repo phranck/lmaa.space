@@ -17,6 +17,7 @@ import {
   ClockIcon,
   CopyIcon,
   EnvelopeOpenIcon,
+  EnvelopeSimpleIcon,
   EyeSlashIcon,
   FileIcon,
   FileTextIcon,
@@ -906,6 +907,15 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<HandHeartIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.sponsors}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/sponsor-requests" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<EnvelopeSimpleIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.sponsorRequests}
                         active={isActive}
                       />
                     )}

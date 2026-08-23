@@ -70,6 +70,7 @@ export interface DashboardMessages {
       markdownWidgets: string;
       supportPrompts: string;
       sponsors: string;
+      sponsorRequests: string;
       sectionSponsoring: string;
       systemSettings: string;
       redirectUrls: string;
@@ -1276,6 +1277,18 @@ export interface DashboardMessages {
       deleteTitle: string;
       deleteMessage: string;
     };
+    pendingSponsorships: {
+      title: string;
+      emptyTitle: string;
+      emptyHint: string;
+      referenceLabel: string;
+      announcedLabel: string;
+      takeOver: string;
+      takeOverTitle: string;
+      takeOverHint: string;
+      deleteTitle: string;
+      deleteMessage: string;
+    };
     supportPrompts: {
       title: string;
       subtitle: string;
@@ -1657,6 +1670,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownWidgets: "Markdown Widgets",
         supportPrompts: "Einblendungen",
         sponsors: "Jahressponsoren",
+        sponsorRequests: "Sponsor Requests",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Einstellungen",
         redirectUrls: "Redirect URLs",
@@ -2923,6 +2937,19 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deleteTitle: "Sponsor löschen",
         deleteMessage: "Der Eintrag verschwindet sofort von der Seite.",
       },
+      pendingSponsorships: {
+        title: "Sponsor Requests",
+        emptyTitle: "Niemand wartet",
+        emptyHint: "Hier stehen die Angaben von allen, die auf der Seite Sponsor werden wollen.",
+        referenceLabel: "Referenz",
+        announcedLabel: "Angemeldet",
+        takeOver: "Als Sponsor übernehmen",
+        takeOverTitle: "Als Sponsor übernehmen",
+        takeOverHint:
+          "Betrag und Tag stehen im Kontoauszug, nicht in der Anmeldung. Alles andere kommt aus dem Eintrag.",
+        deleteTitle: "Anmeldung löschen",
+        deleteMessage: "Die Angaben sind danach weg, auch wenn das Geld noch kommt.",
+      },
       supportPrompts: {
         title: "Einblendungen",
         subtitle:
@@ -3329,6 +3356,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownWidgets: "Markdown Widgets",
         supportPrompts: "Support prompts",
         sponsors: "Yearly sponsors",
+        sponsorRequests: "Sponsor requests",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Settings",
         redirectUrls: "Redirect URLs",
@@ -4585,6 +4613,19 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         minAmountHint: "From this amount somebody stands on the site for a year.",
         deleteTitle: "Delete sponsor",
         deleteMessage: "The entry disappears from the site at once.",
+      },
+      pendingSponsorships: {
+        title: "Sponsor requests",
+        emptyTitle: "Nobody is waiting",
+        emptyHint: "Everybody who asked to become a sponsor on the site stands here.",
+        referenceLabel: "Reference",
+        announcedLabel: "Announced",
+        takeOver: "Make a sponsor",
+        takeOverTitle: "Make a sponsor",
+        takeOverHint:
+          "The amount and the day are on the statement rather than in the announcement. Everything else comes from the entry.",
+        deleteTitle: "Delete announcement",
+        deleteMessage: "What they wrote is gone afterwards, even if the money still arrives.",
       },
       supportPrompts: {
         title: "Support prompts",

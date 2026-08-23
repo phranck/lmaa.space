@@ -1,3 +1,5 @@
+import { asc, eq } from "drizzle-orm";
+
 import { db } from "../db/client.js";
 import {
   type PendingSponsorshipInsert,
@@ -19,4 +21,42 @@ export async function insertPendingSponsorship(
 ): Promise<PendingSponsorshipRow> {
   const [created] = await db.insert(pendingSponsorships).values(data).returning();
   return created;
+}
+
+/**
+ * Returns every entry nobody has turned into a sponsor yet, oldest first.
+ *
+ * Oldest first, because that one is both the likeliest to have been paid by now
+ * and the closest to being removed unclaimed.
+ */
+export async function listPendingSponsorships(): Promise<PendingSponsorshipRow[]> {
+  return db.select().from(pendingSponsorships).orderBy(asc(pendingSponsorships.createdAt));
+}
+
+/**
+ * Returns one entry, or `null` when none carries that identifier.
+ *
+ * @param id - The identifier of the entry.
+ */
+export async function getPendingSponsorship(id: string): Promise<PendingSponsorshipRow | null> {
+  const [row] = await db
+    .select()
+    .from(pendingSponsorships)
+    .where(eq(pendingSponsorships.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Removes one entry.
+ *
+ * @param id - The identifier of the entry.
+ * @returns `true` when a row was removed, `false` when it was already gone.
+ */
+export async function deletePendingSponsorship(id: string): Promise<boolean> {
+  const removed = await db
+    .delete(pendingSponsorships)
+    .where(eq(pendingSponsorships.id, id))
+    .returning({ id: pendingSponsorships.id });
+  return removed.length > 0;
 }
