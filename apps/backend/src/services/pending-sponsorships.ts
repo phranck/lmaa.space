@@ -67,13 +67,20 @@ function drawReference(): string {
  * have this server fetch whatever the caller names.
  *
  * @param input - The form as it was validated.
- * @returns The stored row, or `reference_unavailable` when every drawn reference
- *   was already taken, which means the draw is broken rather than unlucky.
+ * @returns The stored row, `link_unusable` when an address was given that names
+ *   nothing reachable, or `reference_unavailable` when every drawn reference was
+ *   already taken, which means the draw is broken rather than unlucky.
  */
 export async function createPendingSponsorship(
   input: PendingSponsorshipInput,
-): Promise<Result<{ pending: PendingSponsorshipRow }, "reference_unavailable">> {
-  const classified = classifyProfileLink(input.link);
+): Promise<
+  Result<{ pending: PendingSponsorshipRow }, "link_unusable" | "reference_unavailable">
+> {
+  const classified = input.link ? classifyProfileLink(input.link) : null;
+  // An address that sorts into nothing is said so rather than dropped. Storing
+  // the entry without it would leave somebody believing they had given it.
+  if (input.link && !classified) return failure("link_unusable");
+
   const socialMedia = classified ? { [classified.platform]: classified.url } : {};
 
   for (let attempt = 1; attempt <= REFERENCE_ATTEMPTS; attempt++) {

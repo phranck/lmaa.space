@@ -556,6 +556,22 @@ describe("publicRoutes", () => {
       expect(pendingSponsorshipMocks.createPendingSponsorship).not.toHaveBeenCalled();
     });
 
+    it("says which field is wrong when the address cannot be placed", async () => {
+      pendingSponsorshipMocks.createPendingSponsorship.mockResolvedValue({
+        ok: false,
+        reason: "link_unusable",
+      });
+
+      const res = await app.request("/sponsorships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body({ link: "not an address at all" }),
+      });
+
+      expect(res.status).toBe(400);
+      expect((await res.json()).error.code).toBe("link_unusable");
+    });
+
     it("says to try again when no reference could be issued", async () => {
       pendingSponsorshipMocks.createPendingSponsorship.mockResolvedValue({
         ok: false,

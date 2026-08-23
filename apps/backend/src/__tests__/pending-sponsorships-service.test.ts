@@ -75,6 +75,20 @@ describe("createPendingSponsorship", () => {
     expect(stored.socialMedia).toEqual({});
   });
 
+  it("says so rather than dropping an address it cannot place", async () => {
+    const result = await createPendingSponsorship(form({ link: "not an address at all" }));
+
+    expect(result).toEqual({ ok: false, reason: "link_unusable" });
+    expect(repoMocks.insertPendingSponsorship).not.toHaveBeenCalled();
+  });
+
+  it("reads a fediverse handle as the address it is", async () => {
+    await createPendingSponsorship(form({ link: "@kim@chaos.social" }));
+
+    const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
+    expect(stored.socialMedia).toEqual({ mastodon: "https://chaos.social/@kim" });
+  });
+
   it("keeps what the form said, including the answer about being named", async () => {
     await createPendingSponsorship(form({ claim: "Weil es sonst niemand macht.", published: false }));
 

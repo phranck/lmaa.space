@@ -341,6 +341,15 @@ publicRoutes.post(
   async (c) => {
     const result = await createPendingSponsorship(c.req.valid("json"));
 
+    if (!result.ok && result.reason === "link_unusable") {
+      return fail(
+        c,
+        400,
+        "Diese Adresse können wir nicht zuordnen. Bitte gib eine Website oder ein Profil an.",
+        "link_unusable",
+      );
+    }
+
     if (!result.ok) {
       // Three drawn references in a row were already taken, which at 60 bits
       // says the draw is broken rather than that somebody was unlucky. Nothing
