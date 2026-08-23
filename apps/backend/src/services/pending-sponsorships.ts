@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import type { PendingSponsorshipInput } from "@lmaa/contracts";
+import { PENDING_SPONSORSHIP_DAYS, type PendingSponsorshipInput } from "@lmaa/contracts";
 import {
   buildCreditorReference,
   classifyProfileLink,
@@ -16,6 +16,7 @@ import { logger } from "../lib/logger.js";
 import { type Result, failure, success } from "../lib/result.js";
 import {
   deletePendingSponsorship,
+  deletePendingSponsorshipsBefore,
   getPendingSponsorship,
   insertPendingSponsorship,
   updatePendingSponsorshipByReference,
@@ -179,6 +180,66 @@ export async function updatePendingSponsorship(
   if (!pending) return failure("not_found");
 
   return success({ pending });
+}
+
+/** A day in milliseconds, which is what the lifetime is counted in. */
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * How often the entries nobody claimed are looked at.
+ *
+ * Once a day is often enough for a lifetime measured in weeks, and it is run
+ * once at start-up as well, so a service that is restarted more often than this
+ * still clears what it should.
+ */
+const EXPIRY_INTERVAL_MS = DAY_MS;
+
+/**
+ * Removes what nobody turned into a sponsor within the time it was given.
+ *
+ * These rows hold a name, an address and a sentence somebody wrote about
+ * themselves. They were given for a payment that never arrived, so there is no
+ * reason left to hold them, and personal data nobody claimed does not sit
+ * around waiting to be forgotten by accident.
+ *
+ * @param now - The moment to measure against.
+ * @returns How many were removed.
+ */
+export async function expirePendingSponsorships(now = new Date()): Promise<number> {
+  const cutoff = new Date(now.getTime() - PENDING_SPONSORSHIP_DAYS * DAY_MS);
+  const removed = await deletePendingSponsorshipsBefore(cutoff);
+
+  if (removed > 0) {
+    // The count and nothing else: what was in those rows is exactly what is
+    // being got rid of.
+    logger.info(
+      { event: "pending_sponsorship.expired", removed, days: PENDING_SPONSORSHIP_DAYS },
+      "Unclaimed sponsorship announcements removed",
+    );
+  }
+
+  return removed;
+}
+
+/**
+ * Starts the daily sweep, and runs one at once.
+ *
+ * @returns The timer, so shutting down can stop it.
+ */
+export function startPendingSponsorshipExpiry(): NodeJS.Timeout {
+  const sweep = () => {
+    void expirePendingSponsorships().catch((error) => {
+      logger.error({ err: error }, "pending sponsorship expiry failed");
+    });
+  };
+
+  sweep();
+  const timer = setInterval(sweep, EXPIRY_INTERVAL_MS);
+  logger.info(
+    { intervalMs: EXPIRY_INTERVAL_MS, days: PENDING_SPONSORSHIP_DAYS },
+    "pending sponsorship expiry started",
+  );
+  return timer;
 }
 
 /**

@@ -5,6 +5,7 @@ import { isValidCreditorReference } from "@lmaa/shared";
 const repoMocks = vi.hoisted(() => ({
   insertPendingSponsorship: vi.fn(),
   updatePendingSponsorshipByReference: vi.fn(),
+  deletePendingSponsorshipsBefore: vi.fn(),
   getPendingSponsorship: vi.fn(),
   deletePendingSponsorship: vi.fn(),
 }));
@@ -31,6 +32,7 @@ vi.mock("../lib/logger.js", () => ({
 
 import {
   createPendingSponsorship,
+  expirePendingSponsorships,
   takeOverPendingSponsorship,
   updatePendingSponsorship,
 } from "../services/pending-sponsorships.js";
@@ -182,6 +184,29 @@ describe("createPendingSponsorship", () => {
 
     await expect(createPendingSponsorship(form())).rejects.toThrow("connection lost");
     expect(repoMocks.insertPendingSponsorship).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("expirePendingSponsorships", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    repoMocks.deletePendingSponsorshipsBefore.mockResolvedValue(0);
+  });
+
+  it("removes what was announced longer ago than an entry is kept", async () => {
+    const now = new Date("2026-08-23T12:00:00Z");
+
+    await expirePendingSponsorships(now);
+
+    const [cutoff] = repoMocks.deletePendingSponsorshipsBefore.mock.calls[0];
+    // Sixty days back from the moment it was asked, to the millisecond.
+    expect(cutoff.toISOString()).toBe("2026-06-24T12:00:00.000Z");
+  });
+
+  it("reports how many it removed", async () => {
+    repoMocks.deletePendingSponsorshipsBefore.mockResolvedValue(3);
+
+    expect(await expirePendingSponsorships(new Date())).toBe(3);
   });
 });
 

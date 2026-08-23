@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, lt } from "drizzle-orm";
 
 import { db } from "../db/client.js";
 import {
@@ -67,6 +67,20 @@ export async function getPendingSponsorship(id: string): Promise<PendingSponsors
     .where(eq(pendingSponsorships.id, id))
     .limit(1);
   return row ?? null;
+}
+
+/**
+ * Removes every entry announced before the given moment.
+ *
+ * @param before - Entries created earlier than this are removed.
+ * @returns How many were removed, which is what the log line reports.
+ */
+export async function deletePendingSponsorshipsBefore(before: Date): Promise<number> {
+  const removed = await db
+    .delete(pendingSponsorships)
+    .where(lt(pendingSponsorships.createdAt, before))
+    .returning({ id: pendingSponsorships.id });
+  return removed.length;
 }
 
 /**

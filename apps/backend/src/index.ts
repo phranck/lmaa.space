@@ -24,6 +24,7 @@ import { publicRoutes } from "./routes/public.js";
 import { redirectUrlRoutes } from "./routes/redirect-urls.js";
 import { securityTxtRoutes } from "./routes/security-txt.js";
 import { sitemapRoutes } from "./routes/sitemap.js";
+import { startPendingSponsorshipExpiry } from "./services/pending-sponsorships.js";
 import { startReviewWorker } from "./services/review/worker.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
 import { startReminderScheduler } from "./services/shop-reminders.js";
@@ -284,6 +285,7 @@ async function startServer() {
     startRateLimitCleanupJob(),
     startReminderScheduler(),
     startReviewWorker(),
+    startPendingSponsorshipExpiry(),
   ];
 
   const port = env.PORT;
