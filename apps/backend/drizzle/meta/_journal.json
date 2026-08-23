@@ -512,6 +512,20 @@
       "when": 1787421823444,
       "tag": "0072_real_callisto",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1787430352145,
+      "tag": "0073_flaky_cloak",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1787438343879,
+      "tag": "0074_greedy_network",
+      "breakpoints": true
     }
   ]
 }

@@ -42,3 +42,5 @@ export * from "./redirect-urls";
 export * from "./admin-social-preview";
 /** Support prompt schemas: the asks that appear inside the site. */
 export * from "./support-prompts";
+/** Yearly sponsor schemas: who carries the running costs. */
+export * from "./sponsors";
