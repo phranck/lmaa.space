@@ -374,19 +374,40 @@ details > summary::-webkit-details-marker {
 
 /* A suggested amount lifts a little under the pointer. The shadow is what makes
    that read as lifting rather than as sliding, so it grows with the movement
-   and is spent on the one card being pointed at. */
+   and is spent on the one card being pointed at.
+
+   The shadow sits on a layer of its own and is faded in rather than grown,
+   because a shadow is painted rather than composited: transitioning it would
+   redraw the card on every frame of the movement, whilst an opacity is one of
+   the three things the compositor can carry on its own. The layer holds only
+   the shadow, since an outer shadow is drawn beyond the box it belongs to and
+   the box itself stays empty. */
+/* The lift is written as `translate` rather than as `transform`, because that is
+   what the utility that raises the card emits. Naming the wrong one leaves the
+   card to jump. Both belong to the transform family, so either is carried by the
+   compositor alone. */
 .lmaa-amount-card {
-  transition:
-    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: translate 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.lmaa-amount-card:hover {
+.lmaa-amount-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   box-shadow: var(--ds-shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lmaa-amount-card:hover::after {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lmaa-amount-card {
+  .lmaa-amount-card,
+  .lmaa-amount-card::after {
     transition: none;
   }
 }
@@ -429,8 +450,13 @@ details > summary::-webkit-details-marker {
   --sponsor-gap: var(--ds-space-sm);
   --sponsor-fade: var(--ds-space-lg);
   --sponsor-card-width: calc((100cqw - 1.5 * var(--sponsor-gap)) / 2.5);
+  /* One pass of the row: every card carries its own trailing space, so a run is
+     a whole number of equal steps. Both the width of the list and the distance
+     the loop travels are read from here, so the two cannot disagree. */
+  --sponsor-run: calc(var(--sponsor-count) * (var(--sponsor-card-width) + var(--sponsor-gap)));
   container-type: inline-size;
   display: flex;
+  position: relative;
   overflow: hidden;
   /* The row is clipped sideways so the cards can run out of it, and a clip cuts
      every side. The padding is the room the cards' shadows need inside that
@@ -475,24 +501,61 @@ details > summary::-webkit-details-marker {
 }
 
 /* A row that carries itself past the reader fades at both ends rather than
-   cutting a card off, so the edge reads as more coming rather than as damage. */
-.lmaa-sponsor-rail.is-scrolling {
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 var(--sponsor-fade),
-    #000 calc(100% - var(--sponsor-fade)),
-    transparent
-  );
+   cutting a card off, so the edge reads as more coming rather than as damage.
+
+   The fade is painted over the row rather than masked out of it. A mask would
+   put the moving content into a surface of its own that has to be drawn through
+   the mask on every frame; two strips of colour are painted once and then only
+   composited. That holds because everything between this row and the body is
+   transparent, so the colour behind it is the page's own. Placed on any other
+   surface, these two would have to name that surface instead. */
+.lmaa-sponsor-rail.is-scrolling::before,
+.lmaa-sponsor-rail.is-scrolling::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  width: var(--sponsor-fade);
+  pointer-events: none;
+  /* Above the row, which its own animation lifts onto a level of its own. Left
+     to their order in the document, the strip written first would end up under
+     the cards and the one written last above them, which is a fade on one side
+     of the row and nothing on the other. */
+  z-index: 1;
 }
 
-/* The list holds the same run twice, so half its width is one run exactly and
-   moving by that much lands on the copy of where it began. Nothing snaps back,
-   because the frame it ends on is the frame it started from. Only the transform
-   moves, which is the one thing that costs nothing per frame. The speed follows
-   the number of cards, so a longer row runs longer rather than faster. */
+.lmaa-sponsor-rail.is-scrolling::before {
+  left: 0;
+  background: linear-gradient(to right, var(--ds-bg), transparent);
+}
+
+.lmaa-sponsor-rail.is-scrolling::after {
+  right: 0;
+  background: linear-gradient(to left, var(--ds-bg), transparent);
+}
+
+/* The list holds the same run twice, and the loop moves by exactly one run, so
+   the frame it ends on is the frame it started from and nothing snaps back.
+
+   The distance is stated from the cards rather than taken as half the list,
+   because how wide a flex container is when its width comes from its content is
+   not the same question in every engine: WebKit sizes it by what its items
+   could be at their widest, Chrome by what they are set to. Measured here with
+   ten cards of 315.9px: 10190px against 3294px. Half of the first is nearly
+   three runs, which is where the gap came from.
+
+   Only the transform moves, which is the one thing that costs nothing per
+   frame. The speed follows the number of cards, so a longer row runs longer
+   rather than faster. */
 .lmaa-sponsor-rail.is-scrolling .lmaa-sponsor-track {
-  animation: lmaa-sponsor-marquee calc(var(--sponsor-count) * 18s) linear infinite;
+  /* Stated rather than left to the engine, because a flex container sized by
+     its content is measured differently in each: WebKit takes what its items
+     could be at their widest and came out at 10190px where Chrome had 3294px.
+     The surplus is empty space that still has to be held as a texture. */
+  width: calc(2 * var(--sponsor-run));
+  /* Six seconds per card, which at the card width the content gives is about
+     55 pixels a second: slow enough to read a name in passing, quick enough
+     that the row does not look stuck. */
+  animation: lmaa-sponsor-marquee calc(var(--sponsor-count) * 6s) linear infinite;
 }
 
 
@@ -501,7 +564,7 @@ details > summary::-webkit-details-marker {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(calc(-1 * var(--sponsor-run)));
   }
 }
 
