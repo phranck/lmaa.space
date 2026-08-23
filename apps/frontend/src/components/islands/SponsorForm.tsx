@@ -202,8 +202,9 @@ export default function SponsorForm({
     >
       {/* The three answers a person gives about themselves stand in one row of
           equal columns, so none of them reads as the important one. They stack
-          on a narrow screen. */}
-      <div className="grid gap-4 sm:grid-cols-3">
+          on a narrow screen. What is typed into them is set bold, because it is
+          what will stand on the page under their name. */}
+      <div className="grid gap-4 sm:grid-cols-3 [&_input]:font-semibold">
         <label className="block">
           <span className={labelClass}>
             {labels.firstNameLabel}

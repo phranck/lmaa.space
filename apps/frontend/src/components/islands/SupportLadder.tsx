@@ -980,11 +980,11 @@ export default function SupportLadder({
         <div
           className="lmaa-card mt-6 flex flex-col gap-4"
           style={{
-            border: "var(--card-border-width) dashed",
+            // The line a chosen amount carries, because this card is the choice
+            // on this tab rather than one of several offered.
+            border: "var(--card-border-width) solid",
             padding: "var(--card-padding)",
             borderRadius: "var(--radius-card)",
-            // Warm paper with the accent line of the free-amount field this card
-            // grew out of: it is still a thing to fill in rather than to read.
             borderColor: "var(--ds-accent)",
             background: "var(--ds-surface-form)",
           }}
