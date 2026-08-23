@@ -19,10 +19,16 @@ export const PENDING_SPONSORSHIP_DAYS = 60;
 /** Everything the form asks of somebody who means to become a sponsor. */
 export const pendingSponsorshipInputSchema = z
   .object({
-    /** The given name, which is the one the site would lead with. */
+    /**
+     * The given name, which is the one the site leads with.
+     *
+     * Every field here is asked for. What somebody writes stands beside their
+     * name on a page other people read, and an entry with half of it filled in
+     * is one the operator has to chase before it can be shown.
+     */
     firstName: z.string().trim().min(1).max(80),
-    /** The family name, empty for anybody who wants one name only. */
-    lastName: z.string().trim().max(80).default(""),
+    /** The family name. */
+    lastName: z.string().trim().min(1).max(80),
     /**
      * Where they can be found, as one address of any kind.
      *
@@ -31,9 +37,9 @@ export const pendingSponsorshipInputSchema = z
      * belongs to is worked out from the address itself, and an address on none
      * of the known ones is a website.
      */
-    link: z.string().trim().max(200).default(""),
+    link: z.string().trim().min(1).max(200),
     /** Their own sentence, shorter here than in the dashboard. */
-    claim: z.string().trim().max(MAX_PENDING_CLAIM).default(""),
+    claim: z.string().trim().min(1).max(MAX_PENDING_CLAIM),
     /**
      * What they said they would give, in cents.
      *

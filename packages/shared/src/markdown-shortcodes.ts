@@ -72,6 +72,75 @@ export const SUPPORT_LADDER_LABELS = {
 /** Name of one overridable support-ladder label. */
 export type SupportLadderLabelKey = keyof typeof SUPPORT_LADDER_LABELS;
 
+/**
+ * Every word the sponsor form puts on screen.
+ *
+ * All of it is content rather than code, because it is the site speaking to
+ * somebody about to give money and that is the operator's voice, not the
+ * developer's. The shortcode's parameter list is derived from these entries, so
+ * a new word is added in one place.
+ */
+export const SPONSOR_FORM_LABELS = {
+  firstNameLabel: { value: "Vorname", label: "Beschriftung des Feldes Vorname" },
+  lastNameLabel: { value: "Nachname", label: "Beschriftung des Feldes Nachname" },
+  linkLabel: { value: "Website oder Profil", label: "Beschriftung des Feldes Adresse" },
+  linkPlaceholder: { value: "deine-seite.at", label: "Platzhalter im leeren Adressfeld" },
+  linkHint: {
+    value:
+      "Eine Adresse genügt, ob eigene Seite, Mastodon, Bluesky oder GitHub. Welcher Dienst es ist, erkennen wir selbst.",
+    label: "Erklärung unter den Feldern",
+  },
+  linkInvalid: {
+    value: "Das erkennen wir nicht als Adresse. Eine Website oder ein Profil, bitte.",
+    label: "Meldung bei einer Adresse, die sich nicht zuordnen lässt",
+  },
+  claimLabel: { value: "Dein Satz", label: "Beschriftung des Feldes Satz" },
+  claimRemaining: {
+    value: "noch {n} Zeichen",
+    label: "Restzähler am Feld Satz, {n} wird ersetzt",
+  },
+  publishedLabel: {
+    value: "Mit meinem Namen auf der Seite erscheinen",
+    label: "Beschriftung des Schalters für die Nennung",
+  },
+  submitLabel: { value: "Angaben absenden", label: "Beschriftung des Absende-Knopfes" },
+  submitBusyLabel: { value: "Einen Moment…", label: "Beschriftung während des Absendens" },
+  issuedTitle: { value: "Deine Angaben stehen bereit.", label: "Überschrift nach dem Absenden" },
+  issuedText: {
+    value:
+      "Die Überweisung unten trägt jetzt deine Referenz. Sobald das Geld da ist, erscheinst du auf der Seite.",
+    label: "Text nach dem Absenden",
+  },
+  changeLabel: { value: "Angaben ändern", label: "Beschriftung des Knopfes zum Ändern" },
+  failureTitle: { value: "Das ging schief", label: "Überschrift der Fehlermeldung" },
+  failureClose: { value: "Verstanden", label: "Knopf, der die Fehlermeldung schliesst" },
+  failureRateLimited: {
+    value: "Das war eben schon ein paar Mal. Bitte versuche es später noch einmal.",
+    label: "Meldung, wenn zu oft abgesendet wurde",
+  },
+  failureRejected: {
+    value: "Das hat nicht geklappt. Bitte prüfe deine Angaben und versuche es erneut.",
+    label: "Meldung, wenn die Angaben abgelehnt wurden",
+  },
+  failureOffline: {
+    value: "Keine Verbindung zum Server. Bitte prüfe deine Verbindung.",
+    label: "Meldung, wenn der Server nicht erreichbar war",
+  },
+} as const satisfies Record<string, { value: string; label: string }>;
+
+/** Name of one word on the sponsor form. */
+export type SponsorFormLabelKey = keyof typeof SPONSOR_FORM_LABELS;
+
+/** Every word on the sponsor form, in declaration order. */
+export const SPONSOR_FORM_LABEL_KEYS = Object.keys(
+  SPONSOR_FORM_LABELS,
+) as SponsorFormLabelKey[];
+
+/** The wording used when the shortcode names no override. */
+export const SPONSOR_FORM_DEFAULTS = Object.fromEntries(
+  SPONSOR_FORM_LABEL_KEYS.map((key) => [key, SPONSOR_FORM_LABELS[key].value]),
+) as Record<SponsorFormLabelKey, string>;
+
 /** Every overridable label name, in declaration order. */
 export const SUPPORT_LADDER_LABEL_KEYS = Object.keys(
   SUPPORT_LADDER_LABELS,
@@ -162,6 +231,33 @@ const SUPPORT_LADDER_INFO: MarkdownShortcodeDefinition = {
 };
 
 /**
+ * The form that takes what the payment cannot carry.
+ *
+ * It belongs under the sponsor variant, because a sponsorship is the one
+ * payment here that has to be attributed to a person, and everything the person
+ * says about themselves is said in this form rather than in the transfer.
+ *
+ * Every word on it is named here. Anything left out falls back to the wording
+ * in `SPONSOR_FORM_DEFAULTS`, so a page that names none of it still reads.
+ */
+const SUPPORT_LADDER_SPONSOR_FORM: MarkdownShortcodeDefinition = {
+  token: "sponsorform",
+  renderMode: "island",
+  target: "forbidden",
+  placement: "inline",
+  label: "Sponsoren-Formular",
+  description:
+    "Das Formular, mit dem jemand seine Angaben hinterlässt und dafür eine Referenz bekommt. Gehört unter die Variante mit key=\"sponsor\". Ohne diesen Knoten erscheint kein Formular.",
+  examples: ['[[sponsorform firstNameLabel="Vorname" submitLabel="Angaben absenden"]]'],
+  params: SPONSOR_FORM_LABEL_KEYS.map((name) => ({
+    name,
+    type: "string" as const,
+    defaultValue: SPONSOR_FORM_LABELS[name].value,
+    label: SPONSOR_FORM_LABELS[name].label,
+  })),
+};
+
+/**
  * How a payment block presents itself for one interval.
  *
  * A bank account looks different depending on whether the visitor pays once or
@@ -191,7 +287,7 @@ const SUPPORT_LADDER_VARIANT: MarkdownShortcodeDefinition = {
     // Shop-Detailseiten, oder "github" für das GitHub-Zeichen.
     { name: "icon", type: "string", label: "Symbol, z. B. sepa, paypal, klarna, github" },
   ],
-  children: [SUPPORT_LADDER_QRCODE, SUPPORT_LADDER_INFO],
+  children: [SUPPORT_LADDER_QRCODE, SUPPORT_LADDER_INFO, SUPPORT_LADDER_SPONSOR_FORM],
 };
 
 /** One suggested amount, and what that amount pays for. */

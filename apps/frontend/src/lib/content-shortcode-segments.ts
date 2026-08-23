@@ -6,9 +6,12 @@ import {
 import {
   MARKDOWN_SHORTCODE_TOKENS,
   parseMarkdownShortcodes,
+  SPONSOR_FORM_DEFAULTS,
+  SPONSOR_FORM_LABEL_KEYS,
   SUPPORT_LADDER_LABEL_KEYS,
   type MarkdownShortcodeParamValue,
   type ParsedMarkdownShortcode,
+  type SponsorFormLabelKey,
   type SupportLadderLabelKey,
 } from "@lmaa/shared";
 
@@ -74,6 +77,13 @@ export interface SupportLadderVariant {
   qr?: SupportLadderQrStyle;
   /** A notice drawn as a tinted sub-card. Absent when the page names none. */
   info?: string;
+  /**
+   * Every word of the sponsor form, when this variant carries one.
+   *
+   * Absent means the variant shows no form, which is what every variant but
+   * the sponsor one wants.
+   */
+  sponsorForm?: Record<SponsorFormLabelKey, string>;
 }
 
 /**
@@ -323,6 +333,28 @@ function readQrStyle(variant: ParsedMarkdownShortcode): SupportLadderQrStyle | u
   };
 }
 
+/**
+ * Reads the wording of a variant's sponsor form, if it names one.
+ *
+ * Naming no `sponsorform` node leaves the form out entirely, which is what
+ * every variant but the sponsor one wants. Naming it with nothing on it gives
+ * the form with its own defaults, so a page need only write what it disagrees
+ * with.
+ */
+function readSponsorForm(
+  variant: ParsedMarkdownShortcode,
+): Record<SponsorFormLabelKey, string> | undefined {
+  const node = childrenOf(variant, "sponsorform")[0];
+  if (!node) return undefined;
+
+  const labels = { ...SPONSOR_FORM_DEFAULTS };
+  for (const key of SPONSOR_FORM_LABEL_KEYS) {
+    const written = unescapeText(getStringParam(node.params[key])?.trim() ?? "");
+    if (written) labels[key] = written;
+  }
+  return labels;
+}
+
 /** Reads the bank account and how it presents itself per interval. */
 function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAccount | undefined {
   const node = childrenOf(ladder, "bankaccount")[0];
@@ -353,6 +385,7 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
       icon: getStringParam(child.params.icon)?.trim() || undefined,
       qr: readQrStyle(child),
       info: unescapeText(getStringParam(childrenOf(child, "info")[0]?.params.text)?.trim() ?? "") || undefined,
+      sponsorForm: readSponsorForm(child),
     });
   }
 

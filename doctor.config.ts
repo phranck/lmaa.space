@@ -180,7 +180,7 @@ export default {
           "src/features/content/shops/ShopEditorFormContent.tsx",
           "src/features/content/shops/ShopEditorPage.tsx",
           "src/features/content/shops/ShopReminderSection.tsx",
-          "src/features/content/sponsors/SponsorsPage.tsx",
+          "src/features/content/sponsors/SponsoringSettingsPage.tsx",
           "src/features/content/support-prompts/SupportPromptEditorPage.tsx",
           "src/features/content/support-prompts/SupportPromptsPage.tsx",
           "src/features/overview/SubmissionDialogs.tsx",

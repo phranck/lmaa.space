@@ -1,8 +1,4 @@
-import {
-  ArrowSquareOutIcon,
-  CheckCircleIcon,
-  InfoIcon,
-} from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import type * as React from "react";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
@@ -19,6 +15,7 @@ import githubLockupUrl from "@/assets/brands/github-lockup.svg?url";
 import paypalLockupUrl from "@/assets/brands/paypal-lockup.svg?url";
 import sepaLockupUrl from "@/assets/brands/sepa-lockup.svg?url";
 import SponsorForm from "@/components/islands/SponsorForm";
+import { NoticeCard } from "@/components/NoticeCard";
 import { normalizeAmountInput, readAmountInput } from "@/lib/amount-input";
 import type {
   SupportLadderBankAccount,
@@ -421,57 +418,6 @@ function OutboundRoute({ route }: { route: SupportLadderRoute }) {
 }
 
 /**
- * A notice about a payment block, drawn as a tinted card.
- *
- * The icon is aligned with the first line of the text rather than with the
- * block as a whole, so a notice running to three lines does not leave the icon
- * floating in the middle. Its box is one line tall and centres its contents,
- * which puts it on the first line's optical centre whatever the text does
- * afterwards. It takes the card's own colour, because it is part of the notice
- * rather than a second signal.
- *
- * Inside a block it is a nested surface and carries the nested radius. Beside
- * one it is a card in its own right, so it takes the same radius and the same
- * padding as the card it stands next to.
- *
- * @param text - The notice, as HTML from the page's own Markdown.
- * @param className - Spacing decided by where it is used.
- * @param beside - Whether it stands next to a card rather than inside one.
- */
-function InfoCard({
-  text,
-  className = "mt-4",
-  beside = false,
-}: {
-  text: string;
-  className?: string;
-  beside?: boolean;
-}) {
-  return (
-    <div
-      className={`flex gap-2 text-sm ${beside ? "" : "p-3"} ${className}`}
-      style={{
-        borderRadius: beside ? "var(--radius-card)" : "var(--radius-card-inner)",
-        padding: beside ? "var(--card-padding)" : undefined,
-        background: "var(--ds-info-bg)",
-        border: "1px solid var(--ds-info-border)",
-        color: "var(--ds-info-text)",
-        lineHeight: "var(--ds-leading-sm)",
-      }}
-    >
-      <span
-        aria-hidden="true"
-        className="flex shrink-0 items-center"
-        style={{ height: "calc(1em * var(--ds-leading-sm))" }}
-      >
-        <InfoIcon weight="duotone" className="size-4" />
-      </span>
-      <RichText html={text} />
-    </div>
-  );
-}
-
-/**
  * The suggested amounts of one interval, plus its free-amount field.
  *
  * Separated from the ladder because it is the only part that changes when the
@@ -488,6 +434,7 @@ function AmountGrid({
   className = "",
   minimumEur = 0,
   minimumNotice = "",
+  bare = false,
 }: {
   interval: SupportLadderInterval;
   amountEur: number;
@@ -500,6 +447,14 @@ function AmountGrid({
   minimumEur?: number;
   /** What to say when the amount falls short of it. */
   minimumNotice?: string;
+  /**
+   * Drops the free field's own card, leaving the heading and the field alone.
+   *
+   * A tab that stands everything it asks for on one card has no use for a
+   * second one around a single field, and two tinted surfaces inside each
+   * other read as a mistake rather than as structure.
+   */
+  bare?: boolean;
 }) {
   // A value in the free field is the choice, so no suggested amount is active
   // whilst it holds one.
@@ -588,20 +543,24 @@ function AmountGrid({
           // the track sizing, which its input would otherwise decide instead of
           // the amounts. Where there are no suggestions it is the only card and
           // simply fills what it is given.
-          className={`lmaa-card flex flex-col gap-1.5 ${
+          className={`flex flex-col gap-1.5 ${bare ? "" : "lmaa-card"} ${
             hasOptions ? "col-span-full sm:col-span-2 lg:col-span-2 lg:col-start-2" : ""
           }`}
-          style={{
-            border: "var(--card-border-width) dashed",
-            padding: "var(--card-padding)",
-            borderRadius: "var(--radius-card)",
-            // It stands half a step off the page rather than on the same white
-            // as the amounts, because it is a field to fill in rather than one
-            // more thing to pick. The line is the one the amounts carry, so the
-            // dash alone tells it apart.
-            borderColor: customActive ? "var(--ds-accent)" : "var(--ds-border-subtle)",
-            background: customActive ? "var(--ds-accent-tint)" : "var(--ds-surface-soft)",
-          }}
+          style={
+            bare
+              ? undefined
+              : {
+                  border: "var(--card-border-width) dashed",
+                  padding: "var(--card-padding)",
+                  borderRadius: "var(--radius-card)",
+                  // It stands half a step off the page rather than on the same
+                  // white as the amounts, because it is a field to fill in
+                  // rather than one more thing to pick. The line is the one the
+                  // amounts carry, so the dash alone tells it apart.
+                  borderColor: customActive ? "var(--ds-accent)" : "var(--ds-border-subtle)",
+                  background: customActive ? "var(--ds-accent-tint)" : "var(--ds-surface-soft)",
+                }
+          }
         >
           {/* A heading, like the one every other block of this ladder carries,
               because it names what the card is rather than labelling the field
@@ -797,7 +756,15 @@ export default function SupportLadder({
    * two and never both, and the reference is the half that survives the payer's
    * app and the banks in between.
    */
-  const creditorReference = shownKey === "sponsor" ? issued?.reference : undefined;
+  /**
+   * The wording of the form, when the tab in view carries one.
+   *
+   * Its presence is what decides whether this tab asks anything of the reader
+   * at all, so the page says where the form belongs rather than the component
+   * deciding it from a key.
+   */
+  const sponsorForm = qrVariant?.sponsorForm;
+  const creditorReference = sponsorForm ? issued?.reference : undefined;
   const remittance = creditorReference
     ? undefined
     : (earnsSponsorPurpose ? bankAccount?.purposeSponsor : undefined) ||
@@ -985,87 +952,100 @@ export default function SupportLadder({
           what it asks for. A tab of suggested amounts needs the whole width for
           them and puts any notice above; a tab with a single field has room to
           set the two beside each other, and they are read together. */}
-      <div
-        className={`mt-6 grid gap-3 ${
-          interval.hint && interval.options.length === 0 ? "md:grid-cols-2" : ""
-        }`}
-      >
-        {interval.hint && (
-          <InfoCard
-            text={interval.hint}
-            className="mt-0"
-            beside={interval.options.length === 0}
-          />
-        )}
-
-        <AmountGrid
-          // A fresh tab starts without a complaint about the tab before it.
-          key={shownKey}
-          interval={interval}
-          amountEur={amountEur}
-          customAmount={customAmount}
-          perMonthLabel={text.perMonth}
-          onChoose={(next) => {
-            setCustomAmount("");
-            setAmountEur(next);
+      {/* One card for everything the sponsor tab asks, because choosing the
+          amount, saying who you are, and being told the reference is ready are
+          three steps of one errand rather than three separate offers. Every
+          other tab keeps its cards apart, since its amounts are read against
+          each other. */}
+      {sponsorForm ? (
+        <div
+          className="lmaa-card mt-6 flex flex-col gap-4"
+          style={{
+            border: "var(--card-border-width) dashed",
+            padding: "var(--card-padding)",
+            borderRadius: "var(--radius-card)",
+            // The colours of the free-amount field this card grew out of: it is
+            // still a thing to fill in rather than a thing to read.
+            borderColor: "var(--ds-accent)",
+            background: "var(--ds-accent-tint)",
           }}
-          onCustom={chooseCustom}
-          // The floor belongs to the tab that earns something by it, which is
-          // the sponsor tab and no other.
-          minimumEur={shownKey === "sponsor" ? minSponsorAmountEur : 0}
-          minimumNotice={(interval.belowMinimum ?? "").replaceAll(
-            "{min}",
-            EURO_WHOLE.format(minSponsorAmountEur),
-          )}
-        />
-      </div>
-
-      {/* The sponsor tab asks for what the payment cannot carry, before it shows
-          the payment. Reading down the tab then runs in the order the thing
-          actually happens: choose the amount, say who you are, take the
-          reference to the bank. */}
-      {shownKey === "sponsor" &&
-        (issued ? (
-          <div
-            className="lmaa-card mt-6"
-            style={{
-              border: "var(--card-border-width) solid",
-              padding: "var(--card-padding)",
-              borderRadius: "var(--radius-card)",
-              background: "var(--ds-surface)",
-              borderColor: "color-mix(in srgb, var(--ds-accent) 45%, transparent)",
+        >
+          <AmountGrid
+            // A fresh tab starts without a complaint about the tab before it.
+            key={shownKey}
+            interval={interval}
+            amountEur={amountEur}
+            customAmount={customAmount}
+            perMonthLabel={text.perMonth}
+            onChoose={(next) => {
+              setCustomAmount("");
+              setAmountEur(next);
             }}
-          >
-            <div className="flex items-start gap-3">
-              <CheckCircleIcon
-                weight="duotone"
-                className="size-5 shrink-0 mt-0.5"
-                style={{ color: "var(--ds-accent)" }}
-                aria-hidden="true"
-              />
-              <div className="min-w-0">
-                <p className="m-0 font-semibold">Deine Angaben stehen bereit.</p>
-                <p className="m-0 mt-1 text-sm" style={{ color: "var(--ds-text-muted)" }}>
-                  Die Überweisung unten trägt jetzt deine Referenz. Sobald das Geld da ist,
-                  erscheinst du auf der Seite.
-                </p>
+            onCustom={chooseCustom}
+            minimumEur={minSponsorAmountEur}
+            minimumNotice={(interval.belowMinimum ?? "").replaceAll(
+              "{min}",
+              EURO_WHOLE.format(minSponsorAmountEur),
+            )}
+            bare
+          />
+
+          {issued ? (
+            <NoticeCard tone="success" title={sponsorForm.issuedTitle}>
+              <p className="m-0 mt-1" style={{ color: "var(--ds-text-muted)" }}>
+                {sponsorForm.issuedText}
+              </p>
+              <div className="mt-3 flex justify-end">
                 <button
                   type="button"
                   onClick={forgetIssuedSponsorship}
-                  className={`${buttonBaseClass} mt-3 border`}
+                  className={`${buttonBaseClass} border`}
                   style={{
+                    background: "var(--ds-surface)",
                     borderColor: "var(--ds-btn-neutral-border)",
                     color: "var(--ds-btn-neutral-text)",
                   }}
                 >
-                  Angaben ändern
+                  {sponsorForm.changeLabel}
                 </button>
               </div>
-            </div>
-          </div>
-        ) : (
-          <SponsorForm amountEur={amountEur} onIssued={keepIssued} />
-        ))}
+            </NoticeCard>
+          ) : (
+            <SponsorForm amountEur={amountEur} labels={sponsorForm} onIssued={keepIssued} />
+          )}
+
+          {/* Last, because it is the thing to read once before acting rather
+              than a step of its own. */}
+          {interval.hint && <NoticeCard>{<RichText html={interval.hint} />}</NoticeCard>}
+        </div>
+      ) : (
+        <div
+          className={`mt-6 grid gap-3 ${
+            interval.hint && interval.options.length === 0 ? "md:grid-cols-2" : ""
+          }`}
+        >
+          {interval.hint && (
+            <NoticeCard inset={interval.options.length === 0}>
+              <RichText html={interval.hint} />
+            </NoticeCard>
+          )}
+
+          <AmountGrid
+            key={shownKey}
+            interval={interval}
+            amountEur={amountEur}
+            customAmount={customAmount}
+            perMonthLabel={text.perMonth}
+            onChoose={(next) => {
+              setCustomAmount("");
+              setAmountEur(next);
+            }}
+            onCustom={chooseCustom}
+            minimumEur={0}
+            minimumNotice=""
+          />
+        </div>
+      )}
 
       {bankAccount && variant && (
         <div
@@ -1168,7 +1148,11 @@ export default function SupportLadder({
                 </dd>
               </dl>
 
-              {variant.info && <InfoCard text={variant.info} />}
+              {variant.info && (
+                <NoticeCard className="mt-4">
+                  <RichText html={variant.info} />
+                </NoticeCard>
+              )}
             </div>
           </div>
         </div>
