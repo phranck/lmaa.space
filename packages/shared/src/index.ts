@@ -34,6 +34,8 @@ export * from "./utils/rejection-token.js";
 export * from "./utils/shop-token.js";
 /** User-friendly token expansion (`U+XXXX`, `{nbhy}`, `&#8209;`) for plain-text fields. */
 export * from "./utils/text-tokens.js";
+/** The ISO 11649 creditor reference a transfer carries instead of a sentence. */
+export * from "./utils/creditor-reference.js";
 /** How long a sponsorship stands and how much of it is left. */
 export * from "./utils/sponsor-year.js";
 /** Given name and family name joined into one display name. */
