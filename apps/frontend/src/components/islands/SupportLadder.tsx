@@ -596,7 +596,11 @@ function AmountGrid({
               type="text"
               inputMode="decimal"
               value={customAmount}
-              placeholder={interval.custom.placeholder}
+              // Where the tab names a floor, the empty field shows that floor
+              // rather than a number written into the page. Emptying the field
+              // hands the choice back to the floor, so anything else here would
+              // suggest one amount whilst the code beneath carried another.
+              placeholder={minimumEur > 0 ? String(minimumEur) : interval.custom.placeholder}
               aria-label={`${interval.custom.label} in Euro`}
               onChange={(event) => {
                 setLeftTheField(false);

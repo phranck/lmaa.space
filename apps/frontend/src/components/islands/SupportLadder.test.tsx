@@ -96,6 +96,15 @@ describe("SupportLadder", () => {
     expect(form.match(/text-\[var\(--ds-danger-text\)\]/g)?.length).toBe(4);
   });
 
+  it("offers the floor in the empty field, not a number written into the page", () => {
+    // Emptying the field hands the choice back to the floor, so a placeholder of
+    // its own would suggest one amount whilst the code carried another.
+    const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);
+
+    expect(html).toContain('placeholder="45"');
+    expect(html).not.toContain('placeholder="40"');
+  });
+
   it("keeps the reference line in the transfer card, masked until there is one", () => {
     const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);
 

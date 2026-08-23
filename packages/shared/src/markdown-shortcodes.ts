@@ -329,7 +329,11 @@ const SUPPORT_LADDER_CUSTOM: MarkdownShortcodeDefinition = {
     { name: "label", type: "string", aliases: ["title"], label: "Beschriftung" },
     // Anchors the empty field without preselecting anything, which is what the
     // amount-ladder evidence asks for.
-    { name: "placeholder", type: "string", label: "Platzhalter im leeren Feld" },
+    {
+      name: "placeholder",
+      type: "string",
+      label: "Platzhalter im leeren Feld. Beim Sponsor-Reiter gilt stattdessen der Mindestbetrag",
+    },
     { name: "text", type: "string", label: "Erklärung unter dem Feld" },
   ],
 };
