@@ -85,6 +85,15 @@ const pendingSponsorshipMocks = vi.hoisted(() => ({
   createPendingSponsorship: vi.fn(),
 }));
 
+const sponsorRepoMocks = vi.hoisted(() => ({
+  listCurrentSponsors: vi.fn(),
+}));
+
+const sponsorServiceMocks = vi.hoisted(() => ({
+  getSponsoringConfig: vi.fn(),
+  sponsorYearStart: vi.fn(() => "2025-08-24"),
+}));
+
 vi.mock("../services/public.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/public.js")>();
   return { ...actual, ...publicServiceMocks };
@@ -102,6 +111,8 @@ vi.mock("../services/form-validation.js", () => formValidationMocks);
 vi.mock("../repositories/support-prompts.js", () => supportPromptMocks);
 vi.mock("../services/support-prompts.js", () => supportPromptServiceMocks);
 vi.mock("../services/pending-sponsorships.js", () => pendingSponsorshipMocks);
+vi.mock("../repositories/sponsors.js", () => sponsorRepoMocks);
+vi.mock("../services/sponsors.js", () => sponsorServiceMocks);
 vi.mock("../middleware/rate-limit.js", () => ({
   rateLimit: vi.fn(() => (_c: unknown, next: () => Promise<void>) => next()),
   resolveClientIp: vi.fn(() => "127.0.0.1"),
@@ -125,7 +136,6 @@ describe("publicRoutes", () => {
       expect(await res.json()).toEqual({ data: [{ id: 1, name: "Mode" }] });
     });
   });
-
 
   describe("GET /support-prompts", () => {
     it("asks for today's prompts and answers with them and the limits", async () => {
@@ -162,7 +172,9 @@ describe("publicRoutes", () => {
 
       const res = await app.request("/support-prompts");
 
-      expect(res.headers.get("Cache-Control")).toBe("public, max-age=60, stale-while-revalidate=300");
+      expect(res.headers.get("Cache-Control")).toBe(
+        "public, max-age=60, stale-while-revalidate=300",
+      );
     });
   });
 
@@ -440,6 +452,83 @@ describe("publicRoutes", () => {
 
       expect(res.status).toBe(400);
       expect(publicServiceMocks.toggleShopLike).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("GET /sponsors", () => {
+    beforeEach(() => {
+      sponsorRepoMocks.listCurrentSponsors.mockResolvedValue([
+        {
+          id: "sponsor-1",
+          firstName: "Kim",
+          lastName: "Lorenz",
+          socialMedia: [{ platform: "website", url: "https://kim.example/" }],
+          imageUrl: "",
+          claim: "",
+          paidAt: "2026-08-01",
+          amountCents: 4500,
+          published: true,
+        },
+      ]);
+      sponsorServiceMocks.getSponsoringConfig.mockResolvedValue({
+        costs: [{ label: "Server", amountCents: 22_600 }],
+        minAmountCents: 2500,
+        payeeName: "Frank Gregor",
+        payeeIban: "AT551900104704666811",
+        payeeBic: "TRBKATW2XXX",
+      });
+    });
+
+    it("does not carry the account the money goes to", async () => {
+      // Those details belong on the support page, where somebody is about to
+      // transfer money. This answer is fetched wherever the sponsor wall
+      // appears, which is not the same question.
+      const res = await app.request("/sponsors");
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(Object.keys(body.data).sort()).toEqual([
+        "costsTotalCents",
+        "coveredCents",
+        "minAmountCents",
+        "sponsors",
+      ]);
+    });
+
+    it("names nobody who asked not to be named, and no amount for anybody", async () => {
+      sponsorRepoMocks.listCurrentSponsors.mockResolvedValue([
+        {
+          id: "sponsor-1",
+          firstName: "Kim",
+          lastName: "Lorenz",
+          socialMedia: [],
+          imageUrl: "",
+          claim: "",
+          paidAt: "2026-08-01",
+          amountCents: 4500,
+          published: true,
+        },
+        {
+          id: "sponsor-2",
+          firstName: "Alex",
+          lastName: "Berg",
+          socialMedia: [],
+          imageUrl: "",
+          claim: "",
+          paidAt: "2026-08-02",
+          amountCents: 5500,
+          published: false,
+        },
+      ]);
+
+      const res = await app.request("/sponsors");
+      const body = await res.json();
+
+      expect(body.data.sponsors).toHaveLength(1);
+      expect(body.data.sponsors[0].id).toBe("sponsor-1");
+      expect(body.data.sponsors[0]).not.toHaveProperty("amountCents");
+      // What the unnamed one gave still counts towards the year.
+      expect(body.data.coveredCents).toBe(10_000);
     });
   });
 

@@ -1,6 +1,6 @@
-import type { SponsorsPayload } from "@lmaa/contracts";
+import type { Payee, SponsorsPayload } from "@lmaa/contracts";
 
-import { apiGet } from "@/lib/api";
+import { apiGet, apiGetInternal } from "@/lib/api";
 
 /**
  * What the page shows when the sponsors cannot be read.
@@ -13,6 +13,15 @@ export const EMPTY_SPONSORS: SponsorsPayload = {
   costsTotalCents: 0,
   coveredCents: 0,
   minAmountCents: 0,
+};
+
+/**
+ * What the page shows when the account cannot be read.
+ *
+ * Empty rather than absent, so the support page still renders and says plainly
+ * that something is missing instead of failing outright.
+ */
+export const EMPTY_PAYEE: Payee = {
   payeeName: "",
   payeeIban: "",
   payeeBic: "",
@@ -33,5 +42,23 @@ export async function getSponsors(): Promise<SponsorsPayload> {
     return await apiGet<SponsorsPayload>("/sponsors");
   } catch {
     return EMPTY_SPONSORS;
+  }
+}
+
+/**
+ * The account a transfer goes to.
+ *
+ * Read through the website-internal route, which answers this renderer and
+ * nobody else. The details are shown on the support page, where somebody is
+ * about to transfer money, and they are kept out of the public API so they do
+ * not travel with every answer about who is carrying the costs.
+ *
+ * @returns The account, or an empty one when the backend cannot be reached.
+ */
+export async function getPayee(): Promise<Payee> {
+  try {
+    return await apiGetInternal<Payee>("/internal/payee");
+  } catch {
+    return EMPTY_PAYEE;
   }
 }

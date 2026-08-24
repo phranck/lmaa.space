@@ -2,10 +2,10 @@
  * Server-side Markdown renderer with media alias resolution.
  * For Astro SSR / frontmatter use only — never import this in React islands.
  */
-import type { SponsorsPayload } from "@lmaa/contracts";
+import type { Payee, SponsorsPayload } from "@lmaa/contracts";
 import { expandSiteVariables, formatEuroCents, type SiteVariableValues } from "@lmaa/shared";
 
-import { apiGet } from "./api";
+import { apiGet, apiGetInternal } from "./api";
 import { type MarkdownMediaAliases, renderMarkdown } from "./markdown";
 
 let cachedAliases: MarkdownMediaAliases | null = null;
@@ -53,12 +53,17 @@ async function loadSiteVariables(): Promise<SiteVariableValues | null> {
   }
 
   try {
-    const payload = await apiGet<SponsorsPayload>("/sponsors");
+    // Two sources, because the account is served to this renderer alone whilst
+    // the costs are public. Fetched together, so a text naming both waits once.
+    const [sponsors, payee] = await Promise.all([
+      apiGet<SponsorsPayload>("/sponsors"),
+      apiGetInternal<Payee>("/internal/payee"),
+    ]);
     cachedVariables = {
-      annualCostCents: payload.costsTotalCents,
-      payeeName: payload.payeeName,
-      payeeIban: payload.payeeIban,
-      payeeBic: payload.payeeBic,
+      annualCostCents: sponsors.costsTotalCents,
+      payeeName: payee.payeeName,
+      payeeIban: payee.payeeIban,
+      payeeBic: payee.payeeBic,
     };
     variablesTimestamp = now;
   } catch {

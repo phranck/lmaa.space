@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const apiMocks = vi.hoisted(() => ({ apiGet: vi.fn() }));
+const apiMocks = vi.hoisted(() => ({ apiGet: vi.fn(), apiGetInternal: vi.fn() }));
 
 vi.mock("./api", () => apiMocks);
 
@@ -14,15 +14,15 @@ async function freshRenderer() {
 beforeEach(() => {
   vi.clearAllMocks();
   apiMocks.apiGet.mockImplementation(async (path: string) => {
-    if (path === "/sponsors") {
-      return {
-        costsTotalCents: 22_600,
-        payeeName: "Frank Gregor",
-        payeeIban: "AT551900104704666811",
-        payeeBic: "TRBKATW2XXX",
-      };
-    }
+    if (path === "/sponsors") return { costsTotalCents: 22_600 };
     return {};
+  });
+  // The account comes through the website-internal route, which answers this
+  // renderer and nobody else.
+  apiMocks.apiGetInternal.mockResolvedValue({
+    payeeName: "Frank Gregor",
+    payeeIban: "AT551900104704666811",
+    payeeBic: "TRBKATW2XXX",
   });
 });
 
