@@ -125,7 +125,23 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
     [common, favicons, onEdit, text, today],
   );
 
-  return <DataTable data={sponsors} columns={columns} getRowKey={(sponsor) => sponsor.id} />;
+  return (
+    <DataTable
+      data={sponsors}
+      columns={columns}
+      getRowKey={(sponsor) => sponsor.id}
+      getRowProps={(sponsor) => ({
+        onClick: (event) => {
+          // A click on a control inside the row belongs to that control. Without
+          // this, the edit button would open the editor twice and a link in the
+          // icon column would open the editor as well as following itself.
+          if ((event.target as HTMLElement).closest("button, a")) return;
+          onEdit(sponsor);
+        },
+        className: "cursor-pointer",
+      })}
+    />
+  );
 }
 
 export const SponsorTable = memo(SponsorTableComponent);
