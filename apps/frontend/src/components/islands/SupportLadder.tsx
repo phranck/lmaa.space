@@ -1006,15 +1006,14 @@ export default function SupportLadder({
           each other. */}
       {sponsorForm ? (
         <div
-          className="lmaa-card mt-6 flex flex-col gap-4"
+          className="lmaa-card lmaa-accent-wash mt-6 flex flex-col gap-4"
           style={{
-            // The line a chosen amount carries, because this card is the choice
-            // on this tab rather than one of several offered.
-            border: "var(--card-border-width) solid",
+            // No edge, and the shadow instead: this card is the one thing this
+            // tab is for, and it is lit the same way the sponsor invitation is.
             padding: "var(--card-padding)",
             borderRadius: "var(--radius-card)",
-            borderColor: "var(--ds-accent)",
-            background: "var(--ds-surface-form)",
+            backgroundColor: "var(--ds-surface-form)",
+            boxShadow: "var(--ds-shadow-md)",
           }}
         >
           <AmountGrid

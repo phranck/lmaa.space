@@ -32,9 +32,42 @@ const THEME_ASSET_PATH_PATTERN = /\/(theme|themes|template|templates|skin|skins|
 
 type CandidateKind = "apple-touch" | "og" | "manifest" | "icon" | "inline-logo" | "inline-other";
 
-const KIND_PRIORITY: CandidateKind[] = [
+/**
+ * What a caller is looking for on the page.
+ *
+ * `site-mark` is a site's own mark, which is what a shop needs. `portrait` is
+ * the picture a page shows of a person, which is what a sponsor's profile
+ * carries. The two want opposite things from the same page, so the question is
+ * asked once here rather than as a handful of flags at each call site.
+ */
+export type PreviewIntent = "site-mark" | "portrait";
+
+/**
+ * The order a site's own mark is looked for in.
+ *
+ * A touch icon comes first because it is the mark a site cuts for exactly this
+ * purpose, whilst its `og:image` is usually a banner.
+ */
+const SITE_MARK_PRIORITY: CandidateKind[] = [
   "apple-touch",
   "og",
+  "manifest",
+  "icon",
+  "inline-logo",
+  "inline-other",
+];
+
+/**
+ * The order a person's picture is looked for in.
+ *
+ * The other way round, because on a profile the `og:image` is the portrait and
+ * the touch icon belongs to the service rather than to the person. Looking for
+ * a mark on a profile returns the platform's logo, which is the one picture
+ * nobody wants there.
+ */
+const PORTRAIT_PRIORITY: CandidateKind[] = [
+  "og",
+  "apple-touch",
   "manifest",
   "icon",
   "inline-logo",
@@ -569,10 +602,21 @@ function extractManifestHref(html: string, base: string): string | null {
  */
 export async function fetchPreviewImage(
   shopUrl: string,
+  options: { intent?: PreviewIntent } = {},
 ): Promise<{ url: string; via: string } | null> {
+  const intent = options.intent ?? "site-mark";
+  const priority = intent === "portrait" ? PORTRAIT_PRIORITY : SITE_MARK_PRIORITY;
   const homepage = extractHomepage(shopUrl);
+  // A shop's own homepage is the right second place to look, because a deep
+  // page and the shop share a mark. A profile's is not: the homepage there
+  // belongs to the service, and its picture would win on size and show the
+  // platform instead of the person.
   const urlsToTry =
-    shopUrl !== `${homepage}/` && shopUrl !== homepage ? [shopUrl, `${homepage}/`] : [shopUrl];
+    intent === "portrait"
+      ? [shopUrl]
+      : shopUrl !== `${homepage}/` && shopUrl !== homepage
+        ? [shopUrl, `${homepage}/`]
+        : [shopUrl];
 
   const htmlEntries = await Promise.all(
     urlsToTry.map(async (url) => ({ url, html: await fetchHtml(url) })),
@@ -632,15 +676,19 @@ export async function fetchPreviewImage(
     for (const icon of icons) pushCandidate(candidates, seen, icon, "manifest", "manifest");
   }
 
-  pushCandidate(candidates, seen, `${homepage}/apple-touch-icon.png`, "apple-touch", "well-known");
-  pushCandidate(
-    candidates,
-    seen,
-    `${homepage}/apple-touch-icon-precomposed.png`,
-    "apple-touch",
-    "well-known",
-  );
-  pushCandidate(candidates, seen, `${homepage}/favicon.png`, "icon", "well-known");
+  // Guessed at the site's root, so they belong to the service rather than to
+  // whoever the page is about, and they are left out when a person is wanted.
+  if (intent !== "portrait") {
+    pushCandidate(candidates, seen, `${homepage}/apple-touch-icon.png`, "apple-touch", "well-known");
+    pushCandidate(
+      candidates,
+      seen,
+      `${homepage}/apple-touch-icon-precomposed.png`,
+      "apple-touch",
+      "well-known",
+    );
+    pushCandidate(candidates, seen, `${homepage}/favicon.png`, "icon", "well-known");
+  }
 
   for (const [baseUrl, html] of htmlMap) {
     collectInlineImages(html, baseUrl, candidates, seen);
@@ -666,7 +714,7 @@ export async function fetchPreviewImage(
     byKind.set(result.kind, bucket);
   }
 
-  for (const kind of KIND_PRIORITY) {
+  for (const kind of priority) {
     const bucket = byKind.get(kind);
     if (!bucket || bucket.length === 0) continue;
     let largest = bucket[0];

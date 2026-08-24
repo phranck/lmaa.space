@@ -91,7 +91,22 @@ describe("resolveSponsorAvatar", () => {
     expect(await resolveSponsorAvatar({ tumblr: "https://example.tumblr.com" })).toBe(
       "https://example.org/logo.png",
     );
-    expect(previewImage).toHaveBeenCalledWith("https://example.tumblr.com");
+    expect(previewImage).toHaveBeenCalledWith("https://example.tumblr.com", {
+      intent: "portrait",
+    });
+  });
+
+  it("asks a profile for a portrait and a website for its mark", async () => {
+    previewImage.mockResolvedValue({ url: "https://example.org/picture.png", via: "og:image" });
+
+    await resolveSponsorAvatar({ xing: "https://xing.com/profile/somebody" });
+    expect(previewImage).toHaveBeenCalledWith("https://xing.com/profile/somebody", {
+      intent: "portrait",
+    });
+
+    previewImage.mockClear();
+    await resolveSponsorAvatar({ website: "https://example.org" });
+    expect(previewImage).toHaveBeenCalledWith("https://example.org", { intent: "site-mark" });
   });
 
   it("takes a portrait over a page, and a page over a website's own mark", async () => {

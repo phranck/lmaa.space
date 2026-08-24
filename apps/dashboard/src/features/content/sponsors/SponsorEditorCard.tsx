@@ -293,7 +293,15 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
         onClose={() => setConfirmDelete(false)}
         onConfirm={() => {
           if (!sponsorId) return;
-          remove.mutate(sponsorId, { onSuccess: onClose });
+          // The question has been answered, so it goes before the editor does.
+          // Closing only the editor leaves the dialogue standing over whatever
+          // is behind it, asking about a sponsor that is already gone.
+          remove.mutate(sponsorId, {
+            onSuccess: () => {
+              setConfirmDelete(false);
+              onClose();
+            },
+          });
         }}
       />
     </>
