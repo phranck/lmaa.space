@@ -92,14 +92,13 @@ import {
   useUpdateSocialPreviewProject,
   useUploadSocialPreviewAsset,
 } from "@/features/system/hooks/useSocialPreviewImages.ts";
-import { isImageAsset } from "@/features/system/media/media-utils.ts";
+import { formatBytes, isImageAsset } from "@/features/system/media/media-utils.ts";
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import {
   createEmptySocialPreviewComposition,
   createImageLayer,
   createShapeLayer,
   createTextLayer,
-  formatBytes,
   renderSocialPreviewBlob,
 } from "@/features/system/social-preview-renderer.ts";
 import { FRONTEND_URL } from "@/lib/env.ts";
@@ -2067,6 +2066,7 @@ function LivePreviewSection({
   renderError: string | null;
   effectiveQuality: number;
 }) {
+  const { locale } = useI18n();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const previewSizeBytes = blob?.size ?? null;
 
@@ -2101,7 +2101,7 @@ function LivePreviewSection({
             </div>
             <p className="shrink-0 text-xs text-[var(--ds-text-muted)]">
               {messages.previewMeta
-                .replace("{size}", formatBytes(previewSizeBytes))
+                .replace("{size}", formatBytes(previewSizeBytes, locale))
                 .replace("{quality}", String(effectiveQuality))}
             </p>
           </div>
@@ -2396,7 +2396,7 @@ function SocialPreviewProjectThumbnail({ composition }: { composition: SocialPre
 }
 
 function SavedPreviewImagesSection() {
-  const { messages } = useI18n();
+  const { locale, messages } = useI18n();
   const t = messages.system.socialPreview;
   const common = messages.common;
   const { data: savedImages = [], isLoading } = useSocialPreviewImages();
@@ -2611,7 +2611,7 @@ function SavedPreviewImagesSection() {
                       {image.name}
                     </p>
                     <p className="text-xs text-[var(--ds-text-muted)]">
-                      {image.width} × {image.height} · {formatBytes(image.sizeBytes)}
+                      {image.width} × {image.height} · {formatBytes(image.sizeBytes, locale)}
                     </p>
                   </div>
                 </div>
@@ -2929,6 +2929,8 @@ function FooterExportControls({
   onFormatChange: (value: SocialPreviewFormat) => void;
   onQualityChange: (value: number) => void;
 }) {
+  const { locale } = useI18n();
+
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -2960,7 +2962,7 @@ function FooterExportControls({
         </label>
         <span className="text-xs text-[var(--ds-text-muted)]">
           {messages.estimatedSizeLabel}:{" "}
-          {estimatedSizeBytes === null ? "…" : formatBytes(estimatedSizeBytes)}
+          {estimatedSizeBytes === null ? "…" : formatBytes(estimatedSizeBytes, locale)}
         </span>
       </div>
     </div>
