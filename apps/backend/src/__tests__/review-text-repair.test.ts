@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { reviewResultSchema } from "@lmaa/contracts";
+import { REVIEW_RESULT_SCHEMA_VERSION, reviewResultSchema } from "@lmaa/contracts";
 
 import { applyRepairedTexts, collectRepairableTexts } from "../services/review/text-repair.js";
 
 const passingCriteria = {
   independentOnlinePresence: "pass",
-  sellsToEurope: "pass",
+  basedInEurope: "pass",
   notALargeCompany: "pass",
   notAMarketplace: "pass",
   notDropshipping: "pass",
@@ -17,7 +17,7 @@ const passingCriteria = {
 
 function acceptResult(description: string) {
   return {
-    schemaVersion: "1",
+    schemaVersion: REVIEW_RESULT_SCHEMA_VERSION,
     verdict: "accept",
     criteria: passingCriteria,
     companySize: {

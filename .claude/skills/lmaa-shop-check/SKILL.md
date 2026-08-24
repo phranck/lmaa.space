@@ -1,7 +1,7 @@
 ---
 name: lmaa-shop-check
 description: Use when a shop URL has to be judged against the lmaa.space admission criteria, whether by hand or by the automated review. Produces the acceptance JSON the dashboard imports, or the rejection texts, together with the evidence each verdict rests on.
-version: "2.0.0"
+version: "2.1.0"
 ---
 
 <objective>
@@ -86,8 +86,8 @@ Numbers ≥ 1000 carry thousand separators (`12,345`). Where the transcript is m
 <workflow>
 1. Load `https://lmaa.space/admissioncriteria` and extract the current criteria in full.
 2. Read the homepage: shop name, product focus, language, sales and ordering hints, own brands against third-party brands, company presentation. A checkout is not required; selling through dealers, phone or mail order counts.
-3. Read the imprint or contact page: legal entity, location, owners, corporate ties, branch structure.
-4. Establish where the shop sells and ships. The criterion is met when it sells to customers in at least one European country through any channel, or ships to DACH, the EU or worldwide. Normalize `shippingRegions` exactly as the dashboard selector does, and use this form everywhere it appears:
+3. Read the imprint or contact page: legal entity, location, owners, corporate ties, branch structure. This settles the seat, and the seat comes before every other criterion. The company itself has to be registered in geographic Europe, which includes countries outside the EU such as Switzerland, Norway and the United Kingdom. A seat outside Europe fails the criterion whatever else is true, so shipping to Europe, German-language pages, prices in euro, a warehouse in Europe, and a European branch, importer or sales subsidiary all change nothing.
+4. Establish where the shop sells and ships. This fills `shippingRegions` and decides nothing about admission, so worldwide shipping neither helps nor harms. Normalize `shippingRegions` exactly as the dashboard selector does, and use this form everywhere it appears:
    - worldwide evidenced: `["WORLD"]` alone
    - otherwise Europe-wide evidenced: `["EU"]` alone
    - otherwise only the evidenced codes among `DE`, `AT`, `CH`
@@ -96,14 +96,14 @@ Numbers ≥ 1000 carry thousand separators (`12,345`). Where the transcript is m
    - `credit_card` only where card acceptance is evidenced but no network can be identified. Where Visa, Mastercard or American Express is evidenced, name the network and omit `credit_card`.
    - Nothing evidenced means an empty array. An ecommerce platform alone evidences nothing.
    - Shops draw these as icons, so the names sit in the markup rather than in the page text. Where a tool for reading payment methods from a page exists, use it on the start page, then on the payment or checkout page, and take the canonical keys it returns.
-6. For an acceptance candidate, establish the headquarters as completely as evidenced: `street`, `postalCode`, `city`, `state`, `countryCode` as ISO-3166-1 alpha-2 (`DE`, `AT`, `CH`), and the source of the address, such as imprint, contact page or registry.
+6. For an acceptance candidate, establish the headquarters as completely as evidenced: `street`, `postalCode`, `city`, `state`, `countryCode` as ISO-3166-1 alpha-2, always a European country such as `DE`, `AT`, `CH`, `NL` or `SE`, and the source of the address, such as imprint, contact page or registry.
 7. For an acceptance candidate, establish `latitude` and `longitude` for that address. This is mandatory. Prefer shop-controlled or authoritative sources; otherwise geocode with the **Photon API** (Komoot, OSM data) and stop at the first reliable hit:
    - `https://photon.komoot.io/api/?q={address}&limit=1`, GeoJSON, coordinates in `[longitude, latitude]` order
    - cascade: `street + postalCode + city + countryCode`, then `postalCode + city + countryCode`, then `postalCode + city`
    - where street level fails, coordinates for `postalCode + city` are still required
    - both `null` only where even `postalCode + city` cannot be evidenced or geocoded
    - name source and granularity, such as `Nominatim (street-level)` or `Nominatim (PLZ+Ort centroid)`
-8. Rate each of the eight criteria as `✓`, `✗` or `~`: independent online presence; sells to customers in Europe through any channel, worldwide being a plus; not a large corporation, rated `✗` above the `<company_size_check>` thresholds and researched rather than assumed; not a marketplace; not pure dropshipping; not a chain or department store; not a pure affiliate portal; no far-right ties.
+8. Rate each of the eight criteria as `✓`, `✗` or `~`: independent online presence; seat in Europe; not a large corporation, rated `✗` above the `<company_size_check>` thresholds and researched rather than assumed; not a marketplace; not pure dropshipping; not a chain or department store; not a pure affiliate portal; no far-right ties.
 9. Use every tool available to get the information. Be creative, invent nothing.
 </workflow>
 
@@ -125,6 +125,7 @@ Numbers ≥ 1000 carry thousand separators (`12,345`). Where the transcript is m
 
 <decision_logic>
 - One exclusion criterion evidenced as `✗`: `❌ Ablehnung empfohlen`.
+- A seat evidenced outside Europe leads to `❌ Ablehnung empfohlen` however well the shop meets everything else. Where an imprint, a contact page or a registry names the seat, that point is evidenced rather than unclear, so it is a rejection and never a case for holding the shop back.
 - A company above the `<company_size_check>` thresholds is itself such a criterion and leads to `❌ Ablehnung empfohlen` even where everything else is met.
 - No exclusion criterion and the required criteria met: `✅ Aufnahme empfohlen`.
 - Unclear points are marked `~` and named explicitly.
@@ -166,7 +167,7 @@ Only on `❌ Ablehnung empfohlen`:
 
 *Marketplace or platform:* quote the self-description from the imprint or About page; document who the shareholders are; check regulatory filings such as Bundeskartellamt for the multi-seller model; note the absence of own inventory or logistics.
 
-*International brand or non-European manufacturer:* identify the legal entity and country of registration through the official contact page or trademark filings; document global distribution such as Amazon storefronts by country, AliExpress and other marketplaces; check a trademark registration (USPTO Justia, EUIPO, DPMA); confirm that no European legal entity or imprint exists.
+*Seat outside Europe:* identify the legal entity and its country of registration through the imprint, the official contact page or a registry; where a European address exists, establish whether it belongs to the company itself or to a branch, importer or sales subsidiary; check a trademark registration (USPTO Justia, EUIPO, DPMA). The five sources come readily from the shop's own imprint, contact, About, terms and shipping pages, and a registry or trademark filing settles the seat on top of those.
 
 **Ownership chains:** where PE or VC ownership or a complex structure is the reason, document the full chain with registry numbers, for example `Capvis AG → Highrise Holding Germany GmbH (HRB 7539) → Hess Natur Holding GmbH (HRB 7536) → Hess Natur-Textilien GmbH & Co. KG (HRA 4904)`.
 

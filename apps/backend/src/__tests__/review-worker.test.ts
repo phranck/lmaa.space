@@ -51,7 +51,7 @@ const validResult = {
   verdict: "onhold",
   criteria: {
     independentOnlinePresence: "pass",
-    sellsToEurope: "unclear",
+    basedInEurope: "unclear",
     notALargeCompany: "pass",
     notAMarketplace: "pass",
     notDropshipping: "pass",
@@ -297,7 +297,9 @@ describe("review worker", () => {
   it("never applies a result that fails the contract", async () => {
     repository.claimNextReviewJob.mockResolvedValue(jobRow());
     const worker = new ReviewWorker(() =>
-      fakeProvider(outcome({ raw: { schemaVersion: "1", verdict: "accept" } })),
+      fakeProvider(
+        outcome({ raw: { schemaVersion: REVIEW_RESULT_SCHEMA_VERSION, verdict: "accept" } }),
+      ),
     );
 
     await worker.tick();

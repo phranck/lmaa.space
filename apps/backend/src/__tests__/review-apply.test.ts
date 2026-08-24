@@ -20,7 +20,7 @@ const { applyReviewResult, insertRejectionToken } = await import("../services/re
 
 const criteria = {
   independentOnlinePresence: "pass",
-  sellsToEurope: "pass",
+  basedInEurope: "pass",
   notALargeCompany: "pass",
   notAMarketplace: "pass",
   notDropshipping: "pass",
@@ -98,7 +98,7 @@ function onholdResult(): ReviewResult {
   return {
     schemaVersion: REVIEW_RESULT_SCHEMA_VERSION,
     verdict: "onhold",
-    criteria: { ...criteria, sellsToEurope: "unclear" },
+    criteria: { ...criteria, basedInEurope: "unclear" },
     companySize,
     evidence,
     uncertainties: [],
