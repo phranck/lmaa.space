@@ -220,6 +220,7 @@ async function fetchHtml(url: string): Promise<string | null> {
 const SOFTWARE_TO_PLATFORM: Readonly<Record<string, string>> = {
   pixelfed: "pixelfed",
   mastodon: "mastodon",
+  friendica: "friendica",
 };
 
 /** How long the two NodeInfo requests may take, each. */
@@ -768,7 +769,13 @@ export async function fetchPreviewImage(
   // Guessed at the site's root, so they belong to the service rather than to
   // whoever the page is about, and they are left out when a person is wanted.
   if (intent !== "portrait") {
-    pushCandidate(candidates, seen, `${homepage}/apple-touch-icon.png`, "apple-touch", "well-known");
+    pushCandidate(
+      candidates,
+      seen,
+      `${homepage}/apple-touch-icon.png`,
+      "apple-touch",
+      "well-known",
+    );
     pushCandidate(
       candidates,
       seen,

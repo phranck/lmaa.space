@@ -5,6 +5,7 @@ export const SOCIAL_PLATFORM_KEYS = [
   "applepodcasts",
   "mastodon",
   "pixelfed",
+  "friendica",
   "bluesky",
   "instagram",
   "facebook",
@@ -257,6 +258,59 @@ function normalizeX(input: string): string | null {
   const handle = stripLeadingAt(trimmed);
   if (!handle || handle.includes("/")) return null;
   return `https://x.com/${handle}`;
+}
+
+/**
+ * A Friendica profile address, brought to the one form the instance calls its own.
+ *
+ * Measured across seventeen instances on 2026-08-24, from version 2021.01 to
+ * 2026.08. Every one of them names `https://host/profile/<nick>` through
+ * WebFinger as the profile page, and on the thirteen that also publish an
+ * ActivityPub actor, the actor sits at that same address.
+ *
+ * Three other entrances answer as well and none of them redirects, so the
+ * rewriting has to happen here. `/~<nick>` and `/profile/<nick>` are what the
+ * instances list as their own aliases; `/u/<nick>` answered on all seventeen
+ * without being advertised anywhere. The Mastodon form `/@<nick>` answered 404
+ * on all seventeen, so it is read as a mistake and rewritten rather than kept.
+ *
+ * A single segment on its own is not a profile here, unlike on Pixelfed, and
+ * `https://host/<nick>` answered 404 everywhere. It is therefore refused, which
+ * leaves such an address as the website it was taken for.
+ */
+function normalizeFriendica(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    const segments = stripTrailingSlash(url.pathname).split("/").filter(Boolean);
+
+    if (segments.length === 2 && (segments[0] === "profile" || segments[0] === "u")) {
+      const handle = stripLeadingAt(segments[1]);
+      return handle ? `https://${host}/profile/${handle}` : null;
+    }
+
+    if (segments.length === 1) {
+      const first = segments[0];
+      // Only the two shapes that name a person. A bare segment is a page on
+      // somebody's site far more often than it is a Friendica profile.
+      if (!first.startsWith("@") && !first.startsWith("~")) return null;
+      const handle = first.slice(1);
+      return handle ? `https://${host}/profile/${handle}` : null;
+    }
+
+    return null;
+  }
+
+  const cleaned = stripLeadingAt(trimmed);
+  const atIndex = cleaned.indexOf("@");
+  if (atIndex < 1) return null;
+  const handle = cleaned.slice(0, atIndex);
+  const instance = cleaned.slice(atIndex + 1);
+  if (!handle || !instance || !instance.includes(".")) return null;
+  return `https://${instance}/profile/${handle}`;
 }
 
 function normalizeBluesky(input: string): string | null {
@@ -778,6 +832,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   bluesky: normalizeBluesky,
   mastodon: normalizeMastodon,
   pixelfed: normalizePixelfed,
+  friendica: normalizeFriendica,
   tumblr: normalizeTumblr,
   linkedin: normalizeLinkedin,
   xing: normalizeXing,

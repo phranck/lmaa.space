@@ -1,4 +1,4 @@
-import { GlobeIcon } from "@phosphor-icons/react";
+import { GlobeIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import type { ComponentType } from "react";
 import { FaFacebook, FaTwitter } from "react-icons/fa6";
 import {
@@ -40,6 +40,9 @@ const PLATFORM_METADATA: Record<SocialPlatformKey, Omit<PlatformDef, "key">> = {
   applepodcasts: { label: "Apple Podcasts", icon: SiApplepodcasts },
   mastodon: { label: "Mastodon", icon: SiMastodon },
   pixelfed: { label: "Pixelfed", icon: SiPixelfed },
+  // No Friendica mark ships with the icon sets, and the ActivityPub one would
+  // claim a protocol that Mastodon and Pixelfed speak as well.
+  friendica: { label: "Friendica", icon: UsersThreeIcon },
   bluesky: { label: "Bluesky", icon: SiBluesky },
   instagram: { label: "Instagram", icon: SiInstagram },
   facebook: { label: "Facebook", icon: FaFacebook },
@@ -72,4 +75,6 @@ export const PLATFORMS: PlatformDef[] = SOCIAL_PLATFORM_KEYS.map((key) => ({
 }));
 
 /** Map from platform key to its `PlatformDef` for O(1) lookups. */
-export const PLATFORM_MAP: ReadonlyMap<string, PlatformDef> = new Map(PLATFORMS.map((p) => [p.key, p]));
+export const PLATFORM_MAP: ReadonlyMap<string, PlatformDef> = new Map(
+  PLATFORMS.map((p) => [p.key, p]),
+);
