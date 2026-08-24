@@ -1,4 +1,9 @@
-import { REGION_CODES, normalizePaymentMethods, type ShopCheckNotes } from "@lmaa/shared";
+import {
+  REGION_CODES,
+  normalizePaymentMethods,
+  type ShopCheckNotes,
+  type SocialPlatformKey,
+} from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE } from "@lmaa/ui/shop-edit-form";
 import type { ShopEditFormValue } from "@lmaa/ui/shop-edit-form";
 
@@ -47,7 +52,7 @@ export function getInitialFormValue(
     region: shopData.region ?? [],
     shipping: shopData.shipping ?? "",
     contactEmail: shopData.contactEmail ?? "",
-    socialMedia: shopData.socialMedia ?? {},
+    socialMedia: shopData.socialMedia ?? [],
     paymentMethods: shopData.paymentMethods ?? [],
     shopCheckNotes: shopData.shopCheckNotes ?? null,
     headquartersStreet: shopData.headquarters?.street ?? "",
@@ -219,13 +224,17 @@ export function applyShopCheckJsonToForm(
 
   const socialMedia = getRecord(payload.socialMedia);
   if (socialMedia !== null) {
-    const socialMediaEntries = Object.entries(socialMedia).flatMap(([platform, value]) => {
-      const normalizedValue = getString(value);
-      return normalizedValue === null ? [] : ([[platform, normalizedValue]] as const);
+    const imported = Object.entries(socialMedia).flatMap(([platform, value]) => {
+      const url = getString(value);
+      return url === null ? [] : [{ platform: platform as SocialPlatformKey, url }];
     });
-    const mappedSocialMedia = Object.fromEntries(socialMediaEntries) as Record<string, string>;
-    if (Object.keys(mappedSocialMedia).length > 0) {
-      nextForm.socialMedia = { ...nextForm.socialMedia, ...mappedSocialMedia };
+    // The import adds addresses rather than replacing them, because a shop may
+    // legitimately hold two of one kind and the editor may already be showing
+    // one the import does not know about.
+    const known = new Set(nextForm.socialMedia.map((link) => `${link.platform} ${link.url}`));
+    const added = imported.filter((link) => !known.has(`${link.platform} ${link.url}`));
+    if (added.length > 0) {
+      nextForm.socialMedia = [...nextForm.socialMedia, ...added];
       changed = true;
     }
   }

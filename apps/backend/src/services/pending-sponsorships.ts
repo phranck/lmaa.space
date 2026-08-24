@@ -107,7 +107,9 @@ type FormRefusal = "amount_too_low" | "link_unusable";
  */
 async function toStoredFields(
   input: PendingSponsorshipInput,
-): Promise<Result<{ fields: Omit<PendingSponsorshipInsert, "id" | "reference" | "createdAt"> }, FormRefusal>> {
+): Promise<
+  Result<{ fields: Omit<PendingSponsorshipInsert, "id" | "reference" | "createdAt"> }, FormRefusal>
+> {
   const { minAmountCents } = await getSponsoringConfig();
   if (input.amountCents < minAmountCents) return failure("amount_too_low");
 
@@ -122,7 +124,7 @@ async function toStoredFields(
     fields: {
       firstName: input.firstName,
       lastName: input.lastName,
-      socialMedia: sorted ? { [sorted.platform]: sorted.url } : {},
+      socialMedia: sorted ? [sorted] : [],
       claim: input.claim,
       amountCents: input.amountCents,
       published: input.published,

@@ -554,6 +554,13 @@
       "when": 1787493422335,
       "tag": "0078_add_pending_sponsorship_amount",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1787601236429,
+      "tag": "0079_social_media_as_list",
+      "breakpoints": true
     }
   ]
 }

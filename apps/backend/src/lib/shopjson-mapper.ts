@@ -1,4 +1,10 @@
-import { normalizePaymentMethods, type PaymentMethodKey, type ShopCheckNotes } from "@lmaa/shared";
+import {
+  normalizePaymentMethods,
+  type PaymentMethodKey,
+  type ShopCheckNotes,
+  type SocialMediaLinks,
+  type SocialPlatformKey,
+} from "@lmaa/shared";
 
 import type { SubmissionEditData } from "../repositories/admin-submissions.js";
 import type { HeadquartersInput } from "../repositories/headquarters.js";
@@ -36,7 +42,7 @@ export interface MappedShopData {
   contactEmail?: string;
   headquarters?: HeadquartersInput;
   shopCheckNotes?: ShopCheckNotes | null;
-  socialMedia: Record<string, string>;
+  socialMedia: SocialMediaLinks;
   paymentMethods?: PaymentMethodKey[];
 }
 
@@ -97,12 +103,25 @@ export function mapShopJsonToShopData(
     }
   }
 
-  const socialMediaRaw = getRecord(shopJson.socialMedia);
-  const socialMedia: Record<string, string> = {};
-  if (socialMediaRaw) {
-    for (const [platform, value] of Object.entries(socialMediaRaw)) {
-      const normalized = getString(value);
-      if (normalized) socialMedia[platform] = normalized;
+  // Two shapes arrive here. A review answer and anything written since carry
+  // the list, whilst a shop JSON file handed over by somebody else still holds
+  // the map keyed by platform.
+  const socialMedia: SocialMediaLinks = [];
+  if (Array.isArray(shopJson.socialMedia)) {
+    for (const entry of shopJson.socialMedia) {
+      const fields = getRecord(entry);
+      if (!fields) continue;
+      const platform = getString(fields.platform);
+      const url = getString(fields.url);
+      if (platform && url) socialMedia.push({ platform: platform as SocialPlatformKey, url });
+    }
+  } else {
+    const byPlatform = getRecord(shopJson.socialMedia);
+    if (byPlatform) {
+      for (const [platform, value] of Object.entries(byPlatform)) {
+        const url = getString(value);
+        if (url) socialMedia.push({ platform: platform as SocialPlatformKey, url });
+      }
     }
   }
 

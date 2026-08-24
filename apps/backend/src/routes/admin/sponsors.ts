@@ -53,7 +53,7 @@ sponsorRoutes.post(
   validate("json", z.object({ socialMedia: socialMediaSchema })),
   async (c) => {
     const { socialMedia } = c.req.valid("json");
-    return ok(c, { imageUrl: await resolveSponsorAvatar(socialMedia ?? {}) });
+    return ok(c, { imageUrl: await resolveSponsorAvatar(socialMedia ?? []) });
   },
 );
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifyProfileLink,
   detectPlatformFromUrl,
+  findSocialMediaUrl,
   normalizeSocialMediaValue,
   socialMediaSchema,
   SOCIAL_PLATFORM_KEYS,
@@ -39,9 +40,9 @@ describe("Discord social media support", () => {
   });
 
   it("normalizes Discord links through the social media schema", () => {
-    expect(socialMediaSchema.parse({ discord: "discord.com/invite/lmaa" })).toEqual({
-      discord: "https://discord.gg/lmaa",
-    });
+    expect(socialMediaSchema.parse({ discord: "discord.com/invite/lmaa" })).toEqual([
+      { platform: "discord", url: "https://discord.gg/lmaa" },
+    ]);
   });
 });
 
@@ -76,9 +77,9 @@ describe("Tumblr social media support", () => {
   );
 
   it("normalizes Tumblr links through the social media schema", () => {
-    expect(socialMediaSchema.parse({ tumblr: "https://moertel.tumblr.com" })).toEqual({
-      tumblr: "https://moertel.tumblr.com",
-    });
+    expect(socialMediaSchema.parse({ tumblr: "https://moertel.tumblr.com" })).toEqual([
+      { platform: "tumblr", url: "https://moertel.tumblr.com" },
+    ]);
   });
 });
 
@@ -114,9 +115,9 @@ describe("LinkedIn social media support", () => {
   });
 
   it("normalizes LinkedIn vanity URLs through the social media schema", () => {
-    expect(socialMediaSchema.parse({ linkedin: "https://linkedin.com/stefaniegrunwald" })).toEqual({
-      linkedin: "https://linkedin.com/in/stefaniegrunwald",
-    });
+    expect(socialMediaSchema.parse({ linkedin: "https://linkedin.com/stefaniegrunwald" })).toEqual([
+      { platform: "linkedin", url: "https://linkedin.com/in/stefaniegrunwald" },
+    ]);
   });
 });
 
@@ -276,5 +277,82 @@ describe("classifyProfileLink", () => {
 
   it("refuses a single word, which names no host", () => {
     expect(classifyProfileLink("kim")).toBeNull();
+  });
+});
+
+describe("several addresses for one platform", () => {
+  it("keeps two websites rather than letting the second replace the first", () => {
+    expect(
+      socialMediaSchema.parse([
+        { platform: "website", url: "https://kim.example/" },
+        { platform: "website", url: "https://blog.kim.example/" },
+      ]),
+    ).toEqual([
+      { platform: "website", url: "https://kim.example/" },
+      { platform: "website", url: "https://blog.kim.example/" },
+    ]);
+  });
+
+  it("keeps the order the addresses were given in", () => {
+    expect(
+      socialMediaSchema.parse([
+        { platform: "website", url: "https://kim.example/" },
+        { platform: "mastodon", url: "https://chaos.social/@kim" },
+      ]),
+    ).toEqual([
+      { platform: "website", url: "https://kim.example/" },
+      { platform: "mastodon", url: "https://chaos.social/@kim" },
+    ]);
+  });
+
+  it("keeps one copy of an address that was given twice", () => {
+    expect(
+      socialMediaSchema.parse([
+        { platform: "website", url: "https://kim.example/" },
+        { platform: "website", url: "https://kim.example/" },
+      ]),
+    ).toEqual([{ platform: "website", url: "https://kim.example/" }]);
+  });
+
+  it("still reads the map that rows written before the list still hold", () => {
+    expect(
+      socialMediaSchema.parse({ mastodon: "https://chaos.social/@kim", website: "kim.example" }),
+    ).toEqual([
+      { platform: "mastodon", url: "https://chaos.social/@kim" },
+      { platform: "website", url: "https://kim.example/" },
+    ]);
+  });
+
+  it("gives nothing when every address was empty", () => {
+    expect(socialMediaSchema.parse([{ platform: "website", url: "" }])).toBeUndefined();
+  });
+
+  it("names the entry that was refused, by its position in the list", () => {
+    const result = socialMediaSchema.safeParse([
+      { platform: "website", url: "https://kim.example/" },
+      { platform: "nowhere", url: "https://kim.example/" },
+    ]);
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.issues[0]?.path).toEqual([1]);
+  });
+});
+
+describe("findSocialMediaUrl", () => {
+  const links = [
+    { platform: "website", url: "https://kim.example/" },
+    { platform: "mastodon", url: "https://chaos.social/@kim" },
+    { platform: "website", url: "https://blog.kim.example/" },
+  ] as const;
+
+  it("answers with the first address given for that platform", () => {
+    expect(findSocialMediaUrl([...links], "website")).toBe("https://kim.example/");
+  });
+
+  it("gives nothing for a platform nobody entered", () => {
+    expect(findSocialMediaUrl([...links], "bluesky")).toBeUndefined();
+  });
+
+  it("gives nothing when there are no addresses at all", () => {
+    expect(findSocialMediaUrl(undefined, "website")).toBeUndefined();
   });
 });

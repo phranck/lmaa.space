@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { socialMediaSchema } from "@lmaa/shared";
+import { socialMediaLinksSchema, socialMediaSchema } from "@lmaa/shared";
 
 /**
  * The people who carry the running costs for a year.
@@ -57,8 +57,8 @@ export const sponsorInputSchema = z.object({
 /** A sponsor as stored and read back. */
 export const sponsorSchema = sponsorInputSchema.extend({
   id: z.string().min(1).max(64),
-  /** Always a map when read back, because the column holds `{}` when empty. */
-  socialMedia: z.record(z.string(), z.string()),
+  /** Always a list when read back, empty where nothing was entered. */
+  socialMedia: socialMediaLinksSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -68,7 +68,7 @@ export const publicSponsorSchema = z.object({
   id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
-  socialMedia: z.record(z.string(), z.string()),
+  socialMedia: socialMediaLinksSchema,
   imageUrl: z.string(),
   claim: z.string(),
   paidAt: z.string(),

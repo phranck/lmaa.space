@@ -1,4 +1,4 @@
-import type { PaymentMethodKey, ShopCheckNotes } from "@lmaa/shared";
+import type { PaymentMethodKey, ShopCheckNotes, SocialMediaLinks } from "@lmaa/shared";
 
 export interface ShopEditFormValue {
   name: string;
@@ -8,7 +8,7 @@ export interface ShopEditFormValue {
   region: string[];
   shipping: string;
   contactEmail: string;
-  socialMedia: Record<string, string>;
+  socialMedia: SocialMediaLinks;
   paymentMethods: PaymentMethodKey[];
   shopCheckNotes: ShopCheckNotes | null;
   headquartersStreet: string;
@@ -29,7 +29,7 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   region: [],
   shipping: "",
   contactEmail: "",
-  socialMedia: {},
+  socialMedia: [],
   paymentMethods: [],
   shopCheckNotes: null,
   headquartersStreet: "",

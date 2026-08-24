@@ -7,18 +7,20 @@ import {
 import { useEffect, useReducer, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { detectPlatformFromUrl, normalizeSocialMediaValue } from "@lmaa/shared";
+import {
+  detectPlatformFromUrl,
+  normalizeSocialMediaValue,
+  type SocialMediaLinks,
+  type SocialPlatformKey,
+} from "@lmaa/shared";
 
 import { PLATFORMS, PLATFORM_MAP } from "./social-media-platforms";
 
 interface Entry {
   id: string;
-  platform: string;
+  /** Empty until a platform is chosen or recognised from the address. */
+  platform: SocialPlatformKey | "";
   url: string;
-}
-
-function canonicalizePlatform(platform: string): string {
-  return platform === "twitter" ? "x" : platform;
 }
 
 /**
@@ -37,8 +39,8 @@ export interface SocialMediaEditorMessages {
  * Props for the social media key-value editor component.
  */
 export interface SocialMediaEditorProps {
-  value: Record<string, string>;
-  onChange: (value: Record<string, string>) => void;
+  value: SocialMediaLinks;
+  onChange: (value: SocialMediaLinks) => void;
   messages: SocialMediaEditorMessages;
   blurOnPaste?: boolean;
 }
@@ -55,24 +57,18 @@ function genId(): string {
   return `sme-${++nextEntryId}`;
 }
 
-function recordToEntries(record: Record<string, string>): Entry[] {
-  const entries = Object.entries(record).map(([platform, url]) => ({
-    id: genId(),
-    platform: canonicalizePlatform(platform),
-    url,
-  }));
+function linksToEntries(links: SocialMediaLinks): Entry[] {
+  const entries: Entry[] = links.map((link) => ({ id: genId(), ...link }));
   if (entries.length === 0) entries.push({ id: genId(), platform: "", url: "" });
   return entries;
 }
 
-function entriesToRecord(entries: Entry[]): Record<string, string> {
-  const record: Record<string, string> = {};
+function entriesToLinks(entries: Entry[]): SocialMediaLinks {
+  const links: SocialMediaLinks = [];
   for (const entry of entries) {
-    if (entry.platform && entry.url) {
-      record[canonicalizePlatform(entry.platform)] = entry.url;
-    }
+    if (entry.platform && entry.url) links.push({ platform: entry.platform, url: entry.url });
   }
-  return record;
+  return links;
 }
 
 function getOpenUrl(entry: Entry): string | null {
@@ -88,10 +84,15 @@ function getOpenUrl(entry: Entry): string | null {
 }
 
 /**
- * Dynamic key-value editor for social media links.
+ * Editor for the list of addresses where somebody can be found.
  *
- * Each row shows an auto-detected platform icon, a URL input,
- * and a button to remove the entry. Click the icon to manually override the platform.
+ * Each row shows the platform recognised from the address, the address itself,
+ * and a button to remove the row. Clicking the icon opens the list of platforms
+ * so the recognised one can be overruled.
+ *
+ * A platform may appear on more than one row, because somebody may have two
+ * websites or two accounts on the same network. The rows keep the order they
+ * were entered in, and that order is what the site shows.
  */
 export function SocialMediaEditor({
   value,
@@ -106,7 +107,7 @@ export function SocialMediaEditor({
     ) => next,
     value,
     (initialValue) => ({
-      entries: recordToEntries(initialValue),
+      entries: linksToEntries(initialValue),
       lastEmitted: JSON.stringify(initialValue),
     }),
   );
@@ -122,7 +123,7 @@ export function SocialMediaEditor({
   useEffect(() => {
     const serialized = JSON.stringify(value);
     if (serialized !== entryState.lastEmitted) {
-      replaceEntryState({ entries: recordToEntries(value), lastEmitted: serialized });
+      replaceEntryState({ entries: linksToEntries(value), lastEmitted: serialized });
     }
   }, [value, entryState.lastEmitted]);
 
@@ -155,13 +156,13 @@ export function SocialMediaEditor({
   }
 
   function emit(next: Entry[]) {
-    const record = entriesToRecord(next);
-    replaceEntryState({ entries: next, lastEmitted: JSON.stringify(record) });
-    onChange(record);
+    const links = entriesToLinks(next);
+    replaceEntryState({ entries: next, lastEmitted: JSON.stringify(links) });
+    onChange(links);
   }
 
   function addEntry() {
-    const nextEntry = { id: genId(), platform: "", url: "" };
+    const nextEntry: Entry = { id: genId(), platform: "", url: "" };
     emit([...entries, nextEntry]);
     requestAnimationFrame(() => inputRefs.current?.get(nextEntry.id)?.focus());
   }
@@ -174,7 +175,7 @@ export function SocialMediaEditor({
     emit(entries.filter((e) => e.id !== id));
   }
 
-  function selectPlatform(id: string, platform: string) {
+  function selectPlatform(id: string, platform: SocialPlatformKey) {
     emit(entries.map((e) => (e.id === id ? { ...e, platform } : e)));
     setOpenDropdownId(null);
     setDropdownRect(null);
@@ -214,10 +215,6 @@ export function SocialMediaEditor({
     });
   }
 
-  const usedPlatforms = new Set<string>();
-  for (const entry of entries) {
-    if (entry.platform) usedPlatforms.add(entry.platform);
-  }
   const openEntryPlatform = entries.find((entry) => entry.id === openDropdownId)?.platform;
 
   const btnClass =
@@ -239,8 +236,7 @@ export function SocialMediaEditor({
             className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
           >
             <div className="max-h-60 overflow-y-auto py-1">
-              {PLATFORMS.flatMap((p) => {
-                if (p.key !== openEntryPlatform && usedPlatforms.has(p.key)) return [];
+              {PLATFORMS.map((p) => {
                 const isSelected = openEntryPlatform === p.key;
                 return (
                   <button

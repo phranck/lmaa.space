@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-
 import {
   REJECT_TOKEN_PLACEHOLDER,
   REVIEW_RESULT_SCHEMA_VERSION,
@@ -270,7 +269,9 @@ describe("acceptance payload and the shop mapper", () => {
     expect(mapped.headquarters?.city).toBe("Bremen");
     expect(mapped.headquarters?.latitude).toBeCloseTo(53.07);
     expect(mapped.shopCheckNotes?.focus).toEqual(["Handwerkzeug"]);
-    expect(mapped.socialMedia.mastodon).toContain("social.example");
+    expect(mapped.socialMedia.find((link) => link.platform === "mastodon")?.url).toContain(
+      "social.example",
+    );
   });
 });
 

@@ -1,6 +1,7 @@
 import type { ShopCheckNotes, ShopHeadquarters } from "./shop.js";
 import type { RegionCode, SubmissionReviewStatus, SubmissionStatus } from "../constants/domain.js";
 import type { PaymentMethodKey } from "../constants/payment-methods.js";
+import type { SocialMediaLinks } from "../utils/social-media.js";
 
 /**
  * Re-exported submission status unions from domain constants.
@@ -22,7 +23,7 @@ export interface Submission {
   description: string;
   ogImage: string | null;
   logoBackgroundColor: string | null;
-  socialMedia: Record<string, string>;
+  socialMedia: SocialMediaLinks;
   paymentMethods: PaymentMethodKey[];
   shopCheckNotes?: ShopCheckNotes | null;
   contactEmail: string | null;

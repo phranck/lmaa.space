@@ -2,7 +2,7 @@ import { HandHeartIcon } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
 
 import { SPONSORING_DEFAULTS, type Sponsor, type SponsorInput } from "@lmaa/contracts";
-import { fullName } from "@lmaa/shared";
+import { fullName, type SocialMediaLinks } from "@lmaa/shared";
 import { SocialMediaEditor } from "@lmaa/ui";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
@@ -33,11 +33,7 @@ import {
   useSponsoringConfig,
   useSponsors,
 } from "./hooks/useSponsors.ts";
-import {
-  canFetchPicture,
-  lookupKey,
-  shouldFetchPicture,
-} from "./sponsor-picture-lookup.ts";
+import { canFetchPicture, lookupKey, shouldFetchPicture } from "./sponsor-picture-lookup.ts";
 import { SponsorPictureEditor } from "./SponsorPictureEditor.tsx";
 
 /**
@@ -50,7 +46,7 @@ function emptySponsor(minAmountCents: number): SponsorInput {
   return {
     firstName: "",
     lastName: "",
-    socialMedia: {},
+    socialMedia: [],
     imageUrl: "",
     claim: "",
     published: true,
@@ -114,7 +110,7 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
   );
   const fields = draft ?? base;
   const isPending = create.isPending || save.isPending || remove.isPending;
-  const socialMedia = fields?.socialMedia ?? {};
+  const socialMedia = fields?.socialMedia ?? [];
   const displayName = fullName(fields?.firstName ?? "", fields?.lastName ?? "");
 
   function update(patch: Partial<SponsorInput>) {
@@ -124,7 +120,7 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
     });
   }
 
-  function fetchPicture(next: Record<string, string>) {
+  function fetchPicture(next: SocialMediaLinks) {
     lastLookup.current = lookupKey(next);
     setPictureMissing(false);
     resolveAvatar.mutate(next, {
@@ -135,7 +131,7 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
     });
   }
 
-  function handleSocialMediaChange(next: Record<string, string>) {
+  function handleSocialMediaChange(next: SocialMediaLinks) {
     update({ socialMedia: next });
     if (shouldFetchPicture(next, lastLookup.current)) fetchPicture(next);
   }

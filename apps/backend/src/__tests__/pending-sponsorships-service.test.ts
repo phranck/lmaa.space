@@ -106,21 +106,23 @@ describe("createPendingSponsorship", () => {
     await createPendingSponsorship(form({ link: "https://github.com/kim" }));
 
     const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
-    expect(stored.socialMedia).toEqual({ github: "https://github.com/kim" });
+    expect(stored.socialMedia).toEqual([{ platform: "github", url: "https://github.com/kim" }]);
   });
 
   it("files an address on no known service as a website", async () => {
     await createPendingSponsorship(form({ link: "https://kim-lorenz.example" }));
 
     const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
-    expect(stored.socialMedia).toEqual({ website: "https://kim-lorenz.example/" });
+    expect(stored.socialMedia).toEqual([
+      { platform: "website", url: "https://kim-lorenz.example/" },
+    ]);
   });
 
   it("stores no address when none was given", async () => {
     await createPendingSponsorship(form({ link: "" }));
 
     const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
-    expect(stored.socialMedia).toEqual({});
+    expect(stored.socialMedia).toEqual([]);
   });
 
   it("says so rather than dropping an address it cannot place", async () => {
@@ -134,11 +136,15 @@ describe("createPendingSponsorship", () => {
     await createPendingSponsorship(form({ link: "@kim@chaos.social" }));
 
     const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
-    expect(stored.socialMedia).toEqual({ mastodon: "https://chaos.social/@kim" });
+    expect(stored.socialMedia).toEqual([
+      { platform: "mastodon", url: "https://chaos.social/@kim" },
+    ]);
   });
 
   it("keeps what the form said, including the answer about being named", async () => {
-    await createPendingSponsorship(form({ claim: "Weil es sonst niemand macht.", published: false }));
+    await createPendingSponsorship(
+      form({ claim: "Weil es sonst niemand macht.", published: false }),
+    );
 
     const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
     expect(stored).toMatchObject({
@@ -268,7 +274,7 @@ describe("updatePendingSponsorship", () => {
     await updatePendingSponsorship("RF18SPON26001", form({ link: "@kim@chaos.social" }));
 
     const [, data] = repoMocks.updatePendingSponsorshipByReference.mock.calls[0];
-    expect(data.socialMedia).toEqual({ mastodon: "https://chaos.social/@kim" });
+    expect(data.socialMedia).toEqual([{ platform: "mastodon", url: "https://chaos.social/@kim" }]);
   });
 });
 
@@ -279,7 +285,7 @@ describe("takeOverPendingSponsorship", () => {
     reference: "RF18SPON26001",
     firstName: "Kim",
     lastName: "Lorenz",
-    socialMedia: { github: "https://github.com/kim" },
+    socialMedia: [{ platform: "github", url: "https://github.com/kim" }],
     claim: "Weil es sonst niemand macht.",
     published: false,
     createdAt: new Date("2026-08-01T10:00:00Z"),
@@ -292,9 +298,10 @@ describe("takeOverPendingSponsorship", () => {
     repoMocks.getPendingSponsorship.mockResolvedValue(entry);
     repoMocks.deletePendingSponsorship.mockResolvedValue(true);
     avatarMocks.resolveSponsorAvatar.mockResolvedValue("https://example.test/kim.png");
-    sponsorRepoMocks.insertSponsor.mockImplementation(
-      async (data: Record<string, unknown>) => ({ id: "sponsor-1", ...data }),
-    );
+    sponsorRepoMocks.insertSponsor.mockImplementation(async (data: Record<string, unknown>) => ({
+      id: "sponsor-1",
+      ...data,
+    }));
   });
 
   it("takes the person from the entry and the payment from the caller", async () => {
@@ -304,7 +311,7 @@ describe("takeOverPendingSponsorship", () => {
     expect(sponsorRepoMocks.insertSponsor).toHaveBeenCalledWith({
       firstName: "Kim",
       lastName: "Lorenz",
-      socialMedia: { github: "https://github.com/kim" },
+      socialMedia: [{ platform: "github", url: "https://github.com/kim" }],
       imageUrl: "https://example.test/kim.png",
       claim: "Weil es sonst niemand macht.",
       published: false,
@@ -316,9 +323,9 @@ describe("takeOverPendingSponsorship", () => {
   it("looks for the picture only now, when somebody has read the entry", async () => {
     await takeOverPendingSponsorship("entry-1", payment);
 
-    expect(avatarMocks.resolveSponsorAvatar).toHaveBeenCalledWith({
-      github: "https://github.com/kim",
-    });
+    expect(avatarMocks.resolveSponsorAvatar).toHaveBeenCalledWith([
+      { platform: "github", url: "https://github.com/kim" },
+    ]);
   });
 
   it("stores no picture when none was found", async () => {

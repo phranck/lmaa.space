@@ -1,3 +1,5 @@
+import type { SocialMediaLinks } from "@lmaa/shared";
+
 /**
  * The addresses a picture could be resolved from, as one comparable string.
  *
@@ -6,25 +8,25 @@
  * page for the picture it shows. Naming a few platforms here would be a second
  * list that has to be kept in step with that, and the last one drifted.
  *
- * @param socialMedia - Platform keys against profile addresses.
- * @returns The addresses, joined and in a stable order.
+ * The order the addresses were entered in is part of the key, because it
+ * decides which one is read first and a lookup made under a different order can
+ * answer differently.
+ *
+ * @param socialMedia - The addresses as currently entered.
+ * @returns The addresses, joined into one string.
  */
-export function lookupKey(socialMedia: Record<string, string>): string {
-  return Object.entries(socialMedia)
-    .filter(([, address]) => Boolean(address))
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([platform, address]) => `${platform}=${address}`)
-    .join("|");
+export function lookupKey(socialMedia: SocialMediaLinks): string {
+  return socialMedia.flatMap(({ platform, url }) => (url ? [`${platform}=${url}`] : [])).join("|");
 }
 
 /**
  * Whether any address is present that a picture could be fetched from.
  *
- * @param socialMedia - Platform keys against profile addresses.
+ * @param socialMedia - The addresses as currently entered.
  * @returns `true` when at least one address is there.
  */
-export function canFetchPicture(socialMedia: Record<string, string>): boolean {
-  return Object.values(socialMedia).some(Boolean);
+export function canFetchPicture(socialMedia: SocialMediaLinks): boolean {
+  return socialMedia.some(({ url }) => Boolean(url));
 }
 
 /**
@@ -36,14 +38,11 @@ export function canFetchPicture(socialMedia: Record<string, string>): boolean {
  * That is the moment worth asking about, and asking twice about the same
  * address answers nothing new.
  *
- * @param socialMedia - Platform keys against profile addresses, as just edited.
+ * @param socialMedia - The addresses, as just edited.
  * @param lastKey - The key of the addresses the last lookup asked about.
  * @returns `true` when a lookup should run now.
  */
-export function shouldFetchPicture(
-  socialMedia: Record<string, string>,
-  lastKey: string,
-): boolean {
+export function shouldFetchPicture(socialMedia: SocialMediaLinks, lastKey: string): boolean {
   if (lookupKey(socialMedia) === lastKey) return false;
-  return Object.values(socialMedia).some((address) => address?.startsWith("https://"));
+  return socialMedia.some(({ url }) => url?.startsWith("https://"));
 }

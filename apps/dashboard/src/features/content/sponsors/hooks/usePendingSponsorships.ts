@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { PendingSponsorshipTakeover, Sponsor } from "@lmaa/contracts";
+import type { SocialMediaLinks } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
@@ -16,7 +17,7 @@ export interface PendingSponsorshipRow {
   reference: string;
   firstName: string;
   lastName: string;
-  socialMedia: Record<string, string>;
+  socialMedia: SocialMediaLinks;
   claim: string;
   /** What they said they would give, in cents, from the ladder above the form. */
   amountCents: number;

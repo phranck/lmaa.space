@@ -1,20 +1,30 @@
-import { PLATFORMS } from "./social-media-platforms";
+import type { SocialMediaLinks } from "@lmaa/shared";
+
+import { PLATFORM_MAP } from "./social-media-platforms";
 
 export interface SocialMediaIconsProps {
-  socialMedia: Record<string, string>;
+  socialMedia: SocialMediaLinks;
   className?: string;
   linkable?: boolean;
 }
 
+/**
+ * The row of icons for everywhere somebody can be found.
+ *
+ * The addresses appear in the order they were entered, because that order is
+ * part of the data and somebody put their main address first on purpose. An
+ * address whose platform is not one we know is left out rather than shown
+ * without an icon.
+ */
 export function SocialMediaIcons({
   socialMedia,
   className,
   linkable = true,
 }: SocialMediaIconsProps) {
-  const entries = PLATFORMS.flatMap((platform) => {
-    const url = socialMedia[platform.key];
-    return url ? [{ ...platform, url }] : [];
-  }).sort((a, b) => a.label.localeCompare(b.label));
+  const entries = socialMedia.flatMap((link) => {
+    const platform = PLATFORM_MAP.get(link.platform);
+    return platform ? [{ ...platform, url: link.url }] : [];
+  });
 
   if (entries.length === 0) return null;
 
@@ -23,7 +33,7 @@ export function SocialMediaIcons({
       {entries.map(({ key, label, icon: Icon, url }) =>
         linkable ? (
           <a
-            key={key}
+            key={`${key}-${url}`}
             href={url}
             target="_blank"
             rel="noopener noreferrer"
@@ -34,7 +44,7 @@ export function SocialMediaIcons({
             <Icon size={20} />
           </a>
         ) : (
-          <span key={key} className="text-stone-400" aria-label={label} title={label}>
+          <span key={`${key}-${url}`} className="text-stone-400" aria-label={label} title={label}>
             <Icon size={14} />
           </span>
         ),
