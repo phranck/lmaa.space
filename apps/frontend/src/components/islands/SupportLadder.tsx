@@ -33,6 +33,10 @@ import {
   rememberIssuedSponsorship,
   subscribeIssuedSponsorship,
 } from "@/lib/pending-sponsorship-store";
+import {
+  CHOOSE_SUPPORT_INTERVAL_EVENT,
+  type ChooseSupportIntervalDetail,
+} from "@/lib/support-ladder-events";
 
 /**
  * Props for {@link SupportLadder}.
@@ -354,12 +358,11 @@ function OutboundRoute({ route }: { route: SupportLadderRoute }) {
     <div
       className="lmaa-card lmaa-payment-card mt-3"
       style={{
-        border: "var(--card-border-width) solid",
         padding: "var(--card-padding)",
         borderRadius: "var(--radius-card)",
-        background: "var(--ds-surface)",
-        borderColor: "var(--ds-border-subtle)",
-      }}
+        backgroundColor: "var(--ds-surface)",
+        "--payment-brand": route.icon ? `var(--brand-${route.icon}, transparent)` : "transparent",
+      } as React.CSSProperties}
     >
       <div className="lmaa-card-head flex items-start justify-between gap-4">
         <h3
@@ -882,6 +885,24 @@ export default function SupportLadder({
     }, BODY_FADE_MS);
   }
 
+  /**
+   * Lets something outside the island open one of these tabs.
+   *
+   * The sponsor wall's invitation stands above this and cannot reach the state
+   * in here. Sending somebody to a closed tab would ask them to find the step
+   * again after they had already taken it, so the same click opens it.
+   */
+  useEffect(() => {
+    function open(event: Event) {
+      const key = (event as CustomEvent<ChooseSupportIntervalDetail>).detail?.key;
+      if (!key || !intervals.some((entry) => entry.key === key)) return;
+      chooseInterval(key);
+    }
+
+    window.addEventListener(CHOOSE_SUPPORT_INTERVAL_EVENT, open);
+    return () => window.removeEventListener(CHOOSE_SUPPORT_INTERVAL_EVENT, open);
+  });
+
   function chooseCustom(value: string) {
     // What the field holds is the cleaned value, so grouping separators, stray
     // characters, and a third decimal never survive a keystroke.
@@ -1088,14 +1109,13 @@ export default function SupportLadder({
         <div
           className="lmaa-card lmaa-payment-card mt-6"
           style={{
-            border: "var(--card-border-width) solid",
             padding: "var(--card-padding)",
             borderRadius: "var(--radius-card)",
-            background: "var(--ds-surface)",
-            borderColor: variant.recommended
-              ? "color-mix(in srgb, var(--ds-accent) 45%, transparent)"
-              : "var(--ds-border-subtle)",
-          }}
+            backgroundColor: "var(--ds-surface)",
+            "--payment-brand": variant.icon
+              ? `var(--brand-${variant.icon}, transparent)`
+              : "transparent",
+          } as React.CSSProperties}
         >
           <div className="lmaa-card-head flex items-start justify-between gap-4">
             <h3

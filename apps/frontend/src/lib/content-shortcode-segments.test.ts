@@ -38,10 +38,10 @@ describe("parseContentShortcodeSegments", () => {
     ]);
   });
 
-  it("carries both sentences about the year's costs from the sponsors block", () => {
+  it("carries every sentence the sponsors block may write itself", () => {
     expect(
       parseContentShortcodeSegments(
-        '[[sponsors title="Sponsoren" covered="Alles gedeckt." missing="Es fehlen noch {missing}."]]',
+        '[[sponsors title="Sponsoren" covered="Alles gedeckt." missing="Es fehlen noch {missing}." empty="Noch niemand." emptyAction="Erster werden"]]',
       ),
     ).toEqual([
       {
@@ -50,6 +50,8 @@ describe("parseContentShortcodeSegments", () => {
         text: "",
         covered: "Alles gedeckt.",
         missing: "Es fehlen noch {missing}.",
+        empty: "Noch niemand.",
+        emptyAction: "Erster werden",
       },
     ]);
   });
@@ -149,9 +151,17 @@ describe("parseContentShortcodeSegments", () => {
     expect(segment).toMatchObject({ type: "markdown" });
   });
 
-  it("leaves both sentences empty when the block names neither", () => {
+  it("leaves every sentence empty when the block names none of them", () => {
     expect(parseContentShortcodeSegments("[[sponsors]]")).toEqual([
-      { type: "sponsors", title: "", text: "", covered: "", missing: "" },
+      {
+        type: "sponsors",
+        title: "",
+        text: "",
+        covered: "",
+        missing: "",
+        empty: "",
+        emptyAction: "",
+      },
     ]);
   });
 });

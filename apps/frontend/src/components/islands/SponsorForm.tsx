@@ -1,5 +1,5 @@
 import { SealWarningIcon } from "@phosphor-icons/react";
-import { useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import { MAX_PENDING_CLAIM, type PendingSponsorshipReceipt } from "@lmaa/contracts";
 import { classifyProfileLink, type SponsorFormLabelKey } from "@lmaa/shared";
@@ -147,6 +147,22 @@ export default function SponsorForm({
   onIssued,
 }: SponsorFormProps) {
   const [form, dispatch] = useReducer(reduce, correcting?.announced, openingForm);
+
+  /**
+   * The first field takes the caret as soon as the form appears.
+   *
+   * The form only exists once somebody has chosen the sponsor tab, so it is
+   * already the thing they asked for and the caret has nowhere better to be.
+   *
+   * Scrolling is left alone, because the click that opened the tab may still be
+   * scrolling the page towards it, and a focus that scrolls as well would fight
+   * it and land somewhere neither of them meant.
+   */
+  const firstFieldRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    firstFieldRef.current?.focus({ preventScroll: true });
+  }, []);
+
   const remaining = MAX_PENDING_CLAIM - form.claim.length;
   // Everything is asked for, so nothing is sent until everything is there and
   // the amount reaches what a sponsorship costs. The button says as much by
@@ -238,6 +254,7 @@ export default function SponsorForm({
             <Required />
           </span>
           <input
+            ref={firstFieldRef}
             className={inputClass}
             value={form.firstName}
             maxLength={MAX_NAME}

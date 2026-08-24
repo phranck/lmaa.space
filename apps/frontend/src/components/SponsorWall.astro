@@ -1,4 +1,6 @@
 ---
+import { HeartIcon, SealIcon } from "@phosphor-icons/react";
+
 import SponsorCard from "@/components/SponsorCard.astro";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { SponsorsPayload } from "@lmaa/contracts";
@@ -26,9 +28,35 @@ interface Props {
    * amount still outstanding. Empty for the default.
    */
   missing: string;
+  /**
+   * What stands in the row's place whilst nobody is on the list, in Markdown.
+   * Empty for the default.
+   *
+   * Its first paragraph is drawn as the card's headline and the rest as its
+   * body, so one text carries both rather than the block asking the page for
+   * two.
+   */
+  empty: string;
+  /** What the button under it says. Empty for the default. */
+  emptyAction: string;
+  /**
+   * Where that button sends the reader.
+   *
+   * Empty where the page carries nothing to send them to, and the button is
+   * then left out rather than pointing at nothing.
+   */
+  emptyHref: string;
 }
 
-const { payload, text, covered: coveredText, missing: missingText } = Astro.props;
+const {
+  payload,
+  text,
+  covered: coveredText,
+  missing: missingText,
+  empty: emptyText,
+  emptyAction,
+  emptyHref,
+} = Astro.props;
 
 /**
  * What the block says about the year's costs when the page says nothing.
@@ -39,6 +67,26 @@ const { payload, text, covered: coveredText, missing: missingText } = Astro.prop
 const COVERED_DEFAULT =
   "Die laufenden Kosten dieses Jahres sind damit gedeckt. Jeder weitere Beitrag geht in die Arbeit am Verzeichnis.";
 const MISSING_DEFAULT = "Noch {missing} bis die laufenden Kosten dieses Jahres gedeckt sind.";
+
+/**
+ * What stands where the cards would, before the first sponsorship arrives.
+ *
+ * The block is at its most important in exactly this state, so the row is
+ * replaced rather than left out: a page that drops it reads as though something
+ * failed to load.
+ *
+ * Two paragraphs, because the card draws the first as its headline. The second
+ * says what a sponsor gets rather than what the project needs, which is the
+ * part that answers "why me".
+ */
+const EMPTY_DEFAULT = [
+  "**Dieser Platz gehört dir.**",
+  "",
+  "Wer als Erstes die laufenden Kosten mitträgt, steht hier: mit Bild, Namen und einem eigenen Satz. Ein Jahr lang, von dem Tag an, an dem die Überweisung ankommt.",
+].join("\n");
+
+/** What the button under it says when the page does not name it. */
+const EMPTY_ACTION_DEFAULT = "Der erste Sponsor werden";
 
 const introHtml = text ? await renderMarkdown(text, { breaks: true }) : "";
 const claims = await Promise.all(
@@ -111,10 +159,48 @@ const cards = payload.sponsors.map((sponsor, index) => ({
  * reader instead of asking them to scroll it.
  */
 const scrolls = cards.length > 2;
+
+/** What stands in the row's place, rendered only when there is a place to fill. */
+const emptyHtml = cards.length ? "" : await renderMarkdown(emptyText || EMPTY_DEFAULT);
 ---
 
 <section class="lmaa-sponsors">
   {introHtml && <div class="lmaa-rich" set:html={introHtml} />}
+
+  {
+    cards.length === 0 && (
+      <div class="lmaa-sponsor-empty">
+        {/* The place the first card will take, drawn as that card: the
+            medal where the picture goes, and beside it the lines a name and a
+            sentence will fill. Saying it in the shape of the thing is
+            what an outline of a box cannot do. */}
+        <div class="lmaa-sponsor-empty-figure" aria-hidden="true">
+          <span class="lmaa-sponsor-empty-seat">
+            <span class="lmaa-sponsor-empty-medal">
+              <SealIcon weight="fill" className="lmaa-sponsor-empty-medal-body" />
+              <SealIcon weight="fill" className="lmaa-sponsor-empty-medal-ring" />
+            </span>
+            <span class="lmaa-sponsor-empty-numeral">1</span>
+          </span>
+          <span class="lmaa-sponsor-empty-lines">
+            <span class="lmaa-sponsor-empty-line is-name" />
+            <span class="lmaa-sponsor-empty-line" />
+            <span class="lmaa-sponsor-empty-line is-short" />
+          </span>
+        </div>
+
+        <div class="lmaa-sponsor-empty-body">
+          <div class="lmaa-rich" set:html={emptyHtml} />
+          {emptyHref && (
+            <a class="lmaa-sponsor-empty-action" href={emptyHref} data-opens-interval="sponsor">
+              <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
+              {emptyAction || EMPTY_ACTION_DEFAULT}
+            </a>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   {
     cards.length > 0 && (
@@ -142,6 +228,25 @@ const scrolls = cards.length > 2;
     )
   }
 </section>
+
+<script>
+  import { chooseSupportInterval } from "@/lib/support-ladder-events";
+
+  /**
+   * Opens the tab the invitation is inviting somebody to.
+   *
+   * The link keeps its `href`, so without this it still scrolls to the ladder
+   * and the reader picks the tab themselves. With it, the one click does both,
+   * because arriving at the ladder on the wrong tab is arriving at the wrong
+   * step.
+   */
+  for (const link of document.querySelectorAll<HTMLAnchorElement>("[data-opens-interval]")) {
+    link.addEventListener("click", () => {
+      const key = link.dataset.opensInterval;
+      if (key === "once" || key === "monthly" || key === "sponsor") chooseSupportInterval(key);
+    });
+  }
+</script>
 
 <script>
   /**

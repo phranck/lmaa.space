@@ -8,7 +8,7 @@
 
 /** One line of input: a text field, a select, or a textarea with its own height. */
 export const inputClass =
-  "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
+  "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
 
 /** What a field says when what was typed does not hold up. */
 export const errorClass = "text-[var(--ds-danger-text)] text-xs mt-1";
