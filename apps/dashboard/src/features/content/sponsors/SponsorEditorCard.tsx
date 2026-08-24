@@ -24,6 +24,7 @@ import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getSocialMediaEditorMessages } from "@/i18n/social-media-editor.ts";
+import { useFavicons } from "@/lib/useFavicons.ts";
 
 import {
   useCreateSponsor,
@@ -111,6 +112,7 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
   const fields = draft ?? base;
   const isPending = create.isPending || save.isPending || remove.isPending;
   const socialMedia = fields?.socialMedia ?? [];
+  const favicons = useFavicons(socialMedia);
   const displayName = fullName(fields?.firstName ?? "", fields?.lastName ?? "");
 
   function update(patch: Partial<SponsorInput>) {
@@ -201,6 +203,7 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
                     value={socialMedia}
                     onChange={handleSocialMediaChange}
                     messages={getSocialMediaEditorMessages(locale)}
+                    favicons={favicons}
                     blurOnPaste
                   />
                 </DashboardField>

@@ -6,6 +6,8 @@ import { FormErrorText } from "@lmaa/ui/form-primitives";
 import { ShopEditForm } from "@lmaa/ui/shop-edit-form";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 
+import { useFavicons } from "@/lib/useFavicons.ts";
+
 const JsonEditor = lazy(() =>
   import("@lmaa/ui/json-editor").then((m) => ({ default: m.JsonEditor })),
 );
@@ -49,6 +51,8 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     shopsMessages,
     showLoadingSkeleton,
   } = controller;
+
+  const favicons = useFavicons(form.socialMedia);
 
   function applyShopCheckJson(jsonText: string, options?: { showErrors?: boolean }) {
     const trimmed = jsonText.trim();
@@ -134,6 +138,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           regionOptions={shopFormI18n.regionOptions}
           messages={shopFormI18n.messages}
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
+          socialMediaFavicons={favicons}
           previewAside={previewAside}
           topAside={
             <DashboardSection>

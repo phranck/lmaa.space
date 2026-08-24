@@ -1,0 +1,11 @@
+-- A website address written before this point carries a slash the URL parser
+-- added rather than anybody typing it. The rows are corrected here because the
+-- stored address is answered as it stands: nothing re-normalizes it on the way
+-- out, so it would keep the slash for good.
+--
+-- Only `website` entries are touched. Every other platform has a normalizer
+-- that never produced a trailing slash.
+UPDATE "shops" SET "social_media" = (SELECT COALESCE(jsonb_agg(CASE WHEN entry->>'platform' = 'website' AND entry->>'url' LIKE '%/' THEN jsonb_set(entry, '{url}', to_jsonb(left(entry->>'url', length(entry->>'url') - 1))) ELSE entry END ORDER BY position), '[]'::jsonb) FROM jsonb_array_elements("social_media") WITH ORDINALITY AS listed(entry, position)) WHERE jsonb_typeof("social_media") = 'array' AND "social_media" @> '[{"platform": "website"}]';--> statement-breakpoint
+UPDATE "submissions" SET "social_media" = (SELECT COALESCE(jsonb_agg(CASE WHEN entry->>'platform' = 'website' AND entry->>'url' LIKE '%/' THEN jsonb_set(entry, '{url}', to_jsonb(left(entry->>'url', length(entry->>'url') - 1))) ELSE entry END ORDER BY position), '[]'::jsonb) FROM jsonb_array_elements("social_media") WITH ORDINALITY AS listed(entry, position)) WHERE jsonb_typeof("social_media") = 'array' AND "social_media" @> '[{"platform": "website"}]';--> statement-breakpoint
+UPDATE "sponsors" SET "social_media" = (SELECT COALESCE(jsonb_agg(CASE WHEN entry->>'platform' = 'website' AND entry->>'url' LIKE '%/' THEN jsonb_set(entry, '{url}', to_jsonb(left(entry->>'url', length(entry->>'url') - 1))) ELSE entry END ORDER BY position), '[]'::jsonb) FROM jsonb_array_elements("social_media") WITH ORDINALITY AS listed(entry, position)) WHERE jsonb_typeof("social_media") = 'array' AND "social_media" @> '[{"platform": "website"}]';--> statement-breakpoint
+UPDATE "pending_sponsorships" SET "social_media" = (SELECT COALESCE(jsonb_agg(CASE WHEN entry->>'platform' = 'website' AND entry->>'url' LIKE '%/' THEN jsonb_set(entry, '{url}', to_jsonb(left(entry->>'url', length(entry->>'url') - 1))) ELSE entry END ORDER BY position), '[]'::jsonb) FROM jsonb_array_elements("social_media") WITH ORDINALITY AS listed(entry, position)) WHERE jsonb_typeof("social_media") = 'array' AND "social_media" @> '[{"platform": "website"}]';

@@ -114,7 +114,7 @@ describe("createPendingSponsorship", () => {
 
     const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
     expect(stored.socialMedia).toEqual([
-      { platform: "website", url: "https://kim-lorenz.example/" },
+      { platform: "website", url: "https://kim-lorenz.example" },
     ]);
   });
 

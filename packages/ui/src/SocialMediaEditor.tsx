@@ -43,6 +43,14 @@ export interface SocialMediaEditorProps {
   onChange: (value: SocialMediaLinks) => void;
   messages: SocialMediaEditorMessages;
   blurOnPaste?: boolean;
+  /**
+   * A site's own mark against the address it belongs to, as inline data.
+   *
+   * The same marks the site itself will show, so what stands beside an address
+   * here is what a reader will see. Absent for an address whose site has none,
+   * and the globe stands for it.
+   */
+  favicons?: Record<string, string>;
 }
 
 function getEntryError(entry: Entry, messages: SocialMediaEditorMessages): string | null {
@@ -99,6 +107,7 @@ export function SocialMediaEditor({
   onChange,
   messages,
   blurOnPaste = false,
+  favicons,
 }: SocialMediaEditorProps) {
   const [entryState, replaceEntryState] = useReducer(
     (
@@ -265,6 +274,8 @@ export function SocialMediaEditor({
       {entries.map((entry) => {
         const def = PLATFORM_MAP.get(entry.platform);
         const Icon = def?.icon ?? GlobeIcon;
+        // A site's own mark tells two websites apart, which two globes do not.
+        const favicon = entry.platform === "website" ? favicons?.[entry.url] : undefined;
         const entryError = getEntryError(entry, messages);
         const openUrl = getOpenUrl(entry);
 
@@ -289,7 +300,18 @@ export function SocialMediaEditor({
                   aria-label={messages.selectPlatformAriaLabel}
                   className="shrink-0 w-10 flex items-center justify-center border-r border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-form-control-bg,var(--ds-bg-elevated))] transition-colors"
                 >
-                  <Icon size={16} />
+                  {favicon ? (
+                    <img
+                      src={favicon}
+                      alt=""
+                      width={16}
+                      height={16}
+                      className="rounded-[2px] object-contain"
+                      style={{ width: 16, height: 16 }}
+                    />
+                  ) : (
+                    <Icon size={16} />
+                  )}
                 </button>
 
                 <input

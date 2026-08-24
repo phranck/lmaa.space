@@ -198,7 +198,7 @@ describe("classifyProfileLink without a scheme", () => {
   it("still reads a bare domain as a website", () => {
     expect(classifyProfileLink("example.com")).toEqual({
       platform: "website",
-      url: "https://example.com/",
+      url: "https://example.com",
     });
   });
 
@@ -284,23 +284,23 @@ describe("several addresses for one platform", () => {
   it("keeps two websites rather than letting the second replace the first", () => {
     expect(
       socialMediaSchema.parse([
-        { platform: "website", url: "https://kim.example/" },
-        { platform: "website", url: "https://blog.kim.example/" },
+        { platform: "website", url: "https://kim.example" },
+        { platform: "website", url: "https://blog.kim.example" },
       ]),
     ).toEqual([
-      { platform: "website", url: "https://kim.example/" },
-      { platform: "website", url: "https://blog.kim.example/" },
+      { platform: "website", url: "https://kim.example" },
+      { platform: "website", url: "https://blog.kim.example" },
     ]);
   });
 
   it("keeps the order the addresses were given in", () => {
     expect(
       socialMediaSchema.parse([
-        { platform: "website", url: "https://kim.example/" },
+        { platform: "website", url: "https://kim.example" },
         { platform: "mastodon", url: "https://chaos.social/@kim" },
       ]),
     ).toEqual([
-      { platform: "website", url: "https://kim.example/" },
+      { platform: "website", url: "https://kim.example" },
       { platform: "mastodon", url: "https://chaos.social/@kim" },
     ]);
   });
@@ -308,10 +308,10 @@ describe("several addresses for one platform", () => {
   it("keeps one copy of an address that was given twice", () => {
     expect(
       socialMediaSchema.parse([
-        { platform: "website", url: "https://kim.example/" },
-        { platform: "website", url: "https://kim.example/" },
+        { platform: "website", url: "https://kim.example" },
+        { platform: "website", url: "https://kim.example" },
       ]),
-    ).toEqual([{ platform: "website", url: "https://kim.example/" }]);
+    ).toEqual([{ platform: "website", url: "https://kim.example" }]);
   });
 
   it("still reads the map that rows written before the list still hold", () => {
@@ -319,7 +319,7 @@ describe("several addresses for one platform", () => {
       socialMediaSchema.parse({ mastodon: "https://chaos.social/@kim", website: "kim.example" }),
     ).toEqual([
       { platform: "mastodon", url: "https://chaos.social/@kim" },
-      { platform: "website", url: "https://kim.example/" },
+      { platform: "website", url: "https://kim.example" },
     ]);
   });
 
@@ -329,8 +329,8 @@ describe("several addresses for one platform", () => {
 
   it("names the entry that was refused, by its position in the list", () => {
     const result = socialMediaSchema.safeParse([
-      { platform: "website", url: "https://kim.example/" },
-      { platform: "nowhere", url: "https://kim.example/" },
+      { platform: "website", url: "https://kim.example" },
+      { platform: "nowhere", url: "https://kim.example" },
     ]);
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.issues[0]?.path).toEqual([1]);
@@ -339,13 +339,13 @@ describe("several addresses for one platform", () => {
 
 describe("findSocialMediaUrl", () => {
   const links = [
-    { platform: "website", url: "https://kim.example/" },
+    { platform: "website", url: "https://kim.example" },
     { platform: "mastodon", url: "https://chaos.social/@kim" },
-    { platform: "website", url: "https://blog.kim.example/" },
+    { platform: "website", url: "https://blog.kim.example" },
   ] as const;
 
   it("answers with the first address given for that platform", () => {
-    expect(findSocialMediaUrl([...links], "website")).toBe("https://kim.example/");
+    expect(findSocialMediaUrl([...links], "website")).toBe("https://kim.example");
   });
 
   it("gives nothing for a platform nobody entered", () => {
@@ -403,5 +403,34 @@ describe("Friendica social media support", () => {
       platform: "website",
       url: "https://friend.enby-box.de/profile/jaddy",
     });
+  });
+});
+
+describe("a website address keeps no trailing slash", () => {
+  it.each([
+    ["https://chillr.de", "https://chillr.de"],
+    // The parser puts it there, so it arrives even when nobody typed it.
+    ["https://chillr.de/", "https://chillr.de"],
+    ["chillr.de", "https://chillr.de"],
+    ["https://chillr.de/laden/", "https://chillr.de/laden"],
+  ])("normalizes %s", (input, expected) => {
+    expect(normalizeSocialMediaValue("website", input)).toBe(expected);
+  });
+
+  it.each(["https://chillr.de/?von=hier", "https://chillr.de/#unten"])(
+    "leaves %s alone, which ends in no slash to begin with",
+    (input) => {
+      expect(normalizeSocialMediaValue("website", input)).toBe(input);
+    },
+  );
+
+  it("counts the same page as one address however it was written", () => {
+    // Both forms name the same page, so the list holds it once.
+    expect(
+      socialMediaSchema.parse([
+        { platform: "website", url: "https://chillr.de" },
+        { platform: "website", url: "https://chillr.de/" },
+      ]),
+    ).toEqual([{ platform: "website", url: "https://chillr.de" }]);
   });
 });
