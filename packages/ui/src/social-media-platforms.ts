@@ -22,6 +22,7 @@ import {
   SiTiktok,
   SiTwitch,
   SiWhatsapp,
+  SiXing,
   SiYoutube,
 } from "react-icons/si";
 
@@ -50,6 +51,7 @@ const PLATFORM_METADATA: Record<SocialPlatformKey, Omit<PlatformDef, "key">> = {
   twitch: { label: "Twitch", icon: SiTwitch },
   tumblr: { label: "Tumblr", icon: SiTumblr },
   linkedin: { label: "LinkedIn", icon: SiLinkedin },
+  xing: { label: "XING", icon: SiXing },
   pinterest: { label: "Pinterest", icon: SiPinterest },
   patreon: { label: "Patreon", icon: SiPatreon },
   mixcloud: { label: "Mixcloud", icon: SiMixcloud },

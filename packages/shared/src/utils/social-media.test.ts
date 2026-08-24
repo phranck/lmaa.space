@@ -120,6 +120,38 @@ describe("LinkedIn social media support", () => {
   });
 });
 
+describe("XING social media support", () => {
+  it.each([
+    "https://www.xing.com/profile/Kai_Becker",
+    "https://xing.com/profile/Kai_Becker",
+    "https://www.xing.com/pages/eine-firma",
+  ])("detects XING URLs from %s", (url) => {
+    expect(detectPlatformFromUrl(url)).toBe("xing");
+  });
+
+  it.each([
+    ["https://www.xing.com/profile/Kai_Becker", "https://xing.com/profile/Kai_Becker"],
+    ["https://www.xing.com/profile/Kai_Becker/", "https://xing.com/profile/Kai_Becker"],
+    ["https://xing.com/pages/eine-firma", "https://xing.com/pages/eine-firma"],
+    ["https://xing.com/Kai_Becker", "https://xing.com/profile/Kai_Becker"],
+    ["Kai_Becker", "https://xing.com/profile/Kai_Becker"],
+    ["@Kai_Becker", "https://xing.com/profile/Kai_Becker"],
+  ])("normalizes %s", (input, expected) => {
+    expect(normalizeSocialMediaValue("xing", input)).toBe(expected);
+  });
+
+  it("refuses an address on another host", () => {
+    expect(normalizeSocialMediaValue("xing", "https://linkedin.com/in/foo")).toBeNull();
+  });
+
+  it("sorts a XING profile into XING rather than into a website", () => {
+    expect(classifyProfileLink("https://www.xing.com/profile/Kai_Becker")).toEqual({
+      platform: "xing",
+      url: "https://xing.com/profile/Kai_Becker",
+    });
+  });
+});
+
 describe("classifyProfileLink", () => {
   it("sorts an address into the service it belongs to", () => {
     expect(classifyProfileLink("https://oldbytes.space/@phranck")).toEqual({

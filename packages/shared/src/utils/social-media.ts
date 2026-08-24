@@ -17,6 +17,7 @@ export const SOCIAL_PLATFORM_KEYS = [
   "twitch",
   "tumblr",
   "linkedin",
+  "xing",
   "pinterest",
   "patreon",
   "mixcloud",
@@ -67,6 +68,10 @@ function isFacebookHost(host: string): boolean {
 
 function isLinkedinHost(host: string): boolean {
   return host === "linkedin.com" || host.endsWith(".linkedin.com");
+}
+
+function isXingHost(host: string): boolean {
+  return host === "xing.com" || host.endsWith(".xing.com");
 }
 
 function isXHost(host: string): boolean {
@@ -336,6 +341,40 @@ function normalizeLinkedin(input: string): string | null {
   return `https://linkedin.com/in/${handle}`;
 }
 
+/**
+ * Canonicalises a XING address.
+ *
+ * A person is at `/profile/<handle>`, and anything else the site addresses keeps
+ * the path it came with rather than being refused: the shapes XING uses beyond
+ * a profile are not ours to enumerate, and turning an address somebody holds
+ * into nothing is worse than storing it as it stands.
+ *
+ * @param input - A XING URL, or a bare handle.
+ * @returns The address as `https://xing.com/profile/<handle>`, or `null` when it
+ *   is not a XING address at all.
+ */
+function normalizeXing(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (!isXingHost(host)) return null;
+    const path = stripTrailingSlash(url.pathname);
+    if (!path || path === "/") return null;
+
+    // A single segment is a handle written without the profile prefix.
+    const segments = path.split("/").filter(Boolean);
+    if (segments.length === 1) return `https://xing.com/profile/${segments[0]}`;
+    return `https://xing.com${path}`;
+  }
+
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://xing.com/profile/${handle}`;
+}
+
 function normalizeFacebook(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -587,6 +626,7 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "twitter.com": "x",
   "bsky.app": "bluesky",
   "linkedin.com": "linkedin",
+  "xing.com": "xing",
   "pin.it": "pinterest",
   "patreon.com": "patreon",
   "tumblr.com": "tumblr",
@@ -646,6 +686,7 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
 }
 
 const normalizers: Record<SocialPlatformKey, (input: string) => string | null> = {
+  if (isXingHost(host)) return "xing";
   instagram: normalizeInstagram,
   facebook: normalizeFacebook,
   threads: normalizeThreads,
@@ -670,6 +711,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   gitlab: normalizeWebsite,
   codeberg: normalizeWebsite,
   website: normalizeWebsite,
+  xing: normalizeXing,
 };
 
 /**
