@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Sponsor, SponsorInput, SponsoringConfig } from "@lmaa/contracts";
+import type { SocialMediaLinks } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
@@ -49,7 +50,7 @@ export function useCreateSponsor() {
  */
 export function useResolveSponsorAvatar() {
   return useMutation({
-    mutationFn: (socialMedia: Record<string, string>) =>
+    mutationFn: (socialMedia: SocialMediaLinks) =>
       api.post<{ imageUrl: string | null }>("/admin/sponsors/avatar", { socialMedia }),
   });
 }

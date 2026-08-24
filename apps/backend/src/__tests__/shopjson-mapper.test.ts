@@ -74,7 +74,9 @@ describe("mapShopJsonToShopData", () => {
       categoryMap,
     );
 
-    expect(result.socialMedia).toEqual({ instagram: "https://instagram.com/shop" });
+    expect(result.socialMedia).toEqual([
+      { platform: "instagram", url: "https://instagram.com/shop" },
+    ]);
   });
 
   it("normalizes and deduplicates imported payment methods", () => {

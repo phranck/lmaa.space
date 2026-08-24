@@ -39,6 +39,7 @@ import type {
   ReviewUsage,
   ReviewVerdict,
   ShopCheckNotes,
+  SocialMediaLinks,
 } from "@lmaa/shared";
 
 const POSTING_PLATFORM_SQL = sql`'mastodon', 'bluesky'`;
@@ -78,7 +79,7 @@ export const shops = pgTable(
     description: text("description").notNull().default(""),
     ogImage: text("og_image"),
     logoBackgroundColor: text("logo_background_color"),
-    socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    socialMedia: jsonb("social_media").$type<SocialMediaLinks>().notNull().default([]),
     paymentMethods: jsonb("payment_methods").$type<PaymentMethodKey[]>().notNull().default([]),
     contactEmail: text("contact_email"),
     shopCheckNotes: jsonb("shop_check_notes").$type<ShopCheckNotes | null>(),
@@ -275,7 +276,7 @@ export const submissions = pgTable(
     description: text("description").notNull().default(""),
     ogImage: text("og_image"),
     logoBackgroundColor: text("logo_background_color"),
-    socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    socialMedia: jsonb("social_media").$type<SocialMediaLinks>().notNull().default([]),
     paymentMethods: jsonb("payment_methods").$type<PaymentMethodKey[]>().notNull().default([]),
     shopCheckNotes: jsonb("shop_check_notes").$type<ShopCheckNotes | null>(),
     contactEmail: text("contact_email"),
@@ -1294,7 +1295,7 @@ export const sponsors = pgTable(
     /** The family name, empty for anybody listed under one name only. */
     lastName: text("last_name").notNull().default(""),
     /** Where they can be found, as a platform key against a profile address. */
-    socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    socialMedia: jsonb("social_media").$type<SocialMediaLinks>().notNull().default([]),
     /** A picture. Empty means none is shown. */
     imageUrl: text("image_url").notNull().default(""),
     /** Their own sentence about why they did it. */
@@ -1318,7 +1319,7 @@ export const sponsors = pgTable(
     index("idx_sponsors_paid_at").on(table.paidAt),
     check("sponsors_amount_nonnegative", sql`${table.amountCents} >= 0`),
   ],
-)
+);
 
 /**
  * What somebody said about themselves before they paid.
@@ -1341,7 +1342,7 @@ export const pendingSponsorships = pgTable(
      * The form asks for it in a single field and works out the rest, so this is
      * the same map a sponsor carries and nothing has to be merged later.
      */
-    socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    socialMedia: jsonb("social_media").$type<SocialMediaLinks>().notNull().default([]),
     claim: text("claim").notNull().default(""),
     /**
      * What they said they would give, in cents.

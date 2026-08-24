@@ -33,6 +33,27 @@ export const SOCIAL_PLATFORM_KEYS = [
 /** Union type of all valid social media platform keys derived from `SOCIAL_PLATFORM_KEYS`. */
 export type SocialPlatformKey = (typeof SOCIAL_PLATFORM_KEYS)[number];
 
+/**
+ * One place somebody can be found, as a platform together with the address that
+ * leads there.
+ *
+ * @property platform One of `SOCIAL_PLATFORM_KEYS`, in its canonical spelling.
+ * @property url The address, normalized for that platform.
+ */
+export interface SocialMediaLink {
+  platform: SocialPlatformKey;
+  url: string;
+}
+
+/**
+ * Every place somebody can be found, in the order they were entered.
+ *
+ * A list rather than a map from platform to address, because one person may
+ * have two websites or two accounts on the same network. A map holds one value
+ * per key, so the second address would replace the first without saying so.
+ */
+export type SocialMediaLinks = SocialMediaLink[];
+
 const PLATFORM_SET = new Set<string>(SOCIAL_PLATFORM_KEYS);
 
 function canonicalizePlatformKey(platform: string): string {
@@ -76,7 +97,12 @@ function isXingHost(host: string): boolean {
 }
 
 function isXHost(host: string): boolean {
-  return host === "x.com" || host === "twitter.com" || host.endsWith(".x.com") || host.endsWith(".twitter.com");
+  return (
+    host === "x.com" ||
+    host === "twitter.com" ||
+    host.endsWith(".x.com") ||
+    host.endsWith(".twitter.com")
+  );
 }
 
 function isTumblrHost(host: string): boolean {
@@ -573,7 +599,11 @@ function normalizeWhatsapp(input: string): string | null {
 
   // Accept phone numbers: +49..., 0049..., or plain digits with optional spaces/dashes
   const digits = trimmed.replace(/[\s\-().]/g, "");
-  const normalized = digits.startsWith("00") ? digits.slice(2) : digits.startsWith("+") ? digits.slice(1) : digits;
+  const normalized = digits.startsWith("00")
+    ? digits.slice(2)
+    : digits.startsWith("+")
+      ? digits.slice(1)
+      : digits;
   if (/^\d{6,15}$/.test(normalized)) return `https://wa.me/${normalized}`;
   return null;
 }
@@ -803,9 +833,7 @@ const FEDIVERSE_HANDLE = /^@?[^@\s/]+@[^@\s/]+\.[^@\s/]+$/;
  * @returns The platform key and the canonical address, or `null` when the input
  *   is not an address at all.
  */
-export function classifyProfileLink(
-  input: string,
-): { platform: SocialPlatformKey; url: string } | null {
+export function classifyProfileLink(input: string): SocialMediaLink | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
@@ -830,45 +858,117 @@ export function classifyProfileLink(
 }
 
 /**
- * Zod schema that validates and normalizes a social media map.
+ * The two shapes a set of addresses arrives in.
  *
- * Accepts a `Record<string, string>` where each key is a platform key and each
- * value is a raw handle or URL. Unknown platforms and invalid values produce
- * Zod issues. Valid values are transformed to canonical profile URLs.
+ * The list is what everything writes. The map from platform to address is what
+ * rows written before the list existed still hold, and what the review model
+ * returns, so both are read.
  */
-export const socialMediaSchema = z
-  .record(z.string(), z.string())
-  .optional()
-  .transform((val, ctx) => {
-    if (!val) return undefined;
+const socialMediaInputSchema = z.union([
+  z.array(z.object({ platform: z.string(), url: z.string() })),
+  z.record(z.string(), z.string()),
+]);
 
-    const result: Record<string, string> = {};
-    for (const [key, value] of Object.entries(val)) {
-      const canonicalKey = canonicalizePlatformKey(key);
+/**
+ * Turns either input shape into a normalized list of addresses.
+ *
+ * An entry naming a platform nobody knows, or carrying an address that does not
+ * fit the platform it claims, is reported as an issue rather than dropped in
+ * silence. An empty address is skipped, because a cleared field is not a
+ * mistake. The same address given twice for the same platform is kept once,
+ * whilst two different addresses for that platform both stay.
+ *
+ * @param value The addresses as given, in either shape.
+ * @param ctx The Zod context every rejected entry is reported through.
+ * @returns The accepted addresses, in the order they were given.
+ */
+function collectSocialMediaLinks(
+  value: z.infer<typeof socialMediaInputSchema>,
+  ctx: z.RefinementCtx,
+): SocialMediaLinks {
+  const given = Array.isArray(value)
+    ? value.map((entry, index) => ({ ...entry, path: index as string | number }))
+    : Object.entries(value).map(([platform, url]) => ({
+        platform,
+        url,
+        path: platform as string | number,
+      }));
 
-      if (!PLATFORM_SET.has(canonicalKey)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Unknown social media platform: ${key}`,
-          path: [key],
-        });
-        continue;
-      }
+  const links: SocialMediaLinks = [];
+  const seen = new Set<string>();
 
-      if (!value) continue;
+  for (const entry of given) {
+    const platform = canonicalizePlatformKey(entry.platform);
 
-      const normalized = normalizeSocialMediaValue(canonicalKey, value);
-      if (!normalized) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Invalid value for ${key}: ${value}`,
-          path: [key],
-        });
-        continue;
-      }
-
-      result[canonicalKey] = normalized;
+    if (!PLATFORM_SET.has(platform)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Unknown social media platform: ${entry.platform}`,
+        path: [entry.path],
+      });
+      continue;
     }
 
-    return Object.keys(result).length > 0 ? result : undefined;
-  });
+    if (!entry.url) continue;
+
+    const url = normalizeSocialMediaValue(platform, entry.url);
+    if (!url) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid value for ${entry.platform}: ${entry.url}`,
+        path: [entry.path],
+      });
+      continue;
+    }
+
+    const identity = `${platform} ${url}`;
+    if (seen.has(identity)) continue;
+    seen.add(identity);
+
+    links.push({ platform: platform as SocialPlatformKey, url });
+  }
+
+  return links;
+}
+
+/**
+ * Zod schema for a stored set of addresses, as read back out of the database.
+ *
+ * Missing addresses come back as an empty list, so a caller never has to ask
+ * whether the field was there.
+ */
+export const socialMediaLinksSchema = socialMediaInputSchema
+  .default([])
+  .transform(collectSocialMediaLinks);
+
+/**
+ * Zod schema that validates and normalizes the addresses somebody entered.
+ *
+ * Comes back as a list in the order the addresses were given, or as `undefined`
+ * when nothing usable was left. Unknown platforms and addresses that do not fit
+ * their platform produce Zod issues.
+ */
+export const socialMediaSchema = socialMediaInputSchema.optional().transform((value, ctx) => {
+  if (!value) return undefined;
+  const links = collectSocialMediaLinks(value, ctx);
+  return links.length > 0 ? links : undefined;
+});
+
+/**
+ * The first address given for one platform.
+ *
+ * For the places that ask about one particular network, such as the avatar
+ * lookup wanting the Mastodon account. Where somebody gave several addresses
+ * for that platform, the first one answers, because that is the one they
+ * entered first.
+ *
+ * @param links The addresses to search, which may be absent.
+ * @param platform The platform being asked about.
+ * @returns The address, or `undefined` when that platform is not among them.
+ */
+export function findSocialMediaUrl(
+  links: SocialMediaLinks | undefined,
+  platform: SocialPlatformKey,
+): string | undefined {
+  return links?.find((link) => link.platform === platform)?.url;
+}

@@ -34,7 +34,9 @@ describe("resolveSponsorAvatar", () => {
       .mockResolvedValue(jsonResponse({ avatar_static: "https://oldbytes.space/avatar.png" }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const avatar = await resolveSponsorAvatar({ mastodon: "https://oldbytes.space/@lmaa" });
+    const avatar = await resolveSponsorAvatar([
+      { platform: "mastodon", url: "https://oldbytes.space/@lmaa" },
+    ]);
 
     expect(avatar).toBe("https://oldbytes.space/avatar.png");
     const [url] = fetchMock.mock.calls[0] as [string];
@@ -47,7 +49,9 @@ describe("resolveSponsorAvatar", () => {
       vi.fn().mockResolvedValue(jsonResponse({ avatar: "https://oldbytes.space/a.gif" })),
     );
 
-    const avatar = await resolveSponsorAvatar({ mastodon: "https://oldbytes.space/@lmaa" });
+    const avatar = await resolveSponsorAvatar([
+      { platform: "mastodon", url: "https://oldbytes.space/@lmaa" },
+    ]);
 
     expect(avatar).toBe("https://oldbytes.space/a.gif");
   });
@@ -58,13 +62,13 @@ describe("resolveSponsorAvatar", () => {
       .mockResolvedValue(jsonResponse({ avatar: "https://cdn.bsky.app/avatar.jpg" }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const avatar = await resolveSponsorAvatar({ bluesky: "https://bsky.app/profile/lmaa.space" });
+    const avatar = await resolveSponsorAvatar([
+      { platform: "bluesky", url: "https://bsky.app/profile/lmaa.space" },
+    ]);
 
     expect(avatar).toBe("https://cdn.bsky.app/avatar.jpg");
     const [url] = fetchMock.mock.calls[0] as [string];
-    expect(url).toBe(
-      "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=lmaa.space",
-    );
+    expect(url).toBe("https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=lmaa.space");
   });
 
   it("refuses a picture that is not a public HTTPS address", async () => {
@@ -73,7 +77,9 @@ describe("resolveSponsorAvatar", () => {
       vi.fn().mockResolvedValue(jsonResponse({ avatar: "http://127.0.0.1/avatar.png" })),
     );
 
-    expect(await resolveSponsorAvatar({ mastodon: "https://oldbytes.space/@lmaa" })).toBeNull();
+    expect(
+      await resolveSponsorAvatar([{ platform: "mastodon", url: "https://oldbytes.space/@lmaa" }]),
+    ).toBeNull();
   });
 
   it("never calls a host the fetch guard rejects", async () => {
@@ -81,16 +87,18 @@ describe("resolveSponsorAvatar", () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    expect(await resolveSponsorAvatar({ mastodon: "https://internal.local/@lmaa" })).toBeNull();
+    expect(
+      await resolveSponsorAvatar([{ platform: "mastodon", url: "https://internal.local/@lmaa" }]),
+    ).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("reads a page for any service that answers no such question directly", async () => {
     previewImage.mockResolvedValue({ url: "https://example.org/logo.png", via: "og:image" });
 
-    expect(await resolveSponsorAvatar({ tumblr: "https://example.tumblr.com" })).toBe(
-      "https://example.org/logo.png",
-    );
+    expect(
+      await resolveSponsorAvatar([{ platform: "tumblr", url: "https://example.tumblr.com" }]),
+    ).toBe("https://example.org/logo.png");
     expect(previewImage).toHaveBeenCalledWith("https://example.tumblr.com", {
       intent: "portrait",
     });
@@ -99,13 +107,13 @@ describe("resolveSponsorAvatar", () => {
   it("asks a profile for a portrait and a website for its mark", async () => {
     previewImage.mockResolvedValue({ url: "https://example.org/picture.png", via: "og:image" });
 
-    await resolveSponsorAvatar({ xing: "https://xing.com/profile/somebody" });
+    await resolveSponsorAvatar([{ platform: "xing", url: "https://xing.com/profile/somebody" }]);
     expect(previewImage).toHaveBeenCalledWith("https://xing.com/profile/somebody", {
       intent: "portrait",
     });
 
     previewImage.mockClear();
-    await resolveSponsorAvatar({ website: "https://example.org" });
+    await resolveSponsorAvatar([{ platform: "website", url: "https://example.org" }]);
     expect(previewImage).toHaveBeenCalledWith("https://example.org", { intent: "site-mark" });
   });
 
@@ -116,11 +124,11 @@ describe("resolveSponsorAvatar", () => {
     );
     previewImage.mockResolvedValue({ url: "https://example.org/logo.png", via: "og:image" });
 
-    const avatar = await resolveSponsorAvatar({
-      website: "https://example.org",
-      tumblr: "https://example.tumblr.com",
-      mastodon: "https://oldbytes.space/@lmaa",
-    });
+    const avatar = await resolveSponsorAvatar([
+      { platform: "website", url: "https://example.org" },
+      { platform: "tumblr", url: "https://example.tumblr.com" },
+      { platform: "mastodon", url: "https://oldbytes.space/@lmaa" },
+    ]);
 
     expect(avatar).toBe("https://oldbytes.space/portrait.png");
     expect(previewImage).not.toHaveBeenCalled();
@@ -131,10 +139,10 @@ describe("resolveSponsorAvatar", () => {
       url === "https://example.org" ? { url: "https://example.org/logo.png", via: "icon" } : null,
     );
 
-    const avatar = await resolveSponsorAvatar({
-      website: "https://example.org",
-      tumblr: "https://example.tumblr.com",
-    });
+    const avatar = await resolveSponsorAvatar([
+      { platform: "website", url: "https://example.org" },
+      { platform: "tumblr", url: "https://example.tumblr.com" },
+    ]);
 
     expect(avatar).toBe("https://example.org/logo.png");
     expect(previewImage.mock.calls.map(([url]) => url)).toEqual([
@@ -145,6 +153,8 @@ describe("resolveSponsorAvatar", () => {
 
   it("gives nothing when no address yields a picture", async () => {
     previewImage.mockResolvedValue(null);
-    expect(await resolveSponsorAvatar({ website: "https://example.org" })).toBeNull();
+    expect(
+      await resolveSponsorAvatar([{ platform: "website", url: "https://example.org" }]),
+    ).toBeNull();
   });
 });

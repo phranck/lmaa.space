@@ -1,5 +1,6 @@
 import type { RegionCode, ShopVisibility } from "../constants/domain.js";
 import type { PaymentMethodKey } from "../constants/payment-methods.js";
+import type { SocialMediaLinks } from "../utils/social-media.js";
 
 /**
  * Normalized headquarters/address snapshot exposed through API models.
@@ -74,7 +75,7 @@ export interface AdminShopListItem extends ShopSummary {
   description: string;
   shipping: string;
   contactEmail?: string | null;
-  socialMedia: Record<string, string>;
+  socialMedia: SocialMediaLinks;
   paymentMethods: PaymentMethodKey[];
   shopCheckNotes?: ShopCheckNotes | null;
   ogImage?: string | null;
@@ -106,7 +107,7 @@ export interface Shop {
   ogImage?: string | null;
   logoBackgroundColor: string | null;
   contactEmail?: string | null;
-  socialMedia: Record<string, string>;
+  socialMedia: SocialMediaLinks;
   paymentMethods: PaymentMethodKey[];
   shopCheckNotes?: ShopCheckNotes | null;
   visibility: ShopVisibility;

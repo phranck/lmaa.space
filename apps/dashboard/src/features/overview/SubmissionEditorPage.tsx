@@ -44,7 +44,7 @@ function toSubmissionFormData(submission: Submission) {
     region: Array.isArray(submission.region) ? submission.region : [],
     shipping: submission.shipping ?? "",
     contactEmail: submission.contactEmail ?? "",
-    socialMedia: submission.socialMedia ?? {},
+    socialMedia: submission.socialMedia ?? [],
     paymentMethods: submission.paymentMethods ?? [],
     shopCheckNotes: submission.shopCheckNotes ?? null,
     logoBackgroundColor: submission.logoBackgroundColor ?? null,

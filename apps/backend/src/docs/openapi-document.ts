@@ -408,13 +408,18 @@ const schemas: Record<string, SchemaObject> = {
     required: ["id", "slug", "name"],
   },
   SocialMedia: {
-    type: "object",
+    type: "array",
     description:
-      "Social profiles of the shop, keyed by platform. Every value is a full canonical profile URL rather than a handle, because handles are expanded when a shop is saved. A shop without any profile yields an empty object.",
-    properties: Object.fromEntries(
-      SOCIAL_PLATFORM_KEYS.map((platform) => [platform, nullable({ type: "string" })]),
-    ),
-    additionalProperties: nullable({ type: "string" }),
+      "Everywhere the shop can be found, in the order the addresses were entered. A platform may appear more than once, because a shop may have two websites or two accounts on the same network. Every address is a full canonical profile URL rather than a handle, because handles are expanded when a shop is saved. A shop without any profile yields an empty array.",
+    items: {
+      type: "object",
+      properties: {
+        platform: { type: "string", enum: [...SOCIAL_PLATFORM_KEYS] },
+        url: { type: "string" },
+      },
+      required: ["platform", "url"],
+      additionalProperties: false,
+    },
   },
   Headquarters: {
     type: "object",

@@ -1,4 +1,5 @@
 ---
+import type { SocialMediaLinks } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
 interface Props {
@@ -6,8 +7,8 @@ interface Props {
   name: string;
   /** The picture, or an empty string for the initial instead. */
   imageUrl: string;
-  /** Platform keys against profile addresses. */
-  socialMedia: Record<string, string>;
+  /** Everywhere they can be found, in the order they entered the addresses. */
+  socialMedia: SocialMediaLinks;
   /** Their own sentence, already rendered from Markdown. Empty for none. */
   claimHtml: string;
   /** The day their year began, written out, as the wide card shows it. */

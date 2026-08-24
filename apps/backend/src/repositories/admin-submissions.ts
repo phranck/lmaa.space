@@ -4,6 +4,7 @@ import { getDomain } from "tldts";
 import type {
   PaymentMethodKey,
   ShopCheckNotes,
+  SocialMediaLinks,
   SubmissionReviewStatus,
   SubmissionStatus,
 } from "@lmaa/shared";
@@ -41,7 +42,7 @@ export interface SubmissionEditData {
   contactEmail?: string;
   shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
-  socialMedia?: Record<string, string>;
+  socialMedia?: SocialMediaLinks;
   paymentMethods?: PaymentMethodKey[];
 }
 
@@ -287,7 +288,7 @@ export async function editSubmission(
         shipping: data.shipping ?? "",
         contactEmail: data.contactEmail || null,
         ...(data.shopCheckNotes !== undefined ? { shopCheckNotes: data.shopCheckNotes } : {}),
-        socialMedia: data.socialMedia ?? {},
+        socialMedia: data.socialMedia ?? [],
         ...(data.paymentMethods !== undefined ? { paymentMethods: data.paymentMethods } : {}),
         updatedAt: new Date(),
       })

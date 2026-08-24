@@ -7,6 +7,7 @@ import type {
   ShopCheckNotes,
   ShopMutableVisibility,
   ShopVisibility,
+  SocialMediaLinks,
 } from "@lmaa/shared";
 
 import type { HeadquartersInput } from "./headquarters.js";
@@ -29,7 +30,7 @@ export interface CreateAdminShopData {
   contactEmail?: string;
   shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
-  socialMedia?: Record<string, string>;
+  socialMedia?: SocialMediaLinks;
   paymentMethods?: PaymentMethodKey[];
 }
 
@@ -48,7 +49,7 @@ export interface UpdateAdminShopData {
   logoBackgroundColor?: string | null;
   shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
-  socialMedia?: Record<string, string>;
+  socialMedia?: SocialMediaLinks;
   paymentMethods?: PaymentMethodKey[];
   needsReview?: boolean;
   reviewData?: Record<string, unknown> | null;

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { socialMediaLinksSchema } from "@lmaa/shared";
+
 /**
  * What somebody says about themselves before they pay.
  *
@@ -66,10 +68,10 @@ export const pendingSponsorshipSchema = pendingSponsorshipInputSchema.omit({ lin
   /**
    * The address, sorted into the service it belongs to.
    *
-   * Stored as the map a sponsor already carries, so what the form takes in one
+   * Stored as the list a sponsor already carries, so what the form takes in one
    * field arrives where the rest of the site expects to read it.
    */
-  socialMedia: z.record(z.string(), z.string()),
+  socialMedia: socialMediaLinksSchema,
   /** When they said it, which is what makes the consent a record. */
   createdAt: z.string(),
 });

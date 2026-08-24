@@ -318,22 +318,19 @@ export const reviewAcceptSchema = z
      */
     geo: acceptGeoSchema.optional(),
     socialMedia: z.preprocess((raw) => {
-      // The provider lists only the profiles it found, as `[{platform, url}]`.
-      // The rest of the code works with a record, so the list is folded into
-      // one here and the canonical social-media validation runs on that.
+      // The provider lists the profiles it found as `[{platform, url}]`, which
+      // is the shape everything else stores as well. What it may also do is put
+      // a null or a blank address in that list, and an address the model left
+      // empty is no reason to refuse the whole answer, so those go here.
+      if (raw === null || raw === undefined) return [];
       if (Array.isArray(raw)) {
-        const record: Record<string, string> = {};
-        for (const entry of raw) {
-          if (typeof entry !== "object" || entry === null) continue;
+        return raw.filter((entry) => {
+          if (typeof entry !== "object" || entry === null) return false;
           const platform = (entry as { platform?: unknown }).platform;
           const url = (entry as { url?: unknown }).url;
-          if (typeof platform === "string" && typeof url === "string" && url.trim() !== "") {
-            record[platform] = url;
-          }
-        }
-        return record;
+          return typeof platform === "string" && typeof url === "string" && url.trim() !== "";
+        });
       }
-      if (raw === null || raw === undefined) return {};
       if (typeof raw !== "object") return raw;
       return Object.fromEntries(
         Object.entries(raw as Record<string, unknown>).filter(
@@ -629,7 +626,7 @@ export const reviewResultJsonSchema: Record<string, unknown> = {
           type: "array",
           items: { type: "string", format: "uri" },
           description:
-            "Absolute http(s)-Adressen der Quellen. Suchbegriffe, Namen oder Hinweise wie „LinkedIn\" gehören nicht hierher, sondern in assessment.",
+            'Absolute http(s)-Adressen der Quellen. Suchbegriffe, Namen oder Hinweise wie „LinkedIn" gehören nicht hierher, sondern in assessment.',
         },
         assessment: { type: "string" },
       },

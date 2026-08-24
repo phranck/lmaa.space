@@ -1,3 +1,5 @@
+import type { SocialMediaLinks } from "@lmaa/shared";
+
 import { logger } from "../lib/logger.js";
 import { type PreviewIntent, fetchPreviewImage } from "../lib/og.js";
 import { isExternalUrl, isPublicFetchTarget } from "../lib/validate.js";
@@ -29,13 +31,18 @@ const DIRECT_LOOKUPS: Readonly<Record<string, (address: string) => Promise<strin
  * yields the picture the profile itself shows. A website comes last: it has no
  * portrait, only its own mark, which is the right answer for somebody who gave
  * nothing else and the wrong one for somebody who did.
+ *
+ * Within each of the three groups the addresses keep the order they were
+ * entered in, so somebody who gave two websites is read from the one they put
+ * first.
  */
-function lookupOrder(socialMedia: Record<string, string>): string[] {
-  const direct = Object.keys(DIRECT_LOOKUPS).filter((platform) => socialMedia[platform]);
-  const rest = Object.keys(socialMedia).filter(
-    (platform) => !direct.includes(platform) && platform !== "website",
+function lookupOrder(socialMedia: SocialMediaLinks): SocialMediaLinks {
+  const direct = socialMedia.filter((link) => Object.hasOwn(DIRECT_LOOKUPS, link.platform));
+  const rest = socialMedia.filter(
+    (link) => !Object.hasOwn(DIRECT_LOOKUPS, link.platform) && link.platform !== "website",
   );
-  return [...direct, ...rest.sort(), ...(socialMedia.website ? ["website"] : [])];
+  const websites = socialMedia.filter((link) => link.platform === "website");
+  return [...direct, ...rest, ...websites];
 }
 
 /**
@@ -52,23 +59,20 @@ function lookupOrder(socialMedia: Record<string, string>): string[] {
  * portrait and on a few is the platform's own banner. Whoever enters the
  * sponsor sees the result and can drop it.
  *
- * @param socialMedia - Platform keys against canonical profile addresses.
+ * @param socialMedia - The sponsor's addresses, in the order they were entered.
  * @returns The address of the picture, or `null` when none could be resolved.
  */
-export async function resolveSponsorAvatar(
-  socialMedia: Record<string, string>,
-): Promise<string | null> {
-  for (const platform of lookupOrder(socialMedia)) {
-    const address = socialMedia[platform];
-    if (!address) continue;
+export async function resolveSponsorAvatar(socialMedia: SocialMediaLinks): Promise<string | null> {
+  for (const { platform, url } of lookupOrder(socialMedia)) {
+    if (!url) continue;
 
     const direct = DIRECT_LOOKUPS[platform];
     // A profile is read for the picture it shows of the person; a website is
     // read for its own mark. The same reader answers both, so which of the two
     // it is looking for has to be said here.
     const avatar = direct
-      ? await direct(address)
-      : await lookupSiteImage(address, platform === "website" ? "site-mark" : "portrait");
+      ? await direct(url)
+      : await lookupSiteImage(url, platform === "website" ? "site-mark" : "portrait");
     if (avatar) return avatar;
   }
 
