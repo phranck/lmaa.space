@@ -649,6 +649,20 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
 };
 
 /**
+ * Puts `https://` in front of an address that carries no scheme.
+ *
+ * People write `xing.com/profile/somebody` far more often than they write the
+ * scheme, and both halves of sorting an address have to read the same string
+ * for that to work.
+ *
+ * @param input - An address, trimmed.
+ * @returns The address with a scheme.
+ */
+function withHttpsScheme(input: string): string {
+  return /^https?:\/\//i.test(input) ? input : `https://${input}`;
+}
+
+/**
  * Infers a social media platform from a URL string.
  *
  * Returns `null` when the host does not match any known platform or the input
@@ -661,8 +675,7 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
-  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-  const url = tryParseUrl(withScheme);
+  const url = tryParseUrl(withHttpsScheme(trimmed));
   if (!url) return null;
 
   const host = stripWww(url.hostname);
@@ -673,6 +686,7 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
 
   if (isFacebookHost(host)) return "facebook";
   if (isLinkedinHost(host)) return "linkedin";
+  if (isXingHost(host)) return "xing";
   if (isXHost(host)) return "x";
   if (isTumblrHost(host)) return "tumblr";
 
@@ -686,7 +700,6 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
 }
 
 const normalizers: Record<SocialPlatformKey, (input: string) => string | null> = {
-  if (isXingHost(host)) return "xing";
   instagram: normalizeInstagram,
   facebook: normalizeFacebook,
   threads: normalizeThreads,
@@ -698,6 +711,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   mastodon: normalizeMastodon,
   tumblr: normalizeTumblr,
   linkedin: normalizeLinkedin,
+  xing: normalizeXing,
   pinterest: normalizePinterest,
   patreon: normalizePatreon,
   applepodcasts: normalizeApplepodcasts,
@@ -711,7 +725,6 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   gitlab: normalizeWebsite,
   codeberg: normalizeWebsite,
   website: normalizeWebsite,
-  xing: normalizeXing,
 };
 
 /**
@@ -766,9 +779,15 @@ export function classifyProfileLink(
     if (handleUrl) return { platform: "mastodon", url: handleUrl };
   }
 
-  const platform = detectPlatformFromUrl(trimmed) ?? "website";
-  const url = normalizeSocialMediaValue(platform, trimmed);
-  return url ? { platform, url } : null;
+  // Where the host named a service, the normaliser is handed the same address
+  // the detection read rather than the one it was typed as. Without that,
+  // `xing.com/profile/somebody` is recognised and then refused, because every
+  // normaliser parses a URL and falls through to its bare-handle branch when
+  // there is no scheme to parse.
+  const platform = detectPlatformFromUrl(trimmed);
+  const value = platform ? withHttpsScheme(trimmed) : trimmed;
+  const url = normalizeSocialMediaValue(platform ?? "website", value);
+  return url ? { platform: platform ?? "website", url } : null;
 }
 
 /**

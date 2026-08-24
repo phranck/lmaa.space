@@ -152,6 +152,36 @@ describe("XING social media support", () => {
   });
 });
 
+describe("classifyProfileLink without a scheme", () => {
+  it.each([
+    ["xing.com/profile/Kai_Becker", "xing", "https://xing.com/profile/Kai_Becker"],
+    ["www.xing.com/profile/Kai_Becker", "xing", "https://xing.com/profile/Kai_Becker"],
+    ["linkedin.com/in/jemand", "linkedin", "https://linkedin.com/in/jemand"],
+    ["instagram.com/jemand", "instagram", "https://instagram.com/jemand"],
+    ["chaos.social/@kim", "mastodon", "https://chaos.social/@kim"],
+  ])("sorts %s", (input, platform, url) => {
+    expect(classifyProfileLink(input)).toEqual({ platform, url });
+  });
+
+  it("still reads a bare domain as a website", () => {
+    expect(classifyProfileLink("example.com")).toEqual({
+      platform: "website",
+      url: "https://example.com/",
+    });
+  });
+
+  it("still refuses a bare word, which is neither a host nor a handle here", () => {
+    expect(classifyProfileLink("foo")).toBeNull();
+  });
+
+  it("still reads a fediverse handle", () => {
+    expect(classifyProfileLink("@kim@chaos.social")).toEqual({
+      platform: "mastodon",
+      url: "https://chaos.social/@kim",
+    });
+  });
+});
+
 describe("classifyProfileLink", () => {
   it("sorts an address into the service it belongs to", () => {
     expect(classifyProfileLink("https://oldbytes.space/@phranck")).toEqual({
