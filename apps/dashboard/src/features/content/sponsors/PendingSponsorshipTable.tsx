@@ -9,6 +9,7 @@ import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import type { PendingSponsorshipRow } from "@/features/content/sponsors/hooks/usePendingSponsorships.ts";
+import { useFavicons } from "@/lib/useFavicons.ts";
 
 interface PendingSponsorshipTableProps {
   entries: PendingSponsorshipRow[];
@@ -30,6 +31,9 @@ function PendingSponsorshipTableComponent({
   onDelete,
 }: PendingSponsorshipTableProps) {
   const { messages } = useI18n();
+  // Looked up for the whole table at once, so a website named twice is asked
+  // about once.
+  const favicons = useFavicons(entries.flatMap((entry) => entry.socialMedia));
   const common = messages.common;
   const text = messages.system.pendingSponsorships;
   const sponsorText = messages.system.sponsors;
@@ -73,6 +77,7 @@ function PendingSponsorshipTableComponent({
         cell: (entry) => (
           <SocialMediaIcons
             socialMedia={entry.socialMedia}
+            favicons={favicons}
             className="flex items-center gap-2"
             linkable={false}
           />
@@ -141,7 +146,7 @@ function PendingSponsorshipTableComponent({
         ),
       },
     ],
-    [common, onDelete, onTakeOver, sponsorText, text],
+    [common, favicons, onDelete, onTakeOver, sponsorText, text],
   );
 
   return <DataTable data={entries} columns={columns} getRowKey={(entry) => entry.id} />;

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useFavicons } from "@/lib/useFavicons.ts";
 
 interface SponsorTableProps {
   sponsors: Sponsor[];
@@ -27,6 +28,9 @@ interface SponsorTableProps {
  */
 function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
   const { messages } = useI18n();
+  // Looked up for the whole table at once, so a website named by two sponsors
+  // is asked about once.
+  const favicons = useFavicons(sponsors.flatMap((sponsor) => sponsor.socialMedia));
   const common = messages.common;
   const text = messages.system.sponsors;
 
@@ -59,6 +63,7 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
         cell: (sponsor) => (
           <SocialMediaIcons
             socialMedia={sponsor.socialMedia}
+            favicons={favicons}
             className="flex items-center gap-2"
             linkable={false}
           />
@@ -95,9 +100,7 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
             <Badge
               className="shrink-0"
               colorClass={
-                left > 0
-                  ? "bg-emerald-500/10 text-emerald-400"
-                  : "bg-stone-500/10 text-stone-400"
+                left > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-stone-500/10 text-stone-400"
               }
             >
               {left > 0 ? `${left} ${text.daysLeft}` : text.expired}
@@ -119,7 +122,7 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
         ),
       },
     ],
-    [common, onEdit, text, today],
+    [common, favicons, onEdit, text, today],
   );
 
   return <DataTable data={sponsors} columns={columns} getRowKey={(sponsor) => sponsor.id} />;
