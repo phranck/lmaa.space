@@ -17,6 +17,7 @@ import { runMigrations } from "./db/run-migrations.js";
 import { serveApiReference, serveOpenApiJson } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
 import { logger } from "./lib/logger.js";
+import { requireInternalCaller } from "./middleware/internal-caller.js";
 import { startRateLimitCleanupJob } from "./middleware/rate-limit.js";
 import { requestId } from "./middleware/request-id.js";
 import { adminRoutes } from "./routes/admin/routes.js";
@@ -97,7 +98,13 @@ app.use("*", async (c, next) => {
 
 app.route("/", sitemapRoutes);
 app.route("/", securityTxtRoutes);
-app.route("/internal", redirectUrlRoutes);
+// Everything under `/internal` is for this project's own server-side renderer
+// and for nobody else. The check sits on the mount rather than on the routes
+// beneath it, so a route added here later is covered by having been put here.
+const internalRoutes = new Hono();
+internalRoutes.use("*", requireInternalCaller);
+internalRoutes.route("/", redirectUrlRoutes);
+app.route("/internal", internalRoutes);
 app.route("/api/v1", publicRoutes);
 app.route("/api/v1/admin", adminRoutes);
 
