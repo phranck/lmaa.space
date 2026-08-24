@@ -9,7 +9,7 @@ import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { slugToTitle } from "@/lib/slug";
 import { loadSupportPrompts } from "@/lib/support-prompts";
-import { type Shop, encodeShopToken } from "@lmaa/shared";
+import { countryName, encodeShopToken, type Shop } from "@lmaa/shared";
 import { PaymentMethodIcons, SocialMediaIcons } from "@lmaa/ui";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 import {
@@ -103,10 +103,7 @@ if (hq) {
   const cityLine = [hq.postalCode, hq.city].filter(Boolean).join(" ");
   if (cityLine) hqParts.push(cityLine);
   if (hq.state) hqParts.push(hq.state);
-  if (hq.countryCode) {
-    const countryName = new Intl.DisplayNames(["de"], { type: "region" }).of(hq.countryCode);
-    hqParts.push(countryName ?? hq.countryCode);
-  }
+  if (hq.countryCode) hqParts.push(countryName(hq.countryCode));
 }
 
 // SEO

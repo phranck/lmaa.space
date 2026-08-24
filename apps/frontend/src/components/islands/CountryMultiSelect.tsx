@@ -2,7 +2,7 @@ import { CaretDownIcon, CaretUpIcon, CheckIcon, XCircleIcon } from "@phosphor-ic
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-const REGION_NAMES = new Intl.DisplayNames(["de"], { type: "region" });
+import { countryName } from "@lmaa/shared";
 
 export interface FilterCountry {
   code: string;
@@ -13,10 +13,6 @@ function countryFlag(code: string): string {
   return [...code.toUpperCase()]
     .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
     .join("");
-}
-
-function countryName(code: string): string {
-  return REGION_NAMES.of(code) ?? code;
 }
 
 interface CountryMultiSelectProps {
