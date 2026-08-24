@@ -5,7 +5,9 @@ import {
   buildCreditorReference,
   classifyProfileLink,
   normalizeCreditorReference,
+  normalizeSocialMediaValue,
   randomReferenceBody,
+  type SocialPlatformKey,
 } from "@lmaa/shared";
 
 import { resolveSponsorAvatar } from "./sponsor-avatar.js";
@@ -13,6 +15,7 @@ import { getSponsoringConfig } from "./sponsors.js";
 import type { PendingSponsorshipInsert, PendingSponsorshipRow, SponsorRow } from "../db/schema.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
 import { logger } from "../lib/logger.js";
+import { detectPlatformFromHost } from "../lib/og.js";
 import { type Result, failure, success } from "../lib/result.js";
 import {
   deletePendingSponsorship,
@@ -113,16 +116,45 @@ async function toStoredFields(
   // the entry without it would leave somebody believing they had given it.
   if (input.link && !classified) return failure("link_unusable");
 
+  const sorted = classified ? await refineWebsite(classified) : null;
+
   return success({
     fields: {
       firstName: input.firstName,
       lastName: input.lastName,
-      socialMedia: classified ? { [classified.platform]: classified.url } : {},
+      socialMedia: sorted ? { [sorted.platform]: sorted.url } : {},
       claim: input.claim,
       amountCents: input.amountCents,
       published: input.published,
     },
   });
+}
+
+/**
+ * Asks the page what it is, where its address could not say.
+ *
+ * A service anybody can host sits on a domain of its own and its profiles are a
+ * single path segment, which is what a personal website looks like too. So an
+ * address on one of them sorts into `website`, and only the host can put that
+ * right, by saying through NodeInfo which software it runs.
+ *
+ * A host that answers nothing, or that runs something not known here, is left
+ * as the website it was taken for.
+ *
+ * @param classified - What the address sorted into by its shape alone.
+ * @returns The same, or the service the page turned out to belong to.
+ */
+async function refineWebsite(classified: {
+  platform: SocialPlatformKey;
+  url: string;
+}): Promise<{ platform: SocialPlatformKey; url: string }> {
+  if (classified.platform !== "website") return classified;
+
+  const named = await detectPlatformFromHost(classified.url);
+  if (!named) return classified;
+
+  const url = normalizeSocialMediaValue(named as SocialPlatformKey, classified.url);
+  return url ? { platform: named as SocialPlatformKey, url } : classified;
 }
 
 export async function createPendingSponsorship(

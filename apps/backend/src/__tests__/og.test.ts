@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { fetchExternalResource, isLogoUrl, parseImageDimensions } from "../lib/og.js";
+import {
+  detectPlatformFromHost,
+  fetchExternalResource,
+  isLogoUrl,
+  parseImageDimensions,
+} from "../lib/og.js";
 
 // The SSRF guard resolves hostnames before fetching; resolve every test host to
 // a fixed public address so redirect handling is exercised without real DNS.
@@ -185,5 +190,69 @@ describe("fetchExternalResource", () => {
 
     expect(result).toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("detectPlatformFromHost", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /**
+   * Answers the two NodeInfo requests a host is asked: the well-known document
+   * that says where the real one lives, and the real one.
+   *
+   * @param software - What the host reports running, or `null` for a host that
+   *   answers nothing.
+   */
+  function stubNodeinfo(software: string | null) {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: string | URL) => {
+        const url = String(input);
+        if (software === null) return new Response("nope", { status: 404 });
+        if (url.endsWith("/.well-known/nodeinfo")) {
+          return Response.json({
+            links: [
+              { rel: "http://nodeinfo.diaspora.software/ns/schema/2.0", href: "https://host/n/2.0" },
+              { rel: "http://nodeinfo.diaspora.software/ns/schema/2.1", href: "https://host/n/2.1" },
+            ],
+          });
+        }
+        return Response.json({ software: { name: software, version: "0.12.7" } });
+      }),
+    );
+  }
+
+  it("names the service a host reports running", async () => {
+    stubNodeinfo("pixelfed");
+    expect(await detectPlatformFromHost("https://pixey.org/somebody")).toBe("pixelfed");
+  });
+
+  it("does not care what the operator called the place", async () => {
+    // Measured across twelve instances: their names ran from "Pixey" to
+    // "FediSnap", whilst every one of them reported `pixelfed` here.
+    stubNodeinfo("Pixelfed");
+    expect(await detectPlatformFromHost("https://fedisnap.com/somebody")).toBe("pixelfed");
+  });
+
+  it("answers for anything else that speaks NodeInfo", async () => {
+    stubNodeinfo("mastodon");
+    expect(await detectPlatformFromHost("https://oldbytes.space/@somebody")).toBe("mastodon");
+  });
+
+  it("leaves a host running something unmapped alone", async () => {
+    stubNodeinfo("lemmy");
+    expect(await detectPlatformFromHost("https://example.org/c/somewhere")).toBeNull();
+  });
+
+  it("leaves an ordinary website alone", async () => {
+    stubNodeinfo(null);
+    expect(await detectPlatformFromHost("https://example.org/somebody")).toBeNull();
+  });
+
+  it("refuses what is not an address", async () => {
+    stubNodeinfo("pixelfed");
+    expect(await detectPlatformFromHost("not an address")).toBeNull();
   });
 });
