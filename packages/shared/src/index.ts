@@ -34,6 +34,12 @@ export * from "./utils/rejection-token.js";
 export * from "./utils/shop-token.js";
 /** Money, written the one way this project writes it. */
 export * from "./utils/money.js";
+/** Slugs, written the one way this project writes them. */
+export * from "./utils/slug.js";
+/** Dates and timestamps, written the one way this project writes them. */
+export * from "./utils/datetime.js";
+/** Country names, read from a two-letter code. */
+export * from "./utils/country-name.js";
 /** Figures the settings own, named in a text as `{annualCost}` and expanded on render. */
 export * from "./utils/site-variables.js";
 /** User-friendly token expansion (`U+XXXX`, `{nbhy}`, `&#8209;`) for plain-text fields. */
