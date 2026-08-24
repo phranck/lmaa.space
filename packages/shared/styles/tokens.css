@@ -81,6 +81,9 @@
   --ds-L-text: 0.2;
   --ds-L-muted: calc(var(--ds-L-text) + var(--ds-L-text-step));
   --ds-L-subtle: calc(var(--ds-L-text) + var(--ds-L-text-step) * 2);
+  /* One step past subtle, which is where a hint stops reading as something
+     somebody typed into the field. */
+  --ds-L-placeholder: calc(var(--ds-L-text) + var(--ds-L-text-step) * 3);
 
   /* Surfaces — computed from lightness */
   --ds-bg: oklch(var(--ds-L-bg) var(--ds-neutral-c) var(--ds-neutral-h));
@@ -108,6 +111,8 @@
   --ds-text: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h));
   --ds-text-muted: oklch(var(--ds-L-muted) var(--ds-neutral-c) var(--ds-neutral-h));
   --ds-text-subtle: oklch(var(--ds-L-subtle) var(--ds-neutral-c) var(--ds-neutral-h));
+  /* What a field suggests, as against what it holds. */
+  --ds-text-placeholder: oklch(var(--ds-L-placeholder) var(--ds-neutral-c) var(--ds-neutral-h));
   --ds-text-inverse: #ffffff;
 
   /* Accent / CTA — full brand saturation for public UI */
@@ -302,6 +307,9 @@
   --ds-L-text: 0.95;
   --ds-L-muted: 0.65;
   --ds-L-subtle: 0.5;
+  /* Darker rather than lighter here, because further from the text colour is
+     what makes a hint recede, and on a dark surface that direction reverses. */
+  --ds-L-placeholder: 0.4;
 
   --ds-text-inverse: oklch(var(--ds-L-inset) 0 0);
   /* Warm paper has no counterpart on a dark page, so the role falls back to the
