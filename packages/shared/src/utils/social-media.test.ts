@@ -120,6 +120,68 @@ describe("LinkedIn social media support", () => {
   });
 });
 
+describe("XING social media support", () => {
+  it.each([
+    "https://www.xing.com/profile/Kai_Becker",
+    "https://xing.com/profile/Kai_Becker",
+    "https://www.xing.com/pages/eine-firma",
+  ])("detects XING URLs from %s", (url) => {
+    expect(detectPlatformFromUrl(url)).toBe("xing");
+  });
+
+  it.each([
+    ["https://www.xing.com/profile/Kai_Becker", "https://xing.com/profile/Kai_Becker"],
+    ["https://www.xing.com/profile/Kai_Becker/", "https://xing.com/profile/Kai_Becker"],
+    ["https://xing.com/pages/eine-firma", "https://xing.com/pages/eine-firma"],
+    ["https://xing.com/Kai_Becker", "https://xing.com/profile/Kai_Becker"],
+    ["Kai_Becker", "https://xing.com/profile/Kai_Becker"],
+    ["@Kai_Becker", "https://xing.com/profile/Kai_Becker"],
+  ])("normalizes %s", (input, expected) => {
+    expect(normalizeSocialMediaValue("xing", input)).toBe(expected);
+  });
+
+  it("refuses an address on another host", () => {
+    expect(normalizeSocialMediaValue("xing", "https://linkedin.com/in/foo")).toBeNull();
+  });
+
+  it("sorts a XING profile into XING rather than into a website", () => {
+    expect(classifyProfileLink("https://www.xing.com/profile/Kai_Becker")).toEqual({
+      platform: "xing",
+      url: "https://xing.com/profile/Kai_Becker",
+    });
+  });
+});
+
+describe("classifyProfileLink without a scheme", () => {
+  it.each([
+    ["xing.com/profile/Kai_Becker", "xing", "https://xing.com/profile/Kai_Becker"],
+    ["www.xing.com/profile/Kai_Becker", "xing", "https://xing.com/profile/Kai_Becker"],
+    ["linkedin.com/in/jemand", "linkedin", "https://linkedin.com/in/jemand"],
+    ["instagram.com/jemand", "instagram", "https://instagram.com/jemand"],
+    ["chaos.social/@kim", "mastodon", "https://chaos.social/@kim"],
+  ])("sorts %s", (input, platform, url) => {
+    expect(classifyProfileLink(input)).toEqual({ platform, url });
+  });
+
+  it("still reads a bare domain as a website", () => {
+    expect(classifyProfileLink("example.com")).toEqual({
+      platform: "website",
+      url: "https://example.com/",
+    });
+  });
+
+  it("still refuses a bare word, which is neither a host nor a handle here", () => {
+    expect(classifyProfileLink("foo")).toBeNull();
+  });
+
+  it("still reads a fediverse handle", () => {
+    expect(classifyProfileLink("@kim@chaos.social")).toEqual({
+      platform: "mastodon",
+      url: "https://chaos.social/@kim",
+    });
+  });
+});
+
 describe("classifyProfileLink", () => {
   it("sorts an address into the service it belongs to", () => {
     expect(classifyProfileLink("https://oldbytes.space/@phranck")).toEqual({
