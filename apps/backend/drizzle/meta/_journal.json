@@ -561,6 +561,13 @@
       "when": 1787601236429,
       "tag": "0079_social_media_as_list",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1787604792369,
+      "tag": "0080_strip_website_trailing_slash",
+      "breakpoints": true
     }
   ]
 }

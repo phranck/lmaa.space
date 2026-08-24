@@ -729,9 +729,12 @@ function normalizeWebsite(input: string): string | null {
   // shapes read as an address on the host and are not one.
   if (url.username || url.password) return null;
   // A host with no dot in it is not a name reached from the internet, so a
-  // single word does not become `https://word/`.
+  // single word does not become `https://word`.
   if (!url.hostname.includes(".")) return null;
-  return url.href;
+  // The parser fills an empty path with a slash, so `https://kim.example` comes
+  // back with one appended. Nobody wrote it and nobody wants to read it, and
+  // leaving it in makes the same page compare unequal to itself.
+  return stripTrailingSlash(url.href);
 }
 
 const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
