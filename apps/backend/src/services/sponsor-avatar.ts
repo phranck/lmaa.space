@@ -1,5 +1,5 @@
 import { logger } from "../lib/logger.js";
-import { fetchPreviewImage } from "../lib/og.js";
+import { type PreviewIntent, fetchPreviewImage } from "../lib/og.js";
 import { isExternalUrl, isPublicFetchTarget } from "../lib/validate.js";
 
 /** How long a lookup at somebody else's instance may take. */
@@ -62,8 +62,13 @@ export async function resolveSponsorAvatar(
     const address = socialMedia[platform];
     if (!address) continue;
 
-    const lookUp = DIRECT_LOOKUPS[platform] ?? lookupSiteImage;
-    const avatar = await lookUp(address);
+    const direct = DIRECT_LOOKUPS[platform];
+    // A profile is read for the picture it shows of the person; a website is
+    // read for its own mark. The same reader answers both, so which of the two
+    // it is looking for has to be said here.
+    const avatar = direct
+      ? await direct(address)
+      : await lookupSiteImage(address, platform === "website" ? "site-mark" : "portrait");
     if (avatar) return avatar;
   }
 
@@ -151,7 +156,7 @@ async function lookupForgeAvatar(profileUrl: string): Promise<string | null> {
 }
 
 /**
- * Takes the picture a page shows of itself.
+ * Takes the picture a page shows.
  *
  * The site's preview reader already answers this question for shops: it reads
  * the page's own image, its icons and its manifest, measures every candidate
@@ -161,11 +166,13 @@ async function lookupForgeAvatar(profileUrl: string): Promise<string | null> {
  * it covers the ones nobody has heard of.
  *
  * @param pageUrl - The address the sponsor gave.
+ * @param intent - Whether the page is somebody's profile or their website,
+ *   which decides whether the page's own picture or the site's mark is wanted.
  * @returns The address of the picture, or `null`.
  */
-async function lookupSiteImage(pageUrl: string): Promise<string | null> {
+async function lookupSiteImage(pageUrl: string, intent: PreviewIntent): Promise<string | null> {
   try {
-    const found = await fetchPreviewImage(pageUrl);
+    const found = await fetchPreviewImage(pageUrl, { intent });
     return found ? pictureUrl(found.url) : null;
   } catch (err) {
     logger.warn({ err, url: pageUrl }, "sponsor avatar lookup failed");

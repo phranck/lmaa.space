@@ -1,24 +1,30 @@
-/** The platforms a sponsor's picture can be looked up at, in the order tried. */
-const LOOKUP_PLATFORMS = ["mastodon", "bluesky"] as const;
-
 /**
  * The addresses a picture could be resolved from, as one comparable string.
  *
+ * Every address counts, because the site answers for every one of them: a
+ * handful of services through their own lookup, and all the rest by reading the
+ * page for the picture it shows. Naming a few platforms here would be a second
+ * list that has to be kept in step with that, and the last one drifted.
+ *
  * @param socialMedia - Platform keys against profile addresses.
- * @returns The addresses of the looked-up platforms, joined.
+ * @returns The addresses, joined and in a stable order.
  */
 export function lookupKey(socialMedia: Record<string, string>): string {
-  return LOOKUP_PLATFORMS.map((platform) => socialMedia[platform] ?? "").join("|");
+  return Object.entries(socialMedia)
+    .filter(([, address]) => Boolean(address))
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([platform, address]) => `${platform}=${address}`)
+    .join("|");
 }
 
 /**
  * Whether any address is present that a picture could be fetched from.
  *
  * @param socialMedia - Platform keys against profile addresses.
- * @returns `true` when at least one looked-up platform carries an address.
+ * @returns `true` when at least one address is there.
  */
 export function canFetchPicture(socialMedia: Record<string, string>): boolean {
-  return LOOKUP_PLATFORMS.some((platform) => Boolean(socialMedia[platform]));
+  return Object.values(socialMedia).some(Boolean);
 }
 
 /**
@@ -39,5 +45,5 @@ export function shouldFetchPicture(
   lastKey: string,
 ): boolean {
   if (lookupKey(socialMedia) === lastKey) return false;
-  return LOOKUP_PLATFORMS.some((platform) => socialMedia[platform]?.startsWith("https://"));
+  return Object.values(socialMedia).some((address) => address?.startsWith("https://"));
 }
