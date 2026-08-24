@@ -178,6 +178,10 @@ export interface SponsorsIsland {
   covered: string;
   /** What it says whilst they are not. `{missing}` stands for the amount. */
   missing: string;
+  /** What stands in the row's place whilst nobody is on the list. */
+  empty: string;
+  /** What the button under that says. */
+  emptyAction: string;
 }
 
 export type ContentShortcodeSegment =
@@ -506,6 +510,8 @@ export function parseContentShortcodeSegments(content: string): ContentShortcode
         text: unescapeText(getStringParam(shortcode.params.text)?.trim() ?? ""),
         covered: unescapeText(getStringParam(shortcode.params.covered)?.trim() ?? ""),
         missing: unescapeText(getStringParam(shortcode.params.missing)?.trim() ?? ""),
+        empty: unescapeText(getStringParam(shortcode.params.empty)?.trim() ?? ""),
+        emptyAction: unescapeText(getStringParam(shortcode.params.emptyAction)?.trim() ?? ""),
       };
     }
 

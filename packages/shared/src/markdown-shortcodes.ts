@@ -639,6 +639,7 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
       "Die Menschen, die gerade die laufenden Kosten tragen. Wer dort steht, pflegst du unter Sponsoring; hier stehen nur Überschrift und Text.",
     examples: [
       '[[sponsors title="Die aktuellen Jahres-Sponsoren" text="Danke an alle, die das hier tragen."]]',
+      '[[sponsors title="Die aktuellen Jahres-Sponsoren" emptyAction="Der erste sein"]]',
     ],
     params: [
       { name: "title", type: "string", label: "Überschrift" },
@@ -652,6 +653,17 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
         name: "missing",
         type: "string",
         label: "Satz, solange etwas fehlt. {missing} wird durch den Betrag ersetzt",
+      },
+      {
+        name: "empty",
+        type: "string",
+        label:
+          "Text, solange noch niemand sponsert. Der erste Absatz wird zur Überschrift der Karte",
+      },
+      {
+        name: "emptyAction",
+        type: "string",
+        label: "Beschriftung des Knopfes darunter",
       },
     ],
   },

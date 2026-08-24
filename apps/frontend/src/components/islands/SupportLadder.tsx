@@ -33,6 +33,10 @@ import {
   rememberIssuedSponsorship,
   subscribeIssuedSponsorship,
 } from "@/lib/pending-sponsorship-store";
+import {
+  CHOOSE_SUPPORT_INTERVAL_EVENT,
+  type ChooseSupportIntervalDetail,
+} from "@/lib/support-ladder-events";
 
 /**
  * Props for {@link SupportLadder}.
@@ -881,6 +885,24 @@ export default function SupportLadder({
       swapTimer.current = null;
     }, BODY_FADE_MS);
   }
+
+  /**
+   * Lets something outside the island open one of these tabs.
+   *
+   * The sponsor wall's invitation stands above this and cannot reach the state
+   * in here. Sending somebody to a closed tab would ask them to find the step
+   * again after they had already taken it, so the same click opens it.
+   */
+  useEffect(() => {
+    function open(event: Event) {
+      const key = (event as CustomEvent<ChooseSupportIntervalDetail>).detail?.key;
+      if (!key || !intervals.some((entry) => entry.key === key)) return;
+      chooseInterval(key);
+    }
+
+    window.addEventListener(CHOOSE_SUPPORT_INTERVAL_EVENT, open);
+    return () => window.removeEventListener(CHOOSE_SUPPORT_INTERVAL_EVENT, open);
+  });
 
   function chooseCustom(value: string) {
     // What the field holds is the cleaned value, so grouping separators, stray

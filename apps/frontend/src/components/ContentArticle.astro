@@ -35,6 +35,18 @@ const needsSponsors = segments.some(
 );
 const sponsors = needsSponsors ? await getSponsors() : EMPTY_SPONSORS;
 const minSponsorAmountEur = Math.ceil(sponsors.minAmountCents / 100);
+
+/**
+ * Where the sponsor wall sends somebody who wants to be the first.
+ *
+ * Only where this page actually carries the ladder, because a button that
+ * scrolls nowhere is worse than no button. The wall leaves it out when this is
+ * empty.
+ */
+const SUPPORT_LADDER_ANCHOR = "unterstuetzen";
+const supportHref = segments.some((segment) => segment.type === "support-ladder")
+  ? `#${SUPPORT_LADDER_ANCHOR}`
+  : "";
 ---
 
 <article
@@ -60,6 +72,9 @@ const minSponsorAmountEur = Math.ceil(sponsors.minAmountCents / 100);
                 text={segment.text}
                 covered={segment.covered}
                 missing={segment.missing}
+                empty={segment.empty}
+                emptyAction={segment.emptyAction}
+                emptyHref={supportHref}
               />
             </div>
           </Fragment>
@@ -71,7 +86,7 @@ const minSponsorAmountEur = Math.ceil(sponsors.minAmountCents / 100);
         // between two paragraphs. Under a heading the island therefore sits as
         // close as any other block rather than a whole step lower.
         return (
-          <div class="not-prose mb-10">
+          <div class="not-prose mb-10" id={SUPPORT_LADDER_ANCHOR}>
             <SupportLadder
               client:load
               bankAccount={segment.bankAccount}

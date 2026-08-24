@@ -3,6 +3,7 @@
 
 html {
   font-size: 18px;
+  scroll-behavior: smooth;
 }
 
 :root {
@@ -515,6 +516,256 @@ details > summary::-webkit-details-marker {
      every side. The padding is the room the cards' shadows need inside that
      clip, and the margins give it back, so the row occupies what it did before
      the shadows arrived. */
+/* What stands where the cards would, before anybody is on the list.
+   The card's own geometry, so the block keeps its shape, with a dashed edge
+   and no shadow: this is the place a card will take rather than a card about
+   somebody. The tint is the accent rather than a grey, because the block is
+   asking for something rather than reporting that something is missing. */
+[id="unterstuetzen"] {
+  scroll-margin-block-start: var(--ds-space-lg);
+}
+
+.lmaa-sponsor-empty {
+  --sponsor-seat-size: 7rem;
+
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-lg);
+  position: relative;
+  overflow: hidden;
+  border: var(--card-border-width) dashed var(--ds-accent-tint-strong);
+  border-radius: var(--radius-card);
+  /* Equal on all four sides, as every card on the site is. Wider than a card
+     in the row, because this one stands alone across the whole content. */
+  padding: calc(var(--card-padding) * 2);
+  /* The air belongs between the card and what stands above and below it, not
+     inside it. Sideways it keeps the content's own edges, so it stands exactly
+     where the row of cards will stand. */
+  margin-block: var(--ds-space-base);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-md);
+}
+
+/* The light the medallion sits in.
+   A radius is written out, because a radial gradient without one reaches the
+   farthest corner and the curve never appears. */
+.lmaa-sponsor-empty::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 16rem at calc(var(--card-padding) * 2 + var(--sponsor-seat-size) / 2) 50%,
+    var(--ds-accent-tint),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Everything in the card stands above that light. */
+.lmaa-sponsor-empty > * {
+  position: relative;
+}
+
+.lmaa-sponsor-empty-figure {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: var(--sponsor-seat-size) auto;
+  align-items: center;
+  gap: var(--ds-space-base);
+}
+
+/* The place the first sponsor takes, drawn as the medal it is.
+   A scalloped edge rather than a plain disc, because a disc is a placeholder
+   and a medal is something somebody is given. */
+.lmaa-sponsor-empty-seat {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sponsor-seat-size);
+  height: var(--sponsor-seat-size);
+  /* Not --ds-accent: on the medal's wash it measures 2.01:1. The
+     two-steps-darker shade the tokens keep for this case measures 6.12:1. */
+  color: var(--ds-accent-text);
+  font-family: var(--ds-font-serif);
+  font-size: calc(var(--ds-text-xl) * 1.75);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* The medal, which is the filled shape and the line around it together. */
+.lmaa-sponsor-empty-medal {
+  position: absolute;
+  inset: 0;
+  color: var(--ds-accent-tint-strong);
+}
+
+.lmaa-sponsor-empty-medal-body {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* The line around it, a step out from the shape it follows.
+   Drawn as the same silhouette with no fill and a stroke, because every weight
+   Phosphor offers is a filled path whose thickness grows with the icon.
+   `non-scaling-stroke` is what holds that stroke at one pixel however large the
+   shape is drawn. */
+.lmaa-sponsor-empty-medal-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--sponsor-seat-size) + var(--ds-space-xs) * 2);
+  height: calc(var(--sponsor-seat-size) + var(--ds-space-xs) * 2);
+  translate: -50% -50%;
+  fill: none;
+  stroke: var(--ds-accent);
+  opacity: 0.5;
+}
+
+.lmaa-sponsor-empty-medal-ring path {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1;
+}
+
+/* The numeral, moved to where it looks centred rather than where it measures
+   centred.
+   Its ink sits 1px left of and 3px below the middle of the line box flexbox
+   centres, because a one is narrower than its advance and the face's ascender
+   and descender are not symmetrical. */
+.lmaa-sponsor-empty-numeral {
+  position: relative;
+  transform: translate(1px, -3px);
+  /* A white edge around the figure, lifting it off the wash it stands on.
+     `paint-order` puts the stroke behind the fill, because a stroke centred on
+     the outline takes half its width out of the glyph and thins it. */
+  -webkit-text-stroke: 4px var(--ds-text-inverse);
+  paint-order: stroke fill;
+}
+
+
+/* The lines a name and a sentence will fill.
+   Three of them in the proportions a card actually carries, so the shape reads
+   as a card at a glance without anybody having to read a word of it. */
+.lmaa-sponsor-empty-lines {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-xs);
+}
+
+.lmaa-sponsor-empty-line {
+  height: 0.5rem;
+  width: 5rem;
+  border-radius: 999px;
+  background: var(--ds-accent-tint-strong);
+}
+
+.lmaa-sponsor-empty-line.is-name {
+  height: 0.75rem;
+  width: 7rem;
+  background: var(--ds-accent);
+  opacity: 0.35;
+}
+
+.lmaa-sponsor-empty-line.is-short {
+  width: 3rem;
+}
+
+.lmaa-sponsor-empty-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-space-sm);
+}
+
+/* The first paragraph is the card's headline, in the face the site sets a name
+   in. The block asks the page for one text rather than two, and this is what
+   tells the two apart. */
+.lmaa-sponsor-empty-body .lmaa-rich > p:first-child {
+  font-family: var(--ds-font-serif);
+  font-size: var(--ds-text-xl);
+  line-height: 1.15;
+  color: var(--ds-text);
+}
+
+.lmaa-sponsor-empty-body .lmaa-rich > p + p {
+  margin-top: var(--ds-space-xs);
+  color: var(--ds-text-muted);
+}
+
+/* The button ends the block, so it stands at the block's right edge, which is
+   where a reader finishes reading it. */
+.lmaa-sponsor-empty-action {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-xs);
+  border-radius: var(--radius-control);
+  padding: var(--ds-space-xs) var(--ds-space-sm);
+  background: var(--ds-accent);
+  /* White on the accent measures 2.19:1, so the label carries its legibility in
+     its weight rather than in the contrast. */
+  color: var(--ds-accent-fg);
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--ds-shadow-sm);
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.lmaa-sponsor-empty-action:hover {
+  background: var(--ds-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--ds-shadow-md);
+}
+
+/* Narrow enough that the figure and the words cannot stand side by side. */
+@media (max-width: 40rem) {
+  .lmaa-sponsor-empty {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--ds-space-base);
+  }
+
+  .lmaa-sponsor-empty::before {
+    background: radial-gradient(
+      circle 16rem at 50% calc(var(--card-padding) * 2 + var(--sponsor-seat-size) / 2),
+      var(--ds-accent-tint),
+      transparent
+    );
+  }
+
+  .lmaa-sponsor-empty-body {
+    align-items: center;
+  }
+
+  /* Too narrow for a corner to mean anything, so the button takes the width
+     instead of sitting in one. */
+  .lmaa-sponsor-empty-action {
+    align-self: stretch;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lmaa-sponsor-empty-action {
+    transition: none;
+  }
+
+  .lmaa-sponsor-empty-action:hover {
+    transform: none;
+  }
+}
+
   --sponsor-shadow-room: var(--ds-space-sm);
   padding-block: var(--sponsor-shadow-room);
   margin-top: calc(var(--ds-space-base) - var(--sponsor-shadow-room));
