@@ -7,6 +7,14 @@ html {
 }
 
 :root {
+  /* The colours the three brand lockups carry, read off the files in
+     `src/assets/brands` rather than chosen here. They stand for somebody else's
+     mark, so they are recorded rather than designed, and a card tints itself
+     from whichever one its route names. */
+  --brand-sepa: #2350a9;
+  --brand-paypal: #003087;
+  --brand-github: #000000;
+
   --accent-base: var(--ds-accent);
   --accent-hover: var(--ds-accent-hover);
   --accent-active: var(--ds-accent-active);
@@ -420,10 +428,23 @@ details > summary::-webkit-details-marker {
   }
 }
 
-/* A block that names one way to pay stands slightly off the page, so the ways
-   read as separate offers rather than as one long column of text. */
+/* A block that names one way to pay stands off the page, so the ways read as
+   separate offers rather than as one long column of text. It carries no edge:
+   the shadow is what separates it, the same one the sponsor invitation uses, so
+   the two kinds of card sit at one height.
+
+   Each one washes from its own brand's colour into the surface, which tells the
+   three apart before a word of them is read. `--payment-brand` is set by the
+   card from the route it names, and a route naming no brand simply gets no
+   wash. */
 .lmaa-payment-card {
-  box-shadow: var(--ds-shadow-sm);
+  border: none;
+  box-shadow: var(--ds-shadow-md);
+  background-image: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--payment-brand, transparent) 12%, transparent),
+    transparent 65%
+  );
 }
 
 /* A suggested amount lifts a little under the pointer. The shadow is what makes
@@ -495,27 +516,6 @@ details > summary::-webkit-details-marker {
   margin-right: var(--sponsor-gap);
 }
 
-/* The row the sponsor cards stand in.
-   Two and a half cards fit across the content, so a third card is always half
-   visible and the row says without a word that it holds more. The width is read
-   from the rail rather than from the viewport, because the article is narrower
-   than the window. */
-.lmaa-sponsor-rail {
-  --sponsor-gap: var(--ds-space-sm);
-  --sponsor-fade: var(--ds-space-lg);
-  --sponsor-card-width: calc((100cqw - 1.5 * var(--sponsor-gap)) / 2.5);
-  /* One pass of the row: every card carries its own trailing space, so a run is
-     a whole number of equal steps. Both the width of the list and the distance
-     the loop travels are read from here, so the two cannot disagree. */
-  --sponsor-run: calc(var(--sponsor-count) * (var(--sponsor-card-width) + var(--sponsor-gap)));
-  container-type: inline-size;
-  display: flex;
-  position: relative;
-  overflow: hidden;
-  /* The row is clipped sideways so the cards can run out of it, and a clip cuts
-     every side. The padding is the room the cards' shadows need inside that
-     clip, and the margins give it back, so the row occupies what it did before
-     the shadows arrived. */
 /* What stands where the cards would, before anybody is on the list.
    The card's own geometry, so the block keeps its shape, with a dashed edge
    and no shadow: this is the place a card will take rather than a card about
@@ -766,6 +766,27 @@ details > summary::-webkit-details-marker {
   }
 }
 
+/* The row the sponsor cards stand in.
+   Two and a half cards fit across the content, so a third card is always half
+   visible and the row says without a word that it holds more. The width is read
+   from the rail rather than from the viewport, because the article is narrower
+   than the window. */
+.lmaa-sponsor-rail {
+  --sponsor-gap: var(--ds-space-sm);
+  --sponsor-fade: var(--ds-space-lg);
+  --sponsor-card-width: calc((100cqw - 1.5 * var(--sponsor-gap)) / 2.5);
+  /* One pass of the row: every card carries its own trailing space, so a run is
+     a whole number of equal steps. Both the width of the list and the distance
+     the loop travels are read from here, so the two cannot disagree. */
+  --sponsor-run: calc(var(--sponsor-count) * (var(--sponsor-card-width) + var(--sponsor-gap)));
+  container-type: inline-size;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  /* The row is clipped sideways so the cards can run out of it, and a clip cuts
+     every side. The padding is the room the cards' shadows need inside that
+     clip, and the margins give it back, so the row occupies what it did before
+     the shadows arrived. */
   --sponsor-shadow-room: var(--ds-space-sm);
   padding-block: var(--sponsor-shadow-room);
   margin-top: calc(var(--ds-space-base) - var(--sponsor-shadow-room));

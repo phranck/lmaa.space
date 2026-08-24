@@ -358,12 +358,11 @@ function OutboundRoute({ route }: { route: SupportLadderRoute }) {
     <div
       className="lmaa-card lmaa-payment-card mt-3"
       style={{
-        border: "var(--card-border-width) solid",
         padding: "var(--card-padding)",
         borderRadius: "var(--radius-card)",
-        background: "var(--ds-surface)",
-        borderColor: "var(--ds-border-subtle)",
-      }}
+        backgroundColor: "var(--ds-surface)",
+        "--payment-brand": route.icon ? `var(--brand-${route.icon}, transparent)` : "transparent",
+      } as React.CSSProperties}
     >
       <div className="lmaa-card-head flex items-start justify-between gap-4">
         <h3
@@ -1110,14 +1109,13 @@ export default function SupportLadder({
         <div
           className="lmaa-card lmaa-payment-card mt-6"
           style={{
-            border: "var(--card-border-width) solid",
             padding: "var(--card-padding)",
             borderRadius: "var(--radius-card)",
-            background: "var(--ds-surface)",
-            borderColor: variant.recommended
-              ? "color-mix(in srgb, var(--ds-accent) 45%, transparent)"
-              : "var(--ds-border-subtle)",
-          }}
+            backgroundColor: "var(--ds-surface)",
+            "--payment-brand": variant.icon
+              ? `var(--brand-${variant.icon}, transparent)`
+              : "transparent",
+          } as React.CSSProperties}
         >
           <div className="lmaa-card-head flex items-start justify-between gap-4">
             <h3
