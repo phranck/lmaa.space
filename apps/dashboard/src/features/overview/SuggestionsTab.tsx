@@ -2,7 +2,7 @@ import { FileTextIcon, RobotIcon, SealWarningIcon, TrayIcon } from "@phosphor-ic
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { type ReviewVerdict, type SubmissionStatus } from "@lmaa/shared";
+import { formatDateTime, type ReviewVerdict, type SubmissionStatus } from "@lmaa/shared";
 
 import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -118,13 +118,7 @@ export function SuggestionsTab({
         cell: (submission) => (
           <div className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
             <div>
-              {new Date(submission.createdAt).toLocaleString(locale, {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatDateTime(submission.createdAt, locale)}
             </div>
             {submission.submitterEmail && <div>{submission.submitterEmail}</div>}
           </div>
@@ -141,13 +135,7 @@ export function SuggestionsTab({
         cell: (submission) =>
           submission.status === "rejected" && submission.reviewedAt ? (
             <span className="text-xs text-[var(--ds-text-subtle)]">
-              {new Date(submission.reviewedAt).toLocaleString(locale, {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatDateTime(submission.reviewedAt, locale)}
             </span>
           ) : (
             <span className="text-xs text-[var(--ds-text-subtle)]">–</span>

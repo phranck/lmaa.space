@@ -7,7 +7,7 @@ import {
 } from "@phosphor-icons/react";
 import { useMemo, useReducer } from "react";
 
-import { generateRejectionToken } from "@lmaa/shared";
+import { formatDateTime, generateRejectionToken } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
@@ -106,13 +106,7 @@ export function ShopReportsTab() {
         sortKey: (report) => new Date(report.reportedAt).getTime(),
         cell: (report) => (
           <span className="text-xs text-[var(--ds-text-subtle)]">
-            {new Date(report.reportedAt).toLocaleString(locale, {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {formatDateTime(report.reportedAt, locale)}
           </span>
         ),
       },

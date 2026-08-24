@@ -2,7 +2,7 @@ import { EyeIcon, MarkdownLogoIcon, MinusCircleIcon, PlusCircleIcon } from "@pho
 import { Suspense, lazy, useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 
-import type { ContentPage, ContentWidth } from "@lmaa/shared";
+import { slugify, type ContentPage, type ContentWidth } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 const MarkdownEditor = lazy(() =>
@@ -44,17 +44,6 @@ function loadFontSize(): number {
   return Number.isNaN(parsed)
     ? FONT_SIZE_DEFAULT
     : Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, parsed));
-}
-
-function slugify(str: string): string {
-  return str
-    .toLowerCase()
-    .replace(/ä/g, "ae")
-    .replace(/ö/g, "oe")
-    .replace(/ü/g, "ue")
-    .replace(/ß/g, "ss")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 interface EditorState {

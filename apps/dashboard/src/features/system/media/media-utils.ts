@@ -13,10 +13,6 @@ const BYTE_FORMATTERS: Record<DashboardLocale, Record<"compact" | "fixed", Intl.
     fixed: new Intl.NumberFormat("en", { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
   },
 };
-const MEDIA_DATE_FORMATTERS: Record<DashboardLocale, Intl.DateTimeFormat> = {
-  de: new Intl.DateTimeFormat("de", { dateStyle: "medium", timeStyle: "short" }),
-  en: new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }),
-};
 
 export function isImageAsset(asset: MediaAsset) {
   return asset.kind === "image";
@@ -75,9 +71,7 @@ export function formatBytes(
   return `${formatter.format(bytes / (1024 * 1024))} MB`;
 }
 
-export function formatMediaDate(value: string, locale: DashboardLocale) {
-  return MEDIA_DATE_FORMATTERS[locale].format(new Date(value));
-}
+
 
 export function getMediaTypeLabel(asset: MediaAsset) {
   if (isHlsBundleAsset(asset)) return "HLS";

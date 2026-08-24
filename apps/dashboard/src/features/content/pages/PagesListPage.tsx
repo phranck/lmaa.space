@@ -9,6 +9,8 @@ import {
 import { useMemo, useReducer } from "react";
 import { useNavigate } from "react-router";
 
+import { formatDate, slugify } from "@lmaa/shared";
+
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
@@ -29,6 +31,7 @@ import {
   useCreateContentPage,
   useDeleteContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
+import type { DashboardLocale } from "@/i18n/messages.ts";
 
 interface ContentPage {
   slug: string;
@@ -36,17 +39,6 @@ interface ContentPage {
   status: string;
   createdByUsername: string | null;
   updatedAt: string | null;
-}
-
-function slugify(str: string): string {
-  return str
-    .toLowerCase()
-    .replace(/ä/g, "ae")
-    .replace(/ö/g, "oe")
-    .replace(/ü/g, "ue")
-    .replace(/ß/g, "ss")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -76,15 +68,12 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function formatDate(isoDate: string | null, locale: string): string {
-  if (!isoDate) return "—";
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString(locale === "de" ? "de-DE" : "en-US", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+/** Shown where a page carries no readable date. */
+const NO_DATE = "—";
+
+function formatUpdatedAt(isoDate: string | null, locale: DashboardLocale): string {
+  if (!isoDate) return NO_DATE;
+  return formatDate(isoDate, locale) || NO_DATE;
 }
 
 /**
@@ -200,7 +189,7 @@ export function PagesListPage() {
         sortKey: (page) => page.updatedAt ?? "",
         cell: (page) => (
           <span className="text-xs text-[var(--ds-text-muted)]">
-            {formatDate(page.updatedAt, locale)}
+            {formatUpdatedAt(page.updatedAt, locale)}
           </span>
         ),
       },

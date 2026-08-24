@@ -1,6 +1,8 @@
 import { CheckCircleIcon, TrashIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
+import { formatDateTime } from "@lmaa/shared";
+
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { DashboardCombobox, DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
@@ -60,7 +62,7 @@ export function BackgroundErrorsPage() {
           className="text-sm text-[var(--ds-text-muted)] whitespace-nowrap"
           suppressHydrationWarning
         >
-          {new Date(row.occurredAt).toLocaleString(locale)}
+          {formatDateTime(row.occurredAt, locale)}
         </span>
       ),
       sortKey: (row) => row.occurredAt,

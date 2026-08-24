@@ -1,11 +1,10 @@
-import type { MediaAsset } from "@lmaa/shared";
+import { formatDateTime, type MediaAsset } from "@lmaa/shared";
 import { FormLabelText } from "@lmaa/ui/form-primitives";
 
 import { CopyActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import type { useI18n } from "@/context/I18nContext.tsx";
 import {
   formatBytes,
-  formatMediaDate,
   getHlsMarkdownEmbed,
   isHlsBundleAsset,
 } from "@/features/system/media/media-utils.ts";
@@ -81,11 +80,11 @@ export function MediaInfoSection({
           )}
           <MediaInfoItem
             label={mediaMessages.createdAt}
-            value={formatMediaDate(asset.createdAt, locale)}
+            value={formatDateTime(asset.createdAt, locale)}
           />
           <MediaInfoItem
             label={mediaMessages.updatedAt}
-            value={formatMediaDate(asset.updatedAt, locale)}
+            value={formatDateTime(asset.updatedAt, locale)}
           />
           <MediaInfoItem
             label={mediaMessages.uploadedBy}

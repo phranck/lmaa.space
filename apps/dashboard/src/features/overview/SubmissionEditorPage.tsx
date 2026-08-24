@@ -2,7 +2,7 @@ import { useReducer, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
 import { REJECT_TOKEN_PLACEHOLDER } from "@lmaa/contracts";
-import { type Submission, generateRejectionToken } from "@lmaa/shared";
+import { formatDateTime, generateRejectionToken, type Submission } from "@lmaa/shared";
 
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { EditorPageTitleDetails } from "@/components/ui/EditorPageTitleDetails.tsx";
@@ -163,13 +163,7 @@ function LoadedSubmissionEditorPage({
 
   const headerBackLabel = submissionsMessages.title;
   const pageTitle = submission.shopName || submissionsMessages.suggestions.edit;
-  const submittedAt = new Date(submission.createdAt).toLocaleString(locale, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const submittedAt = formatDateTime(submission.createdAt, locale);
   const submitterEmail = submission.submitterEmail?.trim() ?? "";
   const pageSubtitle = submitterEmail
     ? `${submissionsMessages.suggestions.submittedBy}: ${submitterEmail} · ${submissionsMessages.suggestions.submittedAt}: ${submittedAt}`

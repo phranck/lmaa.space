@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import type { TemplateAssignment } from "@lmaa/contracts";
+import { slugify, slugifyInput } from "@lmaa/shared";
 import { FocalPointOverlay, useFocalPointDrag } from "@lmaa/ui/focal-point-overlay";
 import { FormLabel } from "@lmaa/ui/form-primitives";
 
@@ -95,33 +96,6 @@ function categoryEditReducer(
   action: CategoryEditAction,
 ): CategoryEditState {
   return typeof action === "function" ? action(state) : { ...state, ...action };
-}
-
-/**
- * Converts category names into slug-safe strings.
- *
- * @param s - Free-text category name.
- * @returns Lowercase URL slug.
- */
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/ä/g, "ae")
-    .replace(/ö/g, "oe")
-    .replace(/ü/g, "ue")
-    .replace(/ß/g, "ss")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function slugifyInput(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/ä/g, "ae")
-    .replace(/ö/g, "oe")
-    .replace(/ü/g, "ue")
-    .replace(/ß/g, "ss")
-    .replace(/[^a-z0-9-]+/g, "-");
 }
 
 /**

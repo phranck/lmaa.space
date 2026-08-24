@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { SocialMediaPostTemplate } from "@lmaa/contracts";
+import { formatDate } from "@lmaa/shared";
 import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
 
 import { Badge } from "@/components/ui/Badge.tsx";
@@ -86,11 +87,7 @@ export function SocialMediaPostTemplateListPage() {
         sortKey: (template) => template.createdAt,
         cell: (template) => (
           <span suppressHydrationWarning className="text-xs text-[var(--ds-text-muted)]">
-            {new Date(template.createdAt).toLocaleDateString(locale, {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
+            {formatDate(template.createdAt, locale)}
           </span>
         ),
       },

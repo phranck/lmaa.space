@@ -48,7 +48,7 @@ import {
 import { type ReactNode, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
-import { SETTINGS_KEYS } from "@lmaa/shared";
+import { SETTINGS_KEYS, formatDate } from "@lmaa/shared";
 import type { AdminRole } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -228,7 +228,7 @@ function SocialPreviewGroup({
   globalOpenVersion?: number;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const { messages } = useI18n();
+  const { locale, messages } = useI18n();
   const sidebarMessages = messages.layout.sidebar;
   const { data: projects } = useSocialPreviewProjects();
 
@@ -270,7 +270,7 @@ function SocialPreviewGroup({
           <span className="flex flex-col min-w-0">
             <span className="truncate">{project.name}</span>
             <span className="truncate text-xs opacity-50">
-              {new Date(project.updatedAt).toLocaleDateString()}
+              {formatDate(project.updatedAt, locale)}
             </span>
           </span>
         </NavLink>

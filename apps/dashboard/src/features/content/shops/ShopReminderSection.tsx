@@ -1,7 +1,7 @@
 import { BellIcon, BellSlashIcon, ClockIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
-import type { ShopReminder } from "@lmaa/shared";
+import { formatDateTime, type ShopReminder } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
@@ -16,7 +16,7 @@ import {
   useShopReminder,
 } from "./hooks/useAdminShops.ts";
 import { RECURRENCE_LABELS } from "./reminder-constants.ts";
-import { buildCustomSummary, formatDisplayDate } from "./reminder-utils.ts";
+import { buildCustomSummary } from "./reminder-utils.ts";
 import { ReminderForm } from "./ReminderForm.tsx";
 
 interface ShopReminderSectionProps {
@@ -89,7 +89,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
                 <p
                   className={`text-sm font-medium ${reminder.isActive ? "text-amber-400" : "text-[var(--ds-text-subtle)] line-through"}`}
                 >
-                  {formatDisplayDate(reminder.remindAt, locale)}
+                  {formatDateTime(reminder.remindAt, locale)}
                 </p>
                 <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5">
                   {reminder.isActive ? "Aktiv" : "Inaktiv"}

@@ -1,3 +1,5 @@
+import { countryName } from "@lmaa/shared";
+
 export interface CountryCodeOption {
   code: string;
   flag: string;
@@ -55,19 +57,13 @@ const EUROPEAN_COUNTRY_CODES = [
   "VA",
 ] as const;
 
-const COUNTRY_DISPLAY_NAMES: Readonly<Record<"de" | "en", Intl.DisplayNames>> = {
-  de: new Intl.DisplayNames(["de"], { type: "region" }),
-  en: new Intl.DisplayNames(["en"], { type: "region" }),
-};
-
 export function createDefaultCountryCodeOptions(
   locale: "de" | "en" = "de",
 ): ReadonlyArray<CountryCodeOption> {
-  const displayNames = COUNTRY_DISPLAY_NAMES[locale];
   return EUROPEAN_COUNTRY_CODES.map((code) => ({
     code,
     flag: countryFlag(code),
-    name: displayNames.of(code) ?? code,
+    name: countryName(code, locale),
   })).sort((left, right) => left.name.localeCompare(right.name, locale));
 }
 

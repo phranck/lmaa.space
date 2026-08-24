@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
-import { encodeShopToken } from "@lmaa/shared";
+import { encodeShopToken, formatDateTime } from "@lmaa/shared";
 
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
@@ -87,13 +87,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
     : activeShop?.name || controller.name.trim() || controller.title;
   const shopPublishedAt =
     !controller.isNew && activeShop && "createdAt" in activeShop && activeShop.createdAt
-      ? new Date(activeShop.createdAt).toLocaleString(locale, {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+      ? formatDateTime(activeShop.createdAt, locale)
       : null;
   const shopHeaderSubtitle = shopPublishedAt
     ? `${controller.shopsMessages.editCard.publishedAt}: ${shopPublishedAt}`
