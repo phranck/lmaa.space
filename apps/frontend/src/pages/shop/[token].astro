@@ -11,6 +11,7 @@ import { slugToTitle } from "@/lib/slug";
 import { loadSupportPrompts } from "@/lib/support-prompts";
 import { countryName, encodeShopToken, type Shop } from "@lmaa/shared";
 import { PaymentMethodIcons, SocialMediaIcons } from "@lmaa/ui";
+import { getFavicons } from "@/lib/favicons";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 import {
   ArrowLeftIcon,
@@ -54,6 +55,7 @@ const domain = shopDomain(shop.url);
 const visitUrl = shopRefUrl(shop.url);
 const descriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
 const supportPrompts = await loadSupportPrompts("shop-detail");
+const favicons = await getFavicons(shop.socialMedia);
 
 // Category hero image (when navigating from a category page)
 let categoryImageUrl: string | null = categoryFromSlugResult?.imageUrl ?? null;
@@ -201,7 +203,7 @@ const metaDescription = shop.description
             >
               {domain}
             </a>
-            <SocialMediaIcons socialMedia={shop.socialMedia} />
+            <SocialMediaIcons socialMedia={shop.socialMedia} favicons={favicons} />
           </div>
           <div class="flex items-stretch gap-3 shrink-0">
             {hasHq && (

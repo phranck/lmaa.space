@@ -58,6 +58,13 @@ export default {
         ],
         rules: ["react-doctor/async-await-in-loop"],
       },
+      // The favicon candidates are tried in order and the first one that answers
+      // wins. Fetching them at the same time would ask a stranger's site for
+      // several images to use one of them.
+      {
+        files: ["src/services/favicon.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
       // A reference is drawn again only because the one before it turned out to
       // be taken, so the attempts are a sequence rather than independent work.
       {

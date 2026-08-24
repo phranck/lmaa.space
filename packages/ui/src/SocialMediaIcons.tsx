@@ -6,6 +6,18 @@ export interface SocialMediaIconsProps {
   socialMedia: SocialMediaLinks;
   className?: string;
   linkable?: boolean;
+  /**
+   * A site's own mark against the address it belongs to, as inline data.
+   *
+   * Only websites have one, because every other platform has a mark of its own
+   * that says which service it is. Two websites side by side would otherwise be
+   * two identical globes, which tells a reader nothing about either.
+   *
+   * Passed in rather than fetched here, because the mark is resolved by the
+   * server. A page that merely named the icon's address would have every
+   * visitor's browser call every sponsor's website.
+   */
+  favicons?: Record<string, string>;
 }
 
 /**
@@ -20,18 +32,37 @@ export function SocialMediaIcons({
   socialMedia,
   className,
   linkable = true,
+  favicons,
 }: SocialMediaIconsProps) {
   const entries = socialMedia.flatMap((link) => {
     const platform = PLATFORM_MAP.get(link.platform);
-    return platform ? [{ ...platform, url: link.url }] : [];
+    if (!platform) return [];
+    return [{ ...platform, url: link.url, favicon: favicons?.[link.url] }];
   });
 
   if (entries.length === 0) return null;
 
+  const size = linkable ? 20 : 14;
+
   return (
     <div className={className ?? "flex items-center gap-3 mt-3"}>
-      {entries.map(({ key, label, icon: Icon, url }) =>
-        linkable ? (
+      {entries.map(({ key, label, icon: Icon, url, favicon }) => {
+        // The site's own mark says which of two websites this is; the globe
+        // only says that it is one.
+        const mark = favicon ? (
+          <img
+            src={favicon}
+            alt=""
+            width={size}
+            height={size}
+            className="rounded-[2px] object-contain"
+            style={{ width: size, height: size }}
+          />
+        ) : (
+          <Icon size={size} />
+        );
+
+        return linkable ? (
           <a
             key={`${key}-${url}`}
             href={url}
@@ -41,14 +72,14 @@ export function SocialMediaIcons({
             aria-label={label}
             title={label}
           >
-            <Icon size={20} />
+            {mark}
           </a>
         ) : (
           <span key={`${key}-${url}`} className="text-stone-400" aria-label={label} title={label}>
-            <Icon size={14} />
+            {mark}
           </span>
-        ),
-      )}
+        );
+      })}
     </div>
   );
 }

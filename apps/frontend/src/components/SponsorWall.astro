@@ -2,6 +2,7 @@
 import { HeartIcon, SealIcon } from "@phosphor-icons/react";
 
 import SponsorCard from "@/components/SponsorCard.astro";
+import { getFavicons } from "@/lib/favicons";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { SponsorsPayload } from "@lmaa/contracts";
 import { daysLeft, formatDate, formatEuroWhole, fullName } from "@lmaa/shared";
@@ -139,6 +140,10 @@ const terms = payload.sponsors.map((sponsor) => {
   };
 });
 
+// Resolved once for the whole row rather than per card, so a website named by
+// two sponsors is looked up once.
+const favicons = await getFavicons(payload.sponsors.flatMap((sponsor) => sponsor.socialMedia));
+
 /** Everything one card needs, gathered so the row and its copy read the same. */
 const cards = payload.sponsors.map((sponsor, index) => ({
   key: sponsor.id,
@@ -214,9 +219,9 @@ const emptyHtml = cards.length ? "" : await renderMarkdown(emptyText || EMPTY_DE
             Two lists would leave the space between them out of that sum. */}
         <ul class="lmaa-sponsor-track">
           {cards.map((card) => (
-            <SponsorCard {...card} />
+            <SponsorCard {...card} favicons={favicons} />
           ))}
-          {scrolls && cards.map((card) => <SponsorCard {...card} duplicate />)}
+          {scrolls && cards.map((card) => <SponsorCard {...card} favicons={favicons} duplicate />)}
         </ul>
       </div>
     )

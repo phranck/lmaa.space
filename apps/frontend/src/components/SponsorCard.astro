@@ -24,6 +24,8 @@ interface Props {
    * has not already been told and is kept out of the reading and tab order.
    */
   duplicate?: boolean;
+  /** The site marks for the websites among the addresses, as inline data. */
+  favicons?: Record<string, string>;
 }
 
 const {
@@ -35,6 +37,7 @@ const {
   sinceShort,
   left,
   duplicate = false,
+  favicons,
 } = Astro.props;
 ---
 
@@ -63,7 +66,11 @@ const {
     }
     <span class="min-w-0">
       <span class="block font-semibold">{name}</span>
-      <SocialMediaIcons socialMedia={socialMedia} className="flex items-center gap-2 mt-1" />
+      <SocialMediaIcons
+        socialMedia={socialMedia}
+        favicons={favicons}
+        className="flex items-center gap-2 mt-1"
+      />
     </span>
   </div>
   {claimHtml && <div class="lmaa-rich text-sm" set:html={claimHtml} />}

@@ -117,6 +117,8 @@ export interface ShopEditFormProps {
   urlWarning?: ReactNode;
   descriptionHint?: ReactNode;
   blurSocialMediaOnPaste?: boolean;
+  /** A site's own mark against the address it belongs to, as inline data. */
+  socialMediaFavicons?: Record<string, string>;
   previewAside?: ReactNode;
   topAside?: ReactNode;
   detailsAside?: ReactNode;
@@ -138,6 +140,7 @@ export function ShopEditForm({
   urlWarning,
   descriptionHint,
   blurSocialMediaOnPaste = false,
+  socialMediaFavicons,
   previewAside,
   topAside,
   detailsAside,
@@ -469,6 +472,7 @@ export function ShopEditForm({
                 value={value.socialMedia}
                 onChange={(v) => set("socialMedia", v)}
                 messages={messages.socialMedia}
+                favicons={socialMediaFavicons}
                 blurOnPaste={blurSocialMediaOnPaste}
               />
               {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
