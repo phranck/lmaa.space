@@ -28,6 +28,7 @@ export interface DashboardMessages {
     duplicate: string;
     copy: string;
     copyUrl: string;
+    availableVariables: string;
     import: string;
     export: string;
     approve: string;
@@ -70,6 +71,8 @@ export interface DashboardMessages {
       markdownWidgets: string;
       supportPrompts: string;
       sponsors: string;
+      sponsorRequests: string;
+      sponsoringSettings: string;
       sectionSponsoring: string;
       systemSettings: string;
       redirectUrls: string;
@@ -1254,6 +1257,9 @@ export interface DashboardMessages {
       noPictureFound: string;
       claimLabel: string;
       claimHint: string;
+      publishedLabel: string;
+      publishedHint: string;
+      hiddenBadge: string;
       amountLabel: string;
       amountHint: string;
       paidAtLabel: string;
@@ -1264,12 +1270,33 @@ export interface DashboardMessages {
       personTitle: string;
       contributionTitle: string;
       costsTitle: string;
+      payeeTitle: string;
+      payeeHint: string;
+      payeeNameLabel: string;
+      payeeIbanLabel: string;
+      payeeBicLabel: string;
+      payeeBicHint: string;
+      variableLabel: string;
+      costsVariables: string;
       costsHint: string;
       costLabelLabel: string;
       costAmountLabel: string;
       addCost: string;
+      minAmountTitle: string;
       minAmountLabel: string;
       minAmountHint: string;
+      deleteTitle: string;
+      deleteMessage: string;
+    };
+    pendingSponsorships: {
+      title: string;
+      emptyTitle: string;
+      emptyHint: string;
+      referenceLabel: string;
+      announcedLabel: string;
+      takeOver: string;
+      takeOverTitle: string;
+      takeOverHint: string;
       deleteTitle: string;
       deleteMessage: string;
     };
@@ -1612,6 +1639,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       duplicate: "Duplizieren",
       copy: "Kopieren",
       copyUrl: "URL kopieren",
+      availableVariables: "Verfügbare Variablen",
       import: "Importieren",
       export: "Exportieren",
       approve: "Freischalten",
@@ -1654,6 +1682,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownWidgets: "Markdown Widgets",
         supportPrompts: "Einblendungen",
         sponsors: "Jahressponsoren",
+        sponsorRequests: "Sponsor Requests",
+        sponsoringSettings: "Einstellungen",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Einstellungen",
         redirectUrls: "Redirect URLs",
@@ -2897,6 +2927,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noPictureFound: "Hinter dieser Adresse liegt kein Bild.",
         claimLabel: "Sein Satz",
         claimHint: "Warum er oder sie das macht. Freiwillig.",
+        publishedLabel: "Auf der Seite nennen",
+        publishedHint:
+          "Aus heisst: der Beitrag zählt für das Jahr, der Name steht aber nicht auf der Seite.",
+        hiddenBadge: "Nicht genannt",
         amountLabel: "Betrag",
         amountHint: "In Euro. Steht nie neben einem Namen auf der Seite.",
         paidAtLabel: "Bezahlt am",
@@ -2907,14 +2941,36 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         personTitle: "Person",
         contributionTitle: "Beitrag",
         costsTitle: "Laufende Kosten",
-        costsHint: "Summe im Jahr:",
+        payeeTitle: "Empfänger",
+        payeeHint: "Wohin die Überweisungen gehen. Steht auf der Zahlungskarte und im GiroCode.",
+        payeeNameLabel: "Kontoinhaber",
+        payeeIbanLabel: "IBAN",
+        payeeBicLabel: "BIC",
+        payeeBicHint: "Innerhalb des EWR nicht nötig.",
+        variableLabel: "Als Variable:",
+        costsVariables: "Als Variablen im Text: {annualCost} und {monthlyCost}",
+        costsHint: "Summe im Jahr",
         costLabelLabel: "Posten",
         costAmountLabel: "€ pro Jahr",
         addCost: "Posten hinzufügen",
+        minAmountTitle: "Mindestbetrag",
         minAmountLabel: "Mindestbetrag (€)",
-        minAmountHint: "Ab diesem Betrag steht jemand ein Jahr lang auf der Seite.",
+        minAmountHint: "Das ist der Mindestbetrag, den ein Sponsor zahlen muss.",
         deleteTitle: "Sponsor löschen",
         deleteMessage: "Der Eintrag verschwindet sofort von der Seite.",
+      },
+      pendingSponsorships: {
+        title: "Sponsor Requests",
+        emptyTitle: "Niemand wartet",
+        emptyHint: "Hier stehen die Angaben von allen, die auf der Seite Sponsor werden wollen.",
+        referenceLabel: "Referenz",
+        announcedLabel: "Angemeldet",
+        takeOver: "Als Sponsor übernehmen",
+        takeOverTitle: "Als Sponsor übernehmen",
+        takeOverHint:
+          "Betrag und Tag stehen im Kontoauszug, nicht in der Anmeldung. Alles andere kommt aus dem Eintrag.",
+        deleteTitle: "Anmeldung löschen",
+        deleteMessage: "Die Angaben sind danach weg, auch wenn das Geld noch kommt.",
       },
       supportPrompts: {
         title: "Einblendungen",
@@ -3280,6 +3336,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       duplicate: "Duplicate",
       copy: "Copy",
       copyUrl: "Copy URL",
+      availableVariables: "Available variables",
       import: "Import",
       export: "Export",
       approve: "Approve",
@@ -3322,6 +3379,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownWidgets: "Markdown Widgets",
         supportPrompts: "Support prompts",
         sponsors: "Yearly sponsors",
+        sponsorRequests: "Sponsor requests",
+        sponsoringSettings: "Settings",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Settings",
         redirectUrls: "Redirect URLs",
@@ -4556,6 +4615,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noPictureFound: "There is no picture behind this address.",
         claimLabel: "Their sentence",
         claimHint: "Why they did it. Optional.",
+        publishedLabel: "Name them on the site",
+        publishedHint:
+          "Off means the contribution still counts towards the year, but the name stays off the page.",
+        hiddenBadge: "Not named",
         amountLabel: "Amount",
         amountHint: "In euro. Never shown beside a name on the site.",
         paidAtLabel: "Paid on",
@@ -4566,14 +4629,36 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         personTitle: "Person",
         contributionTitle: "Contribution",
         costsTitle: "Running costs",
-        costsHint: "Total per year:",
+        payeeTitle: "Payee",
+        payeeHint: "Where the transfers go. Shown on the payment card and encoded into the GiroCode.",
+        payeeNameLabel: "Account holder",
+        payeeIbanLabel: "IBAN",
+        payeeBicLabel: "BIC",
+        payeeBicHint: "Not needed inside the EEA.",
+        variableLabel: "As a variable:",
+        costsVariables: "As variables in a text: {annualCost} and {monthlyCost}",
+        costsHint: "Total per year",
         costLabelLabel: "Item",
         costAmountLabel: "€ per year",
         addCost: "Add item",
+        minAmountTitle: "Minimum",
         minAmountLabel: "Minimum (€)",
-        minAmountHint: "From this amount somebody stands on the site for a year.",
+        minAmountHint: "The least a sponsor has to pay.",
         deleteTitle: "Delete sponsor",
         deleteMessage: "The entry disappears from the site at once.",
+      },
+      pendingSponsorships: {
+        title: "Sponsor requests",
+        emptyTitle: "Nobody is waiting",
+        emptyHint: "Everybody who asked to become a sponsor on the site stands here.",
+        referenceLabel: "Reference",
+        announcedLabel: "Announced",
+        takeOver: "Make a sponsor",
+        takeOverTitle: "Make a sponsor",
+        takeOverHint:
+          "The amount and the day are on the statement rather than in the announcement. Everything else comes from the entry.",
+        deleteTitle: "Delete announcement",
+        deleteMessage: "What they wrote is gone afterwards, even if the money still arrives.",
       },
       supportPrompts: {
         title: "Support prompts",

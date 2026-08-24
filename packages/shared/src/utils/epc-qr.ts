@@ -16,7 +16,13 @@
  * The whole payload is limited to 331 bytes. Beyond that a scanner is not
  * required to read it, so {@link buildEpcQrPayload} refuses rather than
  * producing a code that fails in the payer's hand.
+ *
+ * What the payer is asked to write is either a sentence or a structured
+ * reference. The specification gives each its own element and permits one of
+ * them, so this refuses a caller that passes both.
  */
+
+import { isValidCreditorReference } from "./creditor-reference.js";
 
 /** Maximum payload size in bytes, per EPC069-12 v3.1. */
 const MAX_PAYLOAD_BYTES = 331;
@@ -42,8 +48,12 @@ const MAX_AMOUNT_EUR = 999999999.99;
  *   the specification, and still required for non-EEA SEPA participants.
  * @property amountEur - Amount in euro. Omit it to let the payer decide in
  *   their banking app, which is what a free donation amount needs.
- * @property remittance - Unstructured remittance information, so the reference
+ * @property remittance - Unstructured remittance information, so the sentence
  *   the payer sees on their statement.
+ * @property creditorReference - A structured ISO 11649 reference instead of
+ *   that sentence. The specification allows one or the other and never both,
+ *   because they are two ways of saying the same thing and a message carrying
+ *   both would leave the payee to guess which was meant.
  */
 export interface EpcQrDetails {
   beneficiaryName: string;
@@ -51,6 +61,7 @@ export interface EpcQrDetails {
   bic?: string;
   amountEur?: number;
   remittance?: string;
+  creditorReference?: string;
 }
 
 /** Raised when the details cannot produce a payload a scanner will accept. */
@@ -63,6 +74,8 @@ export class EpcQrError extends Error {
     | "bic-invalid"
     | "amount-out-of-range"
     | "remittance-too-long"
+    | "creditor-reference-invalid"
+    | "remittance-conflict"
     | "payload-too-large";
 
   constructor(code: EpcQrError["code"], message: string) {
@@ -142,6 +155,23 @@ export function buildEpcQrPayload(details: EpcQrDetails): string {
     );
   }
 
+  const creditorReference = details.creditorReference?.replace(/\s+/g, "") ?? "";
+  if (creditorReference && !isValidCreditorReference(creditorReference)) {
+    throw new EpcQrError(
+      "creditor-reference-invalid",
+      "The creditor reference is not a sound ISO 11649 reference.",
+    );
+  }
+  // The two say the same thing in two ways, and the specification permits one
+  // of them. Refusing both is better than choosing one for the caller, because
+  // whichever were dropped would go missing without a word.
+  if (creditorReference && remittance) {
+    throw new EpcQrError(
+      "remittance-conflict",
+      "A payload carries either a creditor reference or remittance information, not both.",
+    );
+  }
+
   // Version 002 makes the BIC conditional rather than mandatory. Version 001
   // would require one, and a beneficiary inside the EEA need not supply it, so
   // 002 is emitted whether or not a BIC was passed.
@@ -155,7 +185,7 @@ export function buildEpcQrPayload(details: EpcQrDetails): string {
     iban,
     details.amountEur === undefined ? "" : formatAmount(details.amountEur),
     "", // Purpose, unused
-    "", // Structured remittance, mutually exclusive with the unstructured one
+    creditorReference,
     remittance,
   ];
 

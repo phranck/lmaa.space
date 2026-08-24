@@ -1154,6 +1154,10 @@ export const excludedPublicRouteKeys = [
   "GET /api/v1/support-prompts",
   // The current sponsors and what the year costs, read by the website itself.
   "GET /api/v1/sponsors",
+  // The sponsorship form on the support page. It writes what the payment cannot
+  // carry and answers with the reference the transfer quotes.
+  "POST /api/v1/sponsorships",
+  "PUT /api/v1/sponsorships/{reference}",
 ] as const;
 
 function operationKey(operation: Pick<OpenApiOperation, "method" | "path">): string {

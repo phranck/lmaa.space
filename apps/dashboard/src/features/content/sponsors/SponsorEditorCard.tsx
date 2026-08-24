@@ -15,6 +15,7 @@ import {
   DashboardField,
   DashboardInput,
   DashboardNumberInput,
+  DashboardSwitchField,
   DashboardTextarea,
 } from "@/components/ui/DashboardControls.tsx";
 import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
@@ -52,6 +53,7 @@ function emptySponsor(minAmountCents: number): SponsorInput {
     socialMedia: {},
     imageUrl: "",
     claim: "",
+    published: true,
     amountCents: minAmountCents,
     paidAt: new Date().toISOString().slice(0, 10),
   };
@@ -220,6 +222,13 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
                   rows={3}
                   value={fields.claim}
                   onChange={(event) => update({ claim: event.target.value })}
+                />
+
+                <DashboardSwitchField
+                  label={text.publishedLabel}
+                  description={text.publishedHint}
+                  checked={fields.published}
+                  onCheckedChange={(checked) => update({ published: checked })}
                 />
 
                 <div className="grid gap-4 md:grid-cols-2">

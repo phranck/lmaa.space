@@ -29,10 +29,9 @@ const { title, showTitle, segments } = Astro.props;
  * page asks for them once. A page carrying neither asks for nothing.
  */
 const needsSponsors = segments.some(
-  (segment) =>
-    segment.type === "sponsors" ||
-    (segment.type === "support-ladder" &&
-      segment.intervals.some((interval) => interval.key === "sponsor")),
+  // Any ladder, not only one with a sponsor tab: the payee, the account and the
+  // bank come with these figures now rather than from the page's own content.
+  (segment) => segment.type === "sponsors" || segment.type === "support-ladder",
 );
 const sponsors = needsSponsors ? await getSponsors() : EMPTY_SPONSORS;
 const minSponsorAmountEur = Math.ceil(sponsors.minAmountCents / 100);
@@ -76,6 +75,11 @@ const minSponsorAmountEur = Math.ceil(sponsors.minAmountCents / 100);
             <SupportLadder
               client:load
               bankAccount={segment.bankAccount}
+              payee={{
+                name: sponsors.payeeName,
+                iban: sponsors.payeeIban,
+                bic: sponsors.payeeBic,
+              }}
               intervals={segment.intervals}
               routes={segment.routes}
               labels={segment.labels}

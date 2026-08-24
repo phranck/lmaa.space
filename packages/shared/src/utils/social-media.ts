@@ -554,9 +554,22 @@ function normalizeWebsite(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
-  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-  const url = tryParseUrl(withScheme);
+  // A page is reached over http or https. Anything else naming a scheme is
+  // refused rather than having one put in front of it, which would turn
+  // `ftp://x.test` into `https://ftp//x.test` and store that as an address.
+  const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed);
+  const isWeb = /^https?:\/\//i.test(trimmed);
+  if (hasScheme && !isWeb) return null;
+
+  const url = tryParseUrl(isWeb ? trimmed : `https://${trimmed}`);
   if (!url) return null;
+  // Nobody writes their credentials into their own address, so anything with a
+  // user in front of the host arrived there by accident or by intent. Both
+  // shapes read as an address on the host and are not one.
+  if (url.username || url.password) return null;
+  // A host with no dot in it is not a name reached from the internet, so a
+  // single word does not become `https://word/`.
+  if (!url.hostname.includes(".")) return null;
   return url.href;
 }
 
@@ -674,6 +687,46 @@ export function normalizeSocialMediaValue(platform: string, input: string): stri
   const fn = normalizers[canonicalPlatform as SocialPlatformKey];
   if (!fn) return null;
   return fn(input);
+}
+
+/**
+ * `user@instance.tld`, with or without the leading `@`, being how a fediverse
+ * address is written where it is not written as a link.
+ */
+const FEDIVERSE_HANDLE = /^@?[^@\s/]+@[^@\s/]+\.[^@\s/]+$/;
+
+/**
+ * Sorts one address a person typed into the service it belongs to.
+ *
+ * Somebody giving their address should not first have to say what kind it is.
+ * The list of services and the shapes their addresses take is already here, so
+ * the sorting is ours to do rather than theirs.
+ *
+ * An address on none of the known services is a website, which is a service in
+ * its own right here rather than a leftover.
+ *
+ * @param input - What the person typed, with or without a scheme.
+ * @returns The platform key and the canonical address, or `null` when the input
+ *   is not an address at all.
+ */
+export function classifyProfileLink(
+  input: string,
+): { platform: SocialPlatformKey; url: string } | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // A fediverse handle is answered before anything else, because it carries no
+  // scheme and putting one in front of it makes the part before the second `@`
+  // into userinfo: `@kim@chaos.social` would come out as a website on
+  // `chaos.social` belonging to a user called `@kim`.
+  if (FEDIVERSE_HANDLE.test(trimmed)) {
+    const handleUrl = normalizeSocialMediaValue("mastodon", trimmed);
+    if (handleUrl) return { platform: "mastodon", url: handleUrl };
+  }
+
+  const platform = detectPlatformFromUrl(trimmed) ?? "website";
+  const url = normalizeSocialMediaValue(platform, trimmed);
+  return url ? { platform, url } : null;
 }
 
 /**

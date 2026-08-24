@@ -1,5 +1,6 @@
 import { hashAdminInviteToken } from "./admin-invite.js";
 import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from "./auth.js";
+import { isUniqueViolation } from "../lib/db-errors.js";
 import { failure, success } from "../lib/result.js";
 import {
   acceptInviteWithSession,
@@ -82,7 +83,7 @@ export async function setupOwnerAdmin(input: SetupAdminInput) {
       },
     });
   } catch (err) {
-    if (isUniqueViolationError(err) && (await getAdminCount()) > 0) {
+    if (isUniqueViolation(err) && (await getAdminCount()) > 0) {
       return failure("already_setup");
     }
     throw err;
@@ -194,8 +195,4 @@ export async function logoutAdmin(sessionId: string | undefined) {
   if (sessionId) {
     await deleteSession(sessionId);
   }
-}
-
-function isUniqueViolationError(err: unknown): err is { code: string } {
-  return typeof err === "object" && err !== null && "code" in err && err.code === "23505";
 }

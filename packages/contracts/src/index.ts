@@ -44,3 +44,4 @@ export * from "./admin-social-preview";
 export * from "./support-prompts";
 /** Yearly sponsor schemas: who carries the running costs. */
 export * from "./sponsors";
+export * from "./pending-sponsorships";

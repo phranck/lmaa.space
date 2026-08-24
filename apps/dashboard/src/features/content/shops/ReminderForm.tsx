@@ -6,6 +6,7 @@ import { AlertDialog } from "@lmaa/ui/alert-dialog";
 import { FormLabel } from "@lmaa/ui/form-primitives";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
+import { CopyableCode } from "@/components/ui/CopyableCode.tsx";
 import { DeleteActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import {
   DashboardCombobox,
@@ -13,6 +14,7 @@ import {
   DashboardTextarea,
 } from "@/components/ui/DashboardControls.tsx";
 import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
 import { RECURRENCE_OPTIONS, UNIT_OPTIONS, WEEKDAYS } from "./reminder-constants.ts";
@@ -67,6 +69,7 @@ export function ReminderForm({
   isPending,
   isDeleting,
 }: ReminderFormProps) {
+  const { messages } = useI18n();
   const { data: emailTemplates = [] } = useEmailTemplates();
 
   const [form, dispatch] = useReducer(reminderFormReducer, {
@@ -275,18 +278,10 @@ export function ReminderForm({
               ]}
             />
             <div className="mt-2 px-[5px]">
-              <p className="text-[10px] text-[var(--ds-text-subtle)] mb-1">Verfügbare Variablen:</p>
+              <p className="text-[10px] text-[var(--ds-text-subtle)] mb-1">{messages.common.availableVariables}</p>
               <div className="flex flex-wrap gap-1">
-                {["shopName", "shopUrl", "reminderMessage"].map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(`{{${v}}}`)}
-                    title="In Zwischenablage kopieren"
-                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] cursor-copy"
-                  >
-                    {`{{${v}}}`}
-                  </button>
+                {["shopName", "shopUrl", "reminderMessage"].map((name) => (
+                  <CopyableCode key={name} value={`{{${name}}}`} copyLabel={messages.common.copy} />
                 ))}
               </div>
             </div>

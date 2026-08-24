@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { fetchPreviewImage } from "../lib/og.js";
 import { isPublicFetchTarget } from "../lib/validate.js";
 import { resolveSponsorAvatar } from "../services/sponsor-avatar.js";
 
@@ -8,7 +9,10 @@ vi.mock("../lib/validate.js", async (importOriginal) => {
   return { ...actual, isPublicFetchTarget: vi.fn() };
 });
 
+vi.mock("../lib/og.js", () => ({ fetchPreviewImage: vi.fn() }));
+
 const publicTarget = vi.mocked(isPublicFetchTarget);
+const previewImage = vi.mocked(fetchPreviewImage);
 
 function jsonResponse(body: unknown) {
   return { ok: true, status: 200, json: vi.fn().mockResolvedValue(body) };
@@ -81,11 +85,51 @@ describe("resolveSponsorAvatar", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("returns nothing for a platform that answers no such question", async () => {
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
+  it("reads a page for any service that answers no such question directly", async () => {
+    previewImage.mockResolvedValue({ url: "https://example.org/logo.png", via: "og:image" });
 
+    expect(await resolveSponsorAvatar({ tumblr: "https://example.tumblr.com" })).toBe(
+      "https://example.org/logo.png",
+    );
+    expect(previewImage).toHaveBeenCalledWith("https://example.tumblr.com");
+  });
+
+  it("takes a portrait over a page, and a page over a website's own mark", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse({ avatar: "https://oldbytes.space/portrait.png" })),
+    );
+    previewImage.mockResolvedValue({ url: "https://example.org/logo.png", via: "og:image" });
+
+    const avatar = await resolveSponsorAvatar({
+      website: "https://example.org",
+      tumblr: "https://example.tumblr.com",
+      mastodon: "https://oldbytes.space/@lmaa",
+    });
+
+    expect(avatar).toBe("https://oldbytes.space/portrait.png");
+    expect(previewImage).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the website only once everything else has been tried", async () => {
+    previewImage.mockImplementation(async (url: string) =>
+      url === "https://example.org" ? { url: "https://example.org/logo.png", via: "icon" } : null,
+    );
+
+    const avatar = await resolveSponsorAvatar({
+      website: "https://example.org",
+      tumblr: "https://example.tumblr.com",
+    });
+
+    expect(avatar).toBe("https://example.org/logo.png");
+    expect(previewImage.mock.calls.map(([url]) => url)).toEqual([
+      "https://example.tumblr.com",
+      "https://example.org",
+    ]);
+  });
+
+  it("gives nothing when no address yields a picture", async () => {
+    previewImage.mockResolvedValue(null);
     expect(await resolveSponsorAvatar({ website: "https://example.org" })).toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

@@ -1299,6 +1299,14 @@ export const sponsors = pgTable(
     imageUrl: text("image_url").notNull().default(""),
     /** Their own sentence about why they did it. */
     claim: text("claim").notNull().default(""),
+    /**
+     * Whether they want to be named on the site.
+     *
+     * What they gave counts towards the year either way. Only the name is
+     * withheld, because somebody may carry the costs without wanting to be
+     * seen doing it.
+     */
+    published: boolean("published").notNull().default(true),
     /** What they gave, in cents. Never shown beside a name. */
     amountCents: integer("amount_cents").notNull().default(0),
     /** The day they paid, which starts their year. */
@@ -1310,6 +1318,44 @@ export const sponsors = pgTable(
     index("idx_sponsors_paid_at").on(table.paidAt),
     check("sponsors_amount_nonnegative", sql`${table.amountCents} >= 0`),
   ],
+)
+
+/**
+ * What somebody said about themselves before they paid.
+ *
+ * A transfer carries a reference rather than a sentence, and this is what the
+ * reference points at. It stands here until the money arrives and it becomes a
+ * sponsor, or until it has stood long enough unclaimed to be removed.
+ */
+export const pendingSponsorships = pgTable(
+  "pending_sponsorships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** The reference the transfer carries, without its printed spaces. */
+    reference: text("reference").notNull().unique(),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull().default(""),
+    /**
+     * The one address they gave, sorted into the service it belongs to.
+     *
+     * The form asks for it in a single field and works out the rest, so this is
+     * the same map a sponsor carries and nothing has to be merged later.
+     */
+    socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    claim: text("claim").notNull().default(""),
+    /**
+     * What they said they would give, in cents.
+     *
+     * The amount is chosen on the ladder above the form and travels inside the
+     * code they scan, so it is known here. It is what was announced rather than
+     * what arrived: the statement decides when the entry is taken over.
+     */
+    amountCents: integer("amount_cents").notNull().default(0),
+    /** Whether they want to be named, said in a form rather than in a payment. */
+    published: boolean("published").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("idx_pending_sponsorships_created_at").on(table.createdAt)],
 );
 
 /**
@@ -1320,3 +1366,12 @@ export type SponsorRow = typeof sponsors.$inferSelect;
  * Inferred insert type for `sponsors`.
  */
 export type SponsorInsert = typeof sponsors.$inferInsert;
+
+/**
+ * Inferred select type for `pending_sponsorships`.
+ */
+export type PendingSponsorshipRow = typeof pendingSponsorships.$inferSelect;
+/**
+ * Inferred insert type for `pending_sponsorships`.
+ */
+export type PendingSponsorshipInsert = typeof pendingSponsorships.$inferInsert;

@@ -1,8 +1,8 @@
 ---
 import SponsorCard from "@/components/SponsorCard.astro";
-import { renderMarkdown } from "@/lib/markdown";
+import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { SponsorsPayload } from "@lmaa/contracts";
-import { daysLeft, fullName } from "@lmaa/shared";
+import { daysLeft, formatEuroWhole, fullName } from "@lmaa/shared";
 
 interface Props {
   /**
@@ -40,26 +40,28 @@ const COVERED_DEFAULT =
   "Die laufenden Kosten dieses Jahres sind damit gedeckt. Jeder weitere Beitrag geht in die Arbeit am Verzeichnis.";
 const MISSING_DEFAULT = "Noch {missing} bis die laufenden Kosten dieses Jahres gedeckt sind.";
 
-const introHtml = text ? await renderMarkdown(text, {}, { breaks: true }) : "";
+const introHtml = text ? await renderMarkdown(text, { breaks: true }) : "";
 const claims = await Promise.all(
   payload.sponsors.map((sponsor) =>
-    sponsor.claim ? renderMarkdown(sponsor.claim, {}, { breaks: true }) : Promise.resolve(""),
+    sponsor.claim ? renderMarkdown(sponsor.claim, { breaks: true }) : Promise.resolve(""),
   ),
 );
-
-const euro = new Intl.NumberFormat("de-DE", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 0,
-});
 
 const covered = payload.coveredCents >= payload.costsTotalCents && payload.costsTotalCents > 0;
 const missingCents = Math.max(payload.costsTotalCents - payload.coveredCents, 0);
 
-/** The sentence under the row, with the outstanding amount written into it. */
-const costsLine = covered
-  ? coveredText || COVERED_DEFAULT
-  : (missingText || MISSING_DEFAULT).replaceAll("{missing}", euro.format(missingCents / 100));
+/**
+ * The sentence under the row, with the outstanding amount written into it.
+ *
+ * Rendered like every other text a page writes, so a link or an emphasis in it
+ * behaves the way it does everywhere else on the site.
+ */
+const costsLineHtml = await renderMarkdown(
+  covered
+    ? coveredText || COVERED_DEFAULT
+    : (missingText || MISSING_DEFAULT).replaceAll("{missing}", formatEuroWhole(missingCents / 100)),
+  { breaks: true },
+);
 
 const names = payload.sponsors.map((sponsor) => fullName(sponsor.firstName, sponsor.lastName));
 
@@ -141,7 +143,11 @@ const scrolls = cards.length > 2;
     )
   }
 
-  {payload.costsTotalCents > 0 && <p class="mt-6 text-sm">{costsLine}</p>}
+  {
+    payload.costsTotalCents > 0 && (
+      <div class="lmaa-rich mt-6 text-sm" set:html={costsLineHtml} />
+    )
+  }
 </section>
 
 <script>

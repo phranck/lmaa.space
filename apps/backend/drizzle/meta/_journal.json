@@ -526,6 +526,34 @@
       "when": 1787438343879,
       "tag": "0074_greedy_network",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1787476113879,
+      "tag": "0075_fair_jack_murdock",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1787483773241,
+      "tag": "0076_flaky_joshua_kane",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1787484735148,
+      "tag": "0077_foamy_punisher",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1787493422335,
+      "tag": "0078_add_pending_sponsorship_amount",
+      "breakpoints": true
     }
   ]
 }

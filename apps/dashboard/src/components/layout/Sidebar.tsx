@@ -15,8 +15,10 @@ import {
   CheckCircleIcon,
   CircleIcon,
   ClockIcon,
+  CoinsIcon,
   CopyIcon,
   EnvelopeOpenIcon,
+  EnvelopeSimpleIcon,
   EyeSlashIcon,
   FileIcon,
   FileTextIcon,
@@ -901,6 +903,15 @@ export function Sidebar({
                   addOn={dragHandle}
                 />
                 <DashboardSection.Body className="!gap-0.5 !p-2">
+                  <NavLink to="/sponsor-requests" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<EnvelopeSimpleIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.sponsorRequests}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
                   <NavLink to="/sponsors" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
@@ -915,6 +926,15 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<MegaphoneSimpleIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.supportPrompts}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/sponsoring-settings" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<CoinsIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.sponsoringSettings}
                         active={isActive}
                       />
                     )}

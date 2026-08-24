@@ -9,8 +9,8 @@ describe("parseMarkdownShortcodes", () => {
     const content = [
       "[[support-ladder",
       "  [[bankaccount",
-      '    name="Frank Gregor"',
-      '    iban="AT55 1900 1047 0466 6811"',
+      '    purposeDonation="Spende: lmaa.space"',
+      '    purposeSponsor="Sponsor: lmaa.space"',
       '    [[variant key="once" title="Überweisung"]]',
       "  ]]",
       "]]",
@@ -21,8 +21,8 @@ describe("parseMarkdownShortcodes", () => {
 
     const [account] = ladder.children;
     expect(account.token).toBe("bankaccount");
-    expect(account.params.name).toBe("Frank Gregor");
-    expect(account.params.iban).toBe("AT55 1900 1047 0466 6811");
+    expect(account.params.purposeDonation).toBe("Spende: lmaa.space");
+    expect(account.params.purposeSponsor).toBe("Sponsor: lmaa.space");
     expect(account.children[0].params.key).toBe("once");
     expect(account.children[0].params.title).toBe("Überweisung");
   });

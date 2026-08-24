@@ -2,7 +2,7 @@ import { FileTextIcon } from "@phosphor-icons/react";
 import { memo, useMemo } from "react";
 
 import type { Sponsor } from "@lmaa/contracts";
-import { daysLeft, fullName } from "@lmaa/shared";
+import { daysLeft, formatEuroCents, fullName } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
 import { Avatar } from "@/components/ui/Avatar.tsx";
@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/Badge.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { formatEuro } from "@/features/content/sponsors/sponsor-format.ts";
 
 interface SponsorTableProps {
   sponsors: Sponsor[];
@@ -43,6 +42,13 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
             <div className="flex items-center gap-3">
               <Avatar name={name} imageUrl={sponsor.imageUrl} size="sm" />
               <span className="text-sm font-medium text-[var(--ds-text)]">{name}</span>
+              {/* Said in the list, because whether somebody is named is the one
+                  thing about them that the page does not show. */}
+              {!sponsor.published && (
+                <Badge className="shrink-0" colorClass="bg-stone-500/10 text-stone-400">
+                  {text.hiddenBadge}
+                </Badge>
+              )}
             </div>
           );
         },
@@ -61,11 +67,12 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
       {
         id: "amount",
         header: text.amountLabel,
-        className: "w-32",
+        // Money is read against money, so it ends where the next figure ends.
+        className: "w-32 text-right",
         sortKey: (sponsor) => sponsor.amountCents,
         cell: (sponsor) => (
-          <span className="text-sm tabular-nums text-[var(--ds-text-muted)]">
-            {formatEuro(sponsor.amountCents)}
+          <span className="block text-right text-sm tabular-nums text-[var(--ds-text-muted)]">
+            {formatEuroCents(sponsor.amountCents)}
           </span>
         ),
       },

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { parseContentShortcodeSegments } from "./content-shortcode-segments";
+import {
+  parseContentShortcodeSegments,
+  type SupportLadderVariant,
+} from "./content-shortcode-segments";
 
 describe("parseContentShortcodeSegments", () => {
   it("splits markdown content around rejected shops table island shortcodes", () => {
@@ -93,6 +96,32 @@ describe("parseContentShortcodeSegments", () => {
         purposeDonation: "Spende: lmaa.space",
         purposeSponsor: "Sponsor: lmaa.space",
       },
+    });
+  });
+
+  it("gives a variant the form only where the page asks for one", () => {
+    const [segment] = parseContentShortcodeSegments(
+      [
+        "[[support-ladder",
+        '  [[bankaccount name="Frank Gregor" iban="AT55 1900 1047 0466 6811"',
+        '    [[variant key="once" title="Überweisung"]]',
+        '    [[variant key="sponsor" title="Sponsoren-Überweisung"',
+        '      [[sponsorform submitLabel="Los gehts"]]',
+        "    ]]",
+        "  ]]",
+        '  [[interval key="once" label="Einmalig" [[option amount=5]] ]]',
+        "]]",
+      ].join("\n"),
+    );
+
+    const variants = (segment as { bankAccount: { variants: SupportLadderVariant[] } }).bankAccount
+      .variants;
+    expect(variants.find((entry) => entry.key === "once")?.sponsorForm).toBeUndefined();
+    expect(variants.find((entry) => entry.key === "sponsor")?.sponsorForm).toMatchObject({
+      submitLabel: "Los gehts",
+      // Everything the page leaves out keeps the wording the component ships.
+      firstNameLabel: "Vorname",
+      claimRemaining: "noch {n} Zeichen",
     });
   });
 

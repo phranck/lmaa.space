@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  classifyProfileLink,
   detectPlatformFromUrl,
   normalizeSocialMediaValue,
   socialMediaSchema,
@@ -116,5 +117,71 @@ describe("LinkedIn social media support", () => {
     expect(socialMediaSchema.parse({ linkedin: "https://linkedin.com/stefaniegrunwald" })).toEqual({
       linkedin: "https://linkedin.com/in/stefaniegrunwald",
     });
+  });
+});
+
+describe("classifyProfileLink", () => {
+  it("sorts an address into the service it belongs to", () => {
+    expect(classifyProfileLink("https://oldbytes.space/@phranck")).toEqual({
+      platform: "mastodon",
+      url: "https://oldbytes.space/@phranck",
+    });
+    expect(classifyProfileLink("https://github.com/phranck")).toEqual({
+      platform: "github",
+      url: "https://github.com/phranck",
+    });
+  });
+
+  it("drops the parts of an address that are not the address", () => {
+    expect(classifyProfileLink("https://www.instagram.com/lmaa")).toEqual({
+      platform: "instagram",
+      url: "https://instagram.com/lmaa",
+    });
+  });
+
+  it("treats anything on no known service as a website", () => {
+    expect(classifyProfileLink("https://layered.work")?.platform).toBe("website");
+    expect(classifyProfileLink("layered.work")?.platform).toBe("website");
+  });
+
+  it("adds the scheme somebody left out", () => {
+    expect(classifyProfileLink("github.com/phranck")).toEqual({
+      platform: "github",
+      url: "https://github.com/phranck",
+    });
+  });
+
+  it("reads a fediverse handle as the address it is", () => {
+    // Written without a scheme, so putting one in front turns everything before
+    // the second `@` into a user on the instance's host.
+    expect(classifyProfileLink("@kim@chaos.social")).toEqual({
+      platform: "mastodon",
+      url: "https://chaos.social/@kim",
+    });
+    expect(classifyProfileLink("kim@chaos.social")).toEqual({
+      platform: "mastodon",
+      url: "https://chaos.social/@kim",
+    });
+  });
+
+  it("gives nothing for what is not an address", () => {
+    for (const input of ["", "   ", "not an address at all"]) {
+      expect(classifyProfileLink(input)).toBeNull();
+    }
+  });
+
+  it("refuses a scheme that reaches no page", () => {
+    for (const input of ["ftp://x.test", "javascript:alert(1)", "mailto:kim@example.test"]) {
+      expect(classifyProfileLink(input)).toBeNull();
+    }
+  });
+
+  it("refuses an address carrying a user in front of the host", () => {
+    // The shape that reads as one host and resolves to another.
+    expect(classifyProfileLink("https://layered.work@example.test")).toBeNull();
+  });
+
+  it("refuses a single word, which names no host", () => {
+    expect(classifyProfileLink("kim")).toBeNull();
   });
 });

@@ -9,7 +9,7 @@ import {
   type SupportLadderIsland,
 } from "@/lib/content-shortcode-segments";
 import { stripMarkdown } from "@/lib/markdown";
-import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
+import { expandVariablesSSR, renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 
 export interface ContentPageView {
   title: string;
@@ -119,7 +119,9 @@ async function renderSupportLadderProse(segment: SupportLadderIsland): Promise<S
 }
 
 export async function renderContentSegments(content: string): Promise<RenderedContentSegment[]> {
-  const segments = parseContentShortcodeSegments(content);
+  // Before the shortcodes are read rather than only before their prose is
+  // rendered, so a variable works the same in an attribute as in a sentence.
+  const segments = parseContentShortcodeSegments(await expandVariablesSSR(content));
   return Promise.all(
     segments.map(async (segment) => {
       if (segment.type === "markdown") {

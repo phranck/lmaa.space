@@ -31,6 +31,10 @@ const options: pino.LoggerOptions = {
       "*.accessToken",
       "*.sessionId",
       "*.appPassword",
+      // A creditor reference addresses a pending sponsorship and is sized
+      // against being guessed, so it is credential material rather than an
+      // identifier and never belongs in a log line.
+      "*.reference",
     ],
     remove: true,
   },
