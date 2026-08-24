@@ -322,12 +322,6 @@ publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
     costsTotalCents,
     coveredCents,
     minAmountCents: config.minAmountCents,
-    // The transfer details, which the support page reads instead of naming them
-    // in its own content. One place holds them, so nothing can disagree about
-    // which account the money goes to.
-    payeeName: config.payeeName,
-    payeeIban: config.payeeIban,
-    payeeBic: config.payeeBic,
   };
 
   c.header("Cache-Control", CACHE_EDITABLE);

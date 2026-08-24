@@ -1,9 +1,9 @@
-import { timingSafeEqual } from "node:crypto";
 import { isIP } from "node:net";
 
 import { eq, lt } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
 
+import { isInternalCaller } from "./internal-caller.js";
 import { env } from "../config/env.js";
 import { db } from "../db/client.js";
 import { rateLimitEntries } from "../db/schema.js";
@@ -146,41 +146,6 @@ export function resolveClientIp(
       return hops[index] ?? hops[0] ?? UNKNOWN_CLIENT_IP;
     }
   }
-}
-
-/** Header the website's server-side renderer uses to identify itself. */
-const INTERNAL_TOKEN_HEADER = "X-Internal-Token";
-
-/**
- * Decides whether a request comes from this project's own server-side renderer.
- *
- * @param headers - Request headers of the incoming request.
- * @returns `true` only when the request presents the configured internal token.
- *
- * @remarks
- * The website renders its pages on the server and fetches the data straight
- * from the backend rather than through the proxy, so those requests carry no
- * client address. Without a way to tell them apart they all fall into one
- * bucket, and the page rendering of the whole site is then capped by a limit
- * meant for a single visitor.
- *
- * Returns `false` whenever `INTERNAL_API_TOKEN` is unset, so a missing secret
- * withdraws the exemption instead of granting it. The comparison is
- * constant-time, and the length check in front of it is required because
- * `timingSafeEqual` throws on differing lengths.
- */
-function isInternalCaller(headers: Headers): boolean {
-  const configured = env.INTERNAL_API_TOKEN;
-  if (!configured) return false;
-
-  const presented = headers.get(INTERNAL_TOKEN_HEADER);
-  if (!presented) return false;
-
-  const presentedBytes = Buffer.from(presented, "utf8");
-  const configuredBytes = Buffer.from(configured, "utf8");
-  if (presentedBytes.length !== configuredBytes.length) return false;
-
-  return timingSafeEqual(presentedBytes, configuredBytes);
 }
 
 /** Starts periodic cleanup of expired rate-limit entries. Returns the timer for shutdown. */

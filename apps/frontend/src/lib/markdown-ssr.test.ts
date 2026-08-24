@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const apiMocks = vi.hoisted(() => ({ apiGet: vi.fn() }));
+const apiMocks = vi.hoisted(() => ({ apiGet: vi.fn(), apiGetInternal: vi.fn() }));
 
 vi.mock("./api", () => apiMocks);
 
@@ -18,7 +18,10 @@ async function freshRenderer() {
 }
 
 /**
- * Answers the two calls the renderer makes, in whatever order they arrive.
+ * Answers the calls the renderer makes, in whatever order they arrive.
+ *
+ * The account comes through the website-internal route rather than the public
+ * one, so both have to answer before any figure reaches the text.
  *
  * @param costsTotalCents - What the settings say a year costs.
  */
@@ -26,6 +29,11 @@ function backendAnswers(costsTotalCents: number) {
   apiMocks.apiGet.mockImplementation(async (path: string) => {
     if (path === "/sponsors") return { costsTotalCents };
     return {};
+  });
+  apiMocks.apiGetInternal.mockResolvedValue({
+    payeeName: "",
+    payeeIban: "",
+    payeeBic: "",
   });
 }
 
@@ -69,6 +77,7 @@ describe("renderMarkdownSSR", () => {
     // Nothing has ever been read, so there is no number to write. A wrong one
     // in a sentence about money would be worse than a visible gap.
     apiMocks.apiGet.mockRejectedValue(new Error("backend down"));
+    apiMocks.apiGetInternal.mockRejectedValue(new Error("backend down"));
     const render = await freshRenderer();
 
     const html = await render("Ein Jahr kostet {annualCost}.");
@@ -82,6 +91,7 @@ describe("renderMarkdownSSR", () => {
     await render("{annualCost}");
 
     apiMocks.apiGet.mockRejectedValue(new Error("backend down"));
+    apiMocks.apiGetInternal.mockRejectedValue(new Error("backend down"));
     const html = await render("Ein Jahr kostet {annualCost}.");
 
     // A figure a minute old beats a gap where a number belongs.

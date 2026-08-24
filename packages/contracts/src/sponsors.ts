@@ -129,13 +129,18 @@ export const sponsorsPayloadSchema = z.object({
   /** What the current sponsors together have covered, in cents. */
   coveredCents: z.number().int(),
   minAmountCents: z.number().int(),
-  /**
-   * Who is paid, as the transfer names them.
-   *
-   * Public because the transfer details are, and because both the support page
-   * and any sentence naming them read from here rather than from the page's own
-   * content.
-   */
+});
+
+/**
+ * The account a transfer goes to.
+ *
+ * Kept apart from the sponsors payload and served only to this project's own
+ * renderer. The support page shows these details, because somebody standing
+ * there is about to transfer money. The answer to "who is carrying the costs
+ * this year" is fetched wherever the sponsor wall appears, and the account
+ * details have no business travelling with it.
+ */
+export const payeeSchema = z.object({
   payeeName: z.string(),
   payeeIban: z.string(),
   payeeBic: z.string(),
@@ -153,6 +158,8 @@ export type RunningCostItem = z.infer<typeof runningCostItemSchema>;
 export type SponsoringConfig = z.infer<typeof sponsoringConfigSchema>;
 /** What the site needs to draw the sponsors. */
 export type SponsorsPayload = z.infer<typeof sponsorsPayloadSchema>;
+/** The account a transfer goes to. */
+export type Payee = z.infer<typeof payeeSchema>;
 
 /** The configuration in force when nothing has been set. */
 export const SPONSORING_DEFAULTS: SponsoringConfig = sponsoringConfigSchema.parse({});

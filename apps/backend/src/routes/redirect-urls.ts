@@ -7,8 +7,9 @@ import { resolveManagedRedirectUrl } from "../services/redirect-urls.js";
 /**
  * Website-internal redirect resolver routes.
  *
- * These routes are consumed by the frontend server for `/r/:name` and are not
- * part of the external `/api/v1` OpenAPI surface.
+ * Consumed by the frontend server for `/r/:name`, and outside the external
+ * `/api/v1` OpenAPI surface. Mounted under `/internal`, where the token check
+ * refuses anybody who is not this project's own renderer.
  */
 export const redirectUrlRoutes = new Hono();
 

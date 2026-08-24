@@ -11,7 +11,7 @@ import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
 import SponsorWall from "@/components/SponsorWall.astro";
 import SupportLadder from "@/components/islands/SupportLadder";
 import type { RenderedContentSegment } from "@/lib/content-page-rendering";
-import { EMPTY_SPONSORS, getSponsors } from "@/lib/sponsors";
+import { EMPTY_PAYEE, EMPTY_SPONSORS, getPayee, getSponsors } from "@/lib/sponsors";
 
 interface Props {
   /** Page title, shown only when the page asks for it. */
@@ -29,11 +29,17 @@ const { title, showTitle, segments } = Astro.props;
  * page asks for them once. A page carrying neither asks for nothing.
  */
 const needsSponsors = segments.some(
-  // Any ladder, not only one with a sponsor tab: the payee, the account and the
-  // bank come with these figures now rather than from the page's own content.
   (segment) => segment.type === "sponsors" || segment.type === "support-ladder",
 );
-const sponsors = needsSponsors ? await getSponsors() : EMPTY_SPONSORS;
+// The account is read separately from the sponsors, and only where a ladder
+// asks for it. It is served to this renderer alone rather than through the
+// public API, so it does not travel with every answer about who is carrying
+// the costs.
+const needsPayee = segments.some((segment) => segment.type === "support-ladder");
+const [sponsors, payee] = await Promise.all([
+  needsSponsors ? getSponsors() : EMPTY_SPONSORS,
+  needsPayee ? getPayee() : EMPTY_PAYEE,
+]);
 const minSponsorAmountEur = Math.ceil(sponsors.minAmountCents / 100);
 
 /**
@@ -91,9 +97,9 @@ const supportHref = segments.some((segment) => segment.type === "support-ladder"
               client:load
               bankAccount={segment.bankAccount}
               payee={{
-                name: sponsors.payeeName,
-                iban: sponsors.payeeIban,
-                bic: sponsors.payeeBic,
+                name: payee.payeeName,
+                iban: payee.payeeIban,
+                bic: payee.payeeBic,
               }}
               intervals={segment.intervals}
               routes={segment.routes}
