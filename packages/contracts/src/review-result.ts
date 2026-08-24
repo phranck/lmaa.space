@@ -12,7 +12,7 @@ import { isSafeConfiguredUrl } from "./safe-url";
  * version it does not know, which is what stops an old provider response from
  * being interpreted against newer rules after a deployment.
  */
-export const REVIEW_RESULT_SCHEMA_VERSION = "1";
+export const REVIEW_RESULT_SCHEMA_VERSION = "2";
 
 /**
  * Placeholder the rejection comment must still contain when it reaches us.
@@ -114,11 +114,14 @@ export const criterionRatingSchema = z.enum(["pass", "fail", "unclear"]);
  * @remarks
  * The keys follow the order of the canonical criteria list so a reviewer can
  * compare a machine result against the published criteria line by line.
+ * `basedInEurope` asks where the company is registered, not where it ships to,
+ * because the published criteria admit European companies and say that
+ * shipping reach decides nothing.
  */
 export const reviewCriteriaSchema = z
   .object({
     independentOnlinePresence: criterionRatingSchema,
-    sellsToEurope: criterionRatingSchema,
+    basedInEurope: criterionRatingSchema,
     notALargeCompany: criterionRatingSchema,
     notAMarketplace: criterionRatingSchema,
     notDropshipping: criterionRatingSchema,
@@ -592,7 +595,7 @@ export const reviewResultJsonSchema: Record<string, unknown> = {
       additionalProperties: false,
       required: [
         "independentOnlinePresence",
-        "sellsToEurope",
+        "basedInEurope",
         "notALargeCompany",
         "notAMarketplace",
         "notDropshipping",
@@ -602,7 +605,7 @@ export const reviewResultJsonSchema: Record<string, unknown> = {
       ],
       properties: {
         independentOnlinePresence: ratingEnum,
-        sellsToEurope: ratingEnum,
+        basedInEurope: ratingEnum,
         notALargeCompany: ratingEnum,
         notAMarketplace: ratingEnum,
         notDropshipping: ratingEnum,

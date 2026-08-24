@@ -12,7 +12,7 @@ import { loadReviewSkill } from "../services/review/skill.js";
 
 const passingCriteria = {
   independentOnlinePresence: "pass",
-  sellsToEurope: "pass",
+  basedInEurope: "pass",
   notALargeCompany: "pass",
   notAMarketplace: "pass",
   notDropshipping: "pass",

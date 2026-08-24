@@ -79,6 +79,17 @@ describe("loadReviewSkill", () => {
     expect(text).toContain(":innen");
   });
 
+  it("sends the European seat as a criterion and shipping reach as data", () => {
+    const { text } = loadReviewSkill();
+    // The published criteria admit companies registered in Europe. Shipping
+    // reach fills `shippingRegions` and gates nothing, because a shop outside
+    // Europe that ships worldwide also sells into Europe. All three fragments
+    // are the rule itself rather than wording around it.
+    expect(text).toContain("seat in Europe");
+    expect(text).toContain("registered in geographic Europe");
+    expect(text).toContain("decides nothing about admission");
+  });
+
   it("hashes what is sent rather than the file on disk", () => {
     const source = readFileSync(CANONICAL_PATH, "utf8");
     expect(loadReviewSkill().text).not.toBe(source);
