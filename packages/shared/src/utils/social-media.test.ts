@@ -120,6 +120,37 @@ describe("LinkedIn social media support", () => {
   });
 });
 
+describe("Pixelfed social media support", () => {
+  it.each([
+    ["https://pixel.tchncs.de/hdvalentin", "https://pixel.tchncs.de/hdvalentin"],
+    ["https://pixel.tchncs.de/hdvalentin/", "https://pixel.tchncs.de/hdvalentin"],
+    ["https://pixel.tchncs.de/@hdvalentin", "https://pixel.tchncs.de/hdvalentin"],
+    ["https://www.pixel.tchncs.de/hdvalentin", "https://pixel.tchncs.de/hdvalentin"],
+    ["hdvalentin@pixel.tchncs.de", "https://pixel.tchncs.de/hdvalentin"],
+    ["@hdvalentin@pixel.tchncs.de", "https://pixel.tchncs.de/hdvalentin"],
+  ])("normalizes %s", (input, expected) => {
+    expect(normalizeSocialMediaValue("pixelfed", input)).toBe(expected);
+  });
+
+  it.each(["https://pixel.tchncs.de/a/b", "https://pixel.tchncs.de/", "hdvalentin"])(
+    "refuses %s, which is no profile",
+    (input) => {
+      expect(normalizeSocialMediaValue("pixelfed", input)).toBeNull();
+    },
+  );
+
+  it("is not guessed from an address, because the address does not say", () => {
+    // An instance is hosted by whoever runs it and a profile is a single path
+    // segment, which is what a personal website looks like as well. Somebody
+    // has to say that this is Pixelfed.
+    expect(detectPlatformFromUrl("https://pixel.tchncs.de/hdvalentin")).toBeNull();
+    expect(classifyProfileLink("https://pixel.tchncs.de/hdvalentin")).toEqual({
+      platform: "website",
+      url: "https://pixel.tchncs.de/hdvalentin",
+    });
+  });
+});
+
 describe("XING social media support", () => {
   it.each([
     "https://www.xing.com/profile/Kai_Becker",

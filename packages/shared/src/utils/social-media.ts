@@ -4,6 +4,7 @@ import { z } from "zod";
 export const SOCIAL_PLATFORM_KEYS = [
   "applepodcasts",
   "mastodon",
+  "pixelfed",
   "bluesky",
   "instagram",
   "facebook",
@@ -284,6 +285,43 @@ function normalizeMastodon(input: string): string | null {
   const instance = cleaned.slice(atIndex + 1);
   if (!user || !instance || !instance.includes(".")) return null;
   return `https://${instance}/@${user}`;
+}
+
+/**
+ * Canonicalises a Pixelfed address.
+ *
+ * Pixelfed is hosted by whoever runs an instance, so the host says nothing and
+ * cannot be checked. A profile is `/<handle>`, which is the form the service
+ * puts in its own `og:url`, and `/@<handle>` is accepted because that is how
+ * the rest of the fediverse writes it.
+ *
+ * Every host is therefore accepted, which is safe only because nothing sorts an
+ * address into Pixelfed on its own: somebody has to say that is what it is.
+ *
+ * @param input - A Pixelfed URL, or a `user@instance` handle.
+ * @returns The address as `https://<instance>/<handle>`, or `null`.
+ */
+function normalizePixelfed(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    const path = stripTrailingSlash(url.pathname);
+    const segments = path.split("/").filter(Boolean);
+    if (segments.length !== 1) return null;
+    const handle = stripLeadingAt(segments[0]);
+    return handle ? `https://${host}/${handle}` : null;
+  }
+
+  const cleaned = stripLeadingAt(trimmed);
+  const atIndex = cleaned.indexOf("@");
+  if (atIndex < 1) return null;
+  const handle = cleaned.slice(0, atIndex);
+  const instance = cleaned.slice(atIndex + 1);
+  if (!handle || !instance || !instance.includes(".")) return null;
+  return `https://${instance}/${handle}`;
 }
 
 function normalizeTumblr(input: string): string | null {
@@ -709,6 +747,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   x: normalizeX,
   bluesky: normalizeBluesky,
   mastodon: normalizeMastodon,
+  pixelfed: normalizePixelfed,
   tumblr: normalizeTumblr,
   linkedin: normalizeLinkedin,
   xing: normalizeXing,

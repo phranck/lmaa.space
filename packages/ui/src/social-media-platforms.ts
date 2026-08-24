@@ -13,6 +13,7 @@ import {
   SiMastodon,
   SiMixcloud,
   SiPatreon,
+  SiPixelfed,
   SiSignal,
   SiSpotify,
   SiTumblr,
@@ -38,6 +39,7 @@ export interface PlatformDef {
 const PLATFORM_METADATA: Record<SocialPlatformKey, Omit<PlatformDef, "key">> = {
   applepodcasts: { label: "Apple Podcasts", icon: SiApplepodcasts },
   mastodon: { label: "Mastodon", icon: SiMastodon },
+  pixelfed: { label: "Pixelfed", icon: SiPixelfed },
   bluesky: { label: "Bluesky", icon: SiBluesky },
   instagram: { label: "Instagram", icon: SiInstagram },
   facebook: { label: "Facebook", icon: FaFacebook },

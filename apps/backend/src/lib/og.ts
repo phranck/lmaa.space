@@ -211,6 +211,95 @@ async function fetchHtml(url: string): Promise<string | null> {
   return html;
 }
 
+/**
+ * The software names NodeInfo reports, against the platform key they mean.
+ *
+ * Only names that have been seen answering are in here. A host running
+ * something else is left alone rather than guessed at.
+ */
+const SOFTWARE_TO_PLATFORM: Readonly<Record<string, string>> = {
+  pixelfed: "pixelfed",
+  mastodon: "mastodon",
+};
+
+/** How long the two NodeInfo requests may take, each. */
+const NODEINFO_TIMEOUT_MS = 6000;
+
+/** NodeInfo documents are small; anything larger is not one. */
+const MAX_NODEINFO_BYTES = 64 * 1024;
+
+/**
+ * Asks a host which software it runs, through NodeInfo.
+ *
+ * A service anybody can host sits on a domain of its own and its profiles are a
+ * single path segment, which is what a personal website looks like too, so the
+ * address cannot say what it is. Its own pages cannot be trusted to either:
+ * measured across twelve Pixelfed instances on 2026-08-24, their landing pages
+ * carried no `generator` at all and their `og:site_name` was whatever the
+ * operator had named the place, from "Pixey" to "FediSnap".
+ *
+ * NodeInfo is the fediverse's own answer to this question. All twelve reported
+ * `pixelfed` with a version, and it is the same query for Mastodon or anything
+ * else that speaks it.
+ *
+ * Two requests: the well-known document lists where the real one lives, and the
+ * real one carries the software name.
+ *
+ * @param address - Any address on the host in question.
+ * @returns The platform key, or `null` when the host speaks no NodeInfo or runs
+ *   something not mapped here.
+ */
+export async function detectPlatformFromHost(address: string): Promise<string | null> {
+  let origin: string;
+  try {
+    origin = new URL(address).origin;
+  } catch {
+    return null;
+  }
+
+  const index = await fetchNodeinfoJson<{ links?: unknown }>(`${origin}/.well-known/nodeinfo`);
+  if (!index || !Array.isArray(index.links)) return null;
+
+  // The last link is the newest schema the host offers, which is the one to ask.
+  const hrefs = index.links
+    .map((link) =>
+      link && typeof link === "object" ? (link as Record<string, unknown>).href : undefined,
+    )
+    .filter((href): href is string => typeof href === "string");
+  const href = hrefs.at(-1);
+  if (!href) return null;
+
+  const document = await fetchNodeinfoJson<{ software?: unknown }>(href);
+  const software = document?.software;
+  const name =
+    software && typeof software === "object"
+      ? (software as Record<string, unknown>).name
+      : undefined;
+  if (typeof name !== "string") return null;
+
+  return SOFTWARE_TO_PLATFORM[name.trim().toLowerCase()] ?? null;
+}
+
+/**
+ * Reads one NodeInfo document.
+ *
+ * @param url - The document's address.
+ * @returns The parsed body, or `null` on any failure.
+ */
+async function fetchNodeinfoJson<T>(url: string): Promise<T | null> {
+  const result = await fetchExternalResource(url, {
+    signal: AbortSignal.timeout(NODEINFO_TIMEOUT_MS),
+    headers: { "User-Agent": HEADERS["User-Agent"], Accept: "application/json" },
+  });
+  if (!result?.response.ok) return null;
+  try {
+    return await readJsonWithLimit<T>(result.response, MAX_NODEINFO_BYTES);
+  } catch (err) {
+    logger.warn({ err, url }, "nodeinfo lookup failed");
+    return null;
+  }
+}
+
 // === Image header probe ===
 // Parses the native header bytes of common web image formats and returns the
 // real pixel dimensions. Designed to work on the first ~32 KB of a file.
