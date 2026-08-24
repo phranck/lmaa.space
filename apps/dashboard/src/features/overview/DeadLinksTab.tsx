@@ -1,6 +1,8 @@
 import { ArrowSquareUpRightIcon, CheckIcon, LinkIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 
+import { formatDateTime } from "@lmaa/shared";
+
 import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
@@ -66,13 +68,7 @@ export function DeadLinksTab() {
         cell: (report) =>
           report.lastReportedAt ? (
             <span className="text-xs text-[var(--ds-text-subtle)]">
-              {new Date(report.lastReportedAt).toLocaleString(locale, {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatDateTime(report.lastReportedAt, locale)}
             </span>
           ) : (
             <span className="text-xs text-[var(--ds-text-subtle)]">–</span>

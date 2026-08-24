@@ -17,7 +17,7 @@ import type {
   PublicRejectedShopSortField,
   PublicRejectedShopsResponse,
 } from "@lmaa/contracts";
-import { resolveLogoBackground } from "@lmaa/shared";
+import { formatDate, resolveLogoBackground } from "@lmaa/shared";
 
 import { fetchJson } from "@/lib/fetch-json";
 
@@ -40,12 +40,6 @@ const SORT_COLUMN_WIDTHS: Partial<Record<PublicRejectedShopSortField, string>> =
   shopName: "w-[64%]",
   rejectedAt: "w-[22%]",
 };
-
-const dateFormatter = new Intl.DateTimeFormat("de-DE", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
 
 interface RejectedShopsTableProps {
   defaultPageSize: PublicRejectedShopPageSize;
@@ -107,10 +101,6 @@ function buildRejectedShopsPath(state: RejectedShopsTableState) {
   });
   if (state.search.trim()) params.set("q", state.search.trim());
   return `/rejected-shops?${params}`;
-}
-
-function formatDate(value: string) {
-  return dateFormatter.format(new Date(value));
 }
 
 function ShopLogo({

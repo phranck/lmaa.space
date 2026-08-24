@@ -1,13 +1,13 @@
 import { FolderIcon } from "@phosphor-icons/react";
 
-import type { MediaFolder, MediaFolderColor } from "@lmaa/shared";
+import { formatDateTime, type MediaFolder, type MediaFolderColor } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 import { FormLabelText } from "@lmaa/ui/form-primitives";
 
 import { DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { EditActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import type { useI18n } from "@/context/I18nContext.tsx";
-import { formatBytes, formatMediaDate } from "@/features/system/media/media-utils.ts";
+import { formatBytes } from "@/features/system/media/media-utils.ts";
 import { MediaFolderColorPicker } from "@/features/system/media/MediaFolderColorPicker.tsx";
 import type { DashboardLocale } from "@/i18n/messages.ts";
 
@@ -53,7 +53,7 @@ export function MediaFolderSidebar({
             </div>
             <div className="min-w-0">
               <FormLabelText>{mediaMessages.createdAt}</FormLabelText>
-              <p className="text-[var(--ds-text)]">{formatMediaDate(folder.createdAt, locale)}</p>
+              <p className="text-[var(--ds-text)]">{formatDateTime(folder.createdAt, locale)}</p>
             </div>
           </div>
           <div>

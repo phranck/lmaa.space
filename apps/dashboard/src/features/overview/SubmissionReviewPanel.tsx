@@ -2,7 +2,7 @@ import { CheckCircleIcon, RobotIcon, XCircleIcon } from "@phosphor-icons/react";
 import { memo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { REVIEW_SETTING_DEFAULTS, SETTINGS_KEYS } from "@lmaa/shared";
+import { REVIEW_SETTING_DEFAULTS, SETTINGS_KEYS, formatDateTime } from "@lmaa/shared";
 import type { ReviewCost, ReviewJobDetail } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -198,13 +198,7 @@ export const SubmissionReviewPanel = memo(function SubmissionReviewPanel({
               label={t.checkedAtLabel}
               value={
                 detail.finishedAt
-                  ? new Date(detail.finishedAt).toLocaleString(locale, {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
+                  ? formatDateTime(detail.finishedAt, locale)
                   : "–"
               }
             />
@@ -242,7 +236,7 @@ export const SubmissionReviewPanel = memo(function SubmissionReviewPanel({
                 {detail.events.map((entry) => (
                   <li key={entry.id} className="text-xs text-[var(--ds-text-muted)]">
                     <span className="font-mono">
-                      {new Date(entry.createdAt).toLocaleString("de-DE")}
+                      {formatDateTime(entry.createdAt, locale)}
                     </span>{" "}
                     {entry.event}
                     {entry.detail ? ` — ${entry.detail}` : ""}

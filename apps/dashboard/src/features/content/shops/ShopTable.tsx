@@ -11,7 +11,12 @@ import {
 } from "@phosphor-icons/react";
 import { memo, useMemo } from "react";
 
-import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/shared";
+import {
+  REGION_CODES,
+  formatDateTime,
+  type AdminShopListItem,
+  type ShopSummary,
+} from "@lmaa/shared";
 
 import { Badge } from "@/components/ui/Badge.tsx";
 import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
@@ -19,6 +24,7 @@ import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
+import type { DashboardLocale } from "@/i18n/messages.ts";
 import { FRONTEND_URL } from "@/lib/env.ts";
 
 interface ShopTableProps {
@@ -72,8 +78,11 @@ const VisibilityBadge = memo(function VisibilityBadge({
   return null;
 });
 
-function formatReminderTitle(reminder: NonNullable<AdminShopListItem["reminder"]>) {
-  const formattedDate = new Date(reminder.remindAt).toLocaleString("de-DE");
+function formatReminderTitle(
+  reminder: NonNullable<AdminShopListItem["reminder"]>,
+  locale: DashboardLocale,
+) {
+  const formattedDate = formatDateTime(reminder.remindAt, locale);
   return `Erinnerung: ${formattedDate}${reminder.note ? ` - ${reminder.note}` : ""}`;
 }
 
@@ -121,7 +130,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
               )}
               {shop.reminder && (
                 <span
-                  title={formatReminderTitle(shop.reminder)}
+                  title={formatReminderTitle(shop.reminder, locale)}
                   className="shrink-0 text-amber-400"
                 >
                   <ClockIcon weight="duotone" className="size-3.5" />
@@ -227,7 +236,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         ),
       },
     ],
-    [onEdit, regionOptions, shopsMessages],
+    [locale, onEdit, regionOptions, shopsMessages],
   );
 
   return (

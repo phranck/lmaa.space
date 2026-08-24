@@ -9,6 +9,7 @@ import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { EmailTemplate, EmailTemplateInput } from "@lmaa/contracts";
+import { formatDate } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -135,11 +136,7 @@ export function EmailTemplateListPage() {
         sortKey: (tpl) => tpl.createdAt,
         cell: (tpl) => (
           <span suppressHydrationWarning className="text-xs text-[var(--ds-text-muted)]">
-            {new Date(tpl.createdAt).toLocaleDateString(locale, {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
+            {formatDate(tpl.createdAt, locale)}
           </span>
         ),
       },

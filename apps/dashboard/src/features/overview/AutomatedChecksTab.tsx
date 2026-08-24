@@ -7,7 +7,7 @@ import {
 import { useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
-import type { ReviewCost, ReviewJobListItem } from "@lmaa/shared";
+import { formatDateTime, type ReviewCost, type ReviewJobListItem } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
@@ -206,13 +206,7 @@ export function AutomatedChecksTab() {
         cell: (job) =>
           job.finishedAt ? (
             <span className="text-xs text-[var(--ds-text-subtle)]">
-              {new Date(job.finishedAt).toLocaleString(locale, {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatDateTime(job.finishedAt, locale)}
             </span>
           ) : (
             <span className="text-xs text-[var(--ds-text-subtle)]">–</span>

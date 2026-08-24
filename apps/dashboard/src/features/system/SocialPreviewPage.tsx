@@ -54,7 +54,7 @@ import type {
   SocialPreviewShapeLayer,
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
-import type { MediaAsset } from "@lmaa/shared";
+import { formatDateTime, type MediaAsset } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -2190,7 +2190,7 @@ function SocialPreviewOverviewPage() {
         sortKey: (project) => new Date(project.updatedAt).getTime(),
         cell: (project) => (
           <span className="whitespace-nowrap text-xs text-[var(--ds-text-muted)]">
-            {new Date(project.updatedAt).toLocaleString(locale)}
+            {formatDateTime(project.updatedAt, locale)}
           </span>
         ),
       },

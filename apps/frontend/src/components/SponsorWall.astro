@@ -2,7 +2,7 @@
 import SponsorCard from "@/components/SponsorCard.astro";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { SponsorsPayload } from "@lmaa/contracts";
-import { daysLeft, formatEuroWhole, fullName } from "@lmaa/shared";
+import { daysLeft, formatDate, formatEuroWhole, fullName } from "@lmaa/shared";
 
 interface Props {
   /**
@@ -71,13 +71,6 @@ const dayFormat = new Intl.DateTimeFormat("de-DE", {
   year: "numeric",
 });
 
-/** The same day in figures, which is what fits on a card the width of a phone. */
-const shortDayFormat = new Intl.DateTimeFormat("de-DE", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
-
 /** Today as `YYYY-MM-DD`, which is what a sponsorship's days are counted against. */
 const today = new Date().toISOString().slice(0, 10);
 
@@ -93,7 +86,7 @@ const terms = payload.sponsors.map((sponsor) => {
   const day = new Date(`${sponsor.paidAt}T00:00:00Z`);
   return {
     since: dayFormat.format(day),
-    sinceShort: shortDayFormat.format(day),
+    sinceShort: formatDate(day),
     left: left === 1 ? "noch 1 Tag" : `noch ${left} Tage`,
   };
 });
