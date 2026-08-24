@@ -356,3 +356,52 @@ describe("findSocialMediaUrl", () => {
     expect(findSocialMediaUrl(undefined, "website")).toBeUndefined();
   });
 });
+
+describe("Friendica social media support", () => {
+  it("is a platform of its own", () => {
+    expect(SOCIAL_PLATFORM_KEYS).toContain("friendica");
+  });
+
+  it.each([
+    // The form every instance names through WebFinger.
+    ["https://friend.enby-box.de/profile/jaddy", "https://friend.enby-box.de/profile/jaddy"],
+    ["https://friend.enby-box.de/profile/jaddy/", "https://friend.enby-box.de/profile/jaddy"],
+    ["https://www.friend.enby-box.de/profile/jaddy", "https://friend.enby-box.de/profile/jaddy"],
+    // The alias the instances publish beside it.
+    ["https://libranet.de/~usnfeed", "https://libranet.de/profile/usnfeed"],
+    // Answers everywhere without being advertised.
+    ["https://loma.ml/u/nytimes", "https://loma.ml/profile/nytimes"],
+    // Answered 404 on all seventeen instances, so it is a mistake worth fixing
+    // rather than an address worth keeping.
+    ["https://friendica.xyz/@montag", "https://friendica.xyz/profile/montag"],
+    // The handle, as somebody writes it when naming themselves.
+    ["jaddy@friend.enby-box.de", "https://friend.enby-box.de/profile/jaddy"],
+    ["@jaddy@friend.enby-box.de", "https://friend.enby-box.de/profile/jaddy"],
+  ])("normalizes %s", (input, expected) => {
+    expect(normalizeSocialMediaValue("friendica", input)).toBe(expected);
+  });
+
+  it.each([
+    // A single segment is a page on somebody's site far more often than it is a
+    // profile, and it answered 404 on every instance measured.
+    "https://friend.enby-box.de/jaddy",
+    // The instance itself, which is nobody in particular.
+    "https://friend.enby-box.de/",
+    // A page below a profile is not the profile.
+    "https://friend.enby-box.de/profile/jaddy/photos",
+    "jaddy",
+  ])("refuses %s, which is no profile", (input) => {
+    expect(normalizeSocialMediaValue("friendica", input)).toBeNull();
+  });
+
+  it("is not guessed from an address, because the address does not say", () => {
+    // Anybody may host an instance on any domain, so `/profile/somebody` looks
+    // exactly like a page on an ordinary site. Only the host can settle it, by
+    // saying through NodeInfo which software it runs.
+    expect(detectPlatformFromUrl("https://friend.enby-box.de/profile/jaddy")).toBeNull();
+    expect(classifyProfileLink("https://friend.enby-box.de/profile/jaddy")).toEqual({
+      platform: "website",
+      url: "https://friend.enby-box.de/profile/jaddy",
+    });
+  });
+});

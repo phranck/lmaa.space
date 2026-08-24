@@ -214,8 +214,14 @@ describe("detectPlatformFromHost", () => {
         if (url.endsWith("/.well-known/nodeinfo")) {
           return Response.json({
             links: [
-              { rel: "http://nodeinfo.diaspora.software/ns/schema/2.0", href: "https://host/n/2.0" },
-              { rel: "http://nodeinfo.diaspora.software/ns/schema/2.1", href: "https://host/n/2.1" },
+              {
+                rel: "http://nodeinfo.diaspora.software/ns/schema/2.0",
+                href: "https://host/n/2.0",
+              },
+              {
+                rel: "http://nodeinfo.diaspora.software/ns/schema/2.1",
+                href: "https://host/n/2.1",
+              },
             ],
           });
         }
@@ -239,6 +245,15 @@ describe("detectPlatformFromHost", () => {
   it("answers for anything else that speaks NodeInfo", async () => {
     stubNodeinfo("mastodon");
     expect(await detectPlatformFromHost("https://oldbytes.space/@somebody")).toBe("mastodon");
+  });
+
+  it("names Friendica, which its own addresses cannot say either", async () => {
+    // Measured on friend.enby-box.de on 2026-08-24: `software.name` is
+    // `friendica`, whilst `/profile/jaddy` looks like a page on any site.
+    stubNodeinfo("friendica");
+    expect(await detectPlatformFromHost("https://friend.enby-box.de/profile/jaddy")).toBe(
+      "friendica",
+    );
   });
 
   it("leaves a host running something unmapped alone", async () => {
