@@ -28,10 +28,23 @@ export interface RenderedSupportPrompt {
 export interface SupportPromptSlotData {
   prompts: RenderedSupportPrompt[];
   limits: SupportPromptLimits;
+  /**
+   * Every prompt that is live right now, across all slots.
+   *
+   * The reader's store holds a record per prompt and forgets the ones that no
+   * longer exist. Deciding that from one slot's prompts alone would forget the
+   * other slots' records, and somebody who dismissed a prompt on one page
+   * would meet it again after visiting another.
+   */
+  liveIds: string[];
 }
 
 /** Nothing to show, which is also the answer when the backend is unreachable. */
-const EMPTY: SupportPromptSlotData = { prompts: [], limits: { maxShown: 4, snoozeDays: 14 } };
+const EMPTY: SupportPromptSlotData = {
+  prompts: [],
+  limits: { maxShown: 4, snoozeDays: 14 },
+  liveIds: [],
+};
 
 /**
  * Loads the prompts for one slot and renders their content.
@@ -49,22 +62,32 @@ export async function loadSupportPrompts(slot: SupportPromptSlot): Promise<Suppo
       "/support-prompts",
     );
 
-    const prompts = await Promise.all(
-      payload.prompts
-        .filter((prompt) => prompt.slot === slot)
-        .map(async (prompt) => ({
+    // One pass over the payload: the ones for this slot are rendered, the rest
+    // are passed over. Rendering runs together rather than one after another,
+    // because no prompt's text depends on another's.
+    const rendering: Promise<RenderedSupportPrompt>[] = [];
+    for (const prompt of payload.prompts) {
+      if (prompt.slot !== slot) continue;
+      rendering.push(
+        renderMarkdown(prompt.content, {}, { breaks: true }).then((html) => ({
           id: prompt.id,
           kind: prompt.kind,
-          html: await renderMarkdown(prompt.content, {}, { breaks: true }),
+          html,
           buttonLabel: prompt.buttonLabel,
           buttonHref: prompt.buttonHref,
           dismissLabel: prompt.dismissLabel,
           threshold: prompt.threshold,
           priority: prompt.priority,
         })),
-    );
+      );
+    }
+    const prompts = await Promise.all(rendering);
 
-    return { prompts, limits: payload.limits };
+    return {
+      prompts,
+      limits: payload.limits,
+      liveIds: payload.prompts.map((prompt) => prompt.id),
+    };
   } catch {
     return EMPTY;
   }

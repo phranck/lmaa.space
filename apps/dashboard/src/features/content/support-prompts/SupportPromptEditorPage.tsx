@@ -127,9 +127,11 @@ export function SupportPromptEditorPage() {
   const { data: pages } = useContentPages();
   const pageOptions = useMemo(
     () =>
-      (pages ?? [])
-        .filter((page) => page.status === "published")
-        .map((page) => ({ value: `/${page.slug}`, label: `${page.title} · /${page.slug}` })),
+      (pages ?? []).flatMap((page) =>
+        page.status === "published"
+          ? [{ value: `/${page.slug}`, label: `${page.title} · /${page.slug}` }]
+          : [],
+      ),
     [pages],
   );
 
