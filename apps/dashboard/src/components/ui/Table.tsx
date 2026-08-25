@@ -102,6 +102,13 @@ interface DataTableProps<T> {
   getRowProps?: (row: T) => HTMLAttributes<HTMLTableRowElement>;
   /** Keeps the header visible while scrolling. Requires the app header height as top offset. */
   stickyHeader?: boolean;
+  /**
+   * Keeps the footer rows visible whilst the body scrolls.
+   *
+   * For a footer that sums the column above it: a total that scrolls out of
+   * sight stops answering the question it was put there to answer.
+   */
+  stickyFooter?: boolean;
   /** Optional default sort applied on first render. */
   initialSort?: SortState | null;
   /**
@@ -138,6 +145,7 @@ export function DataTable<T>({
   getRowClassName,
   getRowProps,
   stickyHeader = false,
+  stickyFooter = false,
   footerRows,
   initialSort = null,
   sort: controlledSort,
@@ -280,7 +288,13 @@ export function DataTable<T>({
             })}
       </TableBody>
       {footerRows && footerRows.length > 0 ? (
-        <tfoot className="border-t border-[var(--ds-border)] bg-[var(--ds-surface)]">
+        <tfoot
+          className={`border-t border-[var(--ds-border)] bg-[var(--ds-surface)] ${
+            // The line is drawn as a shadow rather than a border, so it sits
+            // above the rows sliding under it rather than inside the footer.
+            stickyFooter ? "sticky bottom-0 z-10 shadow-[0_-1px_0_var(--ds-border)]" : ""
+          }`}
+        >
           {footerRows.map((row) => (
             <tr key={row.id}>
               {columns.map((col) => (
