@@ -99,6 +99,8 @@ const reportDialogId = `dialog-report-${shop.id}`;
 // HQ
 const hq = shop.headquarters;
 const hasHq = hq && (hq.street || hq.city || hq.state || hq.countryCode);
+/** Whether a map stands above the actions, which is what the inset answers to. */
+const hasMap = hq?.latitude != null && hq?.longitude != null;
 const hqParts: string[] = [];
 if (hq) {
   if (hq.street) hqParts.push(hq.street);
@@ -161,7 +163,10 @@ const metaDescription = shop.description
     </div>
   )}
 
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+  <!-- The map's radius stands once here. What sits under the map steps in by
+       half of it, because a line set hard against a rounded corner reads as
+       colliding with it. -->
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10" style="--map-radius: 1rem">
 
     <!-- Breadcrumb with back button -->
     <nav class="flex items-center gap-3 mb-8" aria-label="Breadcrumb">
@@ -366,8 +371,8 @@ const metaDescription = shop.description
 
 
     <!-- Standort (Map) -->
-    {hq?.latitude != null && hq?.longitude != null && (
-      <section class="mb-8">
+    {hasMap && (
+      <section>
         <SectionLabel class="mb-3 flex items-center gap-2">
           <MapPinIcon weight="duotone" className="w-5 h-5" />
           Standort
@@ -377,21 +382,32 @@ const metaDescription = shop.description
           latitude={hq.latitude}
           longitude={hq.longitude}
           name={shop.name}
-          className="rounded-2xl border border-stone-100 h-100"
+          className="rounded-[var(--map-radius)] border border-stone-100 h-100"
         />
+      </section>
+    )}
+
+    <!-- What sits under the map: the route on the left, the reports on the
+         right. Stepped in by half the map's radius, and only whilst a map
+         stands above it, because that curve is what the inset answers to. -->
+    <footer
+      class:list={[
+        "flex flex-wrap items-center gap-4",
+        hasMap ? "justify-between mt-2" : "justify-center sm:justify-start pt-6",
+      ]}
+      style={hasMap ? "padding-inline: calc(var(--map-radius) / 2)" : undefined}
+      data-shop-id={shop.id}
+    >
+      {hasMap ? (
         <a
           href={`https://www.openstreetmap.org/directions?to=${hq.latitude},${hq.longitude}#map=15/${hq.latitude}/${hq.longitude}`}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1.5 text-sm text-stone-600 hover:text-amber-700 transition-colors mt-2"
+          class="inline-flex items-center gap-1.5 text-sm text-stone-600 hover:text-amber-700 transition-colors"
         >
           Route planen ↗
         </a>
-      </section>
-    )}
-
-    <!-- Actions footer -->
-    <footer class="flex items-center justify-center sm:justify-start gap-4 pt-6 border-t border-stone-200" data-shop-id={shop.id}>
+      ) : null}
       <div class="flex items-center gap-4" data-shop-actions>
         <button
           type="button"
