@@ -265,7 +265,10 @@ export function AutomatedChecksTab() {
 
   return (
     <>
-      <div className="-mx-3 -mt-3">
+      {/* Pulled over the scroll container's padding on every side, so the
+          sticky footer can reach the bottom edge rather than stopping short
+          of it. */}
+      <div className="-mx-3 -mt-3 -mb-3">
         <DataTable
           columns={columns}
           data={jobs}

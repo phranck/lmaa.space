@@ -290,9 +290,12 @@ export function DataTable<T>({
       {footerRows && footerRows.length > 0 ? (
         <tfoot
           className={`border-t border-[var(--ds-border)] bg-[var(--ds-surface)] ${
+            // Pulled past the scroll container's own padding, the way the
+            // sticky header is. At `bottom-0` it stops at the padding's inner
+            // edge and the rows go on showing through the 12 pixels below it.
             // The line is drawn as a shadow rather than a border, so it sits
             // above the rows sliding under it rather than inside the footer.
-            stickyFooter ? "sticky bottom-0 z-10 shadow-[0_-1px_0_var(--ds-border)]" : ""
+            stickyFooter ? "sticky -bottom-3 z-10 shadow-[0_-1px_0_var(--ds-border)]" : ""
           }`}
         >
           {footerRows.map((row) => (
