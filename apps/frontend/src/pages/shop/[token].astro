@@ -188,12 +188,38 @@ const metaDescription = shop.description
 
     <!-- Header -->
     <header class="flex flex-row items-start gap-5 mb-8">
-      <ShopAvatar name={shop.name} imageUrl={shop.ogImage} logoBackgroundColor={shop.logoBackgroundColor} size="md" />
+      <a
+        href={visitUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="shrink-0 rounded-2xl transition-opacity hover:opacity-80"
+        tabindex="-1"
+        aria-hidden="true"
+        data-analytics-event="shop-visit-click"
+        data-analytics-source="shop-detail-logo"
+        data-shop-id={String(shop.id)}
+        data-shop-name={shop.name}
+        data-shop-domain={domain}
+      >
+        <ShopAvatar name={shop.name} imageUrl={shop.ogImage} logoBackgroundColor={shop.logoBackgroundColor} size="md" />
+      </a>
       <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-start gap-3">
           <div class="min-w-0 flex-1">
             <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-stone-900 leading-tight">
-              {shop.name}
+              <a
+                href={visitUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="transition-colors hover:text-amber-700"
+                data-analytics-event="shop-visit-click"
+                data-analytics-source="shop-detail-name"
+                data-shop-id={String(shop.id)}
+                data-shop-name={shop.name}
+                data-shop-domain={domain}
+              >
+                {shop.name}
+              </a>
             </h1>
             <a
               href={visitUrl}
@@ -303,12 +329,12 @@ const metaDescription = shop.description
       )}
     </div>
 
-    <!-- Categories -->
-    {shop.categories?.length > 0 && (
-      <section class="mb-8">
-        <SectionLabel class="mb-3">Kategorien</SectionLabel>
+    <!-- Categories, with the visit as the action that belongs beside them -->
+    <section class="mb-8">
+      {shop.categories?.length > 0 && <SectionLabel class="mb-3">Kategorien</SectionLabel>}
+      <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap gap-2">
-          {shop.categories.map((cat) => (
+          {shop.categories?.map((cat) => (
             <a
               href={`/category/${cat.slug}`}
               class="px-3 py-1.5 rounded-full text-sm font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
@@ -322,8 +348,21 @@ const metaDescription = shop.description
             </a>
           ))}
         </div>
-      </section>
-    )}
+        <a
+          href={visitUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl text-sm font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)] shrink-0 max-sm:w-full"
+          data-analytics-event="shop-visit-click"
+          data-analytics-source="shop-detail"
+          data-shop-id={String(shop.id)}
+          data-shop-name={shop.name}
+          data-shop-domain={domain}
+        >
+          Shop besuchen ↗
+        </a>
+      </div>
+    </section>
 
 
     <!-- Standort (Map) -->
@@ -352,8 +391,8 @@ const metaDescription = shop.description
     )}
 
     <!-- Actions footer -->
-    <footer class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-stone-200" data-shop-id={shop.id}>
-      <div class="flex items-center justify-center sm:justify-start gap-4" data-shop-actions>
+    <footer class="flex items-center justify-center sm:justify-start gap-4 pt-6 border-t border-stone-200" data-shop-id={shop.id}>
+      <div class="flex items-center gap-4" data-shop-actions>
         <button
           type="button"
           class="text-sm text-stone-500 hover:text-red-500 transition-colors"
@@ -375,19 +414,6 @@ const metaDescription = shop.description
           Shop melden
         </button>
       </div>
-      <a
-        href={visitUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl text-sm font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
-        data-analytics-event="shop-visit-click"
-        data-analytics-source="shop-detail"
-        data-shop-id={String(shop.id)}
-        data-shop-name={shop.name}
-        data-shop-domain={domain}
-      >
-        Shop besuchen ↗
-      </a>
     </footer>
   </div>
 
