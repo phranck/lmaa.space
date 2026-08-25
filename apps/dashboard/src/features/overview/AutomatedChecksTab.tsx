@@ -109,14 +109,24 @@ export function AutomatedChecksTab() {
       {
         id: "today",
         cells: {
-          verdict: <span className="text-sm text-[var(--ds-text-muted)]">{t.todayLabel}</span>,
+          // Right against the amounts, so the label sits beside the figure it
+          // names rather than a column away from it.
+          verdict: (
+            <span className="block text-right text-sm text-[var(--ds-text-muted)]">
+              {t.todayLabel}
+            </span>
+          ),
           cost: <CostAmount amount={format(todayUnits)} incomplete={!spend?.today.complete} />,
         },
       },
       {
         id: "total",
         cells: {
-          verdict: <span className="text-sm text-[var(--ds-text-muted)]">{t.totalLabel}</span>,
+          verdict: (
+            <span className="block text-right text-sm text-[var(--ds-text-muted)]">
+              {t.totalLabel}
+            </span>
+          ),
           cost: <CostAmount amount={format(totalUnits)} incomplete={!spend?.total.complete} />,
         },
       },
@@ -261,6 +271,7 @@ export function AutomatedChecksTab() {
           data={jobs}
           getRowKey={(job) => job.id}
           stickyHeader
+          stickyFooter
           footerRows={footerRows}
         />
       </div>
