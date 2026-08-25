@@ -59,10 +59,13 @@ export default function SupportPromptSlot({
   slot,
   prompts,
   limits,
+  liveIds,
   shopSlug,
 }: SupportPromptSlotProps) {
-  const [visible, setVisible] = useState<RenderedSupportPrompt | null>(null);
-  const [html, setHtml] = useState("");
+  // One piece of state, because the prompt and the text filled in for it are
+  // decided together and shown together. Two would allow a render between the
+  // two writes, showing one prompt's text under another's buttons.
+  const [shown, setShown] = useState<{ prompt: RenderedSupportPrompt; html: string } | null>(null);
 
   useEffect(() => {
     if (prompts.length === 0) return;
@@ -70,8 +73,7 @@ export default function SupportPromptSlot({
     // One prompt per page view. A second slot on the same page stays quiet.
     if (document.querySelector("[data-support-prompt]")) return;
 
-    const ids = prompts.map((prompt) => prompt.id);
-    let store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), ids);
+    let store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
 
     if (slot === "shop-detail" && shopSlug) {
       store = countShopView(store, shopSlug);
@@ -87,30 +89,28 @@ export default function SupportPromptSlot({
     if (!prompt) return;
 
     persist(recordShown(store, prompt.id, limits, Date.now()));
-    setHtml(fillNumbers(prompt.html, likedShops, store.shopViews));
-    setVisible(prompt);
+    setShown({ prompt, html: fillNumbers(prompt.html, likedShops, store.shopViews) });
     trackWebsiteEvent("support-prompt-shown", { prompt: prompt.id, slot });
-  }, [prompts, limits, slot, shopSlug]);
+  }, [prompts, limits, liveIds, slot, shopSlug]);
 
-  if (!visible) return null;
+  if (!shown) return null;
+  const visible = shown.prompt;
 
   function close(reason: "dismissed" | "resolved") {
-    if (!visible) return;
-    const ids = prompts.map((prompt) => prompt.id);
-    const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), ids);
+    if (!shown) return;
+    const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
     persist(
       reason === "resolved"
         ? recordResolved(store, visible.id)
         : recordDismissed(store, visible.id, Date.now()),
     );
     trackWebsiteEvent("support-prompt-dismissed", { prompt: visible.id, slot });
-    setVisible(null);
+    setShown(null);
   }
 
   function follow() {
-    if (!visible) return;
-    const ids = prompts.map((prompt) => prompt.id);
-    const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), ids);
+    if (!shown) return;
+    const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
     persist(recordResolved(store, visible.id));
     trackWebsiteEvent("support-prompt-clicked", { prompt: visible.id, slot });
   }
@@ -150,7 +150,7 @@ export default function SupportPromptSlot({
         className="lmaa-rich pr-8 text-sm"
         style={{ color: "var(--ds-text-muted)" }}
         // biome-ignore lint/security/noDangerouslySetInnerHtml: page content, rendered and sanitised server-side by renderMarkdown, exactly as the ladder's prose is
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: shown.html }}
       />
 
       <div className="flex flex-wrap items-center gap-3">

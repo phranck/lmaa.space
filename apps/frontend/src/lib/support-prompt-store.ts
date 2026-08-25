@@ -16,7 +16,7 @@ import type { SupportPromptLimits } from "@lmaa/contracts";
 export const SUPPORT_PROMPT_STORAGE_KEY = "lmaa-support-prompt:v1";
 
 /** How long a single dismissal pushes the next showing away, in days. */
-export const DISMISS_SNOOZE_DAYS = 90;
+const DISMISS_SNOOZE_DAYS = 90;
 
 /** How often the same prompt may be dismissed before it stops coming back. */
 export const DISMISSALS_UNTIL_RESOLVED = 3;
