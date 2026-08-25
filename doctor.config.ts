@@ -4,15 +4,11 @@ export default {
   lint: true,
   ignore: {
     overrides: [
-      // The support ladder and the support prompt both show page content that
-      // the server already rendered and sanitised through the site's own
-      // Markdown pipeline, the same one the article around them goes through.
-      // Nothing in either comes from a visitor.
+      // The support ladder shows page content that the server already rendered
+      // and sanitised through the site's own Markdown pipeline, the same one the
+      // article around it goes through. Nothing here comes from a visitor.
       {
-        files: [
-          "src/components/islands/SupportLadder.tsx",
-          "src/components/islands/SupportPromptSlot.tsx",
-        ],
+        files: ["src/components/islands/SupportLadder.tsx"],
         rules: ["react-doctor/no-danger"],
       },
       // These large editors/routes are tracked as structural refactors in LMAA-029.
@@ -27,15 +23,6 @@ export default {
           "src/ShopEditForm.tsx",
         ],
         rules: ["react-doctor/no-giant-component"],
-      },
-      // Whether a prompt shows is decided once on mount, and it is decided from
-      // things that do not exist whilst the page renders: the reader's counters
-      // in localStorage and whether another slot has already claimed the page.
-      // The same pass writes those counters back and reports the showing, so it
-      // is a side effect rather than a value that could be worked out in render.
-      {
-        files: ["src/components/islands/SupportPromptSlot.tsx"],
-        rules: ["react-doctor/no-derived-state", "react-doctor/no-event-handler"],
       },
       // The social preview editor intentionally keeps independent transient state domains.
       {
