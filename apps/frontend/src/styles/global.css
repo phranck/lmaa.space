@@ -527,6 +527,123 @@ details > summary::-webkit-details-marker {
   padding-inline: var(--card-text-inset);
 }
 
+/* An icon written into a text.
+   It sits on the text's own line rather than on the baseline, where an SVG
+   would otherwise push the line apart, and it never grows past the line it
+   stands in. */
+.md-icon {
+  display: inline-block;
+  vertical-align: text-bottom;
+  max-width: 100%;
+}
+
+/* An icon the paragraph beside it runs around. The class names the side the
+   icon takes, which is the one the text does not. The margin on the flowing
+   side keeps the text off the glyph, the one below keeps the following line off
+   it where the paragraph is shorter than the icon is tall. */
+.md-icon--float-start {
+  float: left;
+  margin-inline-end: var(--ds-space-sm);
+  margin-block-end: var(--ds-space-xs);
+}
+
+.md-icon--float-end {
+  float: right;
+  margin-inline-start: var(--ds-space-sm);
+  margin-block-end: var(--ds-space-xs);
+}
+
+/* Where the symbol stands in the block it sits in, which is a different
+   question from where its text sits. A bare symbol and a symbol with its label
+   both take these, so each keeps the display value it needs whilst the margin
+   does the placing. */
+.md-icon--align-start,
+.md-icon--align-center,
+.md-icon--align-end {
+  width: fit-content;
+}
+
+.md-icon.md-icon--align-start,
+.md-icon.md-icon--align-center,
+.md-icon.md-icon--align-end {
+  display: block;
+}
+
+.md-icon-pair.md-icon--align-start,
+.md-icon-pair.md-icon--align-center,
+.md-icon-pair.md-icon--align-end {
+  display: flex;
+}
+
+.md-icon--align-center {
+  margin-inline: auto;
+}
+
+.md-icon--align-end {
+  margin-inline-start: auto;
+}
+
+/* An icon and its label. The alignment decides which way the two are laid out
+   and where the label sits across that direction, under SwiftUI's names. */
+.md-icon-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-sm);
+  vertical-align: text-bottom;
+}
+
+.md-icon-pair--row {
+  flex-direction: row;
+}
+
+.md-icon-pair--row-reverse {
+  flex-direction: row-reverse;
+}
+
+.md-icon-pair--column {
+  flex-direction: column;
+}
+
+.md-icon-pair--column-reverse {
+  flex-direction: column-reverse;
+}
+
+.md-icon-pair--start {
+  align-items: flex-start;
+}
+
+.md-icon-pair--end {
+  align-items: flex-end;
+}
+
+/* The label over the middle of the symbol rather than beside it, which is what
+   center means in a ZStack. Both take the same cell, so neither pushes the
+   other and the pair is as large as the symbol. */
+.md-icon-pair--stacked {
+  display: inline-grid;
+}
+
+.md-icon-pair--stacked > * {
+  grid-area: 1 / 1;
+  place-self: center;
+}
+
+.md-icon-pair.md-icon-pair--stacked.md-icon--align-start,
+.md-icon-pair.md-icon-pair--stacked.md-icon--align-center,
+.md-icon-pair.md-icon-pair--stacked.md-icon--align-end {
+  display: grid;
+}
+
+/* A label carrying headings or several paragraphs keeps its own rhythm inside,
+   but not the outer margins, which would push it off the symbol it belongs to. */
+.md-icon-pair__label > :first-child {
+  margin-block-start: 0;
+}
+
+.md-icon-pair__label > :last-child {
+  margin-block-end: 0;
+}
+
 /* The wall of yearly sponsors.
    A card per person, in the geometry every other card on the site uses, so the
    list reads as part of the page rather than as a badge rack. */

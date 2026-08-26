@@ -7,6 +7,7 @@ import "./MarkdownShortcodeReference.css";
 import {
   MARKDOWN_SHORTCODE_DEFINITIONS,
   type MarkdownShortcodeDefinition,
+  type MarkdownShortcodeDefinitionToken,
   type MarkdownShortcodeParamDefinition,
 } from "@lmaa/shared";
 
@@ -119,6 +120,41 @@ function DefinitionEntry({
         </table>
       )}
 
+      {definition.tables?.map((table) => (
+        <div key={table.caption} className="mt-3">
+          <div className="text-[var(--ds-text-subtle)]">{table.caption}</div>
+          <table className="mt-1 w-full border-collapse">
+            <thead>
+              <tr className="text-left text-[var(--ds-text-subtle)]">
+                {table.columns.map((column) => (
+                  <th key={column} className="py-1 pr-3 font-normal">
+                    {column}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {table.rows.map((row) => (
+                <tr key={row.join("|")} className="border-t border-[var(--ds-rule)] align-top">
+                  {row.map((cell, column) => (
+                    <td
+                      key={table.columns[column] ?? column}
+                      className={
+                        column === 0
+                          ? "py-1 pr-3 font-mono text-[var(--ds-text)]"
+                          : "py-1 pr-3 text-[var(--ds-text-muted)]"
+                      }
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+
       {depth === 0 && definition.examples.length > 0 && (
         <div className="mt-2">
           <div className="flex items-center justify-between gap-2 mb-1">
@@ -148,6 +184,42 @@ function DefinitionEntry({
  * again. On the very first open there is nothing stored and the panel is
  * centred.
  */
+/**
+ * The list of shortcodes, as the panel's left column.
+ *
+ * Only the tokens that stand on their own appear here. A child such as `option`
+ * is shown with the parent it belongs to, because that is the only place it
+ * means anything.
+ *
+ * @param selected - The token whose description is on the right.
+ * @param onSelect - Called with the token the reader picked.
+ */
+function ShortcodeList({
+  selected,
+  onSelect,
+}: {
+  selected: MarkdownShortcodeDefinitionToken;
+  onSelect: (token: MarkdownShortcodeDefinitionToken) => void;
+}) {
+  return (
+    <nav className="lmaa-help-nav" aria-label="Shortcodes">
+      {MARKDOWN_SHORTCODE_DEFINITIONS.map((definition) => (
+        <button
+          key={definition.token}
+          type="button"
+          onClick={() => onSelect(definition.token)}
+          data-current={definition.token === selected ? "true" : undefined}
+          aria-current={definition.token === selected ? "true" : undefined}
+          className="lmaa-help-nav-item"
+        >
+          <span className="font-mono">[[{definition.token}]]</span>
+          <span className="lmaa-help-nav-label">{definition.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 interface HelpFrame {
   x: number;
   y: number;
@@ -156,15 +228,17 @@ interface HelpFrame {
 }
 
 const FRAME_STORAGE_KEY = "lmaa.markdown-help.frame";
-const MIN_WIDTH = 320;
-const MIN_HEIGHT = 224;
+// Wide enough that the list keeps its column and the description beside it
+// stays readable rather than wrapping every second word.
+const MIN_WIDTH = 520;
+const MIN_HEIGHT = 260;
 
 /** The edges and corners the panel can be resized from. */
 const RESIZE_EDGES = ["n", "s", "e", "w", "nw", "ne", "sw", "se"] as const;
 
 type ResizeEdge = (typeof RESIZE_EDGES)[number];
-const DEFAULT_WIDTH = 480;
-const DEFAULT_HEIGHT = 512;
+const DEFAULT_WIDTH = 760;
+const DEFAULT_HEIGHT = 560;
 const VIEWPORT_MARGIN = 16;
 
 /** Keeps a frame inside the window, so a stored position can never hide it. */
@@ -244,6 +318,15 @@ export function MarkdownShortcodeReference({
 }) {
   const panelRef = React.useRef<HTMLElement | null>(null);
   const frameRef = React.useRef<HelpFrame | null>(null);
+
+  // Which shortcode the right column describes. It survives a close and reopen,
+  // so somebody who was reading about one finds it again.
+  const [selected, setSelected] = React.useState<MarkdownShortcodeDefinitionToken>(
+    MARKDOWN_SHORTCODE_DEFINITIONS[0].token,
+  );
+  const shown =
+    MARKDOWN_SHORTCODE_DEFINITIONS.find((definition) => definition.token === selected) ??
+    MARKDOWN_SHORTCODE_DEFINITIONS[0];
 
   // Places the panel on open, from storage or centred.
   React.useEffect(() => {
@@ -410,16 +493,15 @@ export function MarkdownShortcodeReference({
         />
       ))}
 
-      <div className="lmaa-help-body">
-        <p className="text-[var(--ds-text-muted)]">
-          Ein Shortcode steht in doppelten eckigen Klammern und darf über mehrere Zeilen gehen. Ein
-          Stern markiert ein Pflichtfeld. Eingerückte Einträge gelten nur innerhalb ihres
-          Elternteils.
-        </p>
-        <div className="mt-4">
-          {MARKDOWN_SHORTCODE_DEFINITIONS.map((definition) => (
-            <DefinitionEntry key={definition.token} definition={definition} depth={0} />
-          ))}
+      <p className="lmaa-help-hint">
+        Ein Shortcode steht in doppelten eckigen Klammern und darf über mehrere Zeilen gehen. Ein
+        Stern markiert ein Pflichtfeld, eingerückte Einträge gelten nur innerhalb ihres Elternteils.
+      </p>
+
+      <div className="lmaa-help-split">
+        <ShortcodeList selected={selected} onSelect={setSelected} />
+        <div className="lmaa-help-body">
+          <DefinitionEntry definition={shown} depth={0} />
         </div>
       </div>
     </aside>,
