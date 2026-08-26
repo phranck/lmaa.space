@@ -8,6 +8,9 @@ import {
   type ParsedMarkdownShortcode,
 } from "@lmaa/shared";
 
+import { duotonePaths, loadDuotoneIcons } from "@/lib/phosphor-duotone";
+
+
 import {
   escapeHtmlAttribute,
   getSafeConfigHref,
@@ -193,6 +196,244 @@ function renderWidgetShortcode(target: string, attrs: Record<string, string>): s
   )}" title="${escapeHtmlAttribute(title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" style="width:100%;height:${height}px;border:0;overflow:hidden;"></iframe></div>`;
 }
 
+/**
+ * The icon names a text asks for.
+ *
+ * Read with a pattern rather than through the parser, because this runs before
+ * parsing and only needs to know what to fetch. A name that turns out not to be
+ * an icon costs one lookup that finds nothing, which is why being generous here
+ * is cheaper than parsing twice.
+ *
+ * @param content - The text as written.
+ * @returns Every name found, duplicates included.
+ */
+function iconNamesIn(content: string): string[] {
+  const names: string[] = [];
+  for (const match of content.matchAll(/\[\[icon\b[^\]]*?\bname\s*=\s*"([^"]+)"/g)) {
+    if (match[1]) names.push(match[1].trim());
+  }
+  return names;
+}
+
+/** A hex figure of three, four, six or eight digits, with or without its hash. */
+const HEX_COLOUR = /^#?(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+
+/** A colour named in words, which is how CSS spells `tomato` and `rebeccapurple`. */
+const NAMED_COLOUR = /^[a-z]+$/i;
+
+/** A reference to one of the design system's own colours. */
+const TOKEN_COLOUR = /^var\(--[a-z0-9-]+\)$/i;
+
+/**
+ * The colour an icon is drawn in, from what the author wrote.
+ *
+ * A bare hex figure gets its hash, so `cea836` and `#cea836` mean the same
+ * thing. Whatever is none of the three forms below becomes the colour of the
+ * surrounding text, because a value that reaches `fill` unread can point at a
+ * paint server elsewhere in the document instead of naming a colour.
+ *
+ * @param raw - The `color` parameter, where the author wrote one.
+ * @returns A value that is safe to put in `fill`.
+ */
+function iconFill(raw: string | undefined): string {
+  const value = raw?.trim();
+  if (!value) return "currentColor";
+  if (HEX_COLOUR.test(value)) return value.startsWith("#") ? value : `#${value}`;
+  if (NAMED_COLOUR.test(value) || TOKEN_COLOUR.test(value)) return value;
+  return "currentColor";
+}
+
+/** Where a label sits against its icon, under the names SwiftUI gives them. */
+type IconAlignment =
+  | "top"
+  | "bottom"
+  | "leading"
+  | "trailing"
+  | "center"
+  | "topLeading"
+  | "topTrailing"
+  | "bottomLeading"
+  | "bottomTrailing";
+
+/**
+ * The classes that place a label against its icon.
+ *
+ * The first class names the axis and which end of it the icon takes, the second
+ * where the label sits across that axis. `center` names no side at all and lays
+ * the label over the middle of the symbol, which is what SwiftUI's `.center`
+ * does in a `ZStack`.
+ */
+const ICON_PAIR_CLASSES: Record<IconAlignment, string> = {
+  trailing: "md-icon-pair--row",
+  leading: "md-icon-pair--row-reverse",
+  topTrailing: "md-icon-pair--row md-icon-pair--start",
+  topLeading: "md-icon-pair--row-reverse md-icon-pair--start",
+  bottomTrailing: "md-icon-pair--row md-icon-pair--end",
+  bottomLeading: "md-icon-pair--row-reverse md-icon-pair--end",
+  bottom: "md-icon-pair--column",
+  top: "md-icon-pair--column-reverse",
+  center: "md-icon-pair--stacked",
+};
+
+/**
+ * The classes that float an icon so the paragraph beside it runs around it.
+ *
+ * An alignment names where the text goes, so the icon takes the opposite side:
+ * `trailing` puts the text on the right and therefore floats the icon to the
+ * left. Only the horizontal alignments name a side at all, and the others are
+ * absent here, because a paragraph cannot flow above or below something.
+ */
+const ICON_FLOAT_CLASSES: Partial<Record<IconAlignment, string>> = {
+  trailing: "md-icon--float-start",
+  topTrailing: "md-icon--float-start",
+  bottomTrailing: "md-icon--float-start",
+  leading: "md-icon--float-end",
+  topLeading: "md-icon--float-end",
+  bottomLeading: "md-icon--float-end",
+};
+
+/** Where the symbol itself stands in the block, as SwiftUI names the three. */
+type IconPlacement = "leading" | "center" | "trailing";
+
+/**
+ * The classes that place the symbol in the block it sits in.
+ *
+ * This answers a different question from the alignment above, which is only
+ * ever about the text. The two are set apart because reaching for the text's
+ * alignment to centre a symbol that carries no text says the opposite of what
+ * is meant.
+ */
+const ICON_PLACEMENT_CLASSES: Record<IconPlacement, string> = {
+  leading: "md-icon--align-start",
+  center: "md-icon--align-center",
+  trailing: "md-icon--align-end",
+};
+
+/**
+ * The alignment an author wrote, in whichever spelling they reached for.
+ *
+ * SwiftUI writes `.topLeading`, so the leading dot belongs to the name as much
+ * as the capital does. `topleading` and `top-leading` are read as the same
+ * thing, because a name that works in one casing only is a name to look up
+ * rather than one to remember.
+ *
+ * @param raw - The `textalignment` parameter, where the author wrote one.
+ * @returns The alignment, or `null` for anything that names none.
+ */
+function readAlignment(raw: string | undefined): IconAlignment | null {
+  const written = raw
+    ?.trim()
+    .replace(/^\./, "")
+    .replace(/[-_\s]/g, "")
+    .toLowerCase();
+  if (!written) return null;
+
+  const names = Object.keys(ICON_PAIR_CLASSES) as IconAlignment[];
+  return names.find((one) => one.toLowerCase() === written) ?? null;
+}
+
+/**
+ * Where the symbol itself stands, from what the author wrote.
+ *
+ * Read the same forgiving way as the text's alignment, so `.center`, `center`
+ * and `CENTER` all arrive as the same placement.
+ *
+ * @param raw - The `alignment` parameter, where the author wrote one.
+ * @returns The placement, or `null` for anything that names none.
+ */
+function readPlacement(raw: string | undefined): IconPlacement | null {
+  const written = raw
+    ?.trim()
+    .replace(/^\./, "")
+    .replace(/[-_\s]/g, "")
+    .toLowerCase();
+  if (!written) return null;
+
+  const names = Object.keys(ICON_PLACEMENT_CLASSES) as IconPlacement[];
+  return names.find((one) => one.toLowerCase() === written) ?? null;
+}
+
+/**
+ * Draws a Phosphor icon as inline markup, always in its duotone weight.
+ *
+ * The paths come from the store the renderer filled before it started, because
+ * this function hands back a string and cannot wait for anything. An icon
+ * nobody could find leaves the shortcode standing in the text, so the person
+ * who wrote it sees that the name is wrong rather than an empty space.
+ *
+ * Without a colour the icon inherits the text's, which is what `currentColor`
+ * means and what duotone is built around.
+ *
+ * @param attrs - The attributes as written.
+ * @returns The markup, or the shortcode as text when the name leads nowhere.
+ */
+function renderIconShortcode(attrs: Record<string, string>): string {
+  const name = attrs.name?.trim() ?? "";
+  const paths = duotonePaths(name);
+  if (!paths) return escapeHtml(`[[icon name="${name}"]]`);
+
+  const parsedSize = Number(attrs.size ?? "");
+  const size = Number.isFinite(parsedSize) && parsedSize > 0 ? Math.round(parsedSize) : 24;
+  const fill = escapeHtmlAttribute(iconFill(attrs.color));
+  const label = attrs.text?.trim();
+  // A label with no alignment sits after the icon, the way a label follows the
+  // symbol on a button.
+  const written = attrs.textalignment ?? attrs.textAlignment ?? attrs["text-alignment"];
+  const alignment = readAlignment(written) ?? (label ? "trailing" : null);
+  const placement = readPlacement(attrs.alignment);
+
+  // Without a label, an alignment naming a side floats the icon so the next
+  // paragraph runs past it. A floated element is placed by the float itself, so
+  // the placement has nothing left to say in that case.
+  const floated = label || !alignment ? undefined : ICON_FLOAT_CLASSES[alignment];
+  const placed = floated ?? (placement ? ICON_PLACEMENT_CLASSES[placement] : undefined);
+
+  const shapes = paths
+    .map((path) => {
+      const opacity = path.opacity ? ` opacity="${escapeHtmlAttribute(path.opacity)}"` : "";
+      return `<path d="${escapeHtmlAttribute(path.d)}"${opacity} />`;
+    })
+    .join("");
+
+  const iconClass = ["md-icon", label ? undefined : placed].filter(Boolean).join(" ");
+  const svg = `<svg class="${iconClass}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="${size}" height="${size}" fill="${fill}" role="img" aria-hidden="true">${shapes}</svg>`;
+  if (!alignment || !label) return svg;
+
+  const { html: labelHtml, block } = renderIconLabel(label);
+  const tag = block ? "div" : "span";
+  const pairClass = ["md-icon-pair", ICON_PAIR_CLASSES[alignment], placed]
+    .filter(Boolean)
+    .join(" ");
+
+  return `<${tag} class="${pairClass}">${svg}<${tag} class="md-icon-pair__label">${labelHtml}</${tag}></${tag}>`;
+}
+
+/** The closing tag of a paragraph, used to recognise a label that is only one. */
+const PARAGRAPH_END = "</p>";
+
+/**
+ * The label of an icon, rendered as Markdown.
+ *
+ * A label is usually a few words, and those belong inside the line the icon
+ * sits on. One carrying a heading or several paragraphs cannot go there: a
+ * heading is not permitted inside a `span`, and a browser meeting one breaks
+ * the surrounding paragraph open to fix it. Such a label is reported as a block
+ * so the caller wraps it in a `div` instead, and a label that is a single
+ * paragraph loses that paragraph and stays in the line.
+ *
+ * @param label - What the author wrote in `text`.
+ * @returns The rendered HTML, and whether it holds more than one paragraph.
+ */
+function renderIconLabel(label: string): { html: string; block: boolean } {
+  const rendered = (markedSafe.parse(label) as string).trim();
+  const single =
+    rendered.startsWith("<p>") &&
+    rendered.indexOf(PARAGRAPH_END) === rendered.length - PARAGRAPH_END.length;
+
+  if (!single) return { html: rendered, block: true };
+  return { html: rendered.slice("<p>".length, -PARAGRAPH_END.length), block: false };
+}
+
 function renderImageShortcode(target: string, attrs: Record<string, string>): string {
   const src = getSafeSiteAssetPath(target);
   if (!src) {
@@ -323,6 +564,12 @@ function renderParsedShortcode(
   if (shortcode.issues.some((issue) => issue.code === "missing-target")) return null;
   if (shortcode.definition.renderMode === "island") return null;
 
+  // Before the target check, because this one carries none: everything it needs
+  // stands in its attributes.
+  if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.icon) {
+    return renderIconShortcode(stringifyShortcodeAttributes(shortcode.attributes));
+  }
+
   const rawTarget = shortcode.target;
   if (!rawTarget) return null;
 
@@ -420,6 +667,10 @@ export async function renderMarkdown(
   options: { breaks?: boolean } = {},
 ): Promise<string> {
   const normalized = normalizeFootnoteSourceHeadings(content);
+  // The shortcode renderer below hands back strings and cannot wait, so what it
+  // needs is fetched here, where waiting is allowed. Only the icons this text
+  // actually names are read.
+  await loadDuotoneIcons(iconNamesIn(normalized));
   const { content: withShortcodes, tokens } = extractRenderableShortcodes(normalized, aliases);
   const renderer = options.breaks ? markedSafeWithBreaks : markedSafe;
   const html = (await renderer.parse(withShortcodes)) as string;

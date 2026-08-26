@@ -1332,6 +1332,8 @@ export interface DashboardMessages {
       limitsHint: string;
       maxShownLabel: string;
       snoozeDaysLabel: string;
+      devAlwaysShowLabel: string;
+      devAlwaysShowHint: string;
       placementTitle: string;
       placementHint: string;
       scheduleTitle: string;
@@ -3010,6 +3012,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "Gilt über alle Einblendungen hinweg und lässt sich von keiner einzelnen überschreiben.",
         maxShownLabel: "Höchstens sichtbar (Anzahl)",
         snoozeDaysLabel: "Ruhezeit (Tage)",
+        devAlwaysShowLabel: "Immer anzeigen (nur Entwicklung)",
+        devAlwaysShowHint:
+          "Setzt alle Grenzen aus, damit eine Einblendung bei jedem Seitenaufruf erscheint. In der Produktion wirkt der Schalter nicht, auch wenn er hier an steht.",
         placementTitle: "Platzierung",
         placementHint: "Wo sie steht, wie sie aussieht und ab wann sie erscheint.",
         scheduleTitle: "Zeitplan",
@@ -4697,6 +4702,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         limitsHint: "Applies across every prompt and cannot be raised by any single one.",
         maxShownLabel: "Shown at most (times)",
         snoozeDaysLabel: "Quiet period (days)",
+        devAlwaysShowLabel: "Always show (development only)",
+        devAlwaysShowHint:
+          "Sets every limit aside, so a prompt appears on every page view. In production the switch does nothing, even when it is on here.",
         placementTitle: "Placement",
         placementHint: "Where it sits, how it looks, and from when it appears.",
         scheduleTitle: "Schedule",

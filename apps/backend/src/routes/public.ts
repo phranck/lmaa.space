@@ -452,8 +452,14 @@ publicRoutes.get("/support-prompts", publicReadLimit, async (c) => {
     getSupportPromptLimits(),
   ]);
 
+  // Whether the limits may be set aside is decided here rather than in the
+  // browser, because this is where the environment is known for certain. In
+  // production the answer is no, whatever is stored, so a switch left on by
+  // accident cannot reach a reader.
+  const devAlwaysShow = env.NODE_ENV !== "production" && limits.devAlwaysShow === true;
+
   c.header("Cache-Control", CACHE_EDITABLE);
-  return ok(c, { prompts, limits });
+  return ok(c, { prompts, limits, devAlwaysShow });
 });
 
 // GET /api/content/:slug (published pages only)

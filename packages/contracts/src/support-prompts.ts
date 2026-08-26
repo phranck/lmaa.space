@@ -134,14 +134,33 @@ export const supportPromptSchema = z.object({
 export const supportPromptLimitsSchema = z.object({
   /** How often anything may be shown to one reader, in total. */
   maxShown: z.coerce.number().int().min(1).max(20).default(4),
-  /** How long the site stays quiet after a showing. */
-  snoozeDays: z.coerce.number().int().min(1).max(365).default(14),
+  /** How long the site stays quiet after a showing. Zero means not at all. */
+  snoozeDays: z.coerce.number().int().min(0).max(365).default(14),
+  /**
+   * Whether to set every limit aside whilst working on a prompt.
+   *
+   * Stored like the others, but only ever acted on outside production. See
+   * `supportPromptPayloadSchema`.
+   */
+  devAlwaysShow: z.boolean().default(false),
 });
 
 /** What the site needs to decide what to show. */
 export const supportPromptPayloadSchema = z.object({
   prompts: z.array(supportPromptSchema),
   limits: supportPromptLimitsSchema,
+  /**
+   * Whether every limit is set aside, so a prompt shows on every page view.
+   *
+   * For working on a prompt: with the ordinary rules in force, seeing one twice
+   * means clearing the browser store and visiting three shops in between, which
+   * makes trying a change out slower than making it.
+   *
+   * The backend answers `false` in production whatever is stored, so this can
+   * never reach a reader. The decision is made there rather than in the browser
+   * because that is where the environment is known for certain.
+   */
+  devAlwaysShow: z.boolean().default(false),
 });
 
 /** One of the places a prompt may appear. */

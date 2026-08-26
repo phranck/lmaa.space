@@ -317,6 +317,36 @@ details > summary::-webkit-details-marker {
   margin-block: 0.5em;
 }
 
+/* Headings in rich text.
+   The preflight sets every heading to the size it inherits, so without this a
+   heading in a card reads exactly like the sentence above it. The steps come
+   from the same ratio the type scale is built on, stated in em rather than rem
+   so a heading grows out of whatever size its block uses: a card sets text-sm,
+   a page sets text-base, and the proportion holds in both. */
+.lmaa-rich h1,
+.lmaa-rich h2,
+.lmaa-rich h3,
+.lmaa-rich h4,
+.lmaa-rich h5,
+.lmaa-rich h6 {
+  margin-block: 1em 0.4em;
+  color: var(--ds-text);
+  font-weight: 600;
+  line-height: var(--ds-leading-xl);
+}
+
+.lmaa-rich h1 {
+  font-size: calc(1em * var(--ds-scale) * var(--ds-scale) * var(--ds-scale));
+}
+
+.lmaa-rich h2 {
+  font-size: calc(1em * var(--ds-scale) * var(--ds-scale));
+}
+
+.lmaa-rich h3 {
+  font-size: calc(1em * var(--ds-scale));
+}
+
 .lmaa-rich ol,
 .lmaa-rich ul {
   margin-block: 0.5em;
@@ -497,6 +527,123 @@ details > summary::-webkit-details-marker {
   padding-inline: var(--card-text-inset);
 }
 
+/* An icon written into a text.
+   It sits on the text's own line rather than on the baseline, where an SVG
+   would otherwise push the line apart, and it never grows past the line it
+   stands in. */
+.md-icon {
+  display: inline-block;
+  vertical-align: text-bottom;
+  max-width: 100%;
+}
+
+/* An icon the paragraph beside it runs around. The class names the side the
+   icon takes, which is the one the text does not. The margin on the flowing
+   side keeps the text off the glyph, the one below keeps the following line off
+   it where the paragraph is shorter than the icon is tall. */
+.md-icon--float-start {
+  float: left;
+  margin-inline-end: var(--ds-space-sm);
+  margin-block-end: var(--ds-space-xs);
+}
+
+.md-icon--float-end {
+  float: right;
+  margin-inline-start: var(--ds-space-sm);
+  margin-block-end: var(--ds-space-xs);
+}
+
+/* Where the symbol stands in the block it sits in, which is a different
+   question from where its text sits. A bare symbol and a symbol with its label
+   both take these, so each keeps the display value it needs whilst the margin
+   does the placing. */
+.md-icon--align-start,
+.md-icon--align-center,
+.md-icon--align-end {
+  width: fit-content;
+}
+
+.md-icon.md-icon--align-start,
+.md-icon.md-icon--align-center,
+.md-icon.md-icon--align-end {
+  display: block;
+}
+
+.md-icon-pair.md-icon--align-start,
+.md-icon-pair.md-icon--align-center,
+.md-icon-pair.md-icon--align-end {
+  display: flex;
+}
+
+.md-icon--align-center {
+  margin-inline: auto;
+}
+
+.md-icon--align-end {
+  margin-inline-start: auto;
+}
+
+/* An icon and its label. The alignment decides which way the two are laid out
+   and where the label sits across that direction, under SwiftUI's names. */
+.md-icon-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-sm);
+  vertical-align: text-bottom;
+}
+
+.md-icon-pair--row {
+  flex-direction: row;
+}
+
+.md-icon-pair--row-reverse {
+  flex-direction: row-reverse;
+}
+
+.md-icon-pair--column {
+  flex-direction: column;
+}
+
+.md-icon-pair--column-reverse {
+  flex-direction: column-reverse;
+}
+
+.md-icon-pair--start {
+  align-items: flex-start;
+}
+
+.md-icon-pair--end {
+  align-items: flex-end;
+}
+
+/* The label over the middle of the symbol rather than beside it, which is what
+   center means in a ZStack. Both take the same cell, so neither pushes the
+   other and the pair is as large as the symbol. */
+.md-icon-pair--stacked {
+  display: inline-grid;
+}
+
+.md-icon-pair--stacked > * {
+  grid-area: 1 / 1;
+  place-self: center;
+}
+
+.md-icon-pair.md-icon-pair--stacked.md-icon--align-start,
+.md-icon-pair.md-icon-pair--stacked.md-icon--align-center,
+.md-icon-pair.md-icon-pair--stacked.md-icon--align-end {
+  display: grid;
+}
+
+/* A label carrying headings or several paragraphs keeps its own rhythm inside,
+   but not the outer margins, which would push it off the symbol it belongs to. */
+.md-icon-pair__label > :first-child {
+  margin-block-start: 0;
+}
+
+.md-icon-pair__label > :last-child {
+  margin-block-end: 0;
+}
+
 /* The wall of yearly sponsors.
    A card per person, in the geometry every other card on the site uses, so the
    list reads as part of the page rather than as a badge rack. */
@@ -546,7 +693,7 @@ details > summary::-webkit-details-marker {
   box-shadow: var(--ds-shadow-md);
 }
 
-/* The light an inviting card is lit by.
+/* The light an inviting surface is lit by.
    One definition for both of them, so the sponsor invitation and the sponsor
    form are lit the same way rather than each carrying its own copy of the same
    gradient. Where the light sits is the one thing a card may say for itself,
@@ -709,9 +856,14 @@ details > summary::-webkit-details-marker {
   color: var(--ds-text-muted);
 }
 
-/* The button ends the block, so it stands at the block's right edge, which is
+/* Every button on the site.
+   One definition, so a radius, a colour or a size is decided once rather than
+   at each button. The symbol always precedes the label, because a reader takes
+   the mark first and reads afterwards.
+
+   The button ends the block, so it stands at the block's right edge, which is
    where a reader finishes reading it. */
-.lmaa-sponsor-empty-action {
+.lmaa-invite-action {
   align-self: flex-end;
   display: inline-flex;
   align-items: center;
@@ -719,10 +871,17 @@ details > summary::-webkit-details-marker {
   border-radius: var(--radius-control);
   padding: var(--ds-space-xs) var(--ds-space-sm);
   background: var(--ds-accent);
-  /* White on the accent measures 2.19:1, so the label carries its legibility in
-     its weight rather than in the contrast. */
+  /* White on the accent measures 2.26:1, which is below every threshold there
+     is. The weight carries part of that and cannot carry all of it; the colour
+     of the label is the thing to change, and that is a decision about the
+     design system rather than about this button. */
   color: var(--ds-accent-fg);
-  font-weight: 700;
+  /* One size for every button on the site, label and symbol alike, so two of
+     them side by side read as the same kind of thing. The reading size rather
+     than the small one: a button is a thing to hit, not a footnote. */
+  font-size: var(--ds-text-base);
+  font-weight: 600;
+  line-height: 1.5;
   text-decoration: none;
   box-shadow: var(--ds-shadow-sm);
   transition:
@@ -731,7 +890,20 @@ details > summary::-webkit-details-marker {
     box-shadow 150ms ease;
 }
 
-.lmaa-sponsor-empty-action:hover {
+/* Lower where the action shares a line with the text it belongs to rather than
+   closing a card of its own. Only the height changes; the words keep the room
+   they need on either side. */
+.lmaa-invite-action svg {
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
+}
+
+.lmaa-invite-action.is-compact {
+  padding-block: calc(var(--ds-space-xs) / 2);
+}
+
+.lmaa-invite-action:hover {
   background: var(--ds-accent-hover);
   transform: translateY(-1px);
   box-shadow: var(--ds-shadow-md);
@@ -756,18 +928,18 @@ details > summary::-webkit-details-marker {
 
   /* Too narrow for a corner to mean anything, so the button takes the width
      instead of sitting in one. */
-  .lmaa-sponsor-empty-action {
+  .lmaa-invite-action {
     align-self: stretch;
     justify-content: center;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lmaa-sponsor-empty-action {
+  .lmaa-invite-action {
     transition: none;
   }
 
-  .lmaa-sponsor-empty-action:hover {
+  .lmaa-invite-action:hover {
     transform: none;
   }
 }

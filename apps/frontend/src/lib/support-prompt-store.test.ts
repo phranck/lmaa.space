@@ -11,7 +11,7 @@ import {
   recordShown,
 } from "./support-prompt-store.js";
 
-const limits = { maxShown: 4, snoozeDays: 14 };
+const limits = { maxShown: 4, snoozeDays: 14, devAlwaysShow: false };
 const now = 1_700_000_000_000;
 
 function candidate(id: string, threshold = 0, priority = 0) {
@@ -27,6 +27,57 @@ describe("choosePrompt", () => {
   it("shows nothing whilst the site is meant to be quiet", () => {
     const store = { ...emptyStore(), snoozedUntil: now + 1000 };
     expect(choosePrompt([candidate("a")], store, limits, 10, now)).toBeNull();
+  });
+
+  it("measures a running quiet period against the setting in force now", () => {
+    // Begun two days ago whilst the setting said fourteen. With the setting at
+    // one, those two days are long past and the reader may be asked again.
+    const twoDaysAgo = now - 2 * 24 * 60 * 60 * 1000;
+    const store = {
+      ...emptyStore(),
+      snoozedSince: twoDaysAgo,
+      snoozedUntil: twoDaysAgo + 14 * 24 * 60 * 60 * 1000,
+    };
+    expect(choosePrompt([candidate("a")], store, { ...limits, snoozeDays: 1 }, 10, now)).not.toBeNull();
+  });
+
+  it("keeps quiet whilst the shortened period itself is still running", () => {
+    const anHourAgo = now - 60 * 60 * 1000;
+    const store = {
+      ...emptyStore(),
+      snoozedSince: anHourAgo,
+      snoozedUntil: anHourAgo + 14 * 24 * 60 * 60 * 1000,
+    };
+    expect(choosePrompt([candidate("a")], store, { ...limits, snoozeDays: 1 }, 10, now)).toBeNull();
+  });
+
+  it("is never quiet at all when the setting is zero days", () => {
+    const store = { ...emptyStore(), snoozedSince: now, snoozedUntil: now + 14 * 24 * 60 * 60 * 1000 };
+    expect(choosePrompt([candidate("a")], store, { ...limits, snoozeDays: 0 }, 10, now)).not.toBeNull();
+  });
+
+  it("respects a stored end where no beginning was recorded", () => {
+    // A store written before the beginning was kept has nothing to measure
+    // against, so what it says stands.
+    const store = { ...emptyStore(), snoozedUntil: now + 1000 };
+    expect(choosePrompt([candidate("a")], store, { ...limits, snoozeDays: 0 }, 10, now)).toBeNull();
+  });
+
+  it("sets every limit aside whilst always-show is on", () => {
+    // For working on a prompt: the ceiling, the quiet period and a prompt the
+    // reader is done with all step aside, so it shows on every page view.
+    const store = {
+      ...recordResolved({ ...emptyStore(), shown: 99 }, "a"),
+      snoozedSince: now,
+      snoozedUntil: now + 10 ** 12,
+    };
+    expect(choosePrompt([candidate("a")], store, limits, 10, now, true)?.id).toBe("a");
+  });
+
+  it("keeps the threshold even whilst always-show is on", () => {
+    // The threshold says which prompt belongs on this page, not how often one
+    // reader may be asked, so setting it aside would show the wrong prompt.
+    expect(choosePrompt([candidate("a", 3)], emptyStore(), limits, 2, now, true)).toBeNull();
   });
 
   it("waits until the reader has reached the threshold", () => {
@@ -68,6 +119,7 @@ describe("recordShown", () => {
     expect(store.shown).toBe(1);
     expect(store.prompts.a.shown).toBe(1);
     expect(store.snoozedUntil).toBe(now + 14 * 24 * 60 * 60 * 1000);
+    expect(store.snoozedSince).toBe(now);
   });
 
   it("reaches the ceiling after exactly as many showings as the limit allows", () => {

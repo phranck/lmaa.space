@@ -4,6 +4,7 @@ import type { Category } from "@lmaa/shared";
 
 import CategoryCard from "@/components/CategoryCard";
 import FilterToggleButton from "@/components/FilterToggleButton";
+import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 import { useGridAnimation } from "@/hooks/useGridAnimation";
 import { fetchJson } from "@/lib/fetch-json";
@@ -12,6 +13,7 @@ import {
   buildCategoryHref,
   buildFilterQuery,
 } from "@/lib/filter-query";
+import type { SupportPromptSlotData } from "@/lib/support-prompts";
 
 import ShopFilterBar from "./ShopFilterBar";
 
@@ -22,6 +24,13 @@ interface FilterableCategoryGridProps {
   shopCount: number;
   /** Submissions awaiting moderation (from /api/stats). */
   pendingReviewCount: number;
+  /**
+   * The prompts for this page, already rendered on the server.
+   *
+   * Handed to the grid rather than placed under it, because the ask belongs in
+   * the flow between the cards. Absent where a page carries no ask.
+   */
+  supportPrompts?: SupportPromptSlotData;
 }
 
 interface FilteredCategory {
@@ -71,6 +80,7 @@ export default function FilterableCategoryGrid({
   categories: initialCategories,
   shopCount: initialShopCount,
   pendingReviewCount,
+  supportPrompts,
 }: FilterableCategoryGridProps) {
   const [state, dispatch] = useReducer(filterGridReducer, {
     showFilter: false,
@@ -164,6 +174,16 @@ export default function FilterableCategoryGrid({
           ref={gridRef}
           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3"
         >
+          {/* In the flow between the cards rather than under them, given the
+              second row outright so it lands after the first however many
+              columns the window allows. */}
+          {supportPrompts && (
+            <SupportPromptSlot
+              slot="category-grid"
+              className="col-start-1 col-end-[-1] row-start-2"
+              {...supportPrompts}
+            />
+          )}
           {visibleCategories.map((cat) => (
             <CategoryCard
               key={cat.id}

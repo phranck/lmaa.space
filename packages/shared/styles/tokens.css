@@ -221,7 +221,7 @@
   --ds-shadow-xl: 0 20px 25px oklch(0 0 0 / 0.08), 0 8px 10px oklch(0 0 0 / 0.04);
 
   /* Border radius — referenced by UnoCSS theme config */
-  --radius-control: 0.5rem; /* 8px */
+  --radius-control: 0.75rem; /* the radius every button on the site carries */
   --radius-card: 1.25rem; /* 20px */
 
   /* A card's own line, and how far it holds its contents from that line. */

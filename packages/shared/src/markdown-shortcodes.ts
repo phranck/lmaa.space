@@ -19,6 +19,22 @@ export interface MarkdownShortcodeParamDefinition {
   values?: readonly string[];
 }
 
+/**
+ * A table shown in the editor's reference under a shortcode's parameter list.
+ *
+ * For the few parameters whose values are easier to look up than to describe,
+ * such as the nine alignments an icon knows. A sentence naming all of them is
+ * one nobody reads twice.
+ */
+export interface MarkdownShortcodeTable {
+  /** What the table answers, shown above it. */
+  caption: string;
+  /** The column headings, left to right. */
+  columns: readonly string[];
+  /** One entry per row, each holding as many cells as there are columns. */
+  rows: readonly (readonly string[])[];
+}
+
 export interface MarkdownShortcodeDefinition {
   token: string;
   renderMode: MarkdownShortcodeRenderMode;
@@ -30,6 +46,8 @@ export interface MarkdownShortcodeDefinition {
   /** What it does, in one or two sentences, shown beside the name. */
   description: string;
   params: readonly MarkdownShortcodeParamDefinition[];
+  /** Value tables shown under the parameter list, where one helps. */
+  tables?: readonly MarkdownShortcodeTable[];
   /**
    * Nodes that may appear inside this one.
    *
@@ -169,6 +187,7 @@ export const MARKDOWN_SHORTCODE_TOKENS = {
   rejectedShopsTable: "rejected-shops-table",
   supportLadder: "support-ladder",
   sponsors: "sponsors",
+  icon: "icon",
 } as const;
 
 /**
@@ -489,6 +508,115 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
         max: 2400,
         defaultValue: 320,
         label: "Höhe in Pixeln",
+      },
+    ],
+  },
+  {
+    token: MARKDOWN_SHORTCODE_TOKENS.icon,
+    renderMode: "html",
+    target: "forbidden",
+    placement: "inline",
+    label: "Symbol",
+    description:
+      "Ein Phosphor-Symbol im Text, immer in der Duotone-Variante. Der Name ist der, den Phosphor veröffentlicht, also etwa x-circle. alignment stellt das Symbol, textalignment den Text: mit text ist das die Beschriftung daneben, ohne text der folgende Absatz, der um das Symbol herumfließt.",
+    examples: [
+      '[[icon name="x-circle" size=96]]',
+      '[[icon name="atom" size=96 alignment="center"]]',
+      '[[icon name="heart" size=96 text="## Danke für deine Hilfe!" textalignment="trailing"]]',
+      '[[icon name="heart" size=96 textalignment="trailing"]]',
+    ],
+    params: [
+      {
+        name: "name",
+        type: "string",
+        label: "Name des Symbols, wie Phosphor ihn schreibt",
+      },
+      {
+        name: "size",
+        type: "integer",
+        label: "Kantenlänge in Pixeln",
+      },
+      {
+        name: "color",
+        type: "string",
+        label:
+          "Farbe, als Hexwert mit oder ohne #, als Farbname oder als var(--token). Ohne Angabe nimmt das Symbol die Farbe des Textes um sich herum",
+      },
+      {
+        // Where the symbol stands. Kept apart from textalignment, which is only
+        // ever about the text, so centring a symbol that carries no text does
+        // not mean reaching for the text's alignment to do it.
+        name: "alignment",
+        type: "enum",
+        values: ["leading", "center", "trailing"],
+        label:
+          "Wo das Symbol selbst steht. Ohne Angabe steht es dort, wo der Shortcode im Text steht",
+      },
+      {
+        name: "text",
+        type: "string",
+        label:
+          "Beschriftung neben dem Symbol, als Markdown. Überschriften und Absätze sind erlaubt. Ohne Angabe fließt der folgende Absatz um das Symbol herum",
+      },
+      {
+        // The names are SwiftUI's, and so are the spellings. The renderer also
+        // reads them with a leading dot, in lower case and with a hyphen, so
+        // ".topLeading", "topleading" and "top-leading" all arrive as the same
+        // alignment.
+        name: "textalignment",
+        aliases: ["textAlignment", "text-alignment"],
+        type: "enum",
+        values: [
+          "top",
+          "bottom",
+          "leading",
+          "trailing",
+          "center",
+          "topLeading",
+          "topTrailing",
+          "bottomLeading",
+          "bottomTrailing",
+        ],
+        label:
+          "Wo der Text sitzt, benannt wie in SwiftUI. Gemeint ist immer der Text, nicht das Symbol: trailing setzt ihn rechts, das Symbol steht dann links",
+      },
+    ],
+    tables: [
+      {
+        caption: "alignment: wo das Symbol steht",
+        columns: ["alignment", "Symbol"],
+        rows: [
+          ["leading", "am linken Rand"],
+          ["center", "mittig"],
+          ["trailing", "am rechten Rand"],
+          ["ohne Angabe", "dort, wo der Shortcode im Text steht"],
+        ],
+      },
+      {
+        caption: "textalignment mit text: die Beschriftung am Symbol",
+        columns: ["textalignment", "Text steht", "quer dazu"],
+        rows: [
+          ["trailing", "rechts, Symbol links", "vertikal mittig"],
+          ["leading", "links, Symbol rechts", "vertikal mittig"],
+          ["topTrailing", "rechts, Symbol links", "oben bündig"],
+          ["topLeading", "links, Symbol rechts", "oben bündig"],
+          ["bottomTrailing", "rechts, Symbol links", "unten bündig"],
+          ["bottomLeading", "links, Symbol rechts", "unten bündig"],
+          ["top", "darüber, Symbol darunter", "horizontal zentriert"],
+          ["bottom", "darunter, Symbol darüber", "horizontal zentriert"],
+          ["center", "über der Mitte des Symbols", "beide übereinander"],
+          ["ohne Angabe", "wie trailing", "vertikal mittig"],
+        ],
+      },
+      {
+        caption: "textalignment ohne text: der folgende Absatz fließt um das Symbol",
+        columns: ["textalignment", "Symbol", "Absatz"],
+        rows: [
+          ["trailing, topTrailing, bottomTrailing", "links", "fließt rechts daneben"],
+          ["leading, topLeading, bottomLeading", "rechts", "fließt links daneben"],
+          ["top, bottom, center", "kein Umfluss, alignment entscheidet", "steht darunter"],
+          ["ohne Angabe", "im Textfluss", "läuft weiter"],
+        ],
       },
     ],
   },
