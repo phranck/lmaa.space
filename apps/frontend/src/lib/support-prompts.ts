@@ -29,6 +29,11 @@ export interface SupportPromptSlotData {
   prompts: RenderedSupportPrompt[];
   limits: SupportPromptLimits;
   /**
+   * Whether every limit is set aside, which only ever happens outside
+   * production. The backend decides it; the site only follows.
+   */
+  devAlwaysShow: boolean;
+  /**
    * Every prompt that is live right now, across all slots.
    *
    * The reader's store holds a record per prompt and forgets the ones that no
@@ -42,7 +47,8 @@ export interface SupportPromptSlotData {
 /** Nothing to show, which is also the answer when the backend is unreachable. */
 const EMPTY: SupportPromptSlotData = {
   prompts: [],
-  limits: { maxShown: 4, snoozeDays: 14 },
+  limits: { maxShown: 4, snoozeDays: 14, devAlwaysShow: false },
+  devAlwaysShow: false,
   liveIds: [],
 };
 
@@ -58,9 +64,11 @@ const EMPTY: SupportPromptSlotData = {
  */
 export async function loadSupportPrompts(slot: SupportPromptSlot): Promise<SupportPromptSlotData> {
   try {
-    const payload = await apiGet<{ prompts: SupportPrompt[]; limits: SupportPromptLimits }>(
-      "/support-prompts",
-    );
+    const payload = await apiGet<{
+      prompts: SupportPrompt[];
+      limits: SupportPromptLimits;
+      devAlwaysShow?: boolean;
+    }>("/support-prompts");
 
     // One pass over the payload: the ones for this slot are rendered, the rest
     // are passed over. Rendering runs together rather than one after another,
@@ -86,6 +94,7 @@ export async function loadSupportPrompts(slot: SupportPromptSlot): Promise<Suppo
     return {
       prompts,
       limits: payload.limits,
+      devAlwaysShow: payload.devAlwaysShow ?? false,
       liveIds: payload.prompts.map((prompt) => prompt.id),
     };
   } catch {

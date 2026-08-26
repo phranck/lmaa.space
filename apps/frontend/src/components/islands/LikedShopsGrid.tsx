@@ -3,6 +3,7 @@ import { useEffect, useReducer, useRef, useState } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
 
+import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
 import ShopCardReact from "@/components/ShopCardReact";
 import { fetchJson } from "@/lib/fetch-json";
 import {
@@ -11,6 +12,7 @@ import {
   parseImportParam,
   saveLikedShopIds,
 } from "@/lib/liked-shops";
+import type { SupportPromptSlotData } from "@/lib/support-prompts";
 
 // ── Import Dialog ────────────────────────────────────────────────────
 function ImportDialog({
@@ -222,7 +224,21 @@ function likedShopsReducer(state: LikedShopsState, action: LikedShopsAction): Li
   return { ...state, ...action };
 }
 
-export default function LikedShopsGrid() {
+interface LikedShopsGridProps {
+  /** The prompts for this page, already rendered on the server. */
+  supportPrompts: SupportPromptSlotData;
+}
+
+/**
+ * The grid of shops somebody has kept, with the ask placed inside it.
+ *
+ * The prompt is drawn here rather than under the grid, because it belongs after
+ * the first row: first a person sees what they have, then the question follows.
+ * A row is not a fixed number of cards, so the prompt is given the second grid
+ * row outright and the cards flow around it. That holds at two columns and at
+ * four without asking how wide the window is.
+ */
+export default function LikedShopsGrid({ supportPrompts }: LikedShopsGridProps) {
   const [state, dispatch] = useReducer(likedShopsReducer, {
     shops: [],
     loading: true,
@@ -330,6 +346,13 @@ export default function LikedShopsGrid() {
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+              {/* Given the second row outright, so the cards flow around it and
+                  it lands after the first row however many columns there are. */}
+              <SupportPromptSlot
+                slot="my-shops"
+                className="col-start-1 col-end-[-1] row-start-2"
+                {...supportPrompts}
+              />
               {shops.map((shop) => (
                 <ShopCardReact
                   key={shop.id}

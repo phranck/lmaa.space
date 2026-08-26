@@ -15,6 +15,9 @@ import type { SupportPromptLimits } from "@lmaa/contracts";
 /** Where the store lives, in the naming of the other stores on this site. */
 export const SUPPORT_PROMPT_STORAGE_KEY = "lmaa-support-prompt:v1";
 
+/** One day in milliseconds, which is what the quiet periods are counted in. */
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 /** How long a single dismissal pushes the next showing away, in days. */
 const DISMISS_SNOOZE_DAYS = 90;
 
@@ -37,6 +40,16 @@ export interface SupportPromptStore {
   shown: number;
   /** Nothing is shown before this moment, as milliseconds since the epoch. */
   snoozedUntil: number;
+  /**
+   * When that quiet period began, as milliseconds since the epoch.
+   *
+   * Kept so the period can be measured against the setting in force when it is
+   * read rather than the one in force when it was written. Somebody who
+   * shortens the setting expects that to hold for a quiet period already
+   * running, not only for the next one. Zero where nothing is running, and for
+   * a store written before this was recorded.
+   */
+  snoozedSince: number;
   /** The last shop page counted, so a reload does not count twice. */
   lastShopSlug: string | null;
   /** How many distinct shop pages the reader has looked at. */
@@ -47,7 +60,7 @@ export interface SupportPromptStore {
 
 /** The store of somebody the site has never asked. */
 export function emptyStore(): SupportPromptStore {
-  return { shown: 0, snoozedUntil: 0, lastShopSlug: null, shopViews: 0, prompts: {} };
+  return { shown: 0, snoozedUntil: 0, snoozedSince: 0, lastShopSlug: null, shopViews: 0, prompts: {} };
 }
 
 function emptyRecord(): SupportPromptRecord {
@@ -80,6 +93,7 @@ export function parseStore(raw: string | null, knownIds: readonly string[]): Sup
 
   store.shown = Number.isFinite(candidate.shown) ? Number(candidate.shown) : 0;
   store.snoozedUntil = Number.isFinite(candidate.snoozedUntil) ? Number(candidate.snoozedUntil) : 0;
+  store.snoozedSince = Number.isFinite(candidate.snoozedSince) ? Number(candidate.snoozedSince) : 0;
   store.shopViews = Number.isFinite(candidate.shopViews) ? Number(candidate.shopViews) : 0;
   store.lastShopSlug = typeof candidate.lastShopSlug === "string" ? candidate.lastShopSlug : null;
 
@@ -122,20 +136,44 @@ export interface PromptCandidate {
  * @param now - The current moment, as milliseconds since the epoch.
  * @returns The prompt to show, or `null` when the reader has had enough.
  */
+/**
+ * When the current quiet period ends, measured against the setting in force.
+ *
+ * A period that was started under a longer setting is cut back to what the
+ * setting allows now, counted from when it began. Where a store predates the
+ * recording of that moment, the stored end stands, because there is nothing to
+ * measure against.
+ *
+ * @param store - What is remembered about this reader.
+ * @param limits - The settings in force right now.
+ * @returns The moment before which nothing is shown.
+ */
+function quietUntil(store: SupportPromptStore, limits: SupportPromptLimits): number {
+  if (!store.snoozedSince) return store.snoozedUntil;
+  return Math.min(store.snoozedUntil, store.snoozedSince + limits.snoozeDays * DAY_MS);
+}
+
 export function choosePrompt(
   candidates: readonly PromptCandidate[],
   store: SupportPromptStore,
   limits: SupportPromptLimits,
   reached: number,
   now: number,
+  alwaysShow = false,
 ): PromptCandidate | null {
-  if (store.shown >= limits.maxShown) return null;
-  if (now < store.snoozedUntil) return null;
+  // Whilst the limits are set aside, only the threshold still applies: that one
+  // says which prompt belongs on this page, whereas the rest say how often one
+  // reader may be asked. Whether they may be set aside at all is the backend's
+  // answer, which is never yes in production.
+  if (!alwaysShow) {
+    if (store.shown >= limits.maxShown) return null;
+    if (now < quietUntil(store, limits)) return null;
+  }
 
   let best: PromptCandidate | null = null;
   for (const candidate of candidates) {
     if (reached < candidate.threshold) continue;
-    if (store.prompts[candidate.id]?.resolved) continue;
+    if (!alwaysShow && store.prompts[candidate.id]?.resolved) continue;
     if (!best || candidate.priority > best.priority) best = candidate;
   }
 
@@ -161,7 +199,8 @@ export function recordShown(
   return {
     ...store,
     shown: store.shown + 1,
-    snoozedUntil: now + limits.snoozeDays * 24 * 60 * 60 * 1000,
+    snoozedUntil: now + limits.snoozeDays * DAY_MS,
+    snoozedSince: now,
     prompts: { ...store.prompts, [id]: { ...record, shown: record.shown + 1 } },
   };
 }
@@ -193,7 +232,8 @@ export function recordDismissed(
   const dismissed = record.dismissed + 1;
   return {
     ...store,
-    snoozedUntil: Math.max(store.snoozedUntil, now + DISMISS_SNOOZE_DAYS * 24 * 60 * 60 * 1000),
+    snoozedUntil: Math.max(store.snoozedUntil, now + DISMISS_SNOOZE_DAYS * DAY_MS),
+    snoozedSince: now,
     prompts: {
       ...store.prompts,
       [id]: { ...record, dismissed, resolved: dismissed >= DISMISSALS_UNTIL_RESOLVED },

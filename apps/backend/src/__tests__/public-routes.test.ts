@@ -3,9 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MAX_PENDING_CLAIM } from "@lmaa/contracts";
 
-vi.mock("../config/env.js", () => ({
-  env: { NODE_ENV: "development", LOG_LEVEL: "silent" },
+const envMock = vi.hoisted(() => ({
+  env: { NODE_ENV: "development" as string, LOG_LEVEL: "silent" },
 }));
+vi.mock("../config/env.js", () => envMock);
 
 const publicServiceMocks = vi.hoisted(() => ({
   createManagedDeadLinkReport: vi.fn(),
@@ -154,6 +155,7 @@ describe("publicRoutes", () => {
         data: {
           prompts: [{ id: "a", slot: "my-shops", name: "Karte" }],
           limits: { maxShown: 4, snoozeDays: 14 },
+          devAlwaysShow: false,
         },
       });
 
@@ -161,6 +163,37 @@ describe("publicRoutes", () => {
       // end part way through the day it names.
       const [day] = supportPromptMocks.listPublishedSupportPrompts.mock.calls[0];
       expect(day).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it("passes the always-show switch on outside production", async () => {
+      envMock.env.NODE_ENV = "development";
+      supportPromptMocks.listPublishedSupportPrompts.mockResolvedValue([]);
+      supportPromptServiceMocks.getSupportPromptLimits.mockResolvedValue({
+        maxShown: 4,
+        snoozeDays: 14,
+        devAlwaysShow: true,
+      });
+
+      const body = await (await app.request("/support-prompts")).json();
+
+      expect(body.data.devAlwaysShow).toBe(true);
+    });
+
+    it("refuses the always-show switch in production, whatever is stored", async () => {
+      // A switch left on by accident must not reach a reader, so the decision
+      // is made here rather than in the browser.
+      envMock.env.NODE_ENV = "production";
+      supportPromptMocks.listPublishedSupportPrompts.mockResolvedValue([]);
+      supportPromptServiceMocks.getSupportPromptLimits.mockResolvedValue({
+        maxShown: 4,
+        snoozeDays: 14,
+        devAlwaysShow: true,
+      });
+
+      const body = await (await app.request("/support-prompts")).json();
+
+      expect(body.data.devAlwaysShow).toBe(false);
+      envMock.env.NODE_ENV = "development";
     });
 
     it("lets a person edit without a deployment, so the answer may be revalidated", async () => {

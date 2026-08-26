@@ -296,6 +296,21 @@ const metaDescription = shop.description
       </section>
     )}
 
+    <!-- The ask, after what the shop says about itself and before the facts
+         about it. Quiet on this page, because somebody here is here for the
+         shop. -->
+    <div class="mb-8">
+      <SupportPromptSlot
+        client:only="react"
+        slot="shop-detail"
+        shopSlug={shopToken}
+        prompts={supportPrompts.prompts}
+        limits={supportPrompts.limits}
+        liveIds={supportPrompts.liveIds}
+        devAlwaysShow={supportPrompts.devAlwaysShow}
+      />
+    </div>
+
     <!-- Info grid -->
     <div class="grid sm:grid-cols-2 gap-4 mb-8">
       {shop.shipping && (
@@ -529,15 +544,4 @@ const metaDescription = shop.description
       </button>
     </div>
   </dialog>
-
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-    <SupportPromptSlot
-      client:only="react"
-      slot="shop-detail"
-      shopSlug={shopToken}
-      prompts={supportPrompts.prompts}
-      limits={supportPrompts.limits}
-      liveIds={supportPrompts.liveIds}
-    />
-  </div>
 </BaseLayout>

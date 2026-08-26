@@ -1,5 +1,4 @@
 ---
-import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
 import LikedShopsGrid from "@/components/islands/LikedShopsGrid";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { loadSupportPrompts } from "@/lib/support-prompts";
@@ -10,15 +9,8 @@ const supportPrompts = await loadSupportPrompts("my-shops");
 <BaseLayout title="Meine Shops" description="Deine gelikten Shops auf lmaa.space.">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-stone-900 mb-8">Meine Shops</h1>
-    <LikedShopsGrid client:only="react" />
-    <div class="mt-8">
-      <SupportPromptSlot
-        client:only="react"
-        slot="my-shops"
-        prompts={supportPrompts.prompts}
-        limits={supportPrompts.limits}
-      liveIds={supportPrompts.liveIds}
-      />
-    </div>
+    <!-- The ask sits inside the grid, after the first row, so the prompt is
+         handed to the grid rather than placed under it. -->
+    <LikedShopsGrid client:only="react" supportPrompts={supportPrompts} />
   </div>
 </BaseLayout>
