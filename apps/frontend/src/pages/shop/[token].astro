@@ -15,6 +15,7 @@ import { getFavicons } from "@/lib/favicons";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 import {
   ArrowLeftIcon,
+  ArrowSquareOutIcon,
   CreditCardIcon,
   HeartIcon,
   MapPinIcon,
@@ -337,8 +338,10 @@ const metaDescription = shop.description
     <!-- Categories, with the visit as the action that belongs beside them -->
     <section class="mb-8">
       {shop.categories?.length > 0 && <SectionLabel class="mb-3">Kategorien</SectionLabel>}
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <div class="flex flex-wrap gap-2">
+      <!-- The row itself never wraps, so the button keeps its corner however
+           many categories there are. The chips wrap inside their own box. -->
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div class="flex flex-wrap gap-2 min-w-0">
           {shop.categories?.map((cat) => (
             <a
               href={`/category/${cat.slug}`}
@@ -357,14 +360,15 @@ const metaDescription = shop.description
           href={visitUrl}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl text-sm font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)] shrink-0 max-sm:w-full"
+          class="lmaa-invite-action shrink-0 max-sm:w-full max-sm:justify-center"
           data-analytics-event="shop-visit-click"
           data-analytics-source="shop-detail"
           data-shop-id={String(shop.id)}
           data-shop-name={shop.name}
           data-shop-domain={domain}
         >
-          Shop besuchen ↗
+          <ArrowSquareOutIcon weight="fill" aria-hidden="true" />
+          Shop besuchen
         </a>
       </div>
     </section>

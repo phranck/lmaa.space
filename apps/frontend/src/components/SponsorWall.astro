@@ -197,7 +197,7 @@ const emptyHtml = cards.length ? "" : await renderMarkdown(emptyText || EMPTY_DE
         <div class="lmaa-sponsor-empty-body">
           <div class="lmaa-rich" set:html={emptyHtml} />
           {emptyHref && (
-            <a class="lmaa-sponsor-empty-action" href={emptyHref} data-opens-interval="sponsor">
+            <a class="lmaa-invite-action" href={emptyHref} data-opens-interval="sponsor">
               <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
               {emptyAction || EMPTY_ACTION_DEFAULT}
             </a>

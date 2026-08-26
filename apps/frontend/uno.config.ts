@@ -39,7 +39,7 @@ export default defineConfig({
   transformers: [transformerDirectives()],
   theme: {
     radius: {
-      control: "0.5rem",
+      control: "0.75rem",
       card: "1.25rem",
     },
     font: {
