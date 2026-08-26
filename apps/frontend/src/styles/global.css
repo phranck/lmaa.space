@@ -317,6 +317,36 @@ details > summary::-webkit-details-marker {
   margin-block: 0.5em;
 }
 
+/* Headings in rich text.
+   The preflight sets every heading to the size it inherits, so without this a
+   heading in a card reads exactly like the sentence above it. The steps come
+   from the same ratio the type scale is built on, stated in em rather than rem
+   so a heading grows out of whatever size its block uses: a card sets text-sm,
+   a page sets text-base, and the proportion holds in both. */
+.lmaa-rich h1,
+.lmaa-rich h2,
+.lmaa-rich h3,
+.lmaa-rich h4,
+.lmaa-rich h5,
+.lmaa-rich h6 {
+  margin-block: 1em 0.4em;
+  color: var(--ds-text);
+  font-weight: 600;
+  line-height: var(--ds-leading-xl);
+}
+
+.lmaa-rich h1 {
+  font-size: calc(1em * var(--ds-scale) * var(--ds-scale) * var(--ds-scale));
+}
+
+.lmaa-rich h2 {
+  font-size: calc(1em * var(--ds-scale) * var(--ds-scale));
+}
+
+.lmaa-rich h3 {
+  font-size: calc(1em * var(--ds-scale));
+}
+
 .lmaa-rich ol,
 .lmaa-rich ul {
   margin-block: 0.5em;
