@@ -19,6 +19,69 @@ import {
  */
 const COPY_FEEDBACK_MS = 1600;
 
+/**
+ * Pixel values already measured, keyed by the property they came from.
+ *
+ * Measuring appends an element and reads its width back, which costs a layout.
+ * The panel renders on every click in it, and the spacing tokens do not move
+ * whilst a page is open, so each one is measured once.
+ */
+const pixelCache = new Map<string, string>();
+
+/**
+ * Resolves a CSS length to pixels, by asking the page.
+ *
+ * A default that lives in the stylesheet is named in the registry by its custom
+ * property rather than by its value, so the reference cannot drift from what
+ * the page renders. This is what turns the property back into a figure, and it
+ * reports pixels whatever unit the token is written in.
+ *
+ * The dashboard and the site load the same tokens at the same root size, so a
+ * figure measured here is the figure the page uses.
+ *
+ * @param value - Any CSS length, such as `var(--ds-space-sm)`.
+ * @returns The length in pixels, or `null` where there is no document to ask.
+ */
+function resolveLengthInPixels(value: string): string | null {
+  const cached = pixelCache.get(value);
+  if (cached) return cached;
+  if (typeof document === "undefined") return null;
+
+  const probe = document.createElement("div");
+  probe.style.position = "absolute";
+  probe.style.visibility = "hidden";
+  probe.style.width = value;
+  document.body.appendChild(probe);
+  const width = window.getComputedStyle(probe).width;
+  probe.remove();
+
+  if (width === "auto") return null;
+  pixelCache.set(value, width);
+  return width;
+}
+
+/** True for a default written as a custom property rather than as a phrase. */
+function isCssToken(value: string): boolean {
+  return value.startsWith("var(--");
+}
+
+/**
+ * States what holds when a parameter is left out.
+ *
+ * @param param - The parameter.
+ * @returns The phrase to show, or `null` where the parameter has no default.
+ */
+function describeDefault(param: MarkdownShortcodeParamDefinition): string | null {
+  if (param.defaultLabel) {
+    if (!isCssToken(param.defaultLabel)) return param.defaultLabel;
+    return resolveLengthInPixels(param.defaultLabel) ?? param.defaultLabel;
+  }
+
+  if (param.defaultValue === undefined) return null;
+  if (param.defaultValue === "") return "leer";
+  return String(param.defaultValue);
+}
+
 /** Describes a parameter's accepted shape in one short phrase. */
 function describeType(param: MarkdownShortcodeParamDefinition): string {
   if (param.type === "enum" && param.values) return param.values.join(" | ");
@@ -33,6 +96,8 @@ function describeType(param: MarkdownShortcodeParamDefinition): string {
 }
 
 function ParamRow({ param }: { param: MarkdownShortcodeParamDefinition }) {
+  const fallback = describeDefault(param);
+
   return (
     <tr className="border-t border-[var(--ds-rule)] align-top">
       <td className="py-1 pr-3 font-mono text-[var(--ds-text)] whitespace-nowrap">
@@ -49,6 +114,9 @@ function ParamRow({ param }: { param: MarkdownShortcodeParamDefinition }) {
         {param.aliases && param.aliases.length > 0 && (
           <span className="ml-2">auch: {param.aliases.join(", ")}</span>
         )}
+        {/* What holds without the parameter, on its own line, because it is the
+            answer to a different question from what the parameter accepts. */}
+        {fallback && <span className="block">ohne Angabe: {fallback}</span>}
       </td>
     </tr>
   );
@@ -318,6 +386,7 @@ export function MarkdownShortcodeReference({
 }) {
   const panelRef = React.useRef<HTMLElement | null>(null);
   const frameRef = React.useRef<HelpFrame | null>(null);
+
 
   // Which shortcode the right column describes. It survives a close and reopen,
   // so somebody who was reading about one finds it again.

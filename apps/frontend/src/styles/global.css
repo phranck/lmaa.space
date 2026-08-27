@@ -644,6 +644,103 @@ details > summary::-webkit-details-marker {
   margin-block-end: 0;
 }
 
+/* A container that arranges what stands inside it, under SwiftUI's names. The
+   gap here is the one a stack takes when the author names none, so the page's
+   own rhythm is stated once and every stack that says nothing follows it. */
+.md-stack {
+  display: flex;
+  gap: var(--ds-space-sm);
+}
+
+.md-stack--column {
+  flex-direction: column;
+}
+
+/* A row wraps rather than overflowing. A page is read at whatever width the
+   reader has, and a row that runs off the side takes the whole page with it. */
+.md-stack--row {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/* Where the children sit across the stack's own direction. One pair of names
+   for both axes, because leading and top are the same edge seen from the two
+   directions, as are trailing and bottom. */
+.md-stack--start {
+  align-items: flex-start;
+}
+
+.md-stack--center {
+  align-items: center;
+}
+
+.md-stack--end {
+  align-items: flex-end;
+}
+
+.md-stack--baseline {
+  align-items: baseline;
+}
+
+/* A vertical stack aligns its text as well as its children.
+
+   SwiftUI can leave this out because a Text there is as wide as its content, so
+   moving the view moves the words with it. A paragraph here is as wide as the
+   column, so aligning the box moves nothing a reader can see and the words stay
+   at the left edge. Each value is stated rather than only the one that differs,
+   because text alignment inherits and a stack inside a stack has to be able to
+   set its own. */
+.md-stack--column.md-stack--start {
+  text-align: start;
+}
+
+.md-stack--column.md-stack--center {
+  text-align: center;
+}
+
+.md-stack--column.md-stack--end {
+  text-align: end;
+}
+
+/* The prose of a support prompt reads at the page's own size rather than the
+   card's smaller one, because it carries the actual message.
+
+   Stated on the prose alone and in rem. The block keeps text-sm, which is what
+   the headings inside it compute their em steps from, so they stay the size a
+   heading in a card is. Raising the block instead would take them with it. */
+.lmaa-prompt-copy p,
+.lmaa-prompt-copy li {
+  font-size: 1rem;
+}
+
+/* A gap of its own, for the one place in a stack that wants more room than the
+   stack's spacing gives. It never shrinks, because a gap that collapses under
+   pressure is not a gap. */
+.md-spacer {
+  flex-shrink: 0;
+}
+
+/* Without a size it takes what is left, which pushes its neighbours to the ends
+   of a row. In a column with no height of its own there is nothing left to
+   take, and it stays flat, exactly as a SwiftUI Spacer does. */
+.md-spacer--flexible {
+  flex-grow: 1;
+}
+
+/* The stack owns the space between its children, so the children give up the
+   margins they carry as ordinary page elements. Left in place, a paragraph's
+   own margin would add to the gap and a heading's would add more, which is the
+   spacing being decided in two places at once.
+
+   The second selector is what makes this hold inside rich text. There a
+   heading is styled as `.lmaa-rich h2`, which outweighs a single class, so a
+   stack in a page body would keep the very margins this rule is here to
+   remove. */
+.md-stack > *,
+.lmaa-rich .md-stack > * {
+  margin-block: 0;
+}
+
 /* The wall of yearly sponsors.
    A card per person, in the geometry every other card on the site uses, so the
    list reads as part of the page rather than as a badge rack. */

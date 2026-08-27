@@ -4,6 +4,16 @@ export type MarkdownShortcodeTargetRule = "required" | "optional" | "forbidden";
 
 export type MarkdownShortcodePlacement = "inline" | "block";
 
+/**
+ * Whether a shortcode carries content between braces.
+ *
+ * `markdown` is a container: what stands inside it is page content and is
+ * rendered exactly as the page around it, so any shortcode and any markup may
+ * stand there, including another container. `forbidden` is everything else,
+ * which draws one thing from its attributes alone.
+ */
+export type MarkdownShortcodeBodyRule = "forbidden" | "markdown";
+
 export type MarkdownShortcodeParamType = "boolean" | "enum" | "integer" | "string";
 
 export interface MarkdownShortcodeParamDefinition {
@@ -11,6 +21,17 @@ export interface MarkdownShortcodeParamDefinition {
   type: MarkdownShortcodeParamType;
   aliases?: readonly string[];
   defaultValue?: boolean | number | string;
+  /**
+   * What holds when the parameter is left out, where that is not a value the
+   * parser can supply.
+   *
+   * Some defaults are decided further down than the parser: by the renderer, or
+   * by the stylesheet. Naming them here would state them twice, so what goes in
+   * is either a sentence saying what happens, or the custom property that
+   * carries the value. A `var(--…)` is resolved against the page and shown in
+   * pixels, so the reference states the figure without holding a copy of it.
+   */
+  defaultLabel?: string;
   /** Human name of the parameter, shown in the editor's reference. */
   label?: string;
   max?: number;
@@ -46,6 +67,13 @@ export interface MarkdownShortcodeDefinition {
   /** What it does, in one or two sentences, shown beside the name. */
   description: string;
   params: readonly MarkdownShortcodeParamDefinition[];
+  /**
+   * Whether the shortcode carries content between braces.
+   *
+   * Absent means `forbidden`, which is what every shortcode was before
+   * containers existed.
+   */
+  body?: MarkdownShortcodeBodyRule;
   /** Value tables shown under the parameter list, where one helps. */
   tables?: readonly MarkdownShortcodeTable[];
   /**
@@ -188,7 +216,41 @@ export const MARKDOWN_SHORTCODE_TOKENS = {
   supportLadder: "support-ladder",
   sponsors: "sponsors",
   icon: "icon",
+  vstack: "vstack",
+  hstack: "hstack",
+  spacer: "spacer",
 } as const;
+
+/**
+ * The edge length an icon takes when the author names none.
+ *
+ * Stated here rather than in the renderer, so the reference and the page cannot
+ * disagree about what a plain `[[icon]]` measures.
+ */
+export const ICON_DEFAULT_SIZE = 24;
+
+/**
+ * The custom property carrying the gap between the children of a stack.
+ *
+ * The value itself lives in the stylesheet, where the page's spacing is
+ * decided. Naming the property rather than the figure is what keeps this from
+ * becoming a second answer that drifts.
+ */
+export const STACK_DEFAULT_SPACING_TOKEN = "var(--ds-space-sm)";
+
+/** Written out once, because it is both documentation and the editor's example. */
+const STACK_EXAMPLE = [
+  '[[vstack alignment="leading" spacing=12 {',
+  "## Was du bekommst",
+  "",
+  "Ganz gewöhnliches **Markdown**, und alles andere auch.",
+  "",
+  '[[hstack alignment="center" spacing=8 {',
+  '[[icon name="heart" size=24]]',
+  "Ein Symbol und sein Text, nebeneinander.",
+  "}]]",
+  "}]]",
+].join("\n");
 
 /**
  * Appearance of the GiroCode.
@@ -534,13 +596,14 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
       {
         name: "size",
         type: "integer",
+        defaultValue: ICON_DEFAULT_SIZE,
         label: "Kantenlänge in Pixeln",
       },
       {
         name: "color",
         type: "string",
-        label:
-          "Farbe, als Hexwert mit oder ohne #, als Farbname oder als var(--token). Ohne Angabe nimmt das Symbol die Farbe des Textes um sich herum",
+        defaultLabel: "die Farbe des Textes",
+        label: "Farbe, als Hexwert mit oder ohne #, als Farbname oder als var(--token)",
       },
       {
         // Where the symbol stands. Kept apart from textalignment, which is only
@@ -549,14 +612,15 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
         name: "alignment",
         type: "enum",
         values: ["leading", "center", "trailing"],
-        label:
-          "Wo das Symbol selbst steht. Ohne Angabe steht es dort, wo der Shortcode im Text steht",
+        defaultLabel: "dort, wo der Shortcode im Text steht",
+        label: "Wo das Symbol selbst steht",
       },
       {
         name: "text",
         type: "string",
+        defaultLabel: "keine Beschriftung, der folgende Absatz fließt um das Symbol",
         label:
-          "Beschriftung neben dem Symbol, als Markdown. Überschriften und Absätze sind erlaubt. Ohne Angabe fließt der folgende Absatz um das Symbol herum",
+          "Beschriftung neben dem Symbol, als Markdown. Überschriften und Absätze sind erlaubt",
       },
       {
         // The names are SwiftUI's, and so are the spellings. The renderer also
@@ -577,6 +641,7 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
           "bottomLeading",
           "bottomTrailing",
         ],
+        defaultLabel: "mit text wie trailing, ohne text kein Umfluss",
         label:
           "Wo der Text sitzt, benannt wie in SwiftUI. Gemeint ist immer der Text, nicht das Symbol: trailing setzt ihn rechts, das Symbol steht dann links",
       },
@@ -617,6 +682,107 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
           ["top, bottom, center", "kein Umfluss, alignment entscheidet", "steht darunter"],
           ["ohne Angabe", "im Textfluss", "läuft weiter"],
         ],
+      },
+    ],
+  },
+  {
+    token: MARKDOWN_SHORTCODE_TOKENS.vstack,
+    renderMode: "html",
+    target: "forbidden",
+    placement: "block",
+    body: "markdown",
+    label: "VStack",
+    description:
+      "Stellt seinen Inhalt untereinander, wie der VStack in SwiftUI. Was zwischen den geschweiften Klammern steht, ist gewöhnliches Markdown: Überschriften, Absätze, Bilder, jeder andere Shortcode und auch ein weiterer Stack. alignment stellt die Kinder waagrecht und richtet zugleich den Text in ihnen aus, spacing setzt den Abstand dazwischen in Pixeln.",
+    examples: [STACK_EXAMPLE],
+    params: [
+      {
+        name: "alignment",
+        type: "enum",
+        values: ["leading", "center", "trailing"],
+        defaultValue: "leading",
+        label: "Wo die Kinder waagrecht stehen. Richtet auch den Text darin aus",
+      },
+      {
+        name: "spacing",
+        type: "integer",
+        min: 0,
+        max: 200,
+        defaultLabel: STACK_DEFAULT_SPACING_TOKEN,
+        label: "Abstand zwischen den Kindern in Pixeln",
+      },
+    ],
+    tables: [
+      {
+        caption: "alignment: wo die Kinder eines VStack stehen",
+        columns: ["alignment", "Kinder stehen", "Text darin"],
+        rows: [
+          ["leading", "am linken Rand", "linksbündig"],
+          ["center", "mittig", "zentriert"],
+          ["trailing", "am rechten Rand", "rechtsbündig"],
+        ],
+      },
+    ],
+  },
+  {
+    token: MARKDOWN_SHORTCODE_TOKENS.hstack,
+    renderMode: "html",
+    target: "forbidden",
+    placement: "block",
+    body: "markdown",
+    label: "HStack",
+    description:
+      "Stellt seinen Inhalt nebeneinander, wie der HStack in SwiftUI. Der Inhalt ist derselbe wie beim VStack, also Markdown samt Shortcodes und weiteren Stacks. Jeder Absatz und jedes Element wird zu einer Spalte. Wird es zu eng, rutschen die Spalten in die nächste Zeile, statt aus der Seite zu laufen.",
+    examples: [
+      '[[hstack alignment="center" spacing=16 {\n[[icon name="heart" size=32]]\nEin Symbol und sein Text.\n}]]',
+    ],
+    params: [
+      {
+        name: "alignment",
+        type: "enum",
+        values: ["top", "center", "bottom", "firstTextBaseline"],
+        defaultValue: "center",
+        label: "Wo die Kinder senkrecht stehen",
+      },
+      {
+        name: "spacing",
+        type: "integer",
+        min: 0,
+        max: 200,
+        defaultLabel: STACK_DEFAULT_SPACING_TOKEN,
+        label: "Abstand zwischen den Kindern in Pixeln",
+      },
+    ],
+    tables: [
+      {
+        caption: "alignment: wo die Kinder eines HStack stehen",
+        columns: ["alignment", "Kinder stehen"],
+        rows: [
+          ["top", "oben bündig"],
+          ["center", "senkrecht mittig"],
+          ["bottom", "unten bündig"],
+          ["firstTextBaseline", "auf der Grundlinie ihrer ersten Zeile"],
+        ],
+      },
+    ],
+  },
+  {
+    token: MARKDOWN_SHORTCODE_TOKENS.spacer,
+    renderMode: "html",
+    target: "forbidden",
+    placement: "block",
+    label: "Spacer",
+    description:
+      "Ein Abstand, wie der Spacer in SwiftUI. Mit size ist er genau so gross, ohne size nimmt er den Platz, der übrig ist: im HStack schiebt er die Nachbarn auseinander, im VStack ohne eigene Höhe tut er nichts. Nützlich, wenn an einer Stelle mehr Luft soll als das spacing des Stacks hergibt.",
+    examples: ["[[spacer size=24]]", "[[hstack {\nlinks\n[[spacer]]\nrechts\n}]]"],
+    params: [
+      {
+        name: "size",
+        type: "integer",
+        min: 0,
+        max: 400,
+        defaultLabel: "so viel Platz, wie übrig ist",
+        label: "Höhe oder Breite in Pixeln, je nach Richtung des Stacks",
       },
     ],
   },
