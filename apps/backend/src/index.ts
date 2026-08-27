@@ -191,7 +191,6 @@ const EXPECTED_TABLES = [
   "footer_config",
   "form_configs",
   "form_submissions",
-  "markdown_widgets",
   "media_assets",
   "media_folders",
   "nav_items",

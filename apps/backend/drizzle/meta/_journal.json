@@ -596,6 +596,13 @@
       "when": 1787842189795,
       "tag": "0084_support_prompt_threshold_basis",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1787870185177,
+      "tag": "0085_drop_markdown_widgets",
+      "breakpoints": true
     }
   ]
 }

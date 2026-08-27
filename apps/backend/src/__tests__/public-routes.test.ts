@@ -46,10 +46,6 @@ const footerMocks = vi.hoisted(() => ({
   getFooterConfig: vi.fn(),
 }));
 
-const markdownMocks = vi.hoisted(() => ({
-  getEnabledMarkdownWidgetByKey: vi.fn(),
-}));
-
 const footerPreviewMocks = vi.hoisted(() => ({
   getFooterPreviewSession: vi.fn(),
 }));
@@ -102,7 +98,6 @@ vi.mock("../services/public.js", async (importOriginal) => {
 vi.mock("../services/admin-form-config.js", () => formConfigMocks);
 vi.mock("../services/admin-media.js", () => mediaMocks);
 vi.mock("../repositories/footer-config.js", () => footerMocks);
-vi.mock("../repositories/markdown-widgets.js", () => markdownMocks);
 vi.mock("../services/footer-preview-store.js", () => footerPreviewMocks);
 vi.mock("../services/content-preview-store.js", () => contentPreviewMocks);
 vi.mock("../services/hero.js", () => heroMocks);
@@ -767,24 +762,6 @@ describe("publicRoutes", () => {
           updatedAt: "2026-06-05T12:00:00.000Z",
         },
       });
-    });
-  });
-
-  describe("GET /markdown-widgets/:key", () => {
-    it("returns widget", async () => {
-      markdownMocks.getEnabledMarkdownWidgetByKey.mockResolvedValue({ key: "hero", content: "Hi" });
-
-      const res = await app.request("/markdown-widgets/hero");
-
-      expect(res.status).toBe(200);
-    });
-
-    it("returns 404 when not found", async () => {
-      markdownMocks.getEnabledMarkdownWidgetByKey.mockResolvedValue(null);
-
-      const res = await app.request("/markdown-widgets/missing");
-
-      expect(res.status).toBe(404);
     });
   });
 

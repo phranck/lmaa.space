@@ -1148,7 +1148,6 @@ export const excludedPublicRouteKeys = [
   "GET /api/v1/footer-config",
   "GET /api/v1/social-media-accounts/footer",
   "GET /api/v1/social-preview-image",
-  "GET /api/v1/markdown-widgets/{key}",
   "GET /api/v1/footer-preview/{token}",
   "GET /api/v1/rejected-shops",
   "GET /api/v1/media-aliases",

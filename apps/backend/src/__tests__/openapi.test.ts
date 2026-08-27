@@ -51,10 +51,6 @@ vi.mock("../repositories/footer-config.js", () => ({
   getFooterConfig: vi.fn(),
 }));
 
-vi.mock("../repositories/markdown-widgets.js", () => ({
-  getEnabledMarkdownWidgetByKey: vi.fn(),
-}));
-
 vi.mock("../services/footer-preview-store.js", () => ({
   getFooterPreviewSession: vi.fn(),
 }));

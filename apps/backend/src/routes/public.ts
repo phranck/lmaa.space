@@ -30,7 +30,6 @@ import { shopFilterSchema } from "../lib/shop-filters.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
 import { validate } from "../middleware/validate-request.js";
 import { getFooterConfig } from "../repositories/footer-config.js";
-import { getEnabledMarkdownWidgetByKey } from "../repositories/markdown-widgets.js";
 import { listCurrentSponsors } from "../repositories/sponsors.js";
 import { listPublishedSupportPrompts } from "../repositories/support-prompts.js";
 import {
@@ -608,17 +607,6 @@ publicRoutes.get("/social-preview-image", publicReadLimit, async (c) => {
   const image = await getSocialPreviewImage();
   c.header("Cache-Control", CACHE_EDITABLE);
   return ok(c, image);
-});
-
-// GET /api/markdown-widgets/:key
-publicRoutes.get("/markdown-widgets/:key", publicReadLimit, async (c) => {
-  const widget = await getEnabledMarkdownWidgetByKey(c.req.param("key"));
-  if (!widget) {
-    return fail(c, 404, "Not found");
-  }
-
-  c.header("Cache-Control", CACHE_EDITABLE);
-  return ok(c, widget);
 });
 
 // GET /api/footer-preview/:token
