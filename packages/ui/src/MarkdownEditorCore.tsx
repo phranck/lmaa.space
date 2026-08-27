@@ -567,17 +567,19 @@ export function MarkdownEditorCore({
     [onPaste, placeholder, extraExtensions, lineWrap, showLineNumbers, showWhitespace],
   );
 
+  const startHeight = resizable ? (height ?? wrapperHeight) : height;
   const wrapperStyle: React.CSSProperties | undefined = resizable
-    ? { height: wrapperHeight, resize: "vertical", overflow: "hidden" }
-    : height
-      ? { height }
+    ? { height: startHeight, resize: "vertical", overflow: "hidden" }
+    : startHeight
+      ? { height: startHeight }
       : undefined;
+
+  const hasBoundedHeight = resizable || Boolean(height);
 
   // The footer is a row of the wrapper, so the wrapper has to be a column
   // whenever it has a bounded height. Without this the editor fills the whole
   // height, the footer sits below the clipped box and is never seen, and the
   // scroller inherits no definite height of its own to scroll within.
-  const hasBoundedHeight = resizable || Boolean(height);
   const isFlexCol = showHints && hasBoundedHeight;
   const editorContainerClassName = hasBoundedHeight ? "h-full min-h-0" : undefined;
 

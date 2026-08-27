@@ -956,31 +956,6 @@ export const heroDailySchedule = pgTable("hero_daily_schedule", {
 // Background Errors (Sentry-style async failure log)
 // ---------------------------------------------------------------------------
 
-/**
- * Generic background-error log capturing per-account async failures.
- * Sources: "mastodon-post", "shop-reminders", and future async services.
- */
-export const backgroundErrors = pgTable(
-  "background_errors",
-  {
-    id: serial("id").primaryKey(),
-    source: text("source").notNull(),
-    message: text("message").notNull(),
-    context: jsonb("context").$type<Record<string, unknown> | null>(),
-    occurredAt: timestamp("occurred_at").defaultNow().notNull(),
-    resolvedAt: timestamp("resolved_at"),
-    resolvedBy: integer("resolved_by").references(() => adminUsers.id, { onDelete: "set null" }),
-  },
-  (table) => [
-    index("idx_background_errors_source").on(table.source),
-    index("idx_background_errors_unresolved")
-      .on(table.occurredAt)
-      .where(sql`${table.resolvedAt} IS NULL`),
-  ],
-);
-
-export type BackgroundError = typeof backgroundErrors.$inferSelect;
-
 // ---------------------------------------------------------------------------
 // Per-Moderator Sticky Template Choice
 // ---------------------------------------------------------------------------

@@ -206,6 +206,21 @@
   font-size: 0.6875rem;
 }
 
+/*
+ * Separates the variables from the shortcodes above them. A rule alone would
+ * leave the reader to guess what changed, so the group carries its name.
+ */
+.lmaa-help-nav-group {
+  margin: 0.75rem 0 0.25rem;
+  padding: 0.5rem 0.5rem 0;
+  border-top: 1px solid var(--ds-border);
+  color: var(--ds-text-subtle);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .lmaa-help-nav-item[data-current="true"] .lmaa-help-nav-label {
   color: inherit;
   opacity: 0.75;

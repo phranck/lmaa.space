@@ -172,7 +172,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               />
             </div>
 
-            <p className="text-xs text-[var(--ds-text-subtle)]">
+            <p className="text-xs text-[var(--ds-text-hint)]">
               {usersMessages.createCard.inviteFlowHint}
             </p>
 
@@ -198,7 +198,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
                 ]}
               />
               <div className="mt-3 rounded-control border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-inset)] p-3">
-                <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--ds-text-subtle)]">
+                <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--ds-text-label)]">
                   {usersMessages.createCard.templateVariablesLabel}
                 </p>
                 <div className="mt-2 space-y-2">

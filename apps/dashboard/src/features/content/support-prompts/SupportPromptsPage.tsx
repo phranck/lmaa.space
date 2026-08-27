@@ -78,7 +78,10 @@ export function SupportPromptsPage() {
             }
           />
           <DashboardSection.Body>
-            <div className="grid gap-4 md:grid-cols-2">
+            {/* Four in a row on a wide screen, because they are read as one
+                set of rules rather than as two pairs. Two at the width where
+                four would leave the hints too narrow to read. */}
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <DashboardNumberInput
                 label={text.maxShownLabel}
                 hint={text.maxShownHint}

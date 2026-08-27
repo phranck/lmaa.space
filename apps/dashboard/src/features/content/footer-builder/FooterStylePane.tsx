@@ -8,7 +8,7 @@ import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
-const labelClass = "text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider";
+const labelClass = "text-xs font-semibold text-[var(--ds-text-label)] uppercase tracking-wider";
 
 interface Props {
   style: FooterStyle;

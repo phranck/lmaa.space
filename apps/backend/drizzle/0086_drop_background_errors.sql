@@ -1,0 +1,1 @@
+DROP TABLE "background_errors" CASCADE;

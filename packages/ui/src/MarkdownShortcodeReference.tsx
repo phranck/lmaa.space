@@ -6,10 +6,20 @@ import "./MarkdownShortcodeReference.css";
 
 import {
   MARKDOWN_SHORTCODE_DEFINITIONS,
+  SITE_VARIABLES,
+  SITE_VARIABLE_NAMES,
   type MarkdownShortcodeDefinition,
   type MarkdownShortcodeDefinitionToken,
   type MarkdownShortcodeParamDefinition,
 } from "@lmaa/shared";
+
+/**
+ * What the panel is describing on its right-hand side.
+ *
+ * Two kinds share one column because they answer the same question from the
+ * writer: what may I put here, and how is it spelt.
+ */
+type HelpSelection = { kind: "shortcode"; token: MarkdownShortcodeDefinitionToken } | { kind: "variables" };
 
 /**
  * How long the copy confirmation stays visible, in milliseconds.
@@ -109,7 +119,7 @@ function ParamRow({ param }: { param: MarkdownShortcodeParamDefinition }) {
         )}
       </td>
       <td className="py-1 pr-3 text-[var(--ds-text-muted)]">{param.label ?? ""}</td>
-      <td className="py-1 font-mono text-[0.9em] text-[var(--ds-text-subtle)]">
+      <td className="py-1 font-mono text-[0.9em] text-[var(--ds-text-hint)]">
         {describeType(param)}
         {param.aliases && param.aliases.length > 0 && (
           <span className="ml-2">auch: {param.aliases.join(", ")}</span>
@@ -190,10 +200,10 @@ function DefinitionEntry({
 
       {definition.tables?.map((table) => (
         <div key={table.caption} className="mt-3">
-          <div className="text-[var(--ds-text-subtle)]">{table.caption}</div>
+          <div className="text-[var(--ds-text-hint)]">{table.caption}</div>
           <table className="mt-1 w-full border-collapse">
             <thead>
-              <tr className="text-left text-[var(--ds-text-subtle)]">
+              <tr className="text-left text-[var(--ds-text-hint)]">
                 {table.columns.map((column) => (
                   <th key={column} className="py-1 pr-3 font-normal">
                     {column}
@@ -226,7 +236,7 @@ function DefinitionEntry({
       {depth === 0 && definition.examples.length > 0 && (
         <div className="mt-2">
           <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="text-[var(--ds-text-subtle)]">Beispiel</span>
+            <span className="text-[var(--ds-text-hint)]">Beispiel</span>
             <CopyButton text={definition.examples.join("\n\n")} />
           </div>
           {/* The block scrolls inside itself, because a pre reports the length
@@ -262,28 +272,86 @@ function DefinitionEntry({
  * @param selected - The token whose description is on the right.
  * @param onSelect - Called with the token the reader picked.
  */
+/**
+ * Every variable at once, in the column that describes things.
+ *
+ * They share one entry in the list rather than thirteen, because a variable is
+ * one line and a reader looking for the right name wants them side by side.
+ * The description does the sorting that the list would otherwise have to.
+ */
+function VariableTable() {
+  return (
+    <section>
+      <header>
+        <h3 className="font-semibold text-[var(--ds-text)] text-[0.875rem]">Variablen</h3>
+        <p className="mt-1 text-[var(--ds-text-hint)] text-[0.8125rem] leading-relaxed">
+          Eine Variable steht in geschweiften Klammern und wird eingesetzt, bevor der Text gelesen
+          wird. Sie gilt deshalb im Fliesstext genauso wie in einem Feld eines Shortcodes.
+        </p>
+      </header>
+
+      <table className="mt-3 w-full border-collapse text-[0.8125rem]">
+        <tbody>
+          {SITE_VARIABLE_NAMES.map((name) => (
+            <tr key={name} className="align-top">
+              <td className="py-1 pr-3 whitespace-nowrap">
+                <code className="font-mono text-[var(--ds-text)]">{`{${name}}`}</code>
+              </td>
+              <td className="py-1 pr-3 text-[var(--ds-text-hint)]">{SITE_VARIABLES[name].label}</td>
+              <td className="py-1 pr-2 whitespace-nowrap font-mono text-[var(--ds-text-hint)]">
+                {SITE_VARIABLES[name].example}
+              </td>
+              <td className="py-1">
+                <CopyButton text={`{${name}}`} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
 function ShortcodeList({
   selected,
   onSelect,
 }: {
-  selected: MarkdownShortcodeDefinitionToken;
-  onSelect: (token: MarkdownShortcodeDefinitionToken) => void;
+  selected: HelpSelection;
+  onSelect: (selection: HelpSelection) => void;
 }) {
   return (
-    <nav className="lmaa-help-nav" aria-label="Shortcodes">
-      {MARKDOWN_SHORTCODE_DEFINITIONS.map((definition) => (
-        <button
-          key={definition.token}
-          type="button"
-          onClick={() => onSelect(definition.token)}
-          data-current={definition.token === selected ? "true" : undefined}
-          aria-current={definition.token === selected ? "true" : undefined}
-          className="lmaa-help-nav-item"
-        >
-          <span className="font-mono">[[{definition.token}]]</span>
-          <span className="lmaa-help-nav-label">{definition.label}</span>
-        </button>
-      ))}
+    <nav className="lmaa-help-nav" aria-label="Shortcodes und Variablen">
+      {MARKDOWN_SHORTCODE_DEFINITIONS.map((definition) => {
+        const current = selected.kind === "shortcode" && selected.token === definition.token;
+        return (
+          <button
+            key={definition.token}
+            type="button"
+            onClick={() => onSelect({ kind: "shortcode", token: definition.token })}
+            data-current={current ? "true" : undefined}
+            aria-current={current ? "true" : undefined}
+            className="lmaa-help-nav-item"
+          >
+            <span className="font-mono">[[{definition.token}]]</span>
+            <span className="lmaa-help-nav-label">{definition.label}</span>
+          </button>
+        );
+      })}
+
+      {/* One entry rather than thirteen. A variable is a single line, so the
+          column beside this one can show them all at once. */}
+      <p className="lmaa-help-nav-group">Weiteres</p>
+
+      <button
+        type="button"
+        onClick={() => onSelect({ kind: "variables" })}
+        data-current={selected.kind === "variables" ? "true" : undefined}
+        aria-current={selected.kind === "variables" ? "true" : undefined}
+        className="lmaa-help-nav-item"
+      >
+        <span className="font-mono">{"{variablen}"}</span>
+        <span className="lmaa-help-nav-label">Zahlen aus den Einstellungen</span>
+      </button>
     </nav>
   );
 }
@@ -390,12 +458,16 @@ export function MarkdownShortcodeReference({
 
   // Which shortcode the right column describes. It survives a close and reopen,
   // so somebody who was reading about one finds it again.
-  const [selected, setSelected] = React.useState<MarkdownShortcodeDefinitionToken>(
-    MARKDOWN_SHORTCODE_DEFINITIONS[0].token,
-  );
-  const shown =
-    MARKDOWN_SHORTCODE_DEFINITIONS.find((definition) => definition.token === selected) ??
-    MARKDOWN_SHORTCODE_DEFINITIONS[0];
+  const [selected, setSelected] = React.useState<HelpSelection>({
+    kind: "shortcode",
+    token: MARKDOWN_SHORTCODE_DEFINITIONS[0].token,
+  });
+  const shownDefinition =
+    selected.kind === "shortcode"
+      ? (MARKDOWN_SHORTCODE_DEFINITIONS.find(
+          (definition) => definition.token === selected.token,
+        ) ?? MARKDOWN_SHORTCODE_DEFINITIONS[0])
+      : null;
 
   // Places the panel on open, from storage or centred.
   React.useEffect(() => {
@@ -565,12 +637,13 @@ export function MarkdownShortcodeReference({
       <p className="lmaa-help-hint">
         Ein Shortcode steht in doppelten eckigen Klammern und darf über mehrere Zeilen gehen. Ein
         Stern markiert ein Pflichtfeld, eingerückte Einträge gelten nur innerhalb ihres Elternteils.
+        Eine Variable steht in geschweiften Klammern und gilt im Fliesstext wie in einem Feld.
       </p>
 
       <div className="lmaa-help-split">
         <ShortcodeList selected={selected} onSelect={setSelected} />
         <div className="lmaa-help-body">
-          <DefinitionEntry definition={shown} depth={0} />
+          {shownDefinition ? <DefinitionEntry definition={shownDefinition} depth={0} /> : <VariableTable />}
         </div>
       </div>
     </aside>,

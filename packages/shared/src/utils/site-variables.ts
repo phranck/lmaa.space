@@ -14,6 +14,41 @@
 /** Months in a year, which is what the monthly figure is divided by. */
 const MONTHS_PER_YEAR = 12;
 
+/** Weeks in a year, for the rung that covers one. */
+const WEEKS_PER_YEAR = 52;
+
+/** Quarters in a year, for the rung that covers one. */
+const QUARTERS_PER_YEAR = 4;
+
+/**
+ * The step a suggested amount is rounded to, above the threshold below.
+ *
+ * Five, because a ladder of 5, 20, 60 reads as chosen and one of 4.33, 18.75,
+ * 56.25 reads as a leftover from a calculation.
+ */
+const AMOUNT_STEP_EUR = 5;
+
+/** Under this, the step is a whole euro, so a small rung is not lifted to five. */
+const AMOUNT_STEP_THRESHOLD_EUR = 5;
+
+/**
+ * Rounds a derived amount to something a person would choose.
+ *
+ * Rounded **up**, never to the nearest. A rung says it covers a period, and it
+ * has to actually cover it: at 225 euro a year a quarter costs 56.25, so a rung
+ * of 55 would have claimed a quarter whilst paying for 89 of its 91 days. That
+ * had happened, and rounding down is how it happens again.
+ *
+ * @param cents - The exact derived amount, in cents.
+ * @returns The amount in whole euro, at or above the exact figure.
+ */
+export function roundSuggestedAmountEur(cents: number): number {
+  const euros = cents / 100;
+  if (euros <= 0) return 0;
+  if (euros < AMOUNT_STEP_THRESHOLD_EUR) return Math.ceil(euros);
+  return Math.ceil(euros / AMOUNT_STEP_EUR) * AMOUNT_STEP_EUR;
+}
+
 /**
  * What every variable is called and what it says.
  *
@@ -28,6 +63,38 @@ export const SITE_VARIABLES = {
   monthlyCost: {
     label: "Dieselben Kosten auf einen Monat gerechnet",
     example: "15,00 €",
+  },
+  amountWeek: {
+    label: "Betrag für eine Woche, gerundet und ohne Währung, für einen Spendenbetrag",
+    example: "5",
+  },
+  amountMonth: {
+    label: "Betrag für einen Monat, gerundet und ohne Währung, für einen Spendenbetrag",
+    example: "20",
+  },
+  amountQuarter: {
+    label: "Betrag für ein Vierteljahr, gerundet und ohne Währung, für einen Spendenbetrag",
+    example: "60",
+  },
+  amountYear: {
+    label: "Betrag für ein ganzes Jahr, gerundet und ohne Währung, für einen Spendenbetrag",
+    example: "225",
+  },
+  amountMonthHalf: {
+    label: "Halber Monatsbetrag, gerundet und ohne Währung, für einen Spendenbetrag",
+    example: "10",
+  },
+  amountMonthQuarter: {
+    label: "Viertel des Monatsbetrags, gerundet und ohne Währung, für einen Spendenbetrag",
+    example: "5",
+  },
+  peoplePerYear: {
+    label: "Wie viele Menschen mit je einem Monatsbetrag ein ganzes Jahr tragen",
+    example: "12",
+  },
+  amountSponsorMin: {
+    label: "Mindestbetrag für einen Sponsor, ohne Währung, wie unter Sponsoring eingetragen",
+    example: "45",
   },
   payeeName: {
     label: "Empfänger der Überweisung, wie unter Sponsoring eingetragen",
@@ -53,6 +120,8 @@ export const SITE_VARIABLE_NAMES = Object.keys(SITE_VARIABLES) as SiteVariableNa
 export interface SiteVariableValues {
   /** What the year costs, being the sum of the items set in the dashboard. */
   annualCostCents: number;
+  /** What a sponsorship starts at, as set in the dashboard. */
+  sponsorMinimumCents: number;
   /** Who is paid. Empty until somebody is entered. */
   payeeName: string;
   /** The account, without its printed spaces, as it is stored. */
@@ -94,6 +163,33 @@ export function expandSiteVariables(
         // Rounded to the cent, because a third of a cent is not money and the
         // figure is read rather than added up.
         return formatMoney(Math.round(values.annualCostCents / MONTHS_PER_YEAR));
+      // The six below render a bare number rather than money, because they are
+      // written into a shortcode's `amount=` and read back with parseFloat.
+      case "amountWeek":
+        return String(roundSuggestedAmountEur(values.annualCostCents / WEEKS_PER_YEAR));
+      case "amountMonth":
+        return String(roundSuggestedAmountEur(values.annualCostCents / MONTHS_PER_YEAR));
+      case "amountQuarter":
+        return String(roundSuggestedAmountEur(values.annualCostCents / QUARTERS_PER_YEAR));
+      case "amountYear":
+        return String(roundSuggestedAmountEur(values.annualCostCents));
+      case "amountMonthHalf":
+        return String(roundSuggestedAmountEur(values.annualCostCents / MONTHS_PER_YEAR / 2));
+      case "amountMonthQuarter":
+        return String(roundSuggestedAmountEur(values.annualCostCents / MONTHS_PER_YEAR / 4));
+      // How many people at one monthly rung carry the year. Derived from the
+      // rounded rung rather than from the exact twelfth, because the sentence
+      // that quotes it also quotes the rung, and the two have to agree.
+      case "peoplePerYear": {
+        const rung = roundSuggestedAmountEur(values.annualCostCents / MONTHS_PER_YEAR);
+        if (rung <= 0) return "0";
+        return String(Math.ceil(values.annualCostCents / 100 / rung));
+      }
+      // Not derived and therefore not stepped, only carried across as a whole
+      // euro. Rounded up, because a figure under the minimum is not a
+      // sponsorship and a placeholder suggesting one would mislead.
+      case "amountSponsorMin":
+        return String(Math.ceil(values.sponsorMinimumCents / 100));
       case "payeeName":
         return values.payeeName;
       case "payeeIban":

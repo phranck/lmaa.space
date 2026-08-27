@@ -130,7 +130,7 @@ export function RejectDialog({
         </div>
         <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{name}</p>
         <div className="flex items-center gap-1.5 mt-1">
-          <p className="text-xs text-[var(--ds-text-subtle)] truncate">{url}</p>
+          <p className="text-xs text-[var(--ds-text-hint)] truncate">{url}</p>
           <CopyActionButton
             iconOnly
             label={messages.copyUrl}
@@ -263,7 +263,7 @@ export function NotificationTemplateSelect({
         ]}
       />
       {!hasSubmitterEmail && (
-        <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">{notificationHint}</p>
+        <p className="text-xs text-[var(--ds-text-hint)] mt-1.5">{notificationHint}</p>
       )}
     </div>
   );

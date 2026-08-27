@@ -115,6 +115,21 @@
   --ds-text-placeholder: oklch(var(--ds-L-placeholder) var(--ds-neutral-c) var(--ds-neutral-h));
   --ds-text-inverse: #ffffff;
 
+  /* Text by the job it does, rather than by how light it is.
+   *
+   * A label names the thing beside it and is read before the value, so it
+   * carries the full colour. A hint explains and may be skipped, so it steps
+   * down one. Naming the two separately is what keeps every form in the
+   * dashboard on the same two tones without each one choosing again.
+   *
+   * Both are derived rather than stated, so a change to the scale reaches them.
+   * Neither may point at --ds-text-subtle: measured against --ds-surface in the
+   * dark theme that tone reaches a contrast of 2.9, and WCAG AA asks for 4.5 on
+   * ordinary text and 3 even on large text. --ds-text reaches 14.8 and
+   * --ds-text-muted 5.3. */
+  --ds-text-label: var(--ds-text);
+  --ds-text-hint: var(--ds-text-muted);
+
   /* Accent / CTA — full brand saturation for public UI */
   --ds-accent: var(--ds-color-brand-500);
   --ds-accent-hover: var(--ds-color-brand-600);
@@ -310,6 +325,13 @@
   /* Darker rather than lighter here, because further from the text colour is
      what makes a hint recede, and on a dark surface that direction reverses. */
   --ds-L-placeholder: 0.4;
+
+  /* A label on a dark surface goes brighter than the running text, because it
+     names the field and is read before the value in it. Stated outright rather
+     than derived, so it does not move when the text scale is adjusted.
+     The light theme keeps `var(--ds-text)`, where the same intent means dark
+     on paper. */
+  --ds-text-label: #e3e3e3;
 
   --ds-text-inverse: oklch(var(--ds-L-inset) 0 0);
   /* Warm paper has no counterpart on a dark page, so the role falls back to the

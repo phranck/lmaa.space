@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 
 import { authRoutes } from "./auth.js";
-import { backgroundErrorsRoutes } from "./background-errors.js";
 import { categoriesRoutes } from "./categories.js";
 import { contentRoutes } from "./content.js";
 import { deadLinkReportsRoutes } from "./dead-link-reports.js";
@@ -74,6 +73,5 @@ protectedRoutes.route("/", reviewJobRoutes);
 protectedRoutes.route("/", socialMediaAccountRoutes);
 protectedRoutes.route("/", socialPreviewImageRoutes);
 protectedRoutes.route("/", meTemplateChoicesRoutes);
-protectedRoutes.route("/", backgroundErrorsRoutes);
 
 adminRoutes.route("/", protectedRoutes);

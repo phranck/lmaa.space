@@ -152,7 +152,7 @@ export interface CreateCategoryWithPostsInput {
 /**
  * Creates a new category and, when assignments are supplied, fires
  * social-media posts for the new category in the background. Posts are
- * fire-and-forget; failures land in `background-errors`.
+ * fire-and-forget; failures are logged and not surfaced to the caller.
  *
  * @param input - Validated category attributes plus admin id and optional
  *   template assignments from the create-dialog.

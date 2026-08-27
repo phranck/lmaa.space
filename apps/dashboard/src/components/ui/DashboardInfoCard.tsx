@@ -33,7 +33,7 @@ export function DashboardInfoCard({
       >
         {value}
       </p>
-      {sub && <p className="text-xs text-[var(--ds-text-subtle)] mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-[var(--ds-text-hint)] mt-1">{sub}</p>}
     </>
   );
 

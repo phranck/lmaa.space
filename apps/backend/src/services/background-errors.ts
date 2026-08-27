@@ -1,5 +1,4 @@
 import { logger } from "../lib/logger.js";
-import { insertBackgroundError } from "../repositories/background-errors.js";
 
 const REDACTED_VALUE = "[redacted]";
 const MAX_ERROR_MESSAGE_LENGTH = 600;
@@ -13,9 +12,13 @@ interface NormalizedBackgroundError {
 }
 
 /**
- * Records an async background error to the database and logs it to stdout.
+ * Logs an error from an async job that nobody is waiting on.
  *
- * Never throws — if the DB write fails, falls back to logger.error only.
+ * These failures have no caller to return to, so without this line they would
+ * be silent: a post that never went out, a mail that never arrived. The entry
+ * goes to stdout, which is what the host collects.
+ *
+ * Never throws, because a job must not fail over its own error reporting.
  *
  * @param source - Caller identifier, e.g. "mastodon-post" or "shop-reminders".
  * @param error - The caught error value (any type).
@@ -26,15 +29,12 @@ export async function recordBackgroundError(
   error: unknown,
   context?: Record<string, unknown>,
 ): Promise<void> {
+  // Still async, because seven call sites await it and turning them all
+  // synchronous is a change to their control flow rather than to this one.
   const { message, details } = normalizeBackgroundError(error);
   const sanitizedContext = buildBackgroundErrorContext(context, details);
   const logError = error instanceof Error ? error : (details ?? message);
-  logger.error({ err: logError, source, ...(sanitizedContext ?? {}) }, "background error recorded");
-  try {
-    await insertBackgroundError({ source, message, context: sanitizedContext });
-  } catch (insertErr) {
-    logger.error({ err: insertErr, source, message }, "failed to persist background error");
-  }
+  logger.error({ err: logError, source, ...(sanitizedContext ?? {}) }, "background job failed");
 }
 
 function normalizeBackgroundError(error: unknown): NormalizedBackgroundError {

@@ -211,7 +211,7 @@ export function SponsoringSettingsPage() {
                     {text.addCost}
                   </DashboardButton>
 
-                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--ds-text-subtle)]">
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--ds-text-hint)]">
                     {text.variableLabel}
                     <CopyableCode value="{annualCost}" copyLabel={common.copy} />
                     <CopyableCode value="{monthlyCost}" copyLabel={common.copy} />

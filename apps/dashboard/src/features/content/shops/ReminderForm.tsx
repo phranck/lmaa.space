@@ -278,7 +278,7 @@ export function ReminderForm({
               ]}
             />
             <div className="mt-2 px-[5px]">
-              <p className="text-[10px] text-[var(--ds-text-subtle)] mb-1">{messages.common.availableVariables}</p>
+              <p className="text-[10px] text-[var(--ds-text-hint)] mb-1">{messages.common.availableVariables}</p>
               <div className="flex flex-wrap gap-1">
                 {["shopName", "shopUrl", "reminderMessage"].map((name) => (
                   <CopyableCode key={name} value={`{{${name}}}`} copyLabel={messages.common.copy} />

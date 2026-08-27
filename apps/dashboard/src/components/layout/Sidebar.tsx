@@ -1,4 +1,4 @@
-import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, closestCenter, type DragEndEvent, type Modifier } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
@@ -9,7 +9,6 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   ArticleIcon,
   BlueprintIcon,
-  BugIcon,
   CaretCircleDoubleDownIcon,
   CaretCircleDoubleUpIcon,
   CheckCircleIcon,
@@ -102,6 +101,18 @@ const SECTION_DRAG_LABEL = {
   de: "Abschnitt verschieben",
   en: "Move section",
 } as const;
+
+/**
+ * Holds a dragged section in its column.
+ *
+ * The list is vertical and reorders vertically, so sideways movement moves the
+ * section away from where it can be dropped and tells the reader nothing. Only
+ * the offset is dropped; the section still follows the pointer up and down.
+ *
+ * Written out rather than taken from `@dnd-kit/modifiers`, because that package
+ * is not a dependency here and this is the one modifier the sidebar needs.
+ */
+const restrictToVerticalAxis: Modifier = ({ transform }) => ({ ...transform, x: 0 });
 
 function parseSectionOrder(dbOrder?: string[]): SidebarSectionId[] {
   if (!Array.isArray(dbOrder)) return [...SIDEBAR_SECTION_IDS];
@@ -957,15 +968,6 @@ export function Sidebar({
                       />
                     )}
                   </NavLink>
-                  <NavLink to="/system/settings" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<SlidersHorizontalIcon weight="duotone" className="w-4 h-4" />}
-                        label={sidebarMessages.systemSettings}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
                   <NavLink to="/system/redirect-urls" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
@@ -993,15 +995,11 @@ export function Sidebar({
                       />
                     )}
                   </NavLink>
-                  <NavLink
-                    to="/system/background-errors"
-                    onClick={onItemClick}
-                    className="contents"
-                  >
+                  <NavLink to="/system/settings" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
-                        icon={<BugIcon weight="duotone" className="w-4 h-4" />}
-                        label={sidebarMessages.backgroundErrors}
+                        icon={<SlidersHorizontalIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.systemSettings}
                         active={isActive}
                       />
                     )}
@@ -1015,6 +1013,7 @@ export function Sidebar({
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
               onDragEnd={handleDragEnd}
             >
               <SortableContext items={visibleSections} strategy={verticalListSortingStrategy}>
