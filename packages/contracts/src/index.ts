@@ -33,7 +33,6 @@ export * from "./admin-form-config";
 /** Footer builder type definitions and schemas. */
 export * from "./footer-config";
 /** Admin markdown widget schemas. */
-export * from "./admin-markdown-widgets";
 /** Submission domain alert rule schemas. */
 export * from "./domain-alert-rules";
 /** Public redirect URL schemas. */
