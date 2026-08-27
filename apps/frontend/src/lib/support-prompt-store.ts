@@ -1,4 +1,4 @@
-import type { SupportPromptLimits } from "@lmaa/contracts";
+import type { SupportPromptLimits, SupportPromptThresholdBasis } from "@lmaa/contracts";
 
 /**
  * What the site remembers about the asks it has shown one reader.
@@ -118,8 +118,13 @@ export function parseStore(raw: string | null, knownIds: readonly string[]): Sup
 export interface PromptCandidate {
   id: string;
   threshold: number;
+  /** Which counter the threshold is measured against. */
+  thresholdBasis: SupportPromptThresholdBasis;
   priority: number;
 }
+
+/** How far the reader has come, by each counter a threshold may read. */
+export type ReaderProgress = Record<SupportPromptThresholdBasis, number>;
 
 /**
  * Picks the one prompt to show, or nothing.
@@ -132,7 +137,7 @@ export interface PromptCandidate {
  * @param candidates - The prompts for this slot, as the server sent them.
  * @param store - What the site remembers about this reader.
  * @param limits - What bounds the reader across every prompt together.
- * @param reached - How far the reader has come, in liked or seen shops.
+ * @param progress - How far the reader has come, by each counter.
  * @param now - The current moment, as milliseconds since the epoch.
  * @returns The prompt to show, or `null` when the reader has had enough.
  */
@@ -157,7 +162,7 @@ export function choosePrompt(
   candidates: readonly PromptCandidate[],
   store: SupportPromptStore,
   limits: SupportPromptLimits,
-  reached: number,
+  progress: ReaderProgress,
   now: number,
   alwaysShow = false,
 ): PromptCandidate | null {
@@ -172,6 +177,11 @@ export function choosePrompt(
 
   let best: PromptCandidate | null = null;
   for (const candidate of candidates) {
+    // A basis that is missing or unknown falls back to the default counter
+    // rather than to no counter. Reading an absent one would compare against
+    // `undefined`, which is never less than the threshold, and the prompt would
+    // slip past the very check it is measured by.
+    const reached = progress[candidate.thresholdBasis] ?? progress.viewed;
     if (reached < candidate.threshold) continue;
     if (!alwaysShow && store.prompts[candidate.id]?.resolved) continue;
     if (!best || candidate.priority > best.priority) best = candidate;

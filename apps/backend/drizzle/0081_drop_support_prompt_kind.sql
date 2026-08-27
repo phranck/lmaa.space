@@ -1,0 +1,1 @@
+ALTER TABLE "support_prompts" DROP COLUMN "kind";

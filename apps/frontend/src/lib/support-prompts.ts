@@ -15,12 +15,12 @@ import { renderMarkdown } from "@/lib/markdown";
 /** One prompt, ready to be drawn. */
 export interface RenderedSupportPrompt {
   id: string;
-  kind: SupportPrompt["kind"];
   html: string;
   buttonLabel: string;
   buttonHref: string;
-  dismissLabel: string;
+  buttonAlignment: SupportPrompt["buttonAlignment"];
   threshold: number;
+  thresholdBasis: SupportPrompt["thresholdBasis"];
   priority: number;
 }
 
@@ -79,12 +79,12 @@ export async function loadSupportPrompts(slot: SupportPromptSlot): Promise<Suppo
       rendering.push(
         renderMarkdown(prompt.content, {}, { breaks: true }).then((html) => ({
           id: prompt.id,
-          kind: prompt.kind,
           html,
           buttonLabel: prompt.buttonLabel,
           buttonHref: prompt.buttonHref,
-          dismissLabel: prompt.dismissLabel,
+          buttonAlignment: prompt.buttonAlignment,
           threshold: prompt.threshold,
+          thresholdBasis: prompt.thresholdBasis,
           priority: prompt.priority,
         })),
       );

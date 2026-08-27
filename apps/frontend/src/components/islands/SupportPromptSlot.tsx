@@ -65,11 +65,10 @@ function fillNumbers(html: string, likedShops: number, shopViews: number): strin
 /**
  * How a prompt is drawn, decided by the slot rather than by the prompt.
  *
- * The place decides the form: a prompt among shop cards is a shop card, one
- * among category cards is a category card, and one on a shop page is a line,
- * because somebody looking at a shop is there for the shop. Each carries the
- * geometry of the cards around it and the accent tint instead of white, so it
- * belongs to the row without pretending to be one of its items.
+ * The place decides the form: a prompt among shop cards is a shop card, and one
+ * among category cards is a category card. Each carries the geometry of the
+ * cards around it and the accent tint instead of white, so it belongs to the
+ * row without pretending to be one of its items.
  */
 const CARD_SHAPES: Record<SlotName, { className: string; style: CSSProperties }> = {
   "my-shops": {
@@ -94,32 +93,21 @@ const CARD_SHAPES: Record<SlotName, { className: string; style: CSSProperties }>
   },
 };
 
-/**
- * A line rather than a card: the quiet form, the same wherever it stands.
- *
- * The form's surface without its light, because a line across the page is not
- * a card and a gradient on it would read as one lying flat.
- */
-const LINE_SHAPE = {
-  className: "relative flex flex-col gap-2 border-t border-b",
-  style: {
-    borderColor: "var(--ds-border-subtle)",
-    background: "var(--ds-surface-form)",
-    // Equal on all four sides, as every surface on this site is.
-    padding: "var(--card-padding)",
-  } satisfies CSSProperties,
+/** Where the invitation stands, named as the stacks name it. */
+const BUTTON_ROW_CLASSES: Record<RenderedSupportPrompt["buttonAlignment"], string> = {
+  leading: "justify-start",
+  center: "justify-center",
+  trailing: "justify-end",
 };
 
 /**
- * How this prompt is drawn.
+ * How a prompt in this slot is drawn.
  *
- * Whoever writes the prompt chooses between a card and a line; the slot decides
- * only the geometry a card takes, so a card among shop cards is a shop card and
- * one among category cards is a category card. The light belongs to the card
- * alone.
+ * The slot decides the geometry alone, so a prompt among shop cards is a shop
+ * card and one among category cards is a category card. The light and the
+ * accent tint are the same wherever it stands.
  */
-function shapeFor(slot: SlotName, kind: RenderedSupportPrompt["kind"]) {
-  if (kind !== "card") return LINE_SHAPE;
+function shapeFor(slot: SlotName) {
   const card = CARD_SHAPES[slot];
   return {
     className: `lmaa-card lmaa-accent-wash relative flex flex-col gap-3 ${card.className}`,
@@ -154,9 +142,12 @@ export default function SupportPromptSlot({
       persist(store);
     }
 
+    // Which counter a threshold reads is the prompt's own answer, because the
+    // same place can carry a prompt about what somebody has kept and one about
+    // what they have been reading.
     const likedShops = getLikedShopIds().size;
-    const reached = slot === "shop-detail" ? store.shopViews : likedShops;
-    const chosen = choosePrompt(prompts, store, limits, reached, Date.now(), devAlwaysShow);
+    const counters = { liked: likedShops, viewed: store.shopViews };
+    const chosen = choosePrompt(prompts, store, limits, counters, Date.now(), devAlwaysShow);
     if (!chosen) return;
 
     const prompt = prompts.find((entry) => entry.id === chosen.id);
@@ -170,14 +161,10 @@ export default function SupportPromptSlot({
   if (!shown) return null;
   const visible = shown.prompt;
 
-  function close(reason: "dismissed" | "resolved") {
+  function close() {
     if (!shown) return;
     const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
-    persist(
-      reason === "resolved"
-        ? recordResolved(store, visible.id)
-        : recordDismissed(store, visible.id, Date.now()),
-    );
+    persist(recordDismissed(store, visible.id, Date.now()));
     trackWebsiteEvent("support-prompt-dismissed", { prompt: visible.id, slot });
     setShown(null);
   }
@@ -189,7 +176,7 @@ export default function SupportPromptSlot({
     trackWebsiteEvent("support-prompt-clicked", { prompt: visible.id, slot });
   }
 
-  const shape = shapeFor(slot, visible.kind);
+  const shape = shapeFor(slot);
 
   return (
     <aside
@@ -199,7 +186,7 @@ export default function SupportPromptSlot({
     >
       <button
         type="button"
-        onClick={() => close("dismissed")}
+        onClick={close}
         aria-label="Ausblenden"
         className="inline-flex size-7 items-center justify-center rounded-control opacity-50 transition-opacity hover:opacity-100"
         // Half the padding out, so it sits in the corner rather than in the
@@ -219,34 +206,31 @@ export default function SupportPromptSlot({
       </button>
 
       <div
-        className="lmaa-rich pr-8 text-sm"
+        className="lmaa-rich lmaa-prompt-copy pr-8 text-sm"
         style={{ color: "var(--ds-text-muted)" }}
         // biome-ignore lint/security/noDangerouslySetInnerHtml: page content, rendered and sanitised server-side by renderMarkdown, exactly as the ladder's prose is
         dangerouslySetInnerHTML={{ __html: shown.html }}
       />
 
-      {/* The action ends the block at its right edge, and it is the same
-          invitation the sponsor wall carries, so the ask looks like one thing
-          across the site rather than like two. Anything that steps back from
-          it stands to its left. */}
-      {(visible.buttonLabel || visible.dismissLabel) && (
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {visible.dismissLabel && (
-            <button
-              type="button"
-              onClick={() => close("resolved")}
-              className="text-sm underline"
-              style={{ color: "var(--ds-text-subtle)" }}
-            >
-              {visible.dismissLabel}
-            </button>
-          )}
-          {visible.buttonLabel && (
-            <a href={visible.buttonHref} onClick={follow} className="lmaa-invite-action is-compact">
-              <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
-              {visible.buttonLabel}
-            </a>
-          )}
+      {/* It is the same invitation the sponsor wall carries, so the ask looks
+          like one thing across the site rather than like two. Saying no is the
+          cross in the corner, which every prompt carries whether or not it
+          invites.
+
+          Where it stands is the prompt's own choice, which departs from the
+          rule that a button belonging to a card sits at that card's right edge.
+          That rule is written for a card, a panel or a form, where a reader
+          finishes at the bottom right. A prompt is a short piece of copy whose
+          author decides how it sits, and an invitation under centred copy
+          belongs under its middle. */}
+      {visible.buttonLabel && (
+        <div
+          className={`flex flex-wrap items-center gap-3 ${BUTTON_ROW_CLASSES[visible.buttonAlignment]}`}
+        >
+          <a href={visible.buttonHref} onClick={follow} className="lmaa-invite-action is-compact">
+            <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
+            {visible.buttonLabel}
+          </a>
         </div>
       )}
     </aside>

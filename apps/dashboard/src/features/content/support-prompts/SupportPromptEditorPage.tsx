@@ -3,12 +3,14 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import {
-  SUPPORT_PROMPT_KINDS,
+  SUPPORT_PROMPT_BUTTON_ALIGNMENTS,
   SUPPORT_PROMPT_SLOTS,
+  SUPPORT_PROMPT_THRESHOLD_BASES,
   type SupportPrompt,
+  type SupportPromptButtonAlignment,
   type SupportPromptInput,
-  type SupportPromptKind,
   type SupportPromptSlot,
+  type SupportPromptThresholdBasis,
 } from "@lmaa/contracts";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -25,7 +27,6 @@ import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
-import { SupportPromptKindGraphic } from "@/features/content/support-prompts/SupportPromptKindGraphic.tsx";
 
 import {
   useCreateSupportPrompt,
@@ -43,12 +44,12 @@ function emptyPrompt(name: string): SupportPromptInput {
   return {
     name,
     slot: "my-shops",
-    kind: "card",
     content: "",
     buttonLabel: "",
     buttonHref: "/support-me",
-    dismissLabel: "",
+    buttonAlignment: "trailing",
     threshold: 3,
+    thresholdBasis: "viewed",
     startsAt: null,
     endsAt: null,
     priority: 0,
@@ -102,23 +103,21 @@ export function SupportPromptEditorPage() {
     [text],
   );
 
-  // The picture carries the meaning here, so each option is a tile: the shape
-  // above, its name below. The closed control shows the name alone.
-  const kindOptions = useMemo(
+  const thresholdBasisOptions = useMemo(
     () =>
-      SUPPORT_PROMPT_KINDS.map((kind) => {
-        const label = kind === "card" ? text.kinds.card : text.kinds.line;
-        return {
-          value: kind,
-          triggerLabel: label,
-          label: (
-            <span className="flex flex-col items-center gap-2 py-1">
-              <SupportPromptKindGraphic kind={kind} width={88} />
-              <span className="text-sm">{label}</span>
-            </span>
-          ),
-        };
-      }),
+      SUPPORT_PROMPT_THRESHOLD_BASES.map((basis) => ({
+        value: basis,
+        label: text.thresholdBases[basis],
+      })),
+    [text],
+  );
+
+  const buttonAlignmentOptions = useMemo(
+    () =>
+      SUPPORT_PROMPT_BUTTON_ALIGNMENTS.map((alignment) => ({
+        value: alignment,
+        label: text.buttonAlignments[alignment],
+      })),
     [text],
   );
 
@@ -214,22 +213,30 @@ export function SupportPromptEditorPage() {
                     options={slotOptions}
                     onValueChange={(value) => update({ slot: value as SupportPromptSlot })}
                   />
-                  <DashboardCombobox
-                    label={text.kindLabel}
-                    value={fields.kind}
-                    options={kindOptions}
-                    optionsLayout="row"
-                    matchTriggerWidth={false}
-                    onValueChange={(value) => update({ kind: value as SupportPromptKind })}
-                  />
-                  <DashboardNumberInput
-                    label={text.thresholdLabel}
-                    hint={text.thresholdHint}
-                    value={fields.threshold}
-                    min={0}
-                    max={500}
-                    onChange={(event) => update({ threshold: Number(event.target.value) })}
-                  />
+                  {/* The number and what it counts are one question, so they
+                      share a row. The counter takes only the width of its own
+                      words. */}
+                  <div className="flex items-start gap-3">
+                    <DashboardNumberInput
+                      label={text.thresholdLabel}
+                      hint={text.thresholdHint}
+                      fieldClassName="flex-1 min-w-0"
+                      value={fields.threshold}
+                      min={0}
+                      max={500}
+                      onChange={(event) => update({ threshold: Number(event.target.value) })}
+                    />
+                    <DashboardCombobox
+                      label={text.thresholdBasisLabel}
+                      value={fields.thresholdBasis}
+                      options={thresholdBasisOptions}
+                      minWidthFromOptions
+                      fieldClassName="shrink-0"
+                      onValueChange={(value) =>
+                        update({ thresholdBasis: value as SupportPromptThresholdBasis })
+                      }
+                    />
+                  </div>
                   <DashboardNumberInput
                     label={text.priorityLabel}
                     hint={text.priorityHint}
@@ -250,23 +257,34 @@ export function SupportPromptEditorPage() {
               />
               <DashboardSection.Body>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <DashboardInput
-                    label={text.buttonLabel}
-                    value={fields.buttonLabel}
-                    onChange={(event) => update({ buttonLabel: event.target.value })}
-                  />
+                  {/* The caption and where it stands are two answers about the
+                      same button, so they share a row. The position takes only
+                      the width of its own words, because a control as wide as a
+                      text field promises more to type than three choices. */}
+                  <div className="flex items-start gap-3">
+                    <DashboardInput
+                      label={text.buttonLabel}
+                      fieldClassName="flex-1 min-w-0"
+                      value={fields.buttonLabel}
+                      onChange={(event) => update({ buttonLabel: event.target.value })}
+                    />
+                    <DashboardCombobox
+                      label={text.buttonAlignmentLabel}
+                      value={fields.buttonAlignment}
+                      options={buttonAlignmentOptions}
+                      minWidthFromOptions
+                      fieldClassName="shrink-0"
+                      onValueChange={(value) =>
+                        update({ buttonAlignment: value as SupportPromptButtonAlignment })
+                      }
+                    />
+                  </div>
                   <DashboardCombobox
                     label={text.buttonHrefLabel}
                     value={fields.buttonHref}
                     options={pageOptions}
                     searchable
                     onValueChange={(value) => update({ buttonHref: value })}
-                  />
-                  <DashboardInput
-                    label={text.dismissLabel}
-                    hint={text.dismissHint}
-                    value={fields.dismissLabel}
-                    onChange={(event) => update({ dismissLabel: event.target.value })}
                   />
                 </div>
                 <div className="mt-4">
@@ -305,6 +323,7 @@ export function SupportPromptEditorPage() {
                     </span>
                     <DateTimePicker
                       mode="date"
+                      clearable
                       value={fields.startsAt ?? ""}
                       onChange={(value) => update({ startsAt: value || null })}
                     />
@@ -315,6 +334,7 @@ export function SupportPromptEditorPage() {
                     </span>
                     <DateTimePicker
                       mode="date"
+                      clearable
                       value={fields.endsAt ?? ""}
                       onChange={(value) => update({ endsAt: value || null })}
                     />

@@ -4,6 +4,7 @@ import {
   CaretRightIcon,
   ClockIcon,
   DotIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import { de } from "date-fns/locale";
 import { useEffect, useRef, useState } from "react";
@@ -31,6 +32,13 @@ interface DateTimePickerProps {
    */
   value: string;
   onChange: (value: string) => void;
+  /**
+   * Whether the value may be emptied again.
+   *
+   * Off by default, because most fields that take a date want one. On where an
+   * empty value means something, such as a window with no end.
+   */
+  clearable?: boolean;
   /** What to ask for. Both parts by default. */
   mode?: DateTimePickerMode;
 }
@@ -114,7 +122,12 @@ function usePopoverPosition(triggerRef: React.RefObject<HTMLButtonElement | null
   return style;
 }
 
-export function DateTimePicker({ value, onChange, mode = "datetime" }: DateTimePickerProps) {
+export function DateTimePicker({
+  value,
+  onChange,
+  mode = "datetime",
+  clearable = false,
+}: DateTimePickerProps) {
   const { locale } = useI18n();
   const isDe = locale === "de";
   const { date: selected, hours, minutes } = toLocalParts(value, mode);
@@ -276,6 +289,24 @@ export function DateTimePicker({ value, onChange, mode = "datetime" }: DateTimeP
               />
               <span className="text-xs text-[var(--ds-text-subtle)]">Uhr</span>
             </div>
+            )}
+
+            {/* Ends the popover at its right edge, and only whilst there is
+                something to remove. */}
+            {clearable && hasValue && (
+              <div className="mt-2 pt-2 flex justify-end border-t border-[var(--ds-border)]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange("");
+                    setOpen(false);
+                  }}
+                  className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
+                >
+                  <XIcon weight="bold" className="size-3" />
+                  {isDe ? "Entfernen" : "Clear"}
+                </button>
+              </div>
             )}
           </div>,
           document.body,

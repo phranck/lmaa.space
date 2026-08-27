@@ -1,0 +1,1 @@
+ALTER TABLE "support_prompts" ADD COLUMN "threshold_basis" text DEFAULT 'viewed' NOT NULL;

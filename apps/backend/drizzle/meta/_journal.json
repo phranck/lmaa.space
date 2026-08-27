@@ -568,6 +568,34 @@
       "when": 1787604792369,
       "tag": "0080_strip_website_trailing_slash",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1787824951419,
+      "tag": "0081_drop_support_prompt_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1787828907088,
+      "tag": "0082_drop_support_prompt_dismiss_label",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1787838285456,
+      "tag": "0083_support_prompt_button_alignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1787842189795,
+      "tag": "0084_support_prompt_threshold_basis",
+      "breakpoints": true
     }
   ]
 }
