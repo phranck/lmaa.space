@@ -63,35 +63,32 @@ function fillNumbers(html: string, likedShops: number, shopViews: number): strin
 }
 
 /**
- * How a prompt is drawn, decided by the slot rather than by the prompt.
+ * The geometry of a card on the public pages.
  *
- * The place decides the form: a prompt among shop cards is a shop card, and one
- * among category cards is a category card. Each carries the geometry of the
- * cards around it and the accent tint instead of white, so it belongs to the
- * row without pretending to be one of its items.
+ * A prompt stands between shop cards or category cards and has to be one of
+ * them, so it takes their corner rather than the dashboard's. Those cards carry
+ * `rounded-2xl p-4`, which is 18px of each at the site's root size, and this is
+ * the one place a prompt repeats it.
+ *
+ * The padding is restated as `--card-padding` on the element itself, and the
+ * nested radius with it, because a custom property holding a `var()` resolves
+ * where it is declared. Without that the close control would place itself from
+ * the root's padding, which this card does not use, and anything at the content
+ * edge would round to the root's arithmetic.
+ *
+ * No edge, and the shadow instead: the card stands off the page rather than
+ * being drawn onto it, the same way the sponsor form does.
  */
-const CARD_SHAPES: Record<SlotName, { className: string; style: CSSProperties }> = {
-  "my-shops": {
-    className: "rounded-2xl p-2 sm:p-4",
-    style: { background: "var(--ds-surface)", boxShadow: "var(--ds-shadow-md)" },
-  },
-  "category-grid": {
-    className: "rounded-lg sm:rounded-2xl p-2 sm:p-4",
-    style: { background: "var(--ds-surface)", boxShadow: "var(--ds-shadow-md)" },
-  },
-  // A shop page has no grid of its own, so the card takes the geometry every
-  // other card on the site uses.
-  "shop-detail": {
-    className: "rounded-2xl",
-    style: {
-      background: "var(--ds-surface)",
-      // No edge, and the shadow instead: the card stands off the page rather
-      // than being drawn onto it, the same way the sponsor form does.
-      boxShadow: "var(--ds-shadow-md)",
-      padding: "var(--card-padding)",
-    },
-  },
-};
+const CARD_STYLE = {
+  background: "var(--ds-surface)",
+  boxShadow: "var(--ds-shadow-md)",
+  "--card-padding": "1rem",
+  "--radius-card-inner": "max(calc(1rem - var(--card-padding)), 0px)",
+  borderRadius: "1rem",
+  padding: "var(--card-padding)",
+} as CSSProperties;
+
+const CARD_CLASS = "lmaa-card lmaa-accent-wash relative flex flex-col gap-3";
 
 /** Where the invitation stands, named as the stacks name it. */
 const BUTTON_ROW_CLASSES: Record<RenderedSupportPrompt["buttonAlignment"], string> = {
@@ -99,21 +96,6 @@ const BUTTON_ROW_CLASSES: Record<RenderedSupportPrompt["buttonAlignment"], strin
   center: "justify-center",
   trailing: "justify-end",
 };
-
-/**
- * How a prompt in this slot is drawn.
- *
- * The slot decides the geometry alone, so a prompt among shop cards is a shop
- * card and one among category cards is a category card. The light and the
- * accent tint are the same wherever it stands.
- */
-function shapeFor(slot: SlotName) {
-  const card = CARD_SHAPES[slot];
-  return {
-    className: `lmaa-card lmaa-accent-wash relative flex flex-col gap-3 ${card.className}`,
-    style: card.style,
-  };
-}
 
 export default function SupportPromptSlot({
   slot,
@@ -176,13 +158,11 @@ export default function SupportPromptSlot({
     trackWebsiteEvent("support-prompt-clicked", { prompt: visible.id, slot });
   }
 
-  const shape = shapeFor(slot);
-
   return (
     <aside
       data-support-prompt={visible.id}
-      className={`${shape.className} ${className ?? ""}`}
-      style={shape.style}
+      className={`${CARD_CLASS} ${className ?? ""}`}
+      style={CARD_STYLE}
     >
       <button
         type="button"
