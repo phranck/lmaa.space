@@ -6,10 +6,23 @@ import "./MarkdownShortcodeReference.css";
 
 import {
   MARKDOWN_SHORTCODE_DEFINITIONS,
+  SITE_VARIABLES,
+  SITE_VARIABLE_NAMES,
   type MarkdownShortcodeDefinition,
   type MarkdownShortcodeDefinitionToken,
   type MarkdownShortcodeParamDefinition,
+  type SiteVariableName,
 } from "@lmaa/shared";
+
+/**
+ * What the panel is describing on its right-hand side.
+ *
+ * Two kinds share one column because they answer the same question from the
+ * writer: what may I put here, and how is it spelt.
+ */
+type HelpSelection =
+  | { kind: "shortcode"; token: MarkdownShortcodeDefinitionToken }
+  | { kind: "variable"; name: SiteVariableName };
 
 /**
  * How long the copy confirmation stays visible, in milliseconds.
@@ -262,28 +275,79 @@ function DefinitionEntry({
  * @param selected - The token whose description is on the right.
  * @param onSelect - Called with the token the reader picked.
  */
+/**
+ * What a variable stands for, and how it is written.
+ *
+ * A variable has no parameters and no children, so it needs far less room than
+ * a shortcode. The example is what the dashboard holds for it rather than the
+ * figure the site currently shows, because the panel is open whilst somebody
+ * writes and the real figure lives on the server.
+ */
+function VariableEntry({ name }: { name: SiteVariableName }) {
+  const variable = SITE_VARIABLES[name];
+
+  return (
+    <section>
+      <header className="flex items-center gap-2 flex-wrap">
+        <code className="font-mono text-[var(--ds-text)] text-[0.8125rem]">{`{${name}}`}</code>
+        <CopyButton text={`{${name}}`} />
+      </header>
+      <p className="mt-2 text-[var(--ds-text-muted)] text-[0.8125rem] leading-relaxed">
+        {variable.label}
+      </p>
+      <p className="mt-2 text-[var(--ds-text-muted)] text-[0.75rem]">
+        Beispiel: <span className="font-mono text-[var(--ds-text)]">{variable.example}</span>
+      </p>
+    </section>
+  );
+}
+
 function ShortcodeList({
   selected,
   onSelect,
 }: {
-  selected: MarkdownShortcodeDefinitionToken;
-  onSelect: (token: MarkdownShortcodeDefinitionToken) => void;
+  selected: HelpSelection;
+  onSelect: (selection: HelpSelection) => void;
 }) {
   return (
-    <nav className="lmaa-help-nav" aria-label="Shortcodes">
-      {MARKDOWN_SHORTCODE_DEFINITIONS.map((definition) => (
-        <button
-          key={definition.token}
-          type="button"
-          onClick={() => onSelect(definition.token)}
-          data-current={definition.token === selected ? "true" : undefined}
-          aria-current={definition.token === selected ? "true" : undefined}
-          className="lmaa-help-nav-item"
-        >
-          <span className="font-mono">[[{definition.token}]]</span>
-          <span className="lmaa-help-nav-label">{definition.label}</span>
-        </button>
-      ))}
+    <nav className="lmaa-help-nav" aria-label="Shortcodes und Variablen">
+      {MARKDOWN_SHORTCODE_DEFINITIONS.map((definition) => {
+        const current = selected.kind === "shortcode" && selected.token === definition.token;
+        return (
+          <button
+            key={definition.token}
+            type="button"
+            onClick={() => onSelect({ kind: "shortcode", token: definition.token })}
+            data-current={current ? "true" : undefined}
+            aria-current={current ? "true" : undefined}
+            className="lmaa-help-nav-item"
+          >
+            <span className="font-mono">[[{definition.token}]]</span>
+            <span className="lmaa-help-nav-label">{definition.label}</span>
+          </button>
+        );
+      })}
+
+      {/* The variables share the list because a writer looking for something to
+          put in a field does not know in advance which of the two it will be. */}
+      <p className="lmaa-help-nav-group">Variablen</p>
+
+      {SITE_VARIABLE_NAMES.map((name) => {
+        const current = selected.kind === "variable" && selected.name === name;
+        return (
+          <button
+            key={name}
+            type="button"
+            onClick={() => onSelect({ kind: "variable", name })}
+            data-current={current ? "true" : undefined}
+            aria-current={current ? "true" : undefined}
+            className="lmaa-help-nav-item"
+          >
+            <span className="font-mono">{`{${name}}`}</span>
+            <span className="lmaa-help-nav-label">{SITE_VARIABLES[name].label}</span>
+          </button>
+        );
+      })}
     </nav>
   );
 }
@@ -390,12 +454,16 @@ export function MarkdownShortcodeReference({
 
   // Which shortcode the right column describes. It survives a close and reopen,
   // so somebody who was reading about one finds it again.
-  const [selected, setSelected] = React.useState<MarkdownShortcodeDefinitionToken>(
-    MARKDOWN_SHORTCODE_DEFINITIONS[0].token,
-  );
-  const shown =
-    MARKDOWN_SHORTCODE_DEFINITIONS.find((definition) => definition.token === selected) ??
-    MARKDOWN_SHORTCODE_DEFINITIONS[0];
+  const [selected, setSelected] = React.useState<HelpSelection>({
+    kind: "shortcode",
+    token: MARKDOWN_SHORTCODE_DEFINITIONS[0].token,
+  });
+  const shownDefinition =
+    selected.kind === "shortcode"
+      ? (MARKDOWN_SHORTCODE_DEFINITIONS.find(
+          (definition) => definition.token === selected.token,
+        ) ?? MARKDOWN_SHORTCODE_DEFINITIONS[0])
+      : null;
 
   // Places the panel on open, from storage or centred.
   React.useEffect(() => {
@@ -565,12 +633,17 @@ export function MarkdownShortcodeReference({
       <p className="lmaa-help-hint">
         Ein Shortcode steht in doppelten eckigen Klammern und darf über mehrere Zeilen gehen. Ein
         Stern markiert ein Pflichtfeld, eingerückte Einträge gelten nur innerhalb ihres Elternteils.
+        Eine Variable steht in geschweiften Klammern und gilt im Fliesstext wie in einem Feld.
       </p>
 
       <div className="lmaa-help-split">
         <ShortcodeList selected={selected} onSelect={setSelected} />
         <div className="lmaa-help-body">
-          <DefinitionEntry definition={shown} depth={0} />
+          {shownDefinition ? (
+            <DefinitionEntry definition={shownDefinition} depth={0} />
+          ) : (
+            <VariableEntry name={(selected as { kind: "variable"; name: SiteVariableName }).name} />
+          )}
         </div>
       </div>
     </aside>,
