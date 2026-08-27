@@ -5,7 +5,17 @@ interface Props {
 
 const { variant } = Astro.props;
 
-const label = "Ich liebe das Projekt";
+/**
+ * The label says what the click actually does, which is to open a page.
+ *
+ * "Ich liebe das Projekt" asked a first-time visitor to declare a feeling they
+ * cannot have yet, and "Ich helfe mit" would claim an act the click does not
+ * perform. Belonging is the one of the three with a field experiment behind it:
+ * Huck and Rasul raised the average gift from 74.30 to 132 euro by announcing a
+ * single lead donor, at an unchanged price of giving. The sponsor list carries
+ * two names, so there is something to join.
+ */
+const label = "Ich will dabei sein";
 const visibleLabel = variant === "mobile-header" ? "Unterstützen" : label;
 const href = "/support-me";
 
@@ -30,7 +40,7 @@ const placement =
 	data-analytics-event="site-link-click"
 	data-analytics-kind="cta"
 	data-analytics-placement={placement}
-	data-analytics-label={label}
+	data-analytics-label={visibleLabel}
 	data-analytics-href={href}
 >
 	{variant !== "mobile" && (
