@@ -92,6 +92,10 @@ export const SITE_VARIABLES = {
     label: "Wie viele Menschen mit je einem Monatsbetrag ein ganzes Jahr tragen",
     example: "12",
   },
+  amountSponsorMin: {
+    label: "Mindestbetrag für einen Sponsor, ohne Währung, wie unter Sponsoring eingetragen",
+    example: "45",
+  },
   payeeName: {
     label: "Empfänger der Überweisung, wie unter Sponsoring eingetragen",
     example: "Frank Gregor",
@@ -116,6 +120,8 @@ export const SITE_VARIABLE_NAMES = Object.keys(SITE_VARIABLES) as SiteVariableNa
 export interface SiteVariableValues {
   /** What the year costs, being the sum of the items set in the dashboard. */
   annualCostCents: number;
+  /** What a sponsorship starts at, as set in the dashboard. */
+  sponsorMinimumCents: number;
   /** Who is paid. Empty until somebody is entered. */
   payeeName: string;
   /** The account, without its printed spaces, as it is stored. */
@@ -179,6 +185,11 @@ export function expandSiteVariables(
         if (rung <= 0) return "0";
         return String(Math.ceil(values.annualCostCents / 100 / rung));
       }
+      // Not derived and therefore not stepped, only carried across as a whole
+      // euro. Rounded up, because a figure under the minimum is not a
+      // sponsorship and a placeholder suggesting one would mislead.
+      case "amountSponsorMin":
+        return String(Math.ceil(values.sponsorMinimumCents / 100));
       case "payeeName":
         return values.payeeName;
       case "payeeIban":

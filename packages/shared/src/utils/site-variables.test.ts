@@ -10,6 +10,7 @@ import {
 /** The settings, as the dashboard would hold them. */
 const values: SiteVariableValues = {
   annualCostCents: 18_000,
+  sponsorMinimumCents: 4_500,
   payeeName: "Frank Gregor",
   payeeIban: "AT551900104704666811",
   payeeBic: "TRBKATW2XXX",
@@ -127,6 +128,21 @@ describe("suggested amounts derived from the annual cost", () => {
     // The exact twelfth is 18.75, which would give 12 as well; the point is
     // that both numbers in "zwölf Leute mit je 20" come from the same figure.
     expect(derive("{peoplePerYear} Leute mit je {amountMonth}")).toBe("12 Leute mit je 20");
+  });
+
+  it("carries the sponsor minimum across as a whole euro", () => {
+    expect(derive("{amountSponsorMin}")).toBe("45");
+  });
+
+  it("rounds a fractional minimum up, because below it is not a sponsorship", () => {
+    const odd = { ...values, sponsorMinimumCents: 4_450 };
+    expect(expandSiteVariables("{amountSponsorMin}", odd, money)).toBe("45");
+  });
+
+  it("does not step the minimum, because it is set rather than derived", () => {
+    // 42 stays 42; only the derived rungs snap to a multiple of five.
+    const odd = { ...values, sponsorMinimumCents: 4_200 };
+    expect(expandSiteVariables("{amountSponsorMin}", odd, money)).toBe("42");
   });
 
   it("does not divide by a rung of nothing", () => {

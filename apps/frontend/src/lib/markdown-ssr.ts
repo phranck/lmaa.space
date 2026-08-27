@@ -61,6 +61,7 @@ async function loadSiteVariables(): Promise<SiteVariableValues | null> {
     ]);
     cachedVariables = {
       annualCostCents: sponsors.costsTotalCents,
+      sponsorMinimumCents: sponsors.minAmountCents,
       payeeName: payee.payeeName,
       payeeIban: payee.payeeIban,
       payeeBic: payee.payeeBic,
