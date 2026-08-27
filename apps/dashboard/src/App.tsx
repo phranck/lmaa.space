@@ -129,12 +129,6 @@ const SupportPromptEditorPage = lazy(() =>
     default: m.SupportPromptEditorPage,
   })),
 );
-const MarkdownWidgetsPage = lazy(() =>
-  import("@/features/system/MarkdownWidgetsPage.tsx").then((m) => ({
-    default: m.MarkdownWidgetsPage,
-  })),
-);
-
 const FormBuilderListPage = lazy(() =>
   import("@/features/templates/form-builder/FormBuilderListPage.tsx").then((m) => ({
     default: m.FormBuilderListPage,
@@ -478,14 +472,6 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <SupportPromptEditorPage />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="markdown-widgets"
-                element={
-                  <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <MarkdownWidgetsPage />
                   </Suspense>
                 }
               />

@@ -26,9 +26,12 @@ import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { fieldHintClass, fieldLabelClass } from "@/features/system/widget-utils.ts";
 
 import { useSaveSystemSetting, useSystemSettings } from "./hooks/useSystemSettings.ts";
+
+const fieldLabelClass =
+  "px-1 text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-label)]";
+const fieldHintClass = "px-1 text-xs leading-5 text-[var(--ds-text-hint)]";
 
 const MarkdownEditor = lazy(() =>
   import("@lmaa/ui/markdown-editor").then((module) => ({ default: module.MarkdownEditor })),

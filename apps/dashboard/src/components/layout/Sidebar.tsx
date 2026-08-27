@@ -27,7 +27,6 @@ import {
   ImageIcon,
   LinkIcon,
   ListBulletsIcon,
-  MarkdownLogoIcon,
   HandHeartIcon,
   MegaphoneSimpleIcon,
   NotebookIcon,
@@ -72,7 +71,6 @@ import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts
 import { useSocialMediaAccounts } from "@/features/social/hooks/useSocialMediaAccounts.ts";
 import { useAdminMedia } from "@/features/system/hooks/useAdminMedia.ts";
 import { useAdminUsers } from "@/features/system/hooks/useAdminUsers.ts";
-import { useMarkdownWidgets } from "@/features/system/hooks/useMarkdownWidgets.ts";
 import { useSocialPreviewProjects } from "@/features/system/hooks/useSocialPreviewImages.ts";
 import { parseRedirectUrlsConfig } from "@/features/system/redirect-urls-config.ts";
 import { useSystemSettings } from "@/features/system/settings/hooks/useSystemSettings.ts";
@@ -651,7 +649,6 @@ export function Sidebar({
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
   const { data: socialMediaAccounts = [] } = useSocialMediaAccounts();
-  const { data: markdownWidgets } = useMarkdownWidgets();
   const { data: systemSettings } = useSystemSettings();
   // Read through the same parser the page uses, so the count cannot disagree
   // with the list it counts.
@@ -873,16 +870,6 @@ export function Sidebar({
                       handleGroupOpenChange("sidebar-social-media-post-templates-open", open)
                     }
                   />
-                  <NavLink to="/markdown-widgets" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
-                        label={sidebarMessages.markdownWidgets}
-                        badge={markdownWidgets?.widgets.length ?? 0}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
                   <NavLink to="/footer-builder" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
