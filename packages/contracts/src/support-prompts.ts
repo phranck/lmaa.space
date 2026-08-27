@@ -76,7 +76,9 @@ export const supportPromptInputSchema = z
     slot: supportPromptSlotSchema,
     /**
      * Markdown, rendered through the same pipeline as a page. `{shops}` and
-     * `{views}` are replaced by what the reader has actually done.
+     * `{views}` are replaced by what the reader has actually done. Either may
+     * carry the two forms of the word that follows it, as `{shops Shop|Shops}`,
+     * so a text can name a count without knowing what it will be.
      */
     content: z.string().max(20_000).default(""),
     buttonLabel: z.string().trim().max(120).default(""),

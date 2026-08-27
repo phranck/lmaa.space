@@ -5,6 +5,7 @@ import type { SupportPromptSlot as SlotName } from "@lmaa/contracts";
 
 import { trackWebsiteEvent } from "@/lib/analytics";
 import { getLikedShopIds } from "@/lib/liked-shops";
+import { fillPromptNumbers } from "@/lib/prompt-numbers";
 import {
   choosePrompt,
   countShopView,
@@ -50,16 +51,6 @@ function persist(store: SupportPromptStore): void {
     // A reader who blocks storage sees the prompt again next time, which is a
     // better outcome than a page that fails.
   }
-}
-
-/**
- * Puts the reader's own numbers into the text.
- *
- * The placeholders are written by the same person who writes the prose, so they
- * are replaced after the Markdown has been rendered rather than before.
- */
-function fillNumbers(html: string, likedShops: number, shopViews: number): string {
-  return html.replaceAll("{shops}", String(likedShops)).replaceAll("{views}", String(shopViews));
 }
 
 /**
@@ -176,7 +167,10 @@ export default function SupportPromptSlot({
     if (!prompt) return;
 
     persist(recordShown(store, prompt.id, limits, Date.now()));
-    setShown({ prompt, html: fillNumbers(prompt.html, likedShops, store.shopViews) });
+    setShown({
+      prompt,
+      html: fillPromptNumbers(prompt.html, { likedShops, shopViews: store.shopViews }),
+    });
     trackWebsiteEvent("support-prompt-shown", { prompt: prompt.name, id: prompt.id, slot });
   }, [prompts, limits, liveIds, devAlwaysShow, slot, shopSlug]);
 
