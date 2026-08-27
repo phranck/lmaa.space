@@ -180,23 +180,6 @@ function getMediaAliasPosterUrl(alias: MarkdownMediaAlias | undefined): string |
   return alias.posterUrl ?? null;
 }
 
-function renderWidgetShortcode(target: string, attrs: Record<string, string>): string {
-  const key = target.trim();
-  if (!/^[a-z0-9-]+$/.test(key)) {
-    return escapeHtml(`[[widget:${target}]]`);
-  }
-
-  const title = attrs.title?.trim() || `Widget ${key}`;
-  const parsedHeight = Number(attrs.height ?? "");
-  const height = Number.isFinite(parsedHeight)
-    ? Math.min(2400, Math.max(40, Math.round(parsedHeight)))
-    : 320;
-
-  return `<div class="md-widget"><iframe src="/markdown-widgets/${encodeURIComponent(
-    key,
-  )}" title="${escapeHtmlAttribute(title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" style="width:100%;height:${height}px;border:0;overflow:hidden;"></iframe></div>`;
-}
-
 /**
  * The icon names a text asks for.
  *
@@ -663,13 +646,8 @@ function renderParsedShortcode(
   if (!rawTarget) return null;
 
   const attrs = stringifyShortcodeAttributes(shortcode.attributes);
-  const alias =
-    shortcode.token !== MARKDOWN_SHORTCODE_TOKENS.widget ? aliases?.[rawTarget] : undefined;
+  const alias = aliases?.[rawTarget];
   const target = getMediaAliasUrl(alias) ?? rawTarget;
-
-  if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.widget) {
-    return renderWidgetShortcode(target, attrs);
-  }
 
   if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.image) {
     return renderImageShortcode(target, attrs);

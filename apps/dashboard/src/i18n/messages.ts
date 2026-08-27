@@ -68,7 +68,6 @@ export interface DashboardMessages {
       socialMediaPostTemplates: string;
       socialMediaPostTemplatesOverview: string;
       footerBuilder: string;
-      markdownWidgets: string;
       supportPrompts: string;
       sponsors: string;
       sponsorRequests: string;
@@ -779,61 +778,6 @@ export interface DashboardMessages {
         separator: string;
         spacer: string;
         socialMedia: string;
-      };
-    };
-    markdownWidgets: {
-      title: string;
-      widgetsTitle: string;
-      widgetsHint: string;
-      newWidget: string;
-      emptyTitle: string;
-      emptyHint: string;
-      active: string;
-      inactive: string;
-      markdownLabel: string;
-      deleteWidget: string;
-      keyLabel: string;
-      keyHint: string;
-      nameLabel: string;
-      typeLabel: string;
-      typeHint: string;
-      defaultHeightLabel: string;
-      defaultHeightHint: string;
-      enabledLabel: string;
-      descriptionLabel: string;
-      descriptionHint: string;
-      configurationTitle: string;
-      autoSecurityTitle: string;
-      autoSecurityHint: string;
-      detectedScriptStyleImageOrigins: string;
-      detectedFrameConnectFormOrigins: string;
-      expertModeTitle: string;
-      additionalScriptSrcOrigins: string;
-      additionalStyleSrcOrigins: string;
-      additionalImgSrcOrigins: string;
-      additionalConnectSrcOrigins: string;
-      additionalFrameSrcOrigins: string;
-      additionalFormActionOrigins: string;
-      additionalFontSrcOrigins: string;
-      usageTitle: string;
-      widgetUsage: string;
-      imageUsage: string;
-      pdfUsage: string;
-      pdfExampleLabel: string;
-      emptySelection: string;
-      types: {
-        html: {
-          label: string;
-          description: string;
-          snippetLabel: string;
-          snippetHint: string;
-        };
-        iframe: {
-          label: string;
-          description: string;
-          urlLabel: string;
-          urlHint: string;
-        };
       };
     };
     linkPicker: {
@@ -1687,7 +1631,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         socialMediaPostTemplates: "Social Media Templates",
         socialMediaPostTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
-        markdownWidgets: "Markdown Widgets",
         supportPrompts: "Einblendungen",
         sponsors: "Jahressponsoren",
         sponsorRequests: "Sponsor Requests",
@@ -2421,64 +2364,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           separator: "Trennlinie",
           spacer: "Spacer",
           socialMedia: "Social Media",
-        },
-      },
-      markdownWidgets: {
-        title: "Markdown Widgets",
-        widgetsTitle: "Widgets",
-        widgetsHint: "Nutzbar in jedem Markdown-Feld via [[widget:key]].",
-        newWidget: "Neu",
-        emptyTitle: "Noch keine Widgets.",
-        emptyHint: "Lege das erste Widget an und verwende es dann in Markdown mit [[widget:key]].",
-        active: "aktiv",
-        inactive: "aus",
-        markdownLabel: "Markdown",
-        deleteWidget: "Löschen",
-        keyLabel: "Key",
-        keyHint: "Wird in Markdown als [[widget:key]] verwendet.",
-        nameLabel: "Name",
-        typeLabel: "Widget-Typ",
-        typeHint: "Bestimmt, welche Eingabefelder darunter erscheinen.",
-        defaultHeightLabel: "Standardhöhe",
-        defaultHeightHint: "Wird genutzt, wenn in Markdown keine Höhe angegeben ist.",
-        enabledLabel: "Aktiviert",
-        descriptionLabel: "Beschreibung",
-        descriptionHint: "Interne Notiz für Redaktion und spätere Wiedererkennung.",
-        configurationTitle: "Widget-Konfiguration",
-        autoSecurityTitle: "Automatische Sicherheit",
-        autoSecurityHint:
-          "Die benötigten Freigaben werden aus deinem Snippet oder der Iframe-URL abgeleitet. Zusätzliche Origins brauchst du nur in seltenen Sonderfällen.",
-        detectedScriptStyleImageOrigins: "Erkannte Script-/Style-/Bild-Origins",
-        detectedFrameConnectFormOrigins: "Erkannte Frame-/Connect-/Form-Origins",
-        expertModeTitle: "Expertenmodus: zusätzliche Origins",
-        additionalScriptSrcOrigins: "Zusätzliche script-src Origins",
-        additionalStyleSrcOrigins: "Zusätzliche style-src Origins",
-        additionalImgSrcOrigins: "Zusätzliche img-src Origins",
-        additionalConnectSrcOrigins: "Zusätzliche connect-src Origins",
-        additionalFrameSrcOrigins: "Zusätzliche frame-src Origins",
-        additionalFormActionOrigins: "Zusätzliche form-action Origins",
-        additionalFontSrcOrigins: "Zusätzliche font-src Origins",
-        usageTitle: "Markdown-Verwendung",
-        widgetUsage: "Widget",
-        imageUsage: "Bild",
-        pdfUsage: "PDF",
-        pdfExampleLabel: "PDF öffnen",
-        emptySelection: "Wähle ein Widget aus oder lege links ein neues an.",
-        types: {
-          html: {
-            label: "HTML Widget",
-            description: "Für Snippets wie Ko-fi oder andere kleine Drittanbieter-Widgets.",
-            snippetLabel: "HTML-Snippet",
-            snippetHint:
-              "Füge hier das Widget-Snippet ein. Externe Domains werden automatisch erkannt.",
-          },
-          iframe: {
-            label: "Iframe Widget",
-            description: "Für Einbettungen über eine externe URL.",
-            urlLabel: "Iframe-URL",
-            urlHint:
-              "Die Einbettung wird aus dieser URL erzeugt. Die nötige Frame-Freigabe wird automatisch gesetzt.",
-          },
         },
       },
       linkPicker: {
@@ -3397,7 +3282,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         socialMediaPostTemplates: "Social Media Templates",
         socialMediaPostTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
-        markdownWidgets: "Markdown Widgets",
         supportPrompts: "Support prompts",
         sponsors: "Yearly sponsors",
         sponsorRequests: "Sponsor requests",
@@ -4125,64 +4009,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           separator: "Separator",
           spacer: "Spacer",
           socialMedia: "Social media",
-        },
-      },
-      markdownWidgets: {
-        title: "Markdown Widgets",
-        widgetsTitle: "Widgets",
-        widgetsHint: "Usable in any markdown field via [[widget:key]].",
-        newWidget: "New",
-        emptyTitle: "No widgets yet.",
-        emptyHint: "Create your first widget and then use it in markdown with [[widget:key]].",
-        active: "active",
-        inactive: "off",
-        markdownLabel: "Markdown",
-        deleteWidget: "Delete",
-        keyLabel: "Key",
-        keyHint: "Used in markdown as [[widget:key]].",
-        nameLabel: "Name",
-        typeLabel: "Widget type",
-        typeHint: "Determines which input fields appear below.",
-        defaultHeightLabel: "Default height",
-        defaultHeightHint: "Used when no height is specified in markdown.",
-        enabledLabel: "Enabled",
-        descriptionLabel: "Description",
-        descriptionHint: "Internal note for editors and later recognition.",
-        configurationTitle: "Widget configuration",
-        autoSecurityTitle: "Automatic security",
-        autoSecurityHint:
-          "Required permissions are derived from your snippet or iframe URL. You only need additional origins in rare edge cases.",
-        detectedScriptStyleImageOrigins: "Detected script/style/image origins",
-        detectedFrameConnectFormOrigins: "Detected frame/connect/form origins",
-        expertModeTitle: "Expert mode: additional origins",
-        additionalScriptSrcOrigins: "Additional script-src origins",
-        additionalStyleSrcOrigins: "Additional style-src origins",
-        additionalImgSrcOrigins: "Additional img-src origins",
-        additionalConnectSrcOrigins: "Additional connect-src origins",
-        additionalFrameSrcOrigins: "Additional frame-src origins",
-        additionalFormActionOrigins: "Additional form-action origins",
-        additionalFontSrcOrigins: "Additional font-src origins",
-        usageTitle: "Markdown usage",
-        widgetUsage: "Widget",
-        imageUsage: "Image",
-        pdfUsage: "PDF",
-        pdfExampleLabel: "Open PDF",
-        emptySelection: "Select a widget or create a new one on the left.",
-        types: {
-          html: {
-            label: "HTML Widget",
-            description: "For snippets like Ko-fi or other small third-party widgets.",
-            snippetLabel: "HTML snippet",
-            snippetHint:
-              "Paste the widget snippet here. External domains are detected automatically.",
-          },
-          iframe: {
-            label: "Iframe Widget",
-            description: "For embeds via an external URL.",
-            urlLabel: "Iframe URL",
-            urlHint:
-              "The embed is generated from this URL. Required frame permissions are set automatically.",
-          },
         },
       },
       linkPicker: {

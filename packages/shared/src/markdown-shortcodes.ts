@@ -1,4 +1,4 @@
-export type MarkdownShortcodeRenderMode = "html" | "widget" | "island";
+export type MarkdownShortcodeRenderMode = "html" | "island";
 
 export type MarkdownShortcodeTargetRule = "required" | "optional" | "forbidden";
 
@@ -207,7 +207,6 @@ const SUPPORT_LADDER_LABEL_PARAMS: readonly MarkdownShortcodeParamDefinition[] =
 
 /** Token of every shortcode that may appear at the top level of a page. */
 export const MARKDOWN_SHORTCODE_TOKENS = {
-  widget: "widget",
   image: "image",
   pdf: "pdf",
   hls: "hls",
@@ -549,30 +548,6 @@ const SUPPORT_LADDER_EXAMPLE = [
 ].join("\n");
 
 export const MARKDOWN_SHORTCODE_DEFINITIONS = [
-  {
-    token: MARKDOWN_SHORTCODE_TOKENS.widget,
-    renderMode: "widget",
-    target: "required",
-    placement: "block",
-    label: "Widget",
-    description: "Bettet ein im Dashboard gepflegtes Widget als eigenständigen Rahmen ein.",
-    examples: ["[[widget:key]]"],
-    params: [
-      {
-        name: "title",
-        type: "string",
-        label: "Überschrift",
-      },
-      {
-        name: "height",
-        type: "integer",
-        min: 40,
-        max: 2400,
-        defaultValue: 320,
-        label: "Höhe in Pixeln",
-      },
-    ],
-  },
   {
     token: MARKDOWN_SHORTCODE_TOKENS.icon,
     renderMode: "html",

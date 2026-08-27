@@ -94,19 +94,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const response = new Response(originalResponse.body, originalResponse);
     // Astro builds the policy from the configuration in `astro.config.mjs` and
     // sets it on server-rendered responses, including the hashes of every script
-    // and style it processed. Only the one route meant to be framed by the
-    // dashboard needs a different `frame-ancestors`.
-    // Two kinds of route are meant to be framed, and both are decided here
+    // and style it processed. Only the preview routes meant to be framed by the
+    // dashboard need a different `frame-ancestors`, and that is decided here
     // because Astro writes its own policy over whatever the route set.
-    const ownPolicy = context.locals.contentSecurityPolicy;
-    if (ownPolicy) {
-      // A widget embeds a third party and needs sources no other page does, so
-      // it brings a whole policy rather than an adjustment to this one. It
-      // starts from `default-src 'none'`, which makes it the stricter of the
-      // two everywhere it differs.
-      response.headers.set("Content-Security-Policy", ownPolicy);
-      response.headers.delete("X-Frame-Options");
-    } else if (isEmbeddablePreviewPath(pathname)) {
+    if (isEmbeddablePreviewPath(pathname)) {
       const policy = response.headers.get("Content-Security-Policy");
       if (policy) {
         response.headers.set(

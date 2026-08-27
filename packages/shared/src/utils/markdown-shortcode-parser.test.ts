@@ -49,7 +49,7 @@ describe("parseMarkdownShortcodes", () => {
   });
 
   it("keeps every occurrence of a repeated attribute, in order", () => {
-    const [shortcode] = parseMarkdownShortcodes('[[widget:promo alt="a" alt="b"]]');
+    const [shortcode] = parseMarkdownShortcodes('[[pdf:promo alt="a" alt="b"]]');
     const values = shortcode.rawAttributes
       .filter((attribute) => attribute.name === "alt")
       .map((attribute) => attribute.value);
@@ -100,7 +100,7 @@ describe("parseMarkdownShortcodes", () => {
   });
 
   it("keeps bare attributes as flag values", () => {
-    const [token] = parseMarkdownShortcodes("[[widget:promo featured title='Promo']]");
+    const [token] = parseMarkdownShortcodes("[[pdf:promo featured title='Promo']]");
 
     expect(token?.rawAttributes).toContainEqual({
       name: "featured",
