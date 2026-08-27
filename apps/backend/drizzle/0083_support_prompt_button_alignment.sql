@@ -1,0 +1,1 @@
+ALTER TABLE "support_prompts" ADD COLUMN "button_alignment" text DEFAULT 'trailing' NOT NULL;

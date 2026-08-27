@@ -14,13 +14,14 @@ import { loadSupportPrompts } from "./support-prompts";
 function prompt(id: string, slot: string) {
   return {
     id,
+    name: `Name of ${id}`,
     slot,
-    kind: "card",
     content: id,
     buttonLabel: "",
     buttonHref: "",
-    dismissLabel: "",
+    buttonAlignment: "trailing",
     threshold: 0,
+    thresholdBasis: "viewed",
     priority: 0,
   };
 }

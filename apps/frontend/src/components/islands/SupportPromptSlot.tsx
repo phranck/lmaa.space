@@ -63,68 +63,78 @@ function fillNumbers(html: string, likedShops: number, shopViews: number): strin
 }
 
 /**
- * How a prompt is drawn, decided by the slot rather than by the prompt.
+ * The geometry of a card on the public pages.
  *
- * The place decides the form: a prompt among shop cards is a shop card, one
- * among category cards is a category card, and one on a shop page is a line,
- * because somebody looking at a shop is there for the shop. Each carries the
- * geometry of the cards around it and the accent tint instead of white, so it
- * belongs to the row without pretending to be one of its items.
+ * A prompt stands between shop cards or category cards and has to be one of
+ * them, so it takes their measure rather than the dashboard's. That measure is
+ * `--public-card-padding` and `--public-card-radius`, which those cards read
+ * themselves, so the two cannot drift apart.
+ *
+ * The padding is restated as `--card-padding` on the element itself, and the
+ * nested radius with it, because a custom property holding a `var()` resolves
+ * where it is declared. Without that the close control would place itself from
+ * the root's padding, which this card does not use, and anything at the content
+ * edge would round to the root's arithmetic.
+ *
+ * No edge, and the shadow instead: the card stands off the page rather than
+ * being drawn onto it, the same way the sponsor form does.
  */
-const CARD_SHAPES: Record<SlotName, { className: string; style: CSSProperties }> = {
-  "my-shops": {
-    className: "rounded-2xl p-2 sm:p-4",
-    style: { background: "var(--ds-surface)", boxShadow: "var(--ds-shadow-md)" },
-  },
-  "category-grid": {
-    className: "rounded-lg sm:rounded-2xl p-2 sm:p-4",
-    style: { background: "var(--ds-surface)", boxShadow: "var(--ds-shadow-md)" },
-  },
-  // A shop page has no grid of its own, so the card takes the geometry every
-  // other card on the site uses.
-  "shop-detail": {
-    className: "rounded-2xl",
-    style: {
-      background: "var(--ds-surface)",
-      // No edge, and the shadow instead: the card stands off the page rather
-      // than being drawn onto it, the same way the sponsor form does.
-      boxShadow: "var(--ds-shadow-md)",
-      padding: "var(--card-padding)",
-    },
-  },
+const CARD_STYLE = {
+  background: "var(--ds-surface)",
+  boxShadow: "var(--ds-shadow-md)",
+  "--card-padding": "var(--public-card-padding)",
+  // Rounder than the cards it stands between, on purpose. A prompt holds its
+  // invitation in the corner of its content area, and at the cards' own radius
+  // that corner derives to almost nothing. Stated once, with both nested radii
+  // below reading it.
+  "--prompt-radius": "24px",
+  "--radius-card-inner": "max(calc(var(--prompt-radius) - var(--card-padding)), 0px)",
+  borderRadius: "var(--prompt-radius)",
+  padding: "var(--card-padding)",
+} as CSSProperties;
+
+const CARD_CLASS = "lmaa-card lmaa-accent-wash relative flex flex-col gap-3";
+
+/**
+ * How long the card takes to grow into place, matching `--ds-duration-base`.
+ *
+ * Stated here because the animation is handed to the browser as a keyframe
+ * pair, which takes a number rather than a custom property.
+ */
+const REVEAL_MS = 200;
+
+/** Where the invitation stands, named as the stacks name it. */
+const BUTTON_ROW_CLASSES: Record<RenderedSupportPrompt["buttonAlignment"], string> = {
+  leading: "justify-start",
+  center: "justify-center",
+  trailing: "justify-end",
 };
 
 /**
- * A line rather than a card: the quiet form, the same wherever it stands.
+ * Grows the card into place as it is attached.
  *
- * The form's surface without its light, because a line across the page is not
- * a card and a gradient on it would read as one lying flat.
+ * A prompt cannot be decided on the server, because what decides it lives in
+ * the reader's browser. It therefore arrives after the page has been laid out,
+ * and whatever stands below it has to move. Growing the height turns that move
+ * into one the eye can follow, and ordinary layout carries the rest: no row
+ * below is animated, they simply follow.
+ *
+ * Written as a callback ref rather than an effect, because the element being
+ * attached is exactly the moment to do this, and an effect watching the state
+ * that produced it would be a second render for nothing.
  */
-const LINE_SHAPE = {
-  className: "relative flex flex-col gap-2 border-t border-b",
-  style: {
-    borderColor: "var(--ds-border-subtle)",
-    background: "var(--ds-surface-form)",
-    // Equal on all four sides, as every surface on this site is.
-    padding: "var(--card-padding)",
-  } satisfies CSSProperties,
-};
+function revealCard(node: HTMLElement | null): void {
+  if (!node) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-/**
- * How this prompt is drawn.
- *
- * Whoever writes the prompt chooses between a card and a line; the slot decides
- * only the geometry a card takes, so a card among shop cards is a shop card and
- * one among category cards is a category card. The light belongs to the card
- * alone.
- */
-function shapeFor(slot: SlotName, kind: RenderedSupportPrompt["kind"]) {
-  if (kind !== "card") return LINE_SHAPE;
-  const card = CARD_SHAPES[slot];
-  return {
-    className: `lmaa-card lmaa-accent-wash relative flex flex-col gap-3 ${card.className}`,
-    style: card.style,
-  };
+  const { height } = node.getBoundingClientRect();
+  node.animate(
+    [
+      { height: "0px", opacity: 0, overflow: "hidden" },
+      { height: `${height}px`, opacity: 1, overflow: "hidden" },
+    ],
+    { duration: REVEAL_MS, easing: "cubic-bezier(0, 0, 0.2, 1)" },
+  );
 }
 
 export default function SupportPromptSlot({
@@ -154,9 +164,12 @@ export default function SupportPromptSlot({
       persist(store);
     }
 
+    // Which counter a threshold reads is the prompt's own answer, because the
+    // same place can carry a prompt about what somebody has kept and one about
+    // what they have been reading.
     const likedShops = getLikedShopIds().size;
-    const reached = slot === "shop-detail" ? store.shopViews : likedShops;
-    const chosen = choosePrompt(prompts, store, limits, reached, Date.now(), devAlwaysShow);
+    const counters = { liked: likedShops, viewed: store.shopViews };
+    const chosen = choosePrompt(prompts, store, limits, counters, Date.now(), devAlwaysShow);
     if (!chosen) return;
 
     const prompt = prompts.find((entry) => entry.id === chosen.id);
@@ -164,21 +177,22 @@ export default function SupportPromptSlot({
 
     persist(recordShown(store, prompt.id, limits, Date.now()));
     setShown({ prompt, html: fillNumbers(prompt.html, likedShops, store.shopViews) });
-    trackWebsiteEvent("support-prompt-shown", { prompt: prompt.id, slot });
+    trackWebsiteEvent("support-prompt-shown", { prompt: prompt.name, id: prompt.id, slot });
   }, [prompts, limits, liveIds, devAlwaysShow, slot, shopSlug]);
+
 
   if (!shown) return null;
   const visible = shown.prompt;
 
-  function close(reason: "dismissed" | "resolved") {
+  function close() {
     if (!shown) return;
     const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
-    persist(
-      reason === "resolved"
-        ? recordResolved(store, visible.id)
-        : recordDismissed(store, visible.id, Date.now()),
-    );
-    trackWebsiteEvent("support-prompt-dismissed", { prompt: visible.id, slot });
+    persist(recordDismissed(store, visible.id, limits, Date.now()));
+    trackWebsiteEvent("support-prompt-dismissed", {
+      prompt: visible.name,
+      id: visible.id,
+      slot,
+    });
     setShown(null);
   }
 
@@ -186,20 +200,27 @@ export default function SupportPromptSlot({
     if (!shown) return;
     const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
     persist(recordResolved(store, visible.id));
-    trackWebsiteEvent("support-prompt-clicked", { prompt: visible.id, slot });
+    // Where it led as well as which prompt it was: with more than one
+    // destination in play, the two questions have different answers.
+    trackWebsiteEvent("support-prompt-clicked", {
+      prompt: visible.name,
+      id: visible.id,
+      slot,
+      href: visible.buttonHref,
+      label: visible.buttonLabel,
+    });
   }
-
-  const shape = shapeFor(slot, visible.kind);
 
   return (
     <aside
+      ref={revealCard}
       data-support-prompt={visible.id}
-      className={`${shape.className} ${className ?? ""}`}
-      style={shape.style}
+      className={`${CARD_CLASS} ${className ?? ""}`}
+      style={CARD_STYLE}
     >
       <button
         type="button"
-        onClick={() => close("dismissed")}
+        onClick={close}
         aria-label="Ausblenden"
         className="inline-flex size-7 items-center justify-center rounded-control opacity-50 transition-opacity hover:opacity-100"
         // Half the padding out, so it sits in the corner rather than in the
@@ -213,40 +234,48 @@ export default function SupportPromptSlot({
           top: "calc(var(--card-padding) / 2)",
           right: "calc(var(--card-padding) / 2)",
           color: "var(--ds-text-subtle)",
+          // A nested corner is the card's radius less the distance to it, and
+          // this control sits at half the padding rather than at all of it.
+          borderRadius: "max(calc(var(--prompt-radius) - var(--card-padding) / 2), 0px)",
         }}
       >
         <XCircleIcon weight="duotone" className="size-5" />
       </button>
 
       <div
-        className="lmaa-rich pr-8 text-sm"
+        className="lmaa-rich lmaa-prompt-copy pr-8 text-sm"
         style={{ color: "var(--ds-text-muted)" }}
         // biome-ignore lint/security/noDangerouslySetInnerHtml: page content, rendered and sanitised server-side by renderMarkdown, exactly as the ladder's prose is
         dangerouslySetInnerHTML={{ __html: shown.html }}
       />
 
-      {/* The action ends the block at its right edge, and it is the same
-          invitation the sponsor wall carries, so the ask looks like one thing
-          across the site rather than like two. Anything that steps back from
-          it stands to its left. */}
-      {(visible.buttonLabel || visible.dismissLabel) && (
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {visible.dismissLabel && (
-            <button
-              type="button"
-              onClick={() => close("resolved")}
-              className="text-sm underline"
-              style={{ color: "var(--ds-text-subtle)" }}
-            >
-              {visible.dismissLabel}
-            </button>
-          )}
-          {visible.buttonLabel && (
-            <a href={visible.buttonHref} onClick={follow} className="lmaa-invite-action is-compact">
-              <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
-              {visible.buttonLabel}
-            </a>
-          )}
+      {/* It is the same invitation the sponsor wall carries, so the ask looks
+          like one thing across the site rather than like two. Saying no is the
+          cross in the corner, which every prompt carries whether or not it
+          invites.
+
+          Where it stands is the prompt's own choice, which departs from the
+          rule that a button belonging to a card sits at that card's right edge.
+          That rule is written for a card, a panel or a form, where a reader
+          finishes at the bottom right. A prompt is a short piece of copy whose
+          author decides how it sits, and an invitation under centred copy
+          belongs under its middle. */}
+      {visible.buttonLabel && (
+        <div
+          className={`flex flex-wrap items-center gap-3 ${BUTTON_ROW_CLASSES[visible.buttonAlignment]}`}
+        >
+          <a
+            href={visible.buttonHref}
+            onClick={follow}
+            className="lmaa-invite-action is-compact"
+            // It occupies the corner of the content area, so it takes the
+            // card's radius less the padding rather than a control's own. That
+            // is what keeps the gap between the two curves even.
+            style={{ borderRadius: "var(--radius-card-inner)" }}
+          >
+            <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
+            {visible.buttonLabel}
+          </a>
         </div>
       )}
     </aside>

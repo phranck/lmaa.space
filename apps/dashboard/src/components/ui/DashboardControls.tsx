@@ -150,15 +150,6 @@ const selectSizeClass: Record<FieldControlSize, string> = {
   large: "h-[var(--ds-control-h-field-large)] px-4",
 };
 
-/**
- * How the open list arranges its options.
- *
- * `list` is one option per line, which is right for names. `row` puts them
- * beside each other, which is right when each option carries a picture and the
- * picture is what a person compares.
- */
-export type DashboardComboboxOptionsLayout = "list" | "row";
-
 export interface DashboardComboboxOption {
   addOn?: ReactNode;
   disabled?: boolean;
@@ -183,8 +174,6 @@ export interface DashboardComboboxProps extends Omit<
   onValueChange: (value: string) => void;
   optionalLabel?: ReactNode;
   options: readonly DashboardComboboxOption[];
-  /** How the open list arranges its options. One per line by default. */
-  optionsLayout?: DashboardComboboxOptionsLayout;
   placeholder?: ReactNode;
   portal?: boolean;
   required?: boolean;
@@ -210,7 +199,6 @@ export function DashboardCombobox({
   onValueChange,
   optionalLabel,
   options,
-  optionsLayout = "list",
   placeholder,
   portal,
   required,
@@ -463,7 +451,6 @@ export function DashboardCombobox({
       </ControlTrigger>
       <ListboxPopover
         activeValue={activeValue}
-        className={optionsLayout === "row" ? "flex flex-row items-stretch gap-1 p-1" : undefined}
         disabledValues={disabledValues}
         listboxId={generatedListboxId}
         matchTriggerWidth={matchTriggerWidth}
@@ -502,7 +489,6 @@ export function DashboardCombobox({
         {filteredOptions.map((option) => (
           <ListboxOption
             addOn={option.addOn}
-            className={optionsLayout === "row" ? "w-auto flex-1 justify-center rounded-control" : undefined}
             key={option.value}
             leadingIcon={option.leadingIcon}
             selected={option.value === value}

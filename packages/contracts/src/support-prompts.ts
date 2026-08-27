@@ -18,6 +18,10 @@ import { isSafeConfiguredUrl } from "./safe-url";
  *
  * A slot is a contract a page honours, so a prompt cannot turn up somewhere
  * nobody planned for. Adding one is a line here plus the place in the page.
+ *
+ * The slot also decides how the prompt is drawn. A prompt among shop cards is a
+ * shop card and one among category cards is a category card, so the form
+ * follows from the place rather than being chosen beside it.
  */
 export const SUPPORT_PROMPT_SLOTS = ["my-shops", "shop-detail", "category-grid"] as const;
 
@@ -25,17 +29,27 @@ export const SUPPORT_PROMPT_SLOTS = ["my-shops", "shop-detail", "category-grid"]
 export const supportPromptSlotSchema = z.enum(SUPPORT_PROMPT_SLOTS);
 
 /**
- * How a prompt is drawn.
+ * Where a prompt's invitation stands in its card.
  *
- * `card` is the tinted box in the geometry of the surrounding cards, `line` the
- * quiet variant with a rule above and below. Both sit in the flow of the page:
- * nothing is dimmed, nothing is covered, and nothing has to be closed before
- * the page can be used.
+ * Named as the stacks name it, so one vocabulary covers everything on the site
+ * that places something along an axis.
  */
-export const SUPPORT_PROMPT_KINDS = ["card", "line"] as const;
+export const SUPPORT_PROMPT_BUTTON_ALIGNMENTS = ["leading", "center", "trailing"] as const;
 
-/** How a prompt is drawn. */
-export const supportPromptKindSchema = z.enum(SUPPORT_PROMPT_KINDS);
+/** Where a prompt's invitation stands. */
+export const supportPromptButtonAlignmentSchema = z.enum(SUPPORT_PROMPT_BUTTON_ALIGNMENTS);
+
+/**
+ * Which of the reader's own counters a threshold is measured against.
+ *
+ * `viewed` counts the shop pages somebody has seen, once per shop rather than
+ * once per reload. `liked` counts the shops they have kept. Both live in the
+ * reader's browser and neither leaves it.
+ */
+export const SUPPORT_PROMPT_THRESHOLD_BASES = ["viewed", "liked"] as const;
+
+/** Which counter a threshold reads. */
+export const supportPromptThresholdBasisSchema = z.enum(SUPPORT_PROMPT_THRESHOLD_BASES);
 
 /** Where a prompt's main button may lead: this site, or an ordinary web address. */
 const promptHrefSchema = z
@@ -60,7 +74,6 @@ export const supportPromptInputSchema = z
     /** Internal, for the list in the dashboard. A visitor never sees it. */
     name: z.string().trim().min(1).max(120),
     slot: supportPromptSlotSchema,
-    kind: supportPromptKindSchema.default("card"),
     /**
      * Markdown, rendered through the same pipeline as a page. `{shops}` and
      * `{views}` are replaced by what the reader has actually done.
@@ -68,10 +81,10 @@ export const supportPromptInputSchema = z
     content: z.string().max(20_000).default(""),
     buttonLabel: z.string().trim().max(120).default(""),
     buttonHref: promptHrefSchema.default("/support-me"),
-    /** The second button. Empty means the prompt has none. */
-    dismissLabel: z.string().trim().max(120).default(""),
-    /** From how many liked or seen shops on. Zero means from the first visit. */
+    buttonAlignment: supportPromptButtonAlignmentSchema.default("trailing"),
+    /** From how many shops on, counted by `thresholdBasis`. Zero means at once. */
     threshold: z.coerce.number().int().min(0).max(500).default(3),
+    thresholdBasis: supportPromptThresholdBasisSchema.default("viewed"),
     startsAt: optionalDaySchema,
     endsAt: optionalDaySchema,
     /** Decides between two prompts that both qualify. Higher wins. */
@@ -110,12 +123,12 @@ export const supportPromptSchema = z.object({
   id: z.string().min(1).max(64),
   name: z.string(),
   slot: supportPromptSlotSchema,
-  kind: supportPromptKindSchema,
   content: z.string(),
   buttonLabel: z.string(),
   buttonHref: z.string(),
-  dismissLabel: z.string(),
+  buttonAlignment: supportPromptButtonAlignmentSchema,
   threshold: z.number().int(),
+  thresholdBasis: supportPromptThresholdBasisSchema,
   startsAt: z.string().nullable(),
   endsAt: z.string().nullable(),
   priority: z.number().int(),
@@ -136,6 +149,20 @@ export const supportPromptLimitsSchema = z.object({
   maxShown: z.coerce.number().int().min(1).max(20).default(4),
   /** How long the site stays quiet after a showing. Zero means not at all. */
   snoozeDays: z.coerce.number().int().min(0).max(365).default(14),
+  /**
+   * How long the site stays quiet after a reader closes a prompt.
+   *
+   * Longer than the pause after a plain showing, because closing one is an
+   * answer rather than the absence of one.
+   */
+  dismissSnoozeDays: z.coerce.number().int().min(0).max(365).default(90),
+  /**
+   * How often the same prompt may be closed before it stops coming back.
+   *
+   * Saying no once is "not now" and pushes the next showing away. Saying it
+   * this many times is "no", and that prompt is done.
+   */
+  dismissalsUntilResolved: z.coerce.number().int().min(1).max(10).default(3),
   /**
    * Whether to set every limit aside whilst working on a prompt.
    *
@@ -165,8 +192,10 @@ export const supportPromptPayloadSchema = z.object({
 
 /** One of the places a prompt may appear. */
 export type SupportPromptSlot = z.infer<typeof supportPromptSlotSchema>;
-/** How a prompt is drawn. */
-export type SupportPromptKind = z.infer<typeof supportPromptKindSchema>;
+/** Where a prompt's invitation stands. */
+export type SupportPromptButtonAlignment = z.infer<typeof supportPromptButtonAlignmentSchema>;
+/** Which counter a threshold reads. */
+export type SupportPromptThresholdBasis = z.infer<typeof supportPromptThresholdBasisSchema>;
 /** Everything an editor decides about one prompt. */
 export type SupportPromptInput = z.infer<typeof supportPromptInputSchema>;
 /** A prompt as it is stored and read back. */

@@ -1,4 +1,4 @@
-import { useCallback, useReducer } from "react";
+import { useCallback, useReducer, useState } from "react";
 
 import type { Category } from "@lmaa/shared";
 
@@ -90,12 +90,18 @@ export default function FilterableCategoryGrid({
     currentFilters: { city: "", radius: 50, country: [], region: [] },
   });
   const { showFilter, categories, shopCount, filtersActive, currentFilters } = state;
-  const gridRef = useGridAnimation();
+  // The grid animates once the reader has filtered, and not before. Until then
+  // the only thing that changes the list is the support prompt arriving on its
+  // own, and animating that would move every card on the page for something
+  // that has nothing to do with them.
+  const [hasFiltered, setHasFiltered] = useState(false);
+  const gridRef = useGridAnimation(hasFiltered);
 
   const fetchFiltered = useCallback((filters: ShopFilters) => {
     const hasFilters =
       filters.city !== "" || filters.country.length > 0 || filters.region.length > 0;
 
+    setHasFiltered(true);
     dispatch({ filtersActive: hasFilters, currentFilters: filters });
 
     if (!hasFilters) {
@@ -180,7 +186,10 @@ export default function FilterableCategoryGrid({
           {supportPrompts && (
             <SupportPromptSlot
               slot="category-grid"
-              className="col-start-1 col-end-[-1] row-start-2"
+              // A little air above and below, beyond the grid's own gap. The
+              // prompt is not one of the cards and reads better for standing
+              // slightly apart from the rows it sits between.
+              className="col-start-1 col-end-[-1] row-start-2 my-2 sm:my-3"
               {...supportPrompts}
             />
           )}

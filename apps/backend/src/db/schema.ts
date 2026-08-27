@@ -24,8 +24,9 @@ import type {
   MarkdownWidgetsConfig,
   SocialPreviewComposition,
   SocialPreviewFormat,
-  SupportPromptKind,
+  SupportPromptButtonAlignment,
   SupportPromptSlot,
+  SupportPromptThresholdBasis,
 } from "@lmaa/contracts";
 import type {
   MediaFolderColor,
@@ -1238,18 +1239,24 @@ export const supportPrompts = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     /** Internal, for the list in the dashboard. A visitor never sees it. */
     name: text("name").notNull(),
-    /** One of the places the site renders a prompt in. */
+    /** One of the places the site renders a prompt in, which also decides its shape. */
     slot: text("slot").$type<SupportPromptSlot>().notNull(),
-    /** How it is drawn, which decides the shape and not the place. */
-    kind: text("kind").$type<SupportPromptKind>().notNull().default("card"),
     /** Markdown, rendered through the same pipeline as a page. */
     content: text("content").notNull().default(""),
     buttonLabel: text("button_label").notNull().default(""),
     buttonHref: text("button_href").notNull().default("/support-me"),
-    /** Empty means the prompt has no second button. */
-    dismissLabel: text("dismiss_label").notNull().default(""),
-    /** From how many liked or seen shops on. */
+    /** Where the invitation stands in the card. */
+    buttonAlignment: text("button_alignment")
+      .$type<SupportPromptButtonAlignment>()
+      .notNull()
+      .default("trailing"),
+    /** From how many shops on, counted by `thresholdBasis`. */
     threshold: integer("threshold").notNull().default(3),
+    /** Which of the reader's counters the threshold is measured against. */
+    thresholdBasis: text("threshold_basis")
+      .$type<SupportPromptThresholdBasis>()
+      .notNull()
+      .default("viewed"),
     /** An optional window, so a campaign switches itself on and off. */
     startsAt: text("starts_at"),
     endsAt: text("ends_at"),

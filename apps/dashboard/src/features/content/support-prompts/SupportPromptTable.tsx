@@ -53,15 +53,6 @@ function SupportPromptTableComponent({ prompts, today, onEdit }: SupportPromptTa
         ),
       },
       {
-        id: "kind",
-        header: text.kindLabel,
-        cell: (prompt) => (
-          <span className="text-sm text-[var(--ds-text-muted)]">
-            {prompt.kind === "card" ? text.kinds.card : text.kinds.line}
-          </span>
-        ),
-      },
-      {
         id: "threshold",
         header: text.thresholdLabel,
         sortKey: (prompt) => prompt.threshold,

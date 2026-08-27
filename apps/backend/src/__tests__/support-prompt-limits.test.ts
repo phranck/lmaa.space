@@ -8,9 +8,9 @@ const loggerMocks = vi.hoisted(() => ({
 }));
 vi.mock("../lib/logger.js", () => loggerMocks);
 
-import { getSupportPromptLimits } from "../services/support-prompts.js";
+import { SUPPORT_PROMPT_LIMIT_DEFAULTS as DEFAULTS } from "@lmaa/contracts";
 
-const DEFAULTS = { maxShown: 4, snoozeDays: 14, devAlwaysShow: false };
+import { getSupportPromptLimits } from "../services/support-prompts.js";
 
 describe("getSupportPromptLimits", () => {
   beforeEach(() => {
@@ -20,11 +20,7 @@ describe("getSupportPromptLimits", () => {
   it("answers with what was stored when all of it reads", async () => {
     settingsMocks.getSetting.mockResolvedValue(JSON.stringify({ maxShown: 8, snoozeDays: 0 }));
 
-    expect(await getSupportPromptLimits()).toEqual({
-      maxShown: 8,
-      snoozeDays: 0,
-      devAlwaysShow: false,
-    });
+    expect(await getSupportPromptLimits()).toEqual({ ...DEFAULTS, maxShown: 8, snoozeDays: 0 });
     expect(loggerMocks.logger.warn).not.toHaveBeenCalled();
   });
 
@@ -47,11 +43,7 @@ describe("getSupportPromptLimits", () => {
     expect(loggerMocks.logger.warn).toHaveBeenCalledTimes(1);
     const [details] = loggerMocks.logger.warn.mock.calls[0];
     expect(details.dropped).toEqual(["snoozeDays=9999"]);
-    expect(details.kept).toEqual({
-      maxShown: 8,
-      snoozeDays: DEFAULTS.snoozeDays,
-      devAlwaysShow: false,
-    });
+    expect(details.kept).toEqual({ ...DEFAULTS, maxShown: 8 });
   });
 
   it("falls back for a field that was never stored, without calling it dropped", async () => {

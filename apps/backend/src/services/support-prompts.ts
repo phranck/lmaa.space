@@ -55,11 +55,15 @@ export async function getSupportPromptLimits(): Promise<SupportPromptLimits> {
     return SUPPORT_PROMPT_LIMIT_DEFAULTS[field];
   }
 
-  const limits: SupportPromptLimits = {
-    maxShown: read("maxShown"),
-    snoozeDays: read("snoozeDays"),
-    devAlwaysShow: read("devAlwaysShow"),
-  };
+  // Derived from the schema rather than listed, so a new limit is read here the
+  // moment it is declared there. A list would be a second answer to the same
+  // question, and the one that goes stale silently.
+  const limits = Object.fromEntries(
+    (Object.keys(supportPromptLimitsSchema.shape) as (keyof SupportPromptLimits)[]).map((field) => [
+      field,
+      read(field),
+    ]),
+  ) as SupportPromptLimits;
 
   logger.warn(
     { key: LIMITS_KEY, dropped, kept: limits },

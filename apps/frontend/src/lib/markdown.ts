@@ -2,6 +2,7 @@ import { Marked } from "marked";
 import markedFootnote from "marked-footnote";
 
 import {
+  ICON_DEFAULT_SIZE,
   MARKDOWN_SHORTCODE_TOKENS,
   parseMarkdownShortcodes,
   type MarkdownShortcodeAttributeValue,
@@ -373,7 +374,8 @@ function renderIconShortcode(attrs: Record<string, string>): string {
   if (!paths) return escapeHtml(`[[icon name="${name}"]]`);
 
   const parsedSize = Number(attrs.size ?? "");
-  const size = Number.isFinite(parsedSize) && parsedSize > 0 ? Math.round(parsedSize) : 24;
+  const size =
+    Number.isFinite(parsedSize) && parsedSize > 0 ? Math.round(parsedSize) : ICON_DEFAULT_SIZE;
   const fill = escapeHtmlAttribute(iconFill(attrs.color));
   const label = attrs.text?.trim();
   // A label with no alignment sits after the icon, the way a label follows the
@@ -533,16 +535,91 @@ function renderYoutubeShortcode(
   return `<figure class="md-video md-youtube"${styleAttr}>${frame}<figcaption>${escapeHtml(caption)}</figcaption></figure>`;
 }
 
+/**
+ * How deep containers may be nested before the innermost is left as text.
+ *
+ * A stack renders its body through this same pipeline, so a document that
+ * nested without end would recurse without end. Four is past what a page
+ * plausibly needs and far short of what a stack overflow needs.
+ */
+const MAX_STACK_DEPTH = 4;
+
+/** How a stack lays its children out across its own direction. */
+const STACK_ALIGNMENT_CLASSES: Record<string, string> = {
+  // A VStack aligns horizontally, under SwiftUI's HorizontalAlignment names.
+  leading: "md-stack--start",
+  trailing: "md-stack--end",
+  // An HStack aligns vertically, under SwiftUI's VerticalAlignment names.
+  top: "md-stack--start",
+  bottom: "md-stack--end",
+  firstTextBaseline: "md-stack--baseline",
+  // Both axes spell the middle the same way.
+  center: "md-stack--center",
+};
+
+/**
+ * Draws a gap.
+ *
+ * With a size it is exactly that tall, or that wide in a horizontal stack,
+ * because a flex item takes its main size from the axis it sits on. Without
+ * one it grows into whatever room is left, which is what SwiftUI's `Spacer`
+ * does and what pushes two things to opposite ends of a row.
+ *
+ * @param shortcode - The parsed spacer, whose params carry the validated size.
+ */
+function renderSpacerShortcode(shortcode: ParsedMarkdownShortcode): string {
+  const size = shortcode.params.size;
+  if (typeof size !== "number") return `<div class="md-spacer md-spacer--flexible"></div>`;
+
+  const pixels = escapeHtmlAttribute(String(size));
+  return `<div class="md-spacer" style="flex-basis: ${pixels}px; height: ${pixels}px"></div>`;
+}
+
+/**
+ * Draws a container and everything inside it.
+ *
+ * The body is page content, so it goes through the same pipeline as the text
+ * around it. That is what lets any shortcode stand inside a stack, another
+ * stack included, without this function knowing about a single one of them.
+ *
+ * @param shortcode - The parsed stack, whose params carry the validated
+ *   alignment and spacing.
+ * @param depth - How many containers this one already sits inside.
+ * @returns The container's HTML, or its own source as text once the nesting
+ *   runs deeper than `MAX_STACK_DEPTH`.
+ */
+function renderStackShortcode(
+  shortcode: ParsedMarkdownShortcode,
+  aliases: MarkdownMediaAliases | undefined,
+  depth: number,
+): string {
+  if (depth >= MAX_STACK_DEPTH) return escapeHtml(shortcode.source.raw);
+
+  const axis = shortcode.token === MARKDOWN_SHORTCODE_TOKENS.vstack ? "column" : "row";
+  const alignment = STACK_ALIGNMENT_CLASSES[String(shortcode.params.alignment ?? "")];
+  const spacing = shortcode.params.spacing;
+  // Only a stated spacing is written out. Without one the stylesheet's own gap
+  // stands, so the page's rhythm is decided in one place rather than here.
+  const style =
+    typeof spacing === "number" ? ` style="gap: ${escapeHtmlAttribute(String(spacing))}px"` : "";
+
+  const className = ["md-stack", `md-stack--${axis}`, alignment].filter(Boolean).join(" ");
+  const body = renderMarkdownBody(shortcode.body ?? "", aliases, depth + 1);
+
+  return `<div class="${className}"${style}>${body}</div>`;
+}
+
 function extractRenderableShortcodes(
   content: string,
   aliases?: MarkdownMediaAliases,
+  depth = 0,
 ): { content: string; tokens: MarkdownShortcodeToken[] } {
   const tokens: MarkdownShortcodeToken[] = [];
   const contentParts: string[] = [];
   let lastIndex = 0;
 
   for (const shortcode of parseMarkdownShortcodes(content)) {
-    const html = renderParsedShortcode(shortcode, aliases);
+    const html = renderParsedShortcode(shortcode, aliases, depth);
     if (!html) continue;
 
     const placeholder = `LMAA_SHORTCODE_${tokens.length}_TOKEN`;
@@ -560,12 +637,24 @@ function extractRenderableShortcodes(
 function renderParsedShortcode(
   shortcode: ParsedMarkdownShortcode,
   aliases?: MarkdownMediaAliases,
+  depth = 0,
 ): string | null {
   if (shortcode.issues.some((issue) => issue.code === "missing-target")) return null;
   if (shortcode.definition.renderMode === "island") return null;
 
-  // Before the target check, because this one carries none: everything it needs
-  // stands in its attributes.
+  // Before the target check, because these carry none: everything they need
+  // stands in their attributes and, for a container, in its body.
+  if (
+    shortcode.token === MARKDOWN_SHORTCODE_TOKENS.vstack ||
+    shortcode.token === MARKDOWN_SHORTCODE_TOKENS.hstack
+  ) {
+    return renderStackShortcode(shortcode, aliases, depth);
+  }
+
+  if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.spacer) {
+    return renderSpacerShortcode(shortcode);
+  }
+
   if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.icon) {
     return renderIconShortcode(stringifyShortcodeAttributes(shortcode.attributes));
   }
@@ -655,6 +744,33 @@ const markedSafe = createSafeMarked(false);
 const markedSafeWithBreaks = createSafeMarked(true);
 
 /**
+ * Renders Markdown to HTML, without waiting for anything.
+ *
+ * The whole pipeline in one place: pull the shortcodes out, render what is
+ * left, put them back. A container renders its body by calling this again, so
+ * the text inside a stack is treated exactly as the text around it.
+ *
+ * It can be synchronous because everything that needs fetching is fetched by
+ * `renderMarkdown` before the first line is rendered, over the whole source
+ * rather than one nesting level of it.
+ *
+ * @param content - Markdown source text.
+ * @param aliases - Optional alias-to-URL map for media shortcodes.
+ * @param depth - How many containers this text already sits inside.
+ * @param breaks - Whether a single newline becomes a line break.
+ */
+function renderMarkdownBody(
+  content: string,
+  aliases: MarkdownMediaAliases | undefined,
+  depth: number,
+  breaks = false,
+): string {
+  const { content: withShortcodes, tokens } = extractRenderableShortcodes(content, aliases, depth);
+  const renderer = breaks ? markedSafeWithBreaks : markedSafe;
+  return injectShortcodes(renderer.parse(withShortcodes) as string, tokens);
+}
+
+/**
  * Renders Markdown into sanitized HTML with optional media alias resolution.
  *
  * @param content - Markdown source text.
@@ -669,12 +785,10 @@ export async function renderMarkdown(
   const normalized = normalizeFootnoteSourceHeadings(content);
   // The shortcode renderer below hands back strings and cannot wait, so what it
   // needs is fetched here, where waiting is allowed. Only the icons this text
-  // actually names are read.
+  // actually names are read, and the search covers the whole source, so an icon
+  // inside a container is already here when that container renders.
   await loadDuotoneIcons(iconNamesIn(normalized));
-  const { content: withShortcodes, tokens } = extractRenderableShortcodes(normalized, aliases);
-  const renderer = options.breaks ? markedSafeWithBreaks : markedSafe;
-  const html = (await renderer.parse(withShortcodes)) as string;
-  return injectShortcodes(html, tokens);
+  return renderMarkdownBody(normalized, aliases, 0, options.breaks ?? false);
 }
 
 const markedPlainText = new Marked({

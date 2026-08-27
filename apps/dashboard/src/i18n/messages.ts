@@ -1311,16 +1311,16 @@ export interface DashboardMessages {
       nameLabel: string;
       slotLabel: string;
       slots: { myShops: string; shopDetail: string; categoryGrid: string };
-      kindLabel: string;
-      kinds: { card: string; line: string };
       contentLabel: string;
       contentHint: string;
       buttonLabel: string;
       buttonHrefLabel: string;
-      dismissLabel: string;
-      dismissHint: string;
+      buttonAlignmentLabel: string;
+      buttonAlignments: { leading: string; center: string; trailing: string };
       thresholdLabel: string;
       thresholdHint: string;
+      thresholdBasisLabel: string;
+      thresholdBases: { viewed: string; liked: string };
       startsAtLabel: string;
       endsAtLabel: string;
       windowHint: string;
@@ -1331,7 +1331,13 @@ export interface DashboardMessages {
       limitsTitle: string;
       limitsHint: string;
       maxShownLabel: string;
+      maxShownHint: string;
       snoozeDaysLabel: string;
+      snoozeDaysHint: string;
+      dismissSnoozeDaysLabel: string;
+      dismissSnoozeDaysHint: string;
+      dismissalsUntilResolvedLabel: string;
+      dismissalsUntilResolvedHint: string;
       devAlwaysShowLabel: string;
       devAlwaysShowHint: string;
       placementTitle: string;
@@ -2990,16 +2996,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           shopDetail: "Shop-Detailseite",
           categoryGrid: "Kategorien-Raster",
         },
-        kindLabel: "Darstellung",
-        kinds: { card: "Karte", line: "Zeile" },
         contentLabel: "Inhalt",
         contentHint: "{shops} und {views} werden durch die Zahlen des Lesers ersetzt.",
         buttonLabel: "Beschriftung des Buttons",
         buttonHrefLabel: "Ziel des Buttons",
-        dismissLabel: "Zweiter Button",
-        dismissHint: "Leer heisst: kein zweiter Button.",
+        buttonAlignmentLabel: "Position des Buttons",
+        buttonAlignments: { leading: "Links", center: "Mittig", trailing: "Rechts" },
         thresholdLabel: "Ab wie vielen Shops",
-        thresholdHint: "Gemerkte Shops, beziehungsweise gesehene auf der Detailseite.",
+        thresholdHint: "0 heisst: gleich beim ersten Besuch.",
+        thresholdBasisLabel: "Gezählt werden",
+        thresholdBases: { viewed: "Besuchte Shops", liked: "Gemerkte Shops" },
         startsAtLabel: "Von",
         endsAtLabel: "Bis",
         windowHint: "Leer heisst: ohne Zeitgrenze.",
@@ -3011,12 +3017,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         limitsHint:
           "Gilt über alle Einblendungen hinweg und lässt sich von keiner einzelnen überschreiben.",
         maxShownLabel: "Höchstens sichtbar (Anzahl)",
+        maxShownHint:
+          "Wie oft ein Leser überhaupt eine Einblendung sieht, über alle zusammen gezählt. Ist die Zahl erreicht, sieht er nie wieder eine. Über 75 Prozent der Spenden kommen bei der ersten oder zweiten Einblendung, ab der zehnten praktisch keine mehr.",
         snoozeDaysLabel: "Ruhezeit (Tage)",
+        snoozeDaysHint:
+          "Wie lange nach einer Einblendung Ruhe ist. Gilt für alle Einblendungen zusammen, nicht nur für die gezeigte. 0 heisst: bei jedem Seitenaufruf wieder.",
+        dismissSnoozeDaysLabel: "Ruhezeit nach Wegklicken (Tage)",
+        dismissSnoozeDaysHint:
+          "Wie lange Ruhe ist, wenn jemand eine Einblendung wegklickt. Länger als die normale Ruhezeit, weil Wegklicken eine Antwort ist und kein Übersehen. Gilt ebenfalls für alle Einblendungen zusammen.",
+        dismissalsUntilResolvedLabel: "Wegklicken bis endgültig",
+        dismissalsUntilResolvedHint:
+          "Wie oft jemand dieselbe Einblendung wegklicken darf, bevor sie nicht mehr kommt. Einmal heisst „nicht jetzt“, so oft heisst „nein“. Betrifft nur diese eine Einblendung, die anderen erscheinen weiter.",
         devAlwaysShowLabel: "Immer anzeigen (nur Entwicklung)",
         devAlwaysShowHint:
           "Setzt alle Grenzen aus, damit eine Einblendung bei jedem Seitenaufruf erscheint. In der Produktion wirkt der Schalter nicht, auch wenn er hier an steht.",
         placementTitle: "Platzierung",
-        placementHint: "Wo sie steht, wie sie aussieht und ab wann sie erscheint.",
+        placementHint: "Wo sie steht und ab wann sie erscheint. Der Ort bestimmt die Form.",
         scheduleTitle: "Zeitplan",
         windowColumn: "Zeitfenster",
         stateColumn: "Zustand",
@@ -4681,16 +4697,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           shopDetail: "Shop detail page",
           categoryGrid: "Category grid",
         },
-        kindLabel: "Presentation",
-        kinds: { card: "Card", line: "Line" },
         contentLabel: "Content",
         contentHint: "{shops} and {views} are replaced by the reader's own numbers.",
         buttonLabel: "Button caption",
         buttonHrefLabel: "Where it leads",
-        dismissLabel: "Second button",
-        dismissHint: "Empty means there is none.",
+        buttonAlignmentLabel: "Button position",
+        buttonAlignments: { leading: "Left", center: "Centre", trailing: "Right" },
         thresholdLabel: "From how many shops",
-        thresholdHint: "Liked shops, or seen ones on a detail page.",
+        thresholdHint: "Zero means from the very first visit.",
+        thresholdBasisLabel: "Counting",
+        thresholdBases: { viewed: "Shops seen", liked: "Shops kept" },
         startsAtLabel: "From",
         endsAtLabel: "Until",
         windowHint: "Empty means no time limit.",
@@ -4701,12 +4717,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         limitsTitle: "Limits for all of them together",
         limitsHint: "Applies across every prompt and cannot be raised by any single one.",
         maxShownLabel: "Shown at most (times)",
+        maxShownHint:
+          "How often one reader sees a prompt at all, across every prompt together. Once reached, they never see another. Over 75 per cent of donations come on the first or second showing, and from the tenth on practically none.",
         snoozeDaysLabel: "Quiet period (days)",
+        snoozeDaysHint:
+          "How long the site stays quiet after a showing. Applies across every prompt, not just the one shown. Zero means on every page view again.",
+        dismissSnoozeDaysLabel: "Quiet period after closing (days)",
+        dismissSnoozeDaysHint:
+          "How long the site stays quiet when somebody closes a prompt. Longer than the ordinary period, because closing one is an answer rather than an oversight. Also applies across every prompt.",
+        dismissalsUntilResolvedLabel: "Closings until done",
+        dismissalsUntilResolvedHint:
+          "How often somebody may close the same prompt before it stops coming back. Once means 'not now', this many means 'no'. Affects that one prompt only; the others carry on.",
         devAlwaysShowLabel: "Always show (development only)",
         devAlwaysShowHint:
           "Sets every limit aside, so a prompt appears on every page view. In production the switch does nothing, even when it is on here.",
         placementTitle: "Placement",
-        placementHint: "Where it sits, how it looks, and from when it appears.",
+        placementHint: "Where it sits and from when it appears. The place decides the form.",
         scheduleTitle: "Schedule",
         windowColumn: "Window",
         stateColumn: "State",

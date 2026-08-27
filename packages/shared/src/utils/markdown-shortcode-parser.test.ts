@@ -151,4 +151,55 @@ describe("parseMarkdownShortcodes", () => {
       message: 'Shortcode "rejected-shops-table" does not support a target.',
     });
   });
+
+  describe("a container", () => {
+    it("carries its body and validates its parameters", () => {
+      const [stack] = parseMarkdownShortcodes(
+        '[[vstack alignment="trailing" spacing=24 { Inhalt }]]',
+      );
+
+      expect(stack.token).toBe(MARKDOWN_SHORTCODE_TOKENS.vstack);
+      expect(stack.params.alignment).toBe("trailing");
+      expect(stack.params.spacing).toBe(24);
+      expect(stack.body).toBe("Inhalt ");
+      expect(stack.issues).toEqual([]);
+    });
+
+    it("falls back to the alignment each stack is given without one", () => {
+      const [vertical] = parseMarkdownShortcodes("[[vstack { a }]]");
+      const [horizontal] = parseMarkdownShortcodes("[[hstack { a }]]");
+
+      expect(vertical.params.alignment).toBe("leading");
+      expect(horizontal.params.alignment).toBe("center");
+    });
+
+    it("rejects an alignment belonging to the other axis", () => {
+      const [stack] = parseMarkdownShortcodes('[[vstack alignment="top" { a }]]');
+
+      expect(stack.issues).toContainEqual({
+        code: "invalid-param",
+        message: 'Shortcode parameter "alignment" is invalid.',
+        attribute: "alignment",
+      });
+      expect(stack.params.alignment).toBe("leading");
+    });
+
+    it("reports a container written without a body", () => {
+      const [stack] = parseMarkdownShortcodes("[[vstack]]");
+
+      expect(stack.issues).toContainEqual({
+        code: "missing-body",
+        message: 'Shortcode "vstack" needs a body in braces.',
+      });
+    });
+
+    it("reports a body on a shortcode that draws one thing", () => {
+      const [icon] = parseMarkdownShortcodes('[[icon name="heart" { Text }]]');
+
+      expect(icon.issues).toContainEqual({
+        code: "body-forbidden",
+        message: 'Shortcode "icon" does not take a body.',
+      });
+    });
+  });
 });

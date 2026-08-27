@@ -1,4 +1,9 @@
-import type { SupportPrompt, SupportPromptLimits, SupportPromptSlot } from "@lmaa/contracts";
+import {
+  SUPPORT_PROMPT_LIMIT_DEFAULTS,
+  type SupportPrompt,
+  type SupportPromptLimits,
+  type SupportPromptSlot,
+} from "@lmaa/contracts";
 
 import { apiGet } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
@@ -15,12 +20,19 @@ import { renderMarkdown } from "@/lib/markdown";
 /** One prompt, ready to be drawn. */
 export interface RenderedSupportPrompt {
   id: string;
-  kind: SupportPrompt["kind"];
+  /**
+   * The internal name, carried for the analytics event alone.
+   *
+   * A visitor never sees it. Without it a report names prompts by their
+   * identifier, which says nothing about which text or which place worked.
+   */
+  name: string;
   html: string;
   buttonLabel: string;
   buttonHref: string;
-  dismissLabel: string;
+  buttonAlignment: SupportPrompt["buttonAlignment"];
   threshold: number;
+  thresholdBasis: SupportPrompt["thresholdBasis"];
   priority: number;
 }
 
@@ -47,7 +59,9 @@ export interface SupportPromptSlotData {
 /** Nothing to show, which is also the answer when the backend is unreachable. */
 const EMPTY: SupportPromptSlotData = {
   prompts: [],
-  limits: { maxShown: 4, snoozeDays: 14, devAlwaysShow: false },
+  // From the schema rather than written out, so a limit added there is not
+  // silently missing from the page that could not reach the backend.
+  limits: SUPPORT_PROMPT_LIMIT_DEFAULTS,
   devAlwaysShow: false,
   liveIds: [],
 };
@@ -79,12 +93,13 @@ export async function loadSupportPrompts(slot: SupportPromptSlot): Promise<Suppo
       rendering.push(
         renderMarkdown(prompt.content, {}, { breaks: true }).then((html) => ({
           id: prompt.id,
-          kind: prompt.kind,
+          name: prompt.name,
           html,
           buttonLabel: prompt.buttonLabel,
           buttonHref: prompt.buttonHref,
-          dismissLabel: prompt.dismissLabel,
+          buttonAlignment: prompt.buttonAlignment,
           threshold: prompt.threshold,
+          thresholdBasis: prompt.thresholdBasis,
           priority: prompt.priority,
         })),
       );

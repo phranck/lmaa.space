@@ -14,13 +14,16 @@ export interface MarkdownShortcodeAttribute {
 }
 
 export type MarkdownShortcodeIssueCode =
+  | "body-forbidden"
   | "invalid-attribute"
   | "invalid-param"
+  | "missing-body"
   | "missing-param"
   | "missing-param-value"
   | "missing-target"
   | "target-forbidden"
-  | "unterminated-attribute";
+  | "unterminated-attribute"
+  | "unterminated-body";
 
 export interface MarkdownShortcodeIssue {
   code: MarkdownShortcodeIssueCode;
@@ -39,6 +42,8 @@ export interface ParsedMarkdownShortcode {
   params: Record<string, MarkdownShortcodeParamValue>;
   /** Nodes nested inside this one, resolved against its own child list. */
   children: ParsedMarkdownShortcode[];
+  /** What stood between the braces, on a shortcode that takes a body. */
+  body?: string;
   issues: MarkdownShortcodeIssue[];
   source: {
     start: number;
@@ -168,6 +173,52 @@ function validateTarget(
 }
 
 /**
+ * Checks a node's body against what its definition allows.
+ *
+ * A body written on a shortcode that draws one thing is a misunderstanding
+ * worth reporting rather than ignoring: the author expected the text to appear
+ * and it would not.
+ */
+function validateBody(
+  definition: MarkdownShortcodeDefinition,
+  body: string | undefined,
+): MarkdownShortcodeIssue[] {
+  const takesBody = definition.body === "markdown";
+
+  if (takesBody && body === undefined) {
+    return [
+      {
+        code: "missing-body",
+        message: `Shortcode "${definition.token}" needs a body in braces.`,
+      },
+    ];
+  }
+
+  if (!takesBody && body !== undefined) {
+    return [
+      {
+        code: "body-forbidden",
+        message: `Shortcode "${definition.token}" does not take a body.`,
+      },
+    ];
+  }
+
+  return [];
+}
+
+/**
+ * Turns one of the tokenizer's findings into an issue this interface can carry.
+ *
+ * The tokenizer reports an offset into the source, which has no place in a
+ * parsed shortcode, so what survives is the code and the message.
+ */
+function carryOverIssue(code: ShortcodeNode["issues"][number]["code"]): MarkdownShortcodeIssueCode {
+  if (code === "unterminated-value") return "unterminated-attribute";
+  if (code === "unterminated-body") return "unterminated-body";
+  return "invalid-attribute";
+}
+
+/**
  * Resolves one tokenized node against a definition, and its children against
  * that definition's own child list.
  *
@@ -199,15 +250,12 @@ function resolveNode(
     rawAttributes: node.rawAttributes,
     params,
     children,
+    body: node.body,
     issues: [
       ...validateTarget(definition, node.target),
-      // The tokenizer's own findings carry an offset rather than an attribute
-      // name, so only the parts this interface can express are carried over.
+      ...validateBody(definition, node.body),
       ...node.issues.map((issue) => ({
-        code:
-          issue.code === "unterminated-value"
-            ? ("unterminated-attribute" as const)
-            : ("invalid-attribute" as const),
+        code: carryOverIssue(issue.code),
         message: issue.message,
       })),
       ...paramIssues,

@@ -46,20 +46,30 @@ function updateMyShopsNavVisibility(visible: boolean): void {
   });
 }
 
+/**
+ * How long the count's column takes to close, matching `--ds-duration-base`.
+ *
+ * Stated here because the figure is cleared after the column has closed, and
+ * clearing it early would show the button collapsing around an empty space.
+ */
+const COUNT_COLLAPSE_MS = 200;
+
 // ── Like state UI ───────────────────────────────────────────────────
 function applyLikeState(btn: HTMLElement, liked: boolean): void {
   const regular = btn.querySelector<HTMLElement>(".like-icon-regular");
   const duotone = btn.querySelector<HTMLElement>(".like-icon-duotone");
+  // The button is a pill with a surface of its own, so the state shows in its
+  // border and fill as well as in its colour.
   if (liked) {
     regular?.classList.add("hidden");
     duotone?.classList.remove("hidden");
-    btn.classList.remove("text-stone-400");
-    btn.classList.add("text-red-500");
+    btn.classList.remove("text-stone-500", "border-stone-300", "bg-white");
+    btn.classList.add("text-red-500", "border-red-300", "bg-red-50");
   } else {
     regular?.classList.remove("hidden");
     duotone?.classList.add("hidden");
-    btn.classList.add("text-stone-400");
-    btn.classList.remove("text-red-500");
+    btn.classList.remove("text-red-500", "border-red-300", "bg-red-50");
+    btn.classList.add("text-stone-500", "border-stone-300", "bg-white");
   }
 }
 
@@ -125,21 +135,15 @@ document.addEventListener("click", (e) => {
     `[data-like-count-value][data-shop-id="${shopId}"]`,
   );
   if (countEl) {
-    const current = Number.parseInt(countEl.textContent ?? "0", 10);
+    const current = Number.parseInt(countEl.textContent || "0", 10);
     const next = Math.max(0, current + (isNowLiked ? 1 : -1));
-    countEl.textContent = String(next);
-    countEl.classList.toggle("hidden", next === 0);
-  } else if (isNowLiked) {
-    // Create count element if it does not exist yet (first like)
-    const wrapper = btn.parentElement;
-    if (wrapper) {
-      const span = document.createElement("span");
-      span.className = "text-xs text-stone-400 tabular-nums leading-none";
-      span.dataset.likeCountValue = "";
-      span.dataset.shopId = shopId;
-      span.textContent = "1";
-      wrapper.insertBefore(span, btn);
-    }
+    // The element stays and its column opens or closes, so the button grows and
+    // shrinks over a timeline instead of the figure appearing and disappearing.
+    // The figure itself is only cleared once the column has closed, or the
+    // button would be seen collapsing around an empty space.
+    btn.classList.toggle("has-count", next > 0);
+    if (next > 0) countEl.textContent = String(next);
+    else window.setTimeout(() => { countEl.textContent = ""; }, COUNT_COLLAPSE_MS);
   }
 
   // Fire-and-forget: sync like to server
