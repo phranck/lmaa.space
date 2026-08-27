@@ -969,15 +969,6 @@ export function Sidebar({
                       />
                     )}
                   </NavLink>
-                  <NavLink to="/system/settings" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<SlidersHorizontalIcon weight="duotone" className="w-4 h-4" />}
-                        label={sidebarMessages.systemSettings}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
                   <NavLink to="/system/redirect-urls" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
@@ -1014,6 +1005,15 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<BugIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.backgroundErrors}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/system/settings" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<SlidersHorizontalIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.systemSettings}
                         active={isActive}
                       />
                     )}
