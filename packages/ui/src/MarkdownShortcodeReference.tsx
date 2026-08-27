@@ -122,7 +122,7 @@ function ParamRow({ param }: { param: MarkdownShortcodeParamDefinition }) {
         )}
       </td>
       <td className="py-1 pr-3 text-[var(--ds-text-muted)]">{param.label ?? ""}</td>
-      <td className="py-1 font-mono text-[0.9em] text-[var(--ds-text-subtle)]">
+      <td className="py-1 font-mono text-[0.9em] text-[var(--ds-text-hint)]">
         {describeType(param)}
         {param.aliases && param.aliases.length > 0 && (
           <span className="ml-2">auch: {param.aliases.join(", ")}</span>
@@ -203,10 +203,10 @@ function DefinitionEntry({
 
       {definition.tables?.map((table) => (
         <div key={table.caption} className="mt-3">
-          <div className="text-[var(--ds-text-subtle)]">{table.caption}</div>
+          <div className="text-[var(--ds-text-hint)]">{table.caption}</div>
           <table className="mt-1 w-full border-collapse">
             <thead>
-              <tr className="text-left text-[var(--ds-text-subtle)]">
+              <tr className="text-left text-[var(--ds-text-hint)]">
                 {table.columns.map((column) => (
                   <th key={column} className="py-1 pr-3 font-normal">
                     {column}
@@ -239,7 +239,7 @@ function DefinitionEntry({
       {depth === 0 && definition.examples.length > 0 && (
         <div className="mt-2">
           <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="text-[var(--ds-text-subtle)]">Beispiel</span>
+            <span className="text-[var(--ds-text-hint)]">Beispiel</span>
             <CopyButton text={definition.examples.join("\n\n")} />
           </div>
           {/* The block scrolls inside itself, because a pre reports the length

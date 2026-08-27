@@ -104,7 +104,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
     <div className="flex flex-col gap-4">
       {/* Separator: no config except span */}
       {isSeparator && (
-        <p className="text-xs text-[var(--ds-text-subtle)] italic">{m.separatorNoSettings}</p>
+        <p className="text-xs text-[var(--ds-text-hint)] italic">{m.separatorNoSettings}</p>
       )}
 
       {/* Paragraph: plain text content */}
@@ -245,7 +245,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <FormLabelText>{m.span}</FormLabelText>
-            <span className="text-xs tabular-nums text-[var(--ds-text-subtle)]">
+            <span className="text-xs tabular-nums text-[var(--ds-text-hint)]">
               {field.span ?? 12}/12
             </span>
           </div>
@@ -281,7 +281,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
             placeholder={m.optionsHint}
             className="resize-none"
           />
-          <span className="text-xs text-[var(--ds-text-subtle)]">{m.optionsHint}</span>
+          <span className="text-xs text-[var(--ds-text-hint)]">{m.optionsHint}</span>
         </label>
       )}
 
@@ -313,7 +313,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>{m.validation}</FormLabelText>
           <div className="flex gap-2">
             <label className="flex-1 min-w-0 flex flex-col gap-1">
-              <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMin}</span>
+              <span className="text-xs text-[var(--ds-text-hint)]">{m.validationMin}</span>
               <DashboardNumberInput
                 value={field.validation?.min ?? ""}
                 onChange={(e) => {
@@ -323,7 +323,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
               />
             </label>
             <label className="flex-1 min-w-0 flex flex-col gap-1">
-              <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMax}</span>
+              <span className="text-xs text-[var(--ds-text-hint)]">{m.validationMax}</span>
               <DashboardNumberInput
                 value={field.validation?.max ?? ""}
                 onChange={(e) => {
@@ -607,7 +607,7 @@ function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigP
           </div>
           {field.buttonAction && (
             <div className="flex flex-col gap-1 mt-1">
-              <span className="text-xs text-[var(--ds-text-subtle)]">
+              <span className="text-xs text-[var(--ds-text-hint)]">
                 {m.buttonActionSourceField}
               </span>
               <DashboardCombobox

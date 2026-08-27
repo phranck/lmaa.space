@@ -28,7 +28,7 @@ const IconPicker = lazy(() =>
   import("@/components/ui/IconPicker.tsx").then((module) => ({ default: module.IconPicker })),
 );
 
-const labelClass = "text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider";
+const labelClass = "text-xs font-semibold text-[var(--ds-text-label)] uppercase tracking-wider";
 
 interface Props {
   block: FooterBlock;
@@ -66,11 +66,11 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
       />
       <DashboardSection.Body className="!gap-4">
         {block.type === "separator" && (
-          <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.noSettings}</p>
+          <p className="text-xs text-[var(--ds-text-hint)] italic">{footerMessages.noSettings}</p>
         )}
 
         {block.type === "spacer" && (
-          <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.spacerHint}</p>
+          <p className="text-xs text-[var(--ds-text-hint)] italic">{footerMessages.spacerHint}</p>
         )}
 
         {block.type === "headline" && (
@@ -253,7 +253,7 @@ function SocialMediaOrderEditor({
     <div className="flex flex-col gap-2">
       <span className={labelClass}>{label}</span>
       {isLoading ? null : currentOrder.length === 0 ? (
-        <p className="text-xs italic text-[var(--ds-text-subtle)]">{emptyHint}</p>
+        <p className="text-xs italic text-[var(--ds-text-hint)]">{emptyHint}</p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={currentOrder} strategy={verticalListSortingStrategy}>
@@ -293,7 +293,7 @@ function SocialMediaOrderItem({ platform, label }: { platform: string; label: st
       <ListIcon className="size-4 shrink-0 text-[var(--ds-text-subtle)]" weight="bold" />
       {Icon ? <Icon size={16} /> : null}
       <span className="flex-1 truncate">{def?.label ?? platform}</span>
-      <span className="shrink-0 text-xs text-[var(--ds-text-subtle)]">{label}</span>
+      <span className="shrink-0 text-xs text-[var(--ds-text-hint)]">{label}</span>
     </li>
   );
 }

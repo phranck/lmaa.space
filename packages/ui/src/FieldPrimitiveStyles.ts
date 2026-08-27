@@ -13,9 +13,16 @@ export const fieldShellClass = "space-y-1";
  */
 export const fieldTextInsetClass = "px-[5px]";
 
-export const fieldLabelClass = `block ${fieldTextInsetClass} text-xs font-medium text-[var(--ds-text-subtle)]`;
-export const fieldOptionalClass = "font-normal text-[var(--ds-text-subtle)]";
-export const fieldHelpClass = `${fieldTextInsetClass} text-xs text-[var(--ds-text-subtle)]`;
+/**
+ * The tones a field uses, each named by the job it does.
+ *
+ * `--ds-text-label` and `--ds-text-hint` are declared in the token file with
+ * the contrast figures behind the choice. Referencing them here rather than a
+ * lightness step means a form nowhere in the dashboard picks its own.
+ */
+export const fieldLabelClass = `block ${fieldTextInsetClass} text-xs font-medium text-[var(--ds-text-label)]`;
+export const fieldOptionalClass = "font-normal text-[var(--ds-text-hint)]";
+export const fieldHelpClass = `${fieldTextInsetClass} text-xs text-[var(--ds-text-hint)]`;
 export const fieldErrorClass = `${fieldTextInsetClass} text-xs text-red-500`;
 export const fieldControlBaseClass =
   "box-border rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)] transition-colors placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-focus)] focus:ring-2 focus:ring-[var(--ds-focus-ring)] disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]";

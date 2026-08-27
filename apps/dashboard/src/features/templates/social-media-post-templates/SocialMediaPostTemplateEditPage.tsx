@@ -406,7 +406,7 @@ function TemplateVariablesSidebar({
                 />
               ))}
             </div>
-            <p className="text-xs text-[var(--ds-text-subtle)]">{messages.scopes.helpText}</p>
+            <p className="text-xs text-[var(--ds-text-hint)]">{messages.scopes.helpText}</p>
           </DashboardSection.Body>
         </DashboardSection>
 

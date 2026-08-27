@@ -91,12 +91,12 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
                 >
                   {formatDateTime(reminder.remindAt, locale)}
                 </p>
-                <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5">
+                <p className="text-xs text-[var(--ds-text-hint)] mt-0.5">
                   {reminder.isActive ? "Aktiv" : "Inaktiv"}
                   {recurrenceSummary(reminder)}
                 </p>
                 {reminder.note && (
-                  <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5 break-words">
+                  <p className="text-xs text-[var(--ds-text-hint)] mt-0.5 break-words">
                     {reminder.note}
                   </p>
                 )}

@@ -75,7 +75,7 @@ export function MastodonAccountForm({
         value={form.accessToken ?? ""}
       />
       <div>
-        <span className="mb-1 block px-[5px] text-xs font-medium text-[var(--ds-text-subtle)]">
+        <span className="mb-1 block px-[5px] text-xs font-medium text-[var(--ds-text-label)]">
           {labels.visibility}
         </span>
         <Dropdown<MastodonVisibility>
