@@ -2,7 +2,7 @@ import { MegaphoneSimpleIcon, SlidersHorizontalIcon } from "@phosphor-icons/reac
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-import type { SupportPromptLimits } from "@lmaa/contracts";
+import { SUPPORT_PROMPT_LIMIT_DEFAULTS, type SupportPromptLimits } from "@lmaa/contracts";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -44,8 +44,9 @@ export function SupportPromptsPage() {
   const [limitsExpanded, setLimitsExpanded] = useRememberedFlag("lmaa-support-prompt-limits:v1", false);
 
   const today = new Date().toISOString().slice(0, 10);
-  const currentLimits = draftLimits ??
-    limits ?? { maxShown: 4, snoozeDays: 14, devAlwaysShow: false };
+  // The defaults come from the schema rather than being written out again, so
+  // a limit added there is not missing here.
+  const currentLimits = draftLimits ?? limits ?? SUPPORT_PROMPT_LIMIT_DEFAULTS;
 
   return (
     <PageLayout>
@@ -80,6 +81,7 @@ export function SupportPromptsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <DashboardNumberInput
                 label={text.maxShownLabel}
+                hint={text.maxShownHint}
                 value={currentLimits.maxShown}
                 min={1}
                 max={20}
@@ -92,6 +94,7 @@ export function SupportPromptsPage() {
               />
               <DashboardNumberInput
                 label={text.snoozeDaysLabel}
+                hint={text.snoozeDaysHint}
                 value={currentLimits.snoozeDays}
                 min={0}
                 max={365}
@@ -99,6 +102,32 @@ export function SupportPromptsPage() {
                   setDraftLimits({
                     ...currentLimits,
                     snoozeDays: Number(event.target.value),
+                  })
+                }
+              />
+              <DashboardNumberInput
+                label={text.dismissSnoozeDaysLabel}
+                hint={text.dismissSnoozeDaysHint}
+                value={currentLimits.dismissSnoozeDays}
+                min={0}
+                max={365}
+                onChange={(event) =>
+                  setDraftLimits({
+                    ...currentLimits,
+                    dismissSnoozeDays: Number(event.target.value),
+                  })
+                }
+              />
+              <DashboardNumberInput
+                label={text.dismissalsUntilResolvedLabel}
+                hint={text.dismissalsUntilResolvedHint}
+                value={currentLimits.dismissalsUntilResolved}
+                min={1}
+                max={10}
+                onChange={(event) =>
+                  setDraftLimits({
+                    ...currentLimits,
+                    dismissalsUntilResolved: Number(event.target.value),
                   })
                 }
               />

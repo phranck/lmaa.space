@@ -15,15 +15,9 @@ import type { SupportPromptLimits, SupportPromptThresholdBasis } from "@lmaa/con
 /** Where the store lives, in the naming of the other stores on this site. */
 export const SUPPORT_PROMPT_STORAGE_KEY = "lmaa-support-prompt:v1";
 
-/** One day in milliseconds, which is what the quiet periods are counted in. */
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** How long a single dismissal pushes the next showing away, in days. */
-const DISMISS_SNOOZE_DAYS = 90;
-
-/** How often the same prompt may be dismissed before it stops coming back. */
-export const DISMISSALS_UNTIL_RESOLVED = 3;
-
 /** What the site remembers about one prompt. */
 export interface SupportPromptRecord {
   /** How often this prompt has been shown. */
@@ -236,17 +230,18 @@ export function recordResolved(store: SupportPromptStore, id: string): SupportPr
 export function recordDismissed(
   store: SupportPromptStore,
   id: string,
+  limits: SupportPromptLimits,
   now: number,
 ): SupportPromptStore {
   const record = store.prompts[id] ?? emptyRecord();
   const dismissed = record.dismissed + 1;
   return {
     ...store,
-    snoozedUntil: Math.max(store.snoozedUntil, now + DISMISS_SNOOZE_DAYS * DAY_MS),
+    snoozedUntil: Math.max(store.snoozedUntil, now + limits.dismissSnoozeDays * DAY_MS),
     snoozedSince: now,
     prompts: {
       ...store.prompts,
-      [id]: { ...record, dismissed, resolved: dismissed >= DISMISSALS_UNTIL_RESOLVED },
+      [id]: { ...record, dismissed, resolved: dismissed >= limits.dismissalsUntilResolved },
     },
   };
 }

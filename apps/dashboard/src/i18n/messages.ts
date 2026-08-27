@@ -1331,7 +1331,13 @@ export interface DashboardMessages {
       limitsTitle: string;
       limitsHint: string;
       maxShownLabel: string;
+      maxShownHint: string;
       snoozeDaysLabel: string;
+      snoozeDaysHint: string;
+      dismissSnoozeDaysLabel: string;
+      dismissSnoozeDaysHint: string;
+      dismissalsUntilResolvedLabel: string;
+      dismissalsUntilResolvedHint: string;
       devAlwaysShowLabel: string;
       devAlwaysShowHint: string;
       placementTitle: string;
@@ -3011,7 +3017,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         limitsHint:
           "Gilt über alle Einblendungen hinweg und lässt sich von keiner einzelnen überschreiben.",
         maxShownLabel: "Höchstens sichtbar (Anzahl)",
+        maxShownHint:
+          "Wie oft ein Leser überhaupt eine Einblendung sieht, über alle zusammen gezählt. Ist die Zahl erreicht, sieht er nie wieder eine. Über 75 Prozent der Spenden kommen bei der ersten oder zweiten Einblendung, ab der zehnten praktisch keine mehr.",
         snoozeDaysLabel: "Ruhezeit (Tage)",
+        snoozeDaysHint:
+          "Wie lange nach einer Einblendung Ruhe ist. Gilt für alle Einblendungen zusammen, nicht nur für die gezeigte. 0 heisst: bei jedem Seitenaufruf wieder.",
+        dismissSnoozeDaysLabel: "Ruhezeit nach Wegklicken (Tage)",
+        dismissSnoozeDaysHint:
+          "Wie lange Ruhe ist, wenn jemand eine Einblendung wegklickt. Länger als die normale Ruhezeit, weil Wegklicken eine Antwort ist und kein Übersehen. Gilt ebenfalls für alle Einblendungen zusammen.",
+        dismissalsUntilResolvedLabel: "Wegklicken bis endgültig",
+        dismissalsUntilResolvedHint:
+          "Wie oft jemand dieselbe Einblendung wegklicken darf, bevor sie nicht mehr kommt. Einmal heisst „nicht jetzt“, so oft heisst „nein“. Betrifft nur diese eine Einblendung, die anderen erscheinen weiter.",
         devAlwaysShowLabel: "Immer anzeigen (nur Entwicklung)",
         devAlwaysShowHint:
           "Setzt alle Grenzen aus, damit eine Einblendung bei jedem Seitenaufruf erscheint. In der Produktion wirkt der Schalter nicht, auch wenn er hier an steht.",
@@ -4701,7 +4717,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         limitsTitle: "Limits for all of them together",
         limitsHint: "Applies across every prompt and cannot be raised by any single one.",
         maxShownLabel: "Shown at most (times)",
+        maxShownHint:
+          "How often one reader sees a prompt at all, across every prompt together. Once reached, they never see another. Over 75 per cent of donations come on the first or second showing, and from the tenth on practically none.",
         snoozeDaysLabel: "Quiet period (days)",
+        snoozeDaysHint:
+          "How long the site stays quiet after a showing. Applies across every prompt, not just the one shown. Zero means on every page view again.",
+        dismissSnoozeDaysLabel: "Quiet period after closing (days)",
+        dismissSnoozeDaysHint:
+          "How long the site stays quiet when somebody closes a prompt. Longer than the ordinary period, because closing one is an answer rather than an oversight. Also applies across every prompt.",
+        dismissalsUntilResolvedLabel: "Closings until done",
+        dismissalsUntilResolvedHint:
+          "How often somebody may close the same prompt before it stops coming back. Once means 'not now', this many means 'no'. Affects that one prompt only; the others carry on.",
         devAlwaysShowLabel: "Always show (development only)",
         devAlwaysShowHint:
           "Sets every limit aside, so a prompt appears on every page view. In production the switch does nothing, even when it is on here.",

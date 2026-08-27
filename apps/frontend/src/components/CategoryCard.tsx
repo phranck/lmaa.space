@@ -69,7 +69,7 @@ export default function CategoryCard({
         )}
       </div>
 
-      <div className="px-4 py-3">
+      <div style={{ padding: "var(--public-card-padding)" }}>
         <p className="font-serif font-semibold text-stone-800 text-base sm:text-lg leading-snug truncate group-hover:text-amber-700 transition-colors">
           {name}
         </p>

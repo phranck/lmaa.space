@@ -66,9 +66,9 @@ function fillNumbers(html: string, likedShops: number, shopViews: number): strin
  * The geometry of a card on the public pages.
  *
  * A prompt stands between shop cards or category cards and has to be one of
- * them, so it takes their corner rather than the dashboard's. Those cards carry
- * `rounded-2xl p-4`, which is 18px of each at the site's root size, and this is
- * the one place a prompt repeats it.
+ * them, so it takes their measure rather than the dashboard's. That measure is
+ * `--public-card-padding` and `--public-card-radius`, which those cards read
+ * themselves, so the two cannot drift apart.
  *
  * The padding is restated as `--card-padding` on the element itself, and the
  * nested radius with it, because a custom property holding a `var()` resolves
@@ -82,13 +82,26 @@ function fillNumbers(html: string, likedShops: number, shopViews: number): strin
 const CARD_STYLE = {
   background: "var(--ds-surface)",
   boxShadow: "var(--ds-shadow-md)",
-  "--card-padding": "1rem",
-  "--radius-card-inner": "max(calc(1rem - var(--card-padding)), 0px)",
-  borderRadius: "1rem",
+  "--card-padding": "var(--public-card-padding)",
+  // Rounder than the cards it stands between, on purpose. A prompt holds its
+  // invitation in the corner of its content area, and at the cards' own radius
+  // that corner derives to almost nothing. Stated once, with both nested radii
+  // below reading it.
+  "--prompt-radius": "24px",
+  "--radius-card-inner": "max(calc(var(--prompt-radius) - var(--card-padding)), 0px)",
+  borderRadius: "var(--prompt-radius)",
   padding: "var(--card-padding)",
 } as CSSProperties;
 
 const CARD_CLASS = "lmaa-card lmaa-accent-wash relative flex flex-col gap-3";
+
+/**
+ * How long the card takes to grow into place, matching `--ds-duration-base`.
+ *
+ * Stated here because the animation is handed to the browser as a keyframe
+ * pair, which takes a number rather than a custom property.
+ */
+const REVEAL_MS = 200;
 
 /** Where the invitation stands, named as the stacks name it. */
 const BUTTON_ROW_CLASSES: Record<RenderedSupportPrompt["buttonAlignment"], string> = {
@@ -96,6 +109,33 @@ const BUTTON_ROW_CLASSES: Record<RenderedSupportPrompt["buttonAlignment"], strin
   center: "justify-center",
   trailing: "justify-end",
 };
+
+/**
+ * Grows the card into place as it is attached.
+ *
+ * A prompt cannot be decided on the server, because what decides it lives in
+ * the reader's browser. It therefore arrives after the page has been laid out,
+ * and whatever stands below it has to move. Growing the height turns that move
+ * into one the eye can follow, and ordinary layout carries the rest: no row
+ * below is animated, they simply follow.
+ *
+ * Written as a callback ref rather than an effect, because the element being
+ * attached is exactly the moment to do this, and an effect watching the state
+ * that produced it would be a second render for nothing.
+ */
+function revealCard(node: HTMLElement | null): void {
+  if (!node) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const { height } = node.getBoundingClientRect();
+  node.animate(
+    [
+      { height: "0px", opacity: 0, overflow: "hidden" },
+      { height: `${height}px`, opacity: 1, overflow: "hidden" },
+    ],
+    { duration: REVEAL_MS, easing: "cubic-bezier(0, 0, 0.2, 1)" },
+  );
+}
 
 export default function SupportPromptSlot({
   slot,
@@ -137,8 +177,9 @@ export default function SupportPromptSlot({
 
     persist(recordShown(store, prompt.id, limits, Date.now()));
     setShown({ prompt, html: fillNumbers(prompt.html, likedShops, store.shopViews) });
-    trackWebsiteEvent("support-prompt-shown", { prompt: prompt.id, slot });
+    trackWebsiteEvent("support-prompt-shown", { prompt: prompt.name, id: prompt.id, slot });
   }, [prompts, limits, liveIds, devAlwaysShow, slot, shopSlug]);
+
 
   if (!shown) return null;
   const visible = shown.prompt;
@@ -146,8 +187,12 @@ export default function SupportPromptSlot({
   function close() {
     if (!shown) return;
     const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
-    persist(recordDismissed(store, visible.id, Date.now()));
-    trackWebsiteEvent("support-prompt-dismissed", { prompt: visible.id, slot });
+    persist(recordDismissed(store, visible.id, limits, Date.now()));
+    trackWebsiteEvent("support-prompt-dismissed", {
+      prompt: visible.name,
+      id: visible.id,
+      slot,
+    });
     setShown(null);
   }
 
@@ -155,11 +200,20 @@ export default function SupportPromptSlot({
     if (!shown) return;
     const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
     persist(recordResolved(store, visible.id));
-    trackWebsiteEvent("support-prompt-clicked", { prompt: visible.id, slot });
+    // Where it led as well as which prompt it was: with more than one
+    // destination in play, the two questions have different answers.
+    trackWebsiteEvent("support-prompt-clicked", {
+      prompt: visible.name,
+      id: visible.id,
+      slot,
+      href: visible.buttonHref,
+      label: visible.buttonLabel,
+    });
   }
 
   return (
     <aside
+      ref={revealCard}
       data-support-prompt={visible.id}
       className={`${CARD_CLASS} ${className ?? ""}`}
       style={CARD_STYLE}
@@ -180,6 +234,9 @@ export default function SupportPromptSlot({
           top: "calc(var(--card-padding) / 2)",
           right: "calc(var(--card-padding) / 2)",
           color: "var(--ds-text-subtle)",
+          // A nested corner is the card's radius less the distance to it, and
+          // this control sits at half the padding rather than at all of it.
+          borderRadius: "max(calc(var(--prompt-radius) - var(--card-padding) / 2), 0px)",
         }}
       >
         <XCircleIcon weight="duotone" className="size-5" />
@@ -207,7 +264,15 @@ export default function SupportPromptSlot({
         <div
           className={`flex flex-wrap items-center gap-3 ${BUTTON_ROW_CLASSES[visible.buttonAlignment]}`}
         >
-          <a href={visible.buttonHref} onClick={follow} className="lmaa-invite-action is-compact">
+          <a
+            href={visible.buttonHref}
+            onClick={follow}
+            className="lmaa-invite-action is-compact"
+            // It occupies the corner of the content area, so it takes the
+            // card's radius less the padding rather than a control's own. That
+            // is what keeps the gap between the two curves even.
+            style={{ borderRadius: "var(--radius-card-inner)" }}
+          >
             <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
             {visible.buttonLabel}
           </a>

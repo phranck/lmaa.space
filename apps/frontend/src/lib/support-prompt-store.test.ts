@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   choosePrompt,
   countShopView,
-  DISMISSALS_UNTIL_RESOLVED,
   emptyStore,
   parseStore,
   recordDismissed,
@@ -12,7 +11,13 @@ import {
   type PromptCandidate,
 } from "./support-prompt-store.js";
 
-const limits = { maxShown: 4, snoozeDays: 14, devAlwaysShow: false };
+const limits = {
+  maxShown: 4,
+  snoozeDays: 14,
+  dismissSnoozeDays: 90,
+  dismissalsUntilResolved: 3,
+  devAlwaysShow: false,
+};
 const now = 1_700_000_000_000;
 
 function candidate(id: string, threshold = 0, priority = 0) {
@@ -149,21 +154,35 @@ describe("recordShown", () => {
 
 describe("recordDismissed", () => {
   it("treats one dismissal as not now rather than as no", () => {
-    const store = recordDismissed(emptyStore(), "a", now);
+    const store = recordDismissed(emptyStore(), "a", limits, now);
     expect(store.prompts.a.resolved).toBe(false);
     expect(store.snoozedUntil).toBe(now + 90 * 24 * 60 * 60 * 1000);
   });
 
   it("stops asking after the third dismissal of the same prompt", () => {
     let store = emptyStore();
-    for (let round = 0; round < DISMISSALS_UNTIL_RESOLVED; round += 1) {
-      store = recordDismissed(store, "a", now);
+    for (let round = 0; round < limits.dismissalsUntilResolved; round += 1) {
+      store = recordDismissed(store, "a", limits, now);
     }
     expect(store.prompts.a.resolved).toBe(true);
   });
 
+  it("reads both figures from the settings rather than from the code", () => {
+    // The operator owns these. A stricter setting has to bite at once, and a
+    // looser one has to stop biting.
+    const strict = { ...limits, dismissSnoozeDays: 7, dismissalsUntilResolved: 1 };
+    const once = recordDismissed(emptyStore(), "a", strict, now);
+    expect(once.snoozedUntil).toBe(now + 7 * 24 * 60 * 60 * 1000);
+    expect(once.prompts.a.resolved).toBe(true);
+
+    const lenient = { ...limits, dismissSnoozeDays: 0, dismissalsUntilResolved: 9 };
+    const soft = recordDismissed(emptyStore(), "a", lenient, now);
+    expect(soft.snoozedUntil).toBe(now);
+    expect(soft.prompts.a.resolved).toBe(false);
+  });
+
   it("never brings a quiet period forward", () => {
-    const store = recordDismissed({ ...emptyStore(), snoozedUntil: now + 10 ** 12 }, "a", now);
+    const store = recordDismissed({ ...emptyStore(), snoozedUntil: now + 10 ** 12 }, "a", limits, now);
     expect(store.snoozedUntil).toBe(now + 10 ** 12);
   });
 });

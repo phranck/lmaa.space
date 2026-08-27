@@ -150,6 +150,20 @@ export const supportPromptLimitsSchema = z.object({
   /** How long the site stays quiet after a showing. Zero means not at all. */
   snoozeDays: z.coerce.number().int().min(0).max(365).default(14),
   /**
+   * How long the site stays quiet after a reader closes a prompt.
+   *
+   * Longer than the pause after a plain showing, because closing one is an
+   * answer rather than the absence of one.
+   */
+  dismissSnoozeDays: z.coerce.number().int().min(0).max(365).default(90),
+  /**
+   * How often the same prompt may be closed before it stops coming back.
+   *
+   * Saying no once is "not now" and pushes the next showing away. Saying it
+   * this many times is "no", and that prompt is done.
+   */
+  dismissalsUntilResolved: z.coerce.number().int().min(1).max(10).default(3),
+  /**
    * Whether to set every limit aside whilst working on a prompt.
    *
    * Stored like the others, but only ever acted on outside production. See

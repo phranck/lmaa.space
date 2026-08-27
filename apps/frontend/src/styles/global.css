@@ -7,6 +7,21 @@ html {
 }
 
 :root {
+  /* How far a card on the public pages holds its contents from its own edge.
+     Equal on all four sides, and stated here rather than at each card, so a
+     support prompt standing between cards takes the same measure and the
+     nested radius below derives from one number. */
+  --public-card-padding: 15px;
+
+  /* The radius those cards carry, and the radius of anything sitting at their
+     content edge. A nested corner is the outer radius less the distance to it,
+     clamped at zero. */
+  --public-card-radius: 1rem;
+  --public-card-radius-inner: max(
+    calc(var(--public-card-radius) - var(--public-card-padding)),
+    0px
+  );
+
   /* The colours the three brand lockups carry, read off the files in
      `src/assets/brands` rather than chosen here. They stand for somebody else's
      mark, so they are recorded rather than designed, and a card tints itself
