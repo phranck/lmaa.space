@@ -252,23 +252,32 @@ const metaDescription = shop.description
               </Fragment>
             )}
             <div class="flex flex-col items-center gap-1">
-              {shop.likeCount > 0 && (
-                <span
-                  class="text-xs text-stone-400 tabular-nums leading-none"
-                  data-like-count-value
-                  data-shop-id={String(shop.id)}
-                >{shop.likeCount}</span>
-              )}
+              {/* The count belongs inside the button rather than beside it: it
+                  is what this button is about, and a figure floating next to a
+                  bare symbol reads as neither. Without one the pill closes up
+                  around the symbol and comes out round. */}
               <button
                 type="button"
-                class="like-btn w-9 h-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-red-400 hover:bg-stone-100 transition-colors cursor-pointer relative overflow-visible"
+                class:list={[
+                  "like-btn h-9 px-2 inline-flex items-center rounded-full border border-stone-300 bg-white text-stone-500 hover:border-red-300 hover:text-red-500 cursor-pointer relative overflow-visible",
+                  shop.likeCount > 0 && "has-count",
+                ]}
                 data-action="like"
                 data-shop-id={String(shop.id)}
                 data-like-token={shop.likeToken}
                 aria-label={`${shop.name} liken`}
               >
-                <HeartIcon weight="regular" className="like-icon-regular w-5 h-5" />
-                <HeartIcon weight="duotone" className="like-icon-duotone w-5 h-5 absolute hidden text-red-500" />
+                <span class="relative inline-flex w-5 h-5 shrink-0 items-center justify-center">
+                  <HeartIcon weight="regular" className="like-icon-regular w-5 h-5" />
+                  <HeartIcon weight="duotone" className="like-icon-duotone w-5 h-5 absolute hidden" />
+                </span>
+                <span class="like-count-slot">
+                  <span
+                    class="like-count-value text-sm tabular-nums leading-none"
+                    data-like-count-value
+                    data-shop-id={String(shop.id)}
+                  >{shop.likeCount > 0 ? shop.likeCount : ""}</span>
+                </span>
               </button>
               <button
                 type="button"
