@@ -15,6 +15,7 @@ import { env } from "./config/env.js";
 import { client, db } from "./db/client.js";
 import { runMigrations } from "./db/run-migrations.js";
 import { serveApiReference, serveOpenApiJson } from "./docs/openapi.js";
+import { CACHE_NONE } from "./lib/cache-control.js";
 import { fail, getErrorResponse } from "./lib/http.js";
 import { logger } from "./lib/logger.js";
 import { requireInternalCaller } from "./middleware/internal-caller.js";
@@ -61,6 +62,20 @@ app.use(
   }),
 );
 app.use("*", secureHeaders());
+
+// In development nothing is kept. Every route states a lifetime that suits
+// what it serves, and a minute of it is exactly wrong whilst somebody is
+// editing and reloading to see the result.
+//
+// Only development. The test environment keeps the real values, because the
+// route tests assert them and it is those values that ship.
+if (env.NODE_ENV === "development") {
+  app.use("*", async (c, next) => {
+    await next();
+    c.header("Cache-Control", CACHE_NONE);
+  });
+}
+
 if (env.NODE_ENV === "production") {
   app.use("*", async (c, next) => {
     c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
