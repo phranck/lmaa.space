@@ -30,8 +30,6 @@ export function DashboardPage() {
     );
   }
 
-  const unresolvedBgErrors = stats?.unresolvedBackgroundErrors ?? 0;
-
   return (
     <PageLayout>
       <PageHeader title={dashboardMessages.overviewTitle} />
@@ -66,15 +64,6 @@ export function DashboardPage() {
             (stats?.deadLinkReports ?? 0) > 0 ? dashboardMessages.cards.shopsReported : undefined
           }
           href={(stats?.deadLinkReports ?? 0) > 0 ? "/reports/dead-links" : undefined}
-        />
-        <DashboardInfoCard
-          label={dashboardMessages.cards.backgroundErrors}
-          value={unresolvedBgErrors}
-          accent={unresolvedBgErrors > 0}
-          sub={
-            unresolvedBgErrors > 0 ? dashboardMessages.cards.backgroundErrorsUnresolved : undefined
-          }
-          href={unresolvedBgErrors > 0 ? "/system/background-errors" : undefined}
         />
       </div>
     </PageLayout>

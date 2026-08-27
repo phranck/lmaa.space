@@ -9,7 +9,6 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   ArticleIcon,
   BlueprintIcon,
-  BugIcon,
   CaretCircleDoubleDownIcon,
   CaretCircleDoubleUpIcon,
   CheckCircleIcon,
@@ -992,19 +991,6 @@ export function Sidebar({
                         icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.socialMediaAccounts}
                         badge={socialMediaAccounts.length}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
-                  <NavLink
-                    to="/system/background-errors"
-                    onClick={onItemClick}
-                    className="contents"
-                  >
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<BugIcon weight="duotone" className="w-4 h-4" />}
-                        label={sidebarMessages.backgroundErrors}
                         active={isActive}
                       />
                     )}

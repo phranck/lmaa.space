@@ -16,8 +16,7 @@ export async function getAdminStatsRow(): Promise<AdminStats> {
       (SELECT count(*)::int FROM categories) AS categories,
       (SELECT count(*)::int FROM submissions WHERE status = 'pending') AS "pendingSubmissions",
       (SELECT count(*)::int FROM submissions) AS "totalSubmissions",
-      (SELECT count(DISTINCT shop_id)::int FROM dead_link_reports) AS "deadLinkReports",
-      (SELECT count(*)::int FROM background_errors WHERE resolved_at IS NULL) AS "unresolvedBackgroundErrors"
+      (SELECT count(DISTINCT shop_id)::int FROM dead_link_reports) AS "deadLinkReports"
   `);
 
   return stats;

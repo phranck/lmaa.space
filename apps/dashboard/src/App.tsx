@@ -181,12 +181,6 @@ const SystemSettingsPage = lazy(() =>
   })),
 );
 
-const BackgroundErrorsPage = lazy(() =>
-  import("@/features/system/BackgroundErrorsPage.tsx").then((m) => ({
-    default: m.BackgroundErrorsPage,
-  })),
-);
-
 const RedirectUrlsPage = lazy(() =>
   import("@/features/system/RedirectUrlsPage.tsx").then((m) => ({
     default: m.RedirectUrlsPage,
@@ -512,14 +506,6 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <SocialPreviewPage />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="system/background-errors"
-                element={
-                  <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <BackgroundErrorsPage />
                   </Suspense>
                 }
               />

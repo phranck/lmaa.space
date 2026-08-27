@@ -79,7 +79,6 @@ export interface DashboardMessages {
       socialPreviewImages: string;
       socialPreviewOverview: string;
       socialMediaAccounts: string;
-      backgroundErrors: string;
       expandAll: string;
       collapseAll: string;
       expandAllAria: string;
@@ -143,8 +142,6 @@ export interface DashboardMessages {
       allTime: string;
       brokenLinks: string;
       shopsReported: string;
-      backgroundErrors: string;
-      backgroundErrorsUnresolved: string;
     };
   };
   shops: {
@@ -1537,25 +1534,6 @@ export interface DashboardMessages {
       deleteConfirmTitle: string;
       deleteConfirmDescription: string;
     };
-    backgroundErrors: {
-      title: string;
-      columnSource: string;
-      columnMessage: string;
-      columnOccurredAt: string;
-      columnStatus: string;
-      resolveAction: string;
-      deleteAction: string;
-      deleteConfirmTitle: string;
-      deleteConfirmDescription: string;
-      statusOpen: string;
-      statusResolved: string;
-      noErrors: string;
-      noErrorsSubtitle: string;
-      filterSourcePlaceholder: string;
-      filterAll: string;
-      filterUnresolved: string;
-      filterResolved: string;
-    };
   };
   errors: {
     boundary: {
@@ -1642,7 +1620,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         socialPreviewImages: "Images",
         socialPreviewOverview: "Übersicht",
         socialMediaAccounts: "Social Media Accounts",
-        backgroundErrors: "Hintergrundfehler",
         expandAll: "Alles aufklappen",
         collapseAll: "Alles zuklappen",
         expandAllAria: "Alle Gruppen aufklappen",
@@ -1706,8 +1683,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         allTime: "aller Zeiten",
         brokenLinks: "Defekte Links",
         shopsReported: "Shops gemeldet",
-        backgroundErrors: "Hintergrundfehler",
-        backgroundErrorsUnresolved: "Ungelöst",
       },
     },
     shops: {
@@ -3192,26 +3167,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deleteConfirmDescription:
           "Dieses Social-Media-Preview-Bild wird aus der Auswahl entfernt. Das gerenderte Media-Asset bleibt in der Mediathek erhalten.",
       },
-      backgroundErrors: {
-        title: "Hintergrundfehler",
-        columnSource: "Quelle",
-        columnMessage: "Fehlermeldung",
-        columnOccurredAt: "Zeitpunkt",
-        columnStatus: "Status",
-        resolveAction: "Lösen",
-        deleteAction: "Löschen",
-        deleteConfirmTitle: "Hintergrundfehler löschen",
-        deleteConfirmDescription:
-          "Der Hintergrundfehler aus {source} wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
-        statusOpen: "Offen",
-        statusResolved: "Gelöst",
-        noErrors: "Keine Fehler vorhanden",
-        noErrorsSubtitle: "Alle Hintergrunddienste laufen fehlerfrei.",
-        filterSourcePlaceholder: "Quelle filtern…",
-        filterAll: "Alle",
-        filterUnresolved: "Offen",
-        filterResolved: "Gelöst",
-      },
     },
     errors: {
       boundary: {
@@ -3293,7 +3248,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         socialPreviewImages: "Images",
         socialPreviewOverview: "Overview",
         socialMediaAccounts: "Social Media Accounts",
-        backgroundErrors: "Background Errors",
         expandAll: "Expand all",
         collapseAll: "Collapse all",
         expandAllAria: "Expand all groups",
@@ -3357,8 +3311,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         allTime: "all time",
         brokenLinks: "Broken links",
         shopsReported: "Shops reported",
-        backgroundErrors: "Background errors",
-        backgroundErrorsUnresolved: "Unresolved",
       },
     },
     shops: {
@@ -4829,26 +4781,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deleteConfirmTitle: "Delete preview image?",
         deleteConfirmDescription:
           "This social media preview image will be removed from the selectable previews. The rendered media asset remains in the media library.",
-      },
-      backgroundErrors: {
-        title: "Background Errors",
-        columnSource: "Source",
-        columnMessage: "Error message",
-        columnOccurredAt: "Occurred at",
-        columnStatus: "Status",
-        resolveAction: "Resolve",
-        deleteAction: "Delete",
-        deleteConfirmTitle: "Delete background error",
-        deleteConfirmDescription:
-          "The background error from {source} will be permanently deleted. This action cannot be undone.",
-        statusOpen: "Open",
-        statusResolved: "Resolved",
-        noErrors: "No errors found",
-        noErrorsSubtitle: "All background services are running without errors.",
-        filterSourcePlaceholder: "Filter by source…",
-        filterAll: "All",
-        filterUnresolved: "Open",
-        filterResolved: "Resolved",
       },
     },
     errors: {
