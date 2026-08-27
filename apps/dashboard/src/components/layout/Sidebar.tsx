@@ -1,4 +1,4 @@
-import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, closestCenter, type DragEndEvent, type Modifier } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
@@ -102,6 +102,18 @@ const SECTION_DRAG_LABEL = {
   de: "Abschnitt verschieben",
   en: "Move section",
 } as const;
+
+/**
+ * Holds a dragged section in its column.
+ *
+ * The list is vertical and reorders vertically, so sideways movement moves the
+ * section away from where it can be dropped and tells the reader nothing. Only
+ * the offset is dropped; the section still follows the pointer up and down.
+ *
+ * Written out rather than taken from `@dnd-kit/modifiers`, because that package
+ * is not a dependency here and this is the one modifier the sidebar needs.
+ */
+const restrictToVerticalAxis: Modifier = ({ transform }) => ({ ...transform, x: 0 });
 
 function parseSectionOrder(dbOrder?: string[]): SidebarSectionId[] {
   if (!Array.isArray(dbOrder)) return [...SIDEBAR_SECTION_IDS];
@@ -1015,6 +1027,7 @@ export function Sidebar({
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
               onDragEnd={handleDragEnd}
             >
               <SortableContext items={visibleSections} strategy={verticalListSortingStrategy}>
