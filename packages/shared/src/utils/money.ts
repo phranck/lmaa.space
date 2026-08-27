@@ -1,10 +1,11 @@
 /**
  * Money, written the one way this project writes it.
  *
- * The site is Austrian by address and German by author, and the two locales
- * disagree about where the symbol goes: `de-AT` writes `€ 226,00` whilst
- * `de-DE` writes `226,00 €`. Stated by phranck on 2026-08-23: the German form,
- * everywhere.
+ * The two German locales disagree about where the symbol goes: `de-AT` writes
+ * `€ 226,00` whilst `de-DE` writes `226,00 €`. The project is operated from
+ * Austria, so it writes the Austrian form. Stated by phranck on 2026-08-27:
+ * "Ich lebe in AT, also lass uns die AT Schreibweise ueberall konsistent
+ * verwenden."
  *
  * It lives here rather than beside each surface because it had begun to
  * disagree with itself. Two of the four formatters on the site said Austrian and
@@ -12,7 +13,7 @@
  */
 
 /** The one locale every amount is written in. */
-const MONEY_LOCALE = "de-DE";
+const MONEY_LOCALE = "de-AT";
 
 /**
  * Formatters built once at module scope.
@@ -45,7 +46,7 @@ export const EURO_SYMBOL =
  * Writes an amount given in euro, with its cents.
  *
  * @param euros - The amount, in euro.
- * @returns The amount as `226,00 €`.
+ * @returns The amount as `€ 226,00`.
  */
 export function formatEuro(euros: number): string {
   return EURO_EXACT.format(euros);
@@ -68,7 +69,7 @@ export function formatEuroWhole(euros: number): string {
  * Writes an amount held in cents, which is how every amount is stored.
  *
  * @param cents - The amount, in cents.
- * @returns The amount as `226,00 €`.
+ * @returns The amount as `€ 226,00`.
  */
 export function formatEuroCents(cents: number): string {
   return formatEuro(cents / 100);
