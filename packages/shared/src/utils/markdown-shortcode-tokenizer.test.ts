@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_NODE_LENGTH, tokenizeShortcodes } from "./markdown-shortcode-tokenizer.js";
+import {
+  MAX_BODY_LENGTH,
+  MAX_NODE_LENGTH,
+  tokenizeShortcodes,
+} from "./markdown-shortcode-tokenizer.js";
 
 describe("tokenizeShortcodes", () => {
   it("reads a bare token", () => {
@@ -107,5 +111,86 @@ describe("tokenizeShortcodes", () => {
     const [node] = tokenizeShortcodes(content);
     expect(content.slice(node.source.start, node.source.end)).toBe("[[a]]");
     expect(node.source.raw).toBe("[[a]]");
+  });
+
+  describe("a braced body", () => {
+    it("keeps what stands between the braces, attributes and all", () => {
+      const [node] = tokenizeShortcodes('[[vstack alignment="leading" spacing=12 { Hallo }]]');
+      expect(node.token).toBe("vstack");
+      expect(node.attributes.alignment).toBe("leading");
+      expect(node.attributes.spacing).toBe("12");
+      expect(node.body).toBe("Hallo ");
+    });
+
+    it("leaves a node without braces without a body", () => {
+      const [node] = tokenizeShortcodes('[[icon name="heart"]]');
+      expect(node.body).toBeUndefined();
+    });
+
+    it("closes on its own brace rather than on a nested one", () => {
+      const [node] = tokenizeShortcodes("[[vstack { vor [[hstack { innen }]] nach }]]");
+      expect(node.body).toBe("vor [[hstack { innen }]] nach ");
+    });
+
+    it("leaves the body unscanned, so a shortcode inside it is still text", () => {
+      const nodes = tokenizeShortcodes('[[vstack { [[icon name="heart"]] }]]');
+      expect(nodes).toHaveLength(1);
+      expect(nodes[0].children).toHaveLength(0);
+    });
+
+    it("takes an escaped brace as text and drops the backslash", () => {
+      const [node] = tokenizeShortcodes("[[vstack { a \\} b \\{ c }]]");
+      expect(node.body).toBe("a } b { c ");
+    });
+
+    it("ignores a body that never closes", () => {
+      expect(tokenizeShortcodes("[[vstack { offen ]]")).toHaveLength(0);
+    });
+
+    it("ignores an attribute written after the body", () => {
+      expect(tokenizeShortcodes("[[vstack { Inhalt } spacing=8]]")).toHaveLength(0);
+    });
+
+    it("does not swallow a later node from a body that outgrows its cap", () => {
+      const content = [
+        `[[vstack { ${"x".repeat(MAX_BODY_LENGTH + 100)}`,
+        "[[image:/uploads/b.png]]",
+      ].join("\n");
+      const nodes = tokenizeShortcodes(content);
+      expect(nodes).toHaveLength(1);
+      expect(nodes[0].target).toBe("/uploads/b.png");
+    });
+
+    it("reports the source span over the whole node, body included", () => {
+      const content = "vor [[vstack { drin }]] nach";
+      const [node] = tokenizeShortcodes(content);
+      expect(content.slice(node.source.start, node.source.end)).toBe("[[vstack { drin }]]");
+    });
+  });
+});
+
+describe("a body's indentation", () => {
+  it("loses the indentation that comes from nesting", () => {
+    // Two levels are four spaces, which Markdown would read as a code block.
+    const content = ["[[vstack {", "  [[hstack {", "    ### Titel", "  }]]", "}]]"].join("\n");
+    const [outer] = tokenizeShortcodes(content);
+    expect(outer.body).toBe("\n[[hstack {\n  ### Titel\n}]]\n");
+  });
+
+  it("keeps what a line indents beyond its neighbours", () => {
+    const content = ["[[vstack {", "  Text", "      eingerückt", "}]]"].join("\n");
+    const [node] = tokenizeShortcodes(content);
+    expect(node.body).toBe("\nText\n    eingerückt\n");
+  });
+
+  it("leaves a body that starts on the brace's own line alone", () => {
+    const [node] = tokenizeShortcodes("[[vstack { Hallo }]]");
+    expect(node.body).toBe("Hallo ");
+  });
+
+  it("empties a line that holds nothing but indentation", () => {
+    const content = ["[[vstack {", "  eins", "  ", "  zwei", "}]]"].join("\n");
+    const [node] = tokenizeShortcodes(content);
+    expect(node.body).toBe("\neins\n\nzwei\n");
   });
 });

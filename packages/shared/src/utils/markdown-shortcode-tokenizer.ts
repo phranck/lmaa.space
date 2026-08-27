@@ -16,6 +16,16 @@
  *
  * It closes only on `]]` outside a quoted value, so a single `]` in prose is
  * ordinary text.
+ *
+ * A node may also carry a body in braces, written after its attributes, which
+ * is where the content of a container goes. The body is kept as text and is
+ * not scanned further: whoever renders it decides what it means, and a
+ * container renders it as Markdown so anything at all may stand inside one.
+ *
+ * What the body loses is the indentation it carries only because of how deeply
+ * it is nested. Markdown reads four leading spaces as a code block, so without
+ * that the structure of the document would decide how its content is
+ * understood.
  */
 
 /** A quoted or bare attribute value, or `true` when the attribute is a flag. */
@@ -30,7 +40,12 @@ export interface ShortcodeAttribute {
 
 /** Something the scanner could not read. */
 export interface ShortcodeSyntaxIssue {
-  code: "unterminated-node" | "unterminated-value" | "invalid-attribute" | "node-too-long";
+  code:
+    | "unterminated-node"
+    | "unterminated-value"
+    | "unterminated-body"
+    | "invalid-attribute"
+    | "node-too-long";
   message: string;
   /** Offset into the original content, so an editor can point at it. */
   offset: number;
@@ -43,6 +58,14 @@ export interface ShortcodeNode {
   attributes: Record<string, ShortcodeAttributeValue>;
   rawAttributes: ShortcodeAttribute[];
   children: ShortcodeNode[];
+  /**
+   * What stood between the braces, with escaped braces already resolved.
+   *
+   * Absent where the node was written without a body, which is every node the
+   * site had before containers existed. The text is unscanned, so a shortcode
+   * inside it is still source rather than a node.
+   */
+  body?: string;
   issues: ShortcodeSyntaxIssue[];
   source: { start: number; end: number; raw: string };
 }
@@ -58,11 +81,23 @@ export interface ShortcodeNode {
  */
 export const MAX_NODE_LENGTH = 8000;
 
+/**
+ * Longest body a node may carry, in characters.
+ *
+ * Separate from `MAX_NODE_LENGTH`, which bounds a run of attributes and is
+ * sized for one. A container holds page content, so a paragraph or two is the
+ * small case rather than the large one, and the cap is here only to stop an
+ * unclosed brace from swallowing the rest of the document.
+ */
+export const MAX_BODY_LENGTH = 20000;
+
 const TOKEN_PATTERN = /^[a-z][a-z0-9-]*/;
 const ATTRIBUTE_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9-]*/;
 
 const OPEN = "[[";
 const CLOSE = "]]";
+const BODY_OPEN = "{";
+const BODY_CLOSE = "}";
 
 /** True when `content` has the two-character marker at `index`. */
 function isAt(content: string, index: number, marker: string): boolean {
@@ -140,6 +175,104 @@ function readAttribute(
 }
 
 /**
+ * Removes the indentation a body carries only because of where it is written.
+ *
+ * A nested container indents its content, and at two levels that is four
+ * spaces, which Markdown reads as a code block. So the structure would decide
+ * how the content is understood, and a heading inside two containers would come
+ * out as source text.
+ *
+ * The smallest indentation any line carries is what belongs to the nesting, so
+ * that much comes off every line. Whatever a line indents beyond it is its own,
+ * and a genuine code block written deeper than its neighbours survives.
+ *
+ * The first line is measured separately, because a body that starts on the same
+ * line as its brace has no indentation there to speak of.
+ */
+function dedentBody(body: string): string {
+  const lines = body.split("\n");
+  if (lines.length === 1) return body.trimStart();
+
+  let common = Number.POSITIVE_INFINITY;
+  for (let index = 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.trim() === "") continue;
+    common = Math.min(common, line.length - line.trimStart().length);
+  }
+
+  if (!Number.isFinite(common) || common === 0) {
+    return [lines[0].trimStart(), ...lines.slice(1)].join("\n");
+  }
+
+  return [
+    lines[0].trimStart(),
+    ...lines.slice(1).map((line) => (line.trim() === "" ? "" : line.slice(common))),
+  ].join("\n");
+}
+
+/**
+ * Reads a braced body whose opening `{` sits at `start`.
+ *
+ * Braces are counted, so a container holding another container closes on its
+ * own brace rather than on the inner one. Nothing else is interpreted: quotes
+ * are ordinary characters here, because a body is prose and an apostrophe in it
+ * is an apostrophe.
+ *
+ * A brace that is part of the text is written `\{` or `\}`. The backslash is
+ * removed as the body is read, so what comes back is what the author meant to
+ * write.
+ *
+ * @returns The body and the offset just past its closing `}`, or `null` when
+ *   the body never closes or outgrows `MAX_BODY_LENGTH`.
+ */
+function readBody(
+  content: string,
+  start: number,
+  issues: ShortcodeSyntaxIssue[],
+): { body: string; next: number } | null {
+  const bodyStart = start + BODY_OPEN.length;
+  let cursor = bodyStart;
+  let depth = 1;
+  const parts: string[] = [];
+  let plainFrom = bodyStart;
+
+  while (cursor < content.length) {
+    if (cursor - bodyStart > MAX_BODY_LENGTH) return null;
+
+    const character = content[cursor];
+
+    if (character === "\\") {
+      const escaped = content[cursor + 1];
+      if (escaped === BODY_OPEN || escaped === BODY_CLOSE) {
+        parts.push(content.slice(plainFrom, cursor), escaped);
+        cursor += 2;
+        plainFrom = cursor;
+        continue;
+      }
+    }
+
+    if (character === BODY_OPEN) {
+      depth += 1;
+    } else if (character === BODY_CLOSE) {
+      depth -= 1;
+      if (depth === 0) {
+        parts.push(content.slice(plainFrom, cursor));
+        return { body: dedentBody(parts.join("")), next: cursor + BODY_CLOSE.length };
+      }
+    }
+
+    cursor += 1;
+  }
+
+  issues.push({
+    code: "unterminated-body",
+    message: "A body opened with { was never closed.",
+    offset: start,
+  });
+  return null;
+}
+
+/**
  * Reads one node whose opening `[[` sits at `start`.
  *
  * @returns The node and the offset just past its closing `]]`, or `null` when
@@ -192,6 +325,34 @@ function readNode(content: string, start: number): { node: ShortcodeNode; next: 
           attributes,
           rawAttributes,
           children,
+          issues,
+          source: { start, end: cursor, raw: content.slice(start, cursor) },
+        },
+        next: cursor,
+      };
+    }
+
+    // A body ends the node: it is the last thing written, and only the closing
+    // pair may follow it. Anything after the brace would be an attribute
+    // standing behind the content it describes, which reads as a mistake and
+    // is treated as one.
+    if (isAt(content, cursor, BODY_OPEN)) {
+      const read = readBody(content, cursor, issues);
+      if (!read) return null;
+
+      cursor = read.next;
+      while (cursor < content.length && isWhitespace(content[cursor])) cursor += 1;
+      if (!isAt(content, cursor, CLOSE)) return null;
+      cursor += CLOSE.length;
+
+      return {
+        node: {
+          token,
+          target,
+          attributes,
+          rawAttributes,
+          children,
+          body: read.body,
           issues,
           source: { start, end: cursor, raw: content.slice(start, cursor) },
         },
