@@ -11,7 +11,6 @@ import {
   type MarkdownShortcodeDefinition,
   type MarkdownShortcodeDefinitionToken,
   type MarkdownShortcodeParamDefinition,
-  type SiteVariableName,
 } from "@lmaa/shared";
 
 /**
@@ -20,9 +19,7 @@ import {
  * Two kinds share one column because they answer the same question from the
  * writer: what may I put here, and how is it spelt.
  */
-type HelpSelection =
-  | { kind: "shortcode"; token: MarkdownShortcodeDefinitionToken }
-  | { kind: "variable"; name: SiteVariableName };
+type HelpSelection = { kind: "shortcode"; token: MarkdownShortcodeDefinitionToken } | { kind: "variables" };
 
 /**
  * How long the copy confirmation stays visible, in milliseconds.
@@ -276,28 +273,41 @@ function DefinitionEntry({
  * @param onSelect - Called with the token the reader picked.
  */
 /**
- * What a variable stands for, and how it is written.
+ * Every variable at once, in the column that describes things.
  *
- * A variable has no parameters and no children, so it needs far less room than
- * a shortcode. The example is what the dashboard holds for it rather than the
- * figure the site currently shows, because the panel is open whilst somebody
- * writes and the real figure lives on the server.
+ * They share one entry in the list rather than thirteen, because a variable is
+ * one line and a reader looking for the right name wants them side by side.
+ * The description does the sorting that the list would otherwise have to.
  */
-function VariableEntry({ name }: { name: SiteVariableName }) {
-  const variable = SITE_VARIABLES[name];
-
+function VariableTable() {
   return (
     <section>
-      <header className="flex items-center gap-2 flex-wrap">
-        <code className="font-mono text-[var(--ds-text)] text-[0.8125rem]">{`{${name}}`}</code>
-        <CopyButton text={`{${name}}`} />
+      <header>
+        <h3 className="font-semibold text-[var(--ds-text)] text-[0.875rem]">Variablen</h3>
+        <p className="mt-1 text-[var(--ds-text-hint)] text-[0.8125rem] leading-relaxed">
+          Eine Variable steht in geschweiften Klammern und wird eingesetzt, bevor der Text gelesen
+          wird. Sie gilt deshalb im Fliesstext genauso wie in einem Feld eines Shortcodes.
+        </p>
       </header>
-      <p className="mt-2 text-[var(--ds-text-muted)] text-[0.8125rem] leading-relaxed">
-        {variable.label}
-      </p>
-      <p className="mt-2 text-[var(--ds-text-muted)] text-[0.75rem]">
-        Beispiel: <span className="font-mono text-[var(--ds-text)]">{variable.example}</span>
-      </p>
+
+      <table className="mt-3 w-full border-collapse text-[0.8125rem]">
+        <tbody>
+          {SITE_VARIABLE_NAMES.map((name) => (
+            <tr key={name} className="align-top">
+              <td className="py-1 pr-3 whitespace-nowrap">
+                <code className="font-mono text-[var(--ds-text)]">{`{${name}}`}</code>
+              </td>
+              <td className="py-1 pr-3 text-[var(--ds-text-hint)]">{SITE_VARIABLES[name].label}</td>
+              <td className="py-1 pr-2 whitespace-nowrap font-mono text-[var(--ds-text-hint)]">
+                {SITE_VARIABLES[name].example}
+              </td>
+              <td className="py-1">
+                <CopyButton text={`{${name}}`} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </section>
   );
 }
@@ -328,26 +338,20 @@ function ShortcodeList({
         );
       })}
 
-      {/* The variables share the list because a writer looking for something to
-          put in a field does not know in advance which of the two it will be. */}
-      <p className="lmaa-help-nav-group">Variablen</p>
+      {/* One entry rather than thirteen. A variable is a single line, so the
+          column beside this one can show them all at once. */}
+      <p className="lmaa-help-nav-group">Weiteres</p>
 
-      {SITE_VARIABLE_NAMES.map((name) => {
-        const current = selected.kind === "variable" && selected.name === name;
-        return (
-          <button
-            key={name}
-            type="button"
-            onClick={() => onSelect({ kind: "variable", name })}
-            data-current={current ? "true" : undefined}
-            aria-current={current ? "true" : undefined}
-            className="lmaa-help-nav-item"
-          >
-            <span className="font-mono">{`{${name}}`}</span>
-            <span className="lmaa-help-nav-label">{SITE_VARIABLES[name].label}</span>
-          </button>
-        );
-      })}
+      <button
+        type="button"
+        onClick={() => onSelect({ kind: "variables" })}
+        data-current={selected.kind === "variables" ? "true" : undefined}
+        aria-current={selected.kind === "variables" ? "true" : undefined}
+        className="lmaa-help-nav-item"
+      >
+        <span className="font-mono">{"{variablen}"}</span>
+        <span className="lmaa-help-nav-label">Zahlen aus den Einstellungen</span>
+      </button>
     </nav>
   );
 }
@@ -639,11 +643,7 @@ export function MarkdownShortcodeReference({
       <div className="lmaa-help-split">
         <ShortcodeList selected={selected} onSelect={setSelected} />
         <div className="lmaa-help-body">
-          {shownDefinition ? (
-            <DefinitionEntry definition={shownDefinition} depth={0} />
-          ) : (
-            <VariableEntry name={(selected as { kind: "variable"; name: SiteVariableName }).name} />
-          )}
+          {shownDefinition ? <DefinitionEntry definition={shownDefinition} depth={0} /> : <VariableTable />}
         </div>
       </div>
     </aside>,

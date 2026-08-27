@@ -329,9 +329,9 @@
   /* A label on a dark surface goes brighter than the running text, because it
      names the field and is read before the value in it. Stated outright rather
      than derived, so it does not move when the text scale is adjusted.
-     Measured against --ds-surface it reaches a contrast of 15.7. The light
-     theme keeps `var(--ds-text)`, where the same intent means dark on paper. */
-  --ds-text-label: oklch(97% 0% 68deg);
+     The light theme keeps `var(--ds-text)`, where the same intent means dark
+     on paper. */
+  --ds-text-label: #e3e3e3;
 
   --ds-text-inverse: oklch(var(--ds-L-inset) 0 0);
   /* Warm paper has no counterpart on a dark page, so the role falls back to the

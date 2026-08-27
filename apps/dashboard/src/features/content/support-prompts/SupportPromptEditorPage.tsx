@@ -14,6 +14,15 @@ import {
 } from "@lmaa/contracts";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
+/**
+ * The editor's DOM id, which is how its height is remembered.
+ *
+ * `usePersistedTextareaHeight` finds the element by this id and waits for it,
+ * which matters here because the editor is loaded lazily and its fallback is
+ * a different node.
+ */
+const PROMPT_EDITOR_ID = "support-prompt-content";
+
 import { DeleteActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import {
   DashboardCombobox,
@@ -27,6 +36,7 @@ import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
+import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
 import {
   useCreateSupportPrompt,
@@ -76,6 +86,10 @@ export function SupportPromptEditorPage() {
   const navigate = useNavigate();
   const { promptId } = useParams<{ promptId: string }>();
   const isNew = promptId === "new";
+
+  // Remembers how tall the editor was dragged, the same way six other fields
+  // in the dashboard already do.
+  usePersistedTextareaHeight(PROMPT_EDITOR_ID, "support-prompts:editor:content");
 
   const { data: prompts } = useSupportPrompts();
   const create = useCreateSupportPrompt();
@@ -294,8 +308,10 @@ export function SupportPromptEditorPage() {
                     <MarkdownEditor
                       key={promptId}
                       value={fields.content}
+                      id={PROMPT_EDITOR_ID}
                       onChange={(value) => update({ content: value })}
                       height="24rem"
+                      resizable
                     />
                   </Suspense>
                 </div>

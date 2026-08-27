@@ -1,19 +1,15 @@
-import type { Extension } from "@codemirror/state";
 import * as React from "react";
 
-export interface MarkdownEditorProps {
-  id?: string;
-  value: string;
-  onChange: (value: string) => void;
-  onPaste?: (event: ClipboardEvent) => void;
-  placeholder?: string;
-  rows?: number;
-  height?: string;
-  resizable?: boolean;
-  showHints?: boolean;
-  extensions?: Extension[];
-  className?: string;
-}
+/**
+ * The props, taken from the editor itself rather than restated here.
+ *
+ * The two had drifted: this file listed them again, so a prop added to the
+ * editor was accepted by the editor and rejected by the wrapper in front of
+ * it. A type-only import costs nothing at runtime and cannot fall behind.
+ */
+export type { MarkdownEditorProps } from "./MarkdownEditorCore.tsx";
+
+import type { MarkdownEditorProps } from "./MarkdownEditorCore.tsx";
 
 const MarkdownEditorCore = React.lazy(() =>
   import("./MarkdownEditorCore.tsx").then((module) => ({ default: module.MarkdownEditorCore })),
