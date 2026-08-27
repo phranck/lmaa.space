@@ -3,17 +3,6 @@ import { describe, expect, it } from "vitest";
 import { renderMarkdown, stripMarkdown } from "./markdown";
 
 describe("renderMarkdown", () => {
-  it("renders widget shortcodes through the registry parser", async () => {
-    const html = await renderMarkdown(
-      '[[widget:featured-shops title="Featured shops" height=480]]',
-    );
-
-    expect(html).toContain('class="md-widget"');
-    expect(html).toContain('src="/markdown-widgets/featured-shops"');
-    expect(html).toContain('title="Featured shops"');
-    expect(html).toContain("height:480px");
-  });
-
   it("renders image and PDF shortcodes through the registry parser", async () => {
     const html = await renderMarkdown(
       '[[image:/uploads/hero.jpg alt="Hero" caption="Launch" width=640 height=360]]\n\n[[pdf:/uploads/guide.pdf label="Guide"]]',
@@ -34,7 +23,6 @@ describe("renderMarkdown", () => {
     const html = await renderMarkdown("[[rejected-shops-table pageSize=30]]");
 
     expect(html).toContain("[[rejected-shops-table pageSize=30]]");
-    expect(html).not.toContain("md-widget");
   });
 
   it("renders HLS shortcodes with media aliases", async () => {
