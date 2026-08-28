@@ -5,16 +5,13 @@ import { Outlet, useNavigate } from "react-router";
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { FooterUserInfo } from "@/components/layout/SidebarFooter.tsx";
 import { Card } from "@/components/ui/Card.tsx";
-import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { BodyCardProvider, useBodyCard } from "@/context/BodyCardContext.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { PageFooterProvider, usePageFooterContext } from "@/context/PageFooterContext.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
-import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { UserEditCard } from "@/features/system/users/UserEditCard.tsx";
 import { usePushNotifications } from "@/lib/hooks/usePushNotifications.ts";
-import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 const SIDEBAR_DEFAULT = 224;
 const SIDEBAR_MIN = 160;
@@ -74,17 +71,6 @@ function useSidebarWidth() {
   return { width, onMouseDown };
 }
 
-function ThemeToggle({ userId }: { userId?: number }) {
-  const { theme, setTheme } = useTheme();
-  return (
-    <ThemeSegmentedControl
-      value={theme}
-      onChange={setTheme}
-      storageKey={getSegmentedStorageKey(userId, "layout:theme")}
-    />
-  );
-}
-
 function AdminLayoutInner() {
   const { user, logout } = useAuth();
   const { messages } = useI18n();
@@ -122,11 +108,7 @@ function AdminLayoutInner() {
           className="hidden md:flex items-center justify-center shrink-0 h-full px-3"
           style={{ width: sidebarWidth }}
         >
-          <img
-            src="/logo.png"
-            alt="lmaa.space"
-            className="h-8 w-auto dark:invert dark:brightness-90"
-          />
+          <img src="/logo.png" alt="lmaa.space" className="h-8 w-auto invert brightness-90" />
         </div>
         <div className="flex-1 flex items-center justify-between px-3">
           <div className="flex min-w-0 items-center gap-4">
@@ -149,7 +131,6 @@ function AdminLayoutInner() {
           </div>
           <div className="flex items-center gap-3 ml-auto">
             <div ref={setActionsEl} className="flex items-center gap-2" />
-            <ThemeToggle userId={user?.id} />
           </div>
         </div>
       </Card>

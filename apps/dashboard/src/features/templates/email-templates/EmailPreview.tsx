@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from "react";
 
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
-import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
+import {
+  ColorSchemeSegmentedControl,
+  type ColorScheme,
+} from "@/components/ui/ColorSchemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useTheme } from "@/context/ThemeContext.tsx";
 import { api } from "@/lib/api.ts";
 
 interface EmailPreviewProps {
@@ -29,11 +31,12 @@ export function EmailPreview({
   footerText,
 }: EmailPreviewProps) {
   const { messages } = useI18n();
-  const { theme, setTheme, effectiveTheme } = useTheme();
   const m = messages.emailTemplates;
   const [srcDoc, setSrcDoc] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const colorScheme = theme === "system" ? effectiveTheme : theme;
+  // Light to begin with, which is what a mail client shows unless its reader
+  // asked for the other one.
+  const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -60,7 +63,7 @@ export function EmailPreview({
       <DashboardSection.Header
         icon={<EyeIcon weight="duotone" className="size-4" />}
         title={m.previewTitle}
-        addOn={<ThemeSegmentedControl value={theme} onChange={setTheme} />}
+        addOn={<ColorSchemeSegmentedControl value={colorScheme} onChange={setColorScheme} />}
       />
       <DashboardSection.Body className="min-h-0 flex-1 !gap-0 !p-0">
         <iframe
