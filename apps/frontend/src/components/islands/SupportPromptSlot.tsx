@@ -143,17 +143,24 @@ export default function SupportPromptSlot({
   const [shown, setShown] = useState<{ prompt: RenderedSupportPrompt; html: string } | null>(null);
 
   useEffect(() => {
-    if (prompts.length === 0) return;
-
-    // One prompt per page view. A second slot on the same page stays quiet.
-    if (document.querySelector("[data-support-prompt]")) return;
-
     let store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
 
+    // Counted before anything can return, because the visit happened whether or
+    // not this page has a prompt to show for it, and the counter is not this
+    // slot's own: the prompt in the category grid measures its threshold
+    // against the same number. Behind the guards, unpublishing the shop-detail
+    // prompt froze that number and no prompt appeared anywhere again.
+    // `countShopView` refuses the same shop twice, so standing ahead of the
+    // second guard cannot count a page twice either.
     if (slot === "shop-detail" && shopSlug) {
       store = countShopView(store, shopSlug);
       persist(store);
     }
+
+    if (prompts.length === 0) return;
+
+    // One prompt per page view. A second slot on the same page stays quiet.
+    if (document.querySelector("[data-support-prompt]")) return;
 
     // Which counter a threshold reads is the prompt's own answer, because the
     // same place can carry a prompt about what somebody has kept and one about
