@@ -128,6 +128,7 @@ function ShopLogo({
           width={28}
           height={28}
           className="block size-full object-contain"
+          referrerPolicy="no-referrer"
         />
       ) : (
         <span className="flex size-full select-none items-center justify-center text-xs font-bold text-stone-300">

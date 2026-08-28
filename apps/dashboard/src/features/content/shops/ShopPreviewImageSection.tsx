@@ -69,7 +69,12 @@ export function ShopPreviewImageSection({
             style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
           >
             {displayImage ? (
-              <img src={displayImage} alt="" className="size-full object-contain" />
+              <img
+                src={displayImage}
+                alt=""
+                className="size-full object-contain"
+                referrerPolicy="no-referrer"
+              />
             ) : name ? (
               <span className="text-xl font-semibold text-[var(--ds-text-subtle)] select-none">
                 {name.charAt(0).toUpperCase()}

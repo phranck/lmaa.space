@@ -104,6 +104,7 @@ export default function ShopCardReact({
               width={48}
               height={48}
               className="size-full object-contain"
+              referrerPolicy="no-referrer"
             />
           ) : (
             <span className="text-lg font-bold text-stone-300 select-none">{letter}</span>
