@@ -1,5 +1,144 @@
 @import "@lmaa/shared/styles/tokens.css";
 
+/* ── SEMANTIC TOKENS · the dashboard's own surfaces ──────────
+   The dashboard is dark, so these stand against the light values
+   the shared token file states for the public site. Accent, brand
+   and motion tokens are shared and not repeated here.
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+  /* Surface lightness. Stated outright rather than computed from a step,
+     because which surface sits above which does not follow one direction
+     here: the page is darker than the card that stands on it. */
+  --ds-L-surface: 0.225;
+  --ds-L-bg: 0.185;
+  --ds-L-elevated: 0.25;
+  --ds-L-inset: 0.205;
+
+  /* Text lightness. Light text on a dark page, so the scale runs downwards
+     from the running text rather than upwards. */
+  --ds-L-text: 0.95;
+  --ds-L-muted: 0.65;
+  --ds-L-subtle: 0.5;
+  /* Darker than the text, because what makes a hint recede is distance from
+     the text colour, and here that direction is downwards. */
+  --ds-L-placeholder: 0.4;
+
+  /* A label goes brighter than the running text, because it names the field
+     and is read before the value in it. Stated outright rather than derived,
+     so it does not move when the text scale is adjusted. */
+  --ds-text-label: #e3e3e3;
+
+  --ds-text-inverse: oklch(var(--ds-L-inset) 0 0);
+  /* Warm paper has no counterpart on a dark page, so the role takes the
+     neutral surface that means the same thing: half a step off the page. */
+  --ds-surface-form: var(--ds-surface-soft);
+  --ds-input-bg: var(--ds-bg-elevated);
+
+  /* Borders — borderColor-default #3d444d · muted rgba · emphasis #656c76 */
+  --ds-border: #3d444d; /* borderColor-default */
+  --ds-border-strong: #656c76; /* borderColor-emphasis */
+  --ds-border-subtle: hsl(215 12% 28%);
+
+  /* Accent */
+  --ds-accent-subtle: hsl(215 30% 20%);
+  /* Lighter than the wash it stands on, which is what the role asks for here. */
+  --ds-accent-text: var(--ds-color-brand-300);
+
+  /* Focus and interaction */
+  --ds-focus-ring-offset: var(--ds-bg);
+  --ds-control-hover-bg: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.08);
+  --ds-control-active-bg: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  --ds-bg-hover: var(--ds-control-hover-bg);
+  --ds-surface-hover: var(--ds-control-hover-bg);
+  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  --ds-nav-active-border: var(--ds-border-focus);
+  --ds-nav-hover-bg: var(--ds-nav-active-bg);
+
+  /* Status */
+  --ds-success-bg: hsl(135 25% 18%);
+  --ds-success-border: hsl(130 35% 35%);
+  --ds-success-text: hsl(135 50% 55%);
+  --ds-danger-bg: hsl(0 30% 20%);
+  --ds-danger-border: hsl(0 50% 38%);
+  --ds-danger-text: hsl(0 65% 62%);
+  --ds-warning-bg: hsl(40 35% 18%);
+  --ds-warning-border: hsl(40 50% 35%);
+  --ds-warning-text: hsl(38 60% 55%);
+  --ds-info-bg: hsl(215 30% 20%);
+  --ds-info-border: hsl(215 50% 38%);
+  --ds-info-text: hsl(212 70% 65%);
+
+  /* Shadows — deeper, because a shadow has to carry against a dark surface */
+  --ds-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --ds-shadow-sm: 0 2px 8px rgb(0 0 0 / 0.45), 0 1px 3px rgb(0 0 0 / 0.35);
+  --ds-shadow-md: 0 6px 16px rgb(0 0 0 / 0.4), 0 2px 6px rgb(0 0 0 / 0.3);
+  --ds-shadow-lg: 0 10px 15px rgb(0 0 0 / 0.5), 0 4px 6px rgb(0 0 0 / 0.4);
+  --ds-shadow-xl: 0 20px 25px rgb(0 0 0 / 0.55), 0 8px 10px rgb(0 0 0 / 0.45);
+}
+
+/* ── COMPONENT TOKENS · the dashboard's own controls ─────────  */
+
+:root {
+  /* Filled button — lighter than the surface it stands on */
+  --ds-btn-filled-bg: var(--ds-color-neutral-700);
+  --ds-btn-filled-hover: var(--ds-color-neutral-600);
+
+  /* Outline action button: primary */
+  --ds-btn-primary-border: hsl(195 40% 30%);
+  --ds-btn-primary-text: hsl(195 80% 62%);
+  --ds-btn-primary-hover-border: hsl(195 50% 45%);
+  --ds-btn-primary-hover-bg: hsl(195 30% 20%);
+
+  /* Segment controls -- inherit from semantic tokens */
+  --ds-segment-bg: var(--ds-bg-elevated);
+  --ds-segment-active-bg: var(--ds-control-active-bg);
+  --ds-segment-active-border: color-mix(in srgb, var(--color-primary) 20%, var(--ds-border));
+
+  /* Neutral outline button */
+  --ds-btn-neutral-border: var(--ds-border);
+  --ds-btn-neutral-text: var(--ds-text-muted);
+  --ds-btn-neutral-hover-border: var(--ds-border-strong);
+  --ds-btn-neutral-hover-bg: hsl(215 12% 24%);
+
+  /* Outline action button: danger */
+  --ds-btn-danger-border: hsl(0 40% 30%);
+  --ds-btn-danger-text: hsl(0 65% 62%);
+  --ds-btn-danger-hover-bg: hsl(0 30% 20%);
+  --ds-btn-danger-hover-border: hsl(0 50% 42%);
+
+  /* Outline action button: success */
+  --ds-btn-success-border: hsl(130 30% 30%);
+  --ds-btn-success-text: hsl(135 50% 55%);
+  --ds-btn-success-hover-bg: hsl(135 25% 18%);
+  --ds-btn-success-hover-border: hsl(130 40% 42%);
+
+  /* Outline action button: warning */
+  --ds-btn-warning-border: hsl(40 40% 30%);
+  --ds-btn-warning-text: hsl(38 60% 55%);
+  --ds-btn-warning-hover-bg: hsl(40 35% 18%);
+  --ds-btn-warning-hover-border: hsl(40 50% 42%);
+
+  /* Status badges */
+  --ds-badge-pending-bg: hsl(40 40% 20%);
+  --ds-badge-pending-text: hsl(40 70% 65%);
+  --ds-badge-success-bg: hsl(135 30% 18%);
+  --ds-badge-success-text: hsl(135 50% 60%);
+  --ds-badge-danger-bg: hsl(0 35% 20%);
+  --ds-badge-danger-text: hsl(0 70% 65%);
+  --ds-badge-info-bg: hsl(210 40% 22%);
+  --ds-badge-info-text: hsl(210 80% 72%);
+  --ds-badge-review-bg: hsl(270 30% 25%);
+  --ds-badge-review-text: hsl(270 80% 80%);
+
+  /* Markdown editor syntax highlighting */
+  --md-heading: #79c0ff;
+  --md-emphasis: #d2a8ff;
+  --md-code: #ffa657;
+  --md-quote: #7ee787;
+  --md-punctuation: #8b949e;
+}
+
 /* Barlow Condensed — used for headings and titles */
 @font-face {
   font-family: "Barlow Condensed";
@@ -29,9 +168,9 @@
   --radius-card: calc(var(--radius-control) + 0.75rem); /* 22px */
 
   /* Nav: active state */
-  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 18%, transparent);
   --ds-nav-active-text: var(--ds-text);
-  --ds-nav-active-border: #0969da;
+  --ds-nav-active-border: #478be6;
 
   /* Nav: default / hover */
   --ds-nav-text: var(--ds-text-muted);
@@ -46,18 +185,20 @@
   --ds-row-stripe: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.025);
 
   /* Table row separator (subtler than --ds-border-subtle) */
-  --ds-table-row-separator: hsl(210 12% 94%);
+  --ds-table-row-separator: hsl(215 10% 18%);
 
   /* Subtle surface hover (icon buttons, section headers, inline notes) */
   --ds-surface-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
   /* Section card backgrounds */
-  --ds-section-header-bg: #edeff5;
-  --ds-section-body-bg: #f6f8fe;
-  --ds-json-editor-bg: #f6f8fe;
-  --ds-json-gutter-bg: #f2f5fb;
-  --ds-form-control-bg: #fff;
+  --ds-section-header-bg: #2a3033;
+  --ds-section-body-bg: #212528;
+  --ds-json-editor-bg: #212628;
+  --ds-json-gutter-bg: #252a2e;
+  --ds-form-control-bg: #1d2124;
   --ds-md-editor-bg: var(--ds-form-control-bg);
+  /* A card stands a step off the page it sits on. */
+  --ds-card-bg: #1b1f22;
 
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
@@ -68,27 +209,9 @@
   --color-text-muted: var(--ds-text-muted);
 }
 
-.dark {
-  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  --ds-nav-active-text: var(--ds-text);
-  --ds-nav-active-border: #478be6;
-  --ds-nav-text: var(--ds-text-muted);
-  --ds-nav-hover-bg: var(--ds-nav-active-bg);
-  --ds-nav-hover-text: var(--ds-text);
-  --ds-brand-text: var(--ds-text);
-  --ds-section-header-bg: #2a3033;
-  --ds-section-body-bg: #212528;
-  --ds-json-editor-bg: #212628;
-  --ds-json-gutter-bg: #252a2e;
-  --ds-form-control-bg: #1d2124;
-  --ds-md-editor-bg: var(--ds-form-control-bg);
-  --ds-card-bg: #1b1f22;
-  --ds-table-row-separator: hsl(215 10% 18%);
-}
-
-/* Dark mode: CodeMirror selection (MarkdownEditor) */
-.dark .cm-selectionBackground,
-.dark .cm-editor.cm-focused .cm-selectionBackground {
+/* CodeMirror selection (MarkdownEditor) */
+.cm-selectionBackground,
+.cm-editor.cm-focused .cm-selectionBackground {
   background-color: color-mix(in srgb, var(--color-primary) 25%, var(--ds-input-bg)) !important;
 }
 
@@ -239,11 +362,9 @@ button {
   animation: save-notification-out 250ms ease forwards;
 }
 
-/* Tell browsers which color scheme is active so native UI (autofill, scrollbars, etc.) matches */
+/* Tell browsers which color scheme is in force so native UI (autofill,
+   scrollbars, and the rest) matches */
 :root {
-  color-scheme: light;
-}
-.dark {
   color-scheme: dark;
 }
 
@@ -355,12 +476,12 @@ body {
   caret-color: #dc2626;
 }
 
-.dark .mdxeditor [contenteditable] ::selection {
+.mdxeditor [contenteditable] ::selection {
   background-color: rgba(71, 139, 230, 0.35);
   color: inherit;
 }
 
-.dark .mdxeditor .cm-selectionBackground,
-.dark .mdxeditor .cm-focused .cm-selectionBackground {
+.mdxeditor .cm-selectionBackground,
+.mdxeditor .cm-focused .cm-selectionBackground {
   background-color: rgba(71, 139, 230, 0.35) !important;
 }
