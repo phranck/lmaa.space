@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { readBodyWithLimit, readJsonWithLimit, readTextWithLimit } from "../lib/http-body.js";
+import {
+  readBodyWithLimit,
+  readJsonWithLimit,
+  readTextPrefix,
+  readTextWithLimit,
+} from "../lib/http-body.js";
 
 /** Builds a response whose body streams `chunkCount` chunks of `chunkSize` bytes. */
 function streamingResponse(
@@ -109,5 +114,35 @@ describe("readJsonWithLimit", () => {
 
   it("returns null for malformed JSON instead of throwing", async () => {
     expect(await readJsonWithLimit(new Response("{not json"), 1024)).toBeNull();
+  });
+});
+
+describe("readTextPrefix", () => {
+  it("returns everything where the body fits", async () => {
+    expect(await readTextPrefix(new Response("hello"), 64)).toBe("hello");
+  });
+
+  it("returns the prefix where the body does not fit, rather than nothing", async () => {
+    // The case this exists for: a shop page a few kilobytes over budget, whose
+    // head, and therefore every declaration worth reading, sits at the front.
+    const prefix = await readTextPrefix(streamingResponse(4, 256), 100);
+    expect(prefix).not.toBeNull();
+    expect(prefix!.length).toBeGreaterThanOrEqual(100);
+    expect(prefix!.length).toBeLessThan(256 * 4);
+  });
+
+  it("reads the body even where the declared length exceeds the budget", async () => {
+    // A declared length is a reason to stop early when a whole document is
+    // required. Here it is not, and trusting it would discard the prefix.
+    const response = new Response("abcdefghij", {
+      headers: { "content-length": "999999" },
+    });
+    // Chunks arrive whole, so the result may overshoot the budget. What matters
+    // is that a declared length no longer turns the body into nothing.
+    expect(await readTextPrefix(response, 4)).toBe("abcdefghij");
+  });
+
+  it("survives a body that is not there", async () => {
+    expect(await readTextPrefix(new Response(null), 64)).toBe("");
   });
 });
