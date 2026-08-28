@@ -2857,7 +2857,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           categoryGrid: "Kategorien-Raster",
         },
         contentLabel: "Inhalt",
-        contentHint: "{shops} und {views} werden durch die Zahlen des Lesers ersetzt.",
+        contentHint:
+          "{shops} und {views} werden durch die Zahlen des Lesers ersetzt. Für ein Wort dahinter beide Formen angeben: {shops Shop|Shops} wird zu „1 Shop“ oder „7 Shops“.",
         buttonLabel: "Beschriftung des Buttons",
         buttonHrefLabel: "Ziel des Buttons",
         buttonAlignmentLabel: "Position des Buttons",
@@ -4476,7 +4477,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           categoryGrid: "Category grid",
         },
         contentLabel: "Content",
-        contentHint: "{shops} and {views} are replaced by the reader's own numbers.",
+        contentHint:
+          "{shops} and {views} are replaced by the reader's own numbers. To follow one with a word, give both forms: {shops Shop|Shops} becomes “1 Shop” or “7 Shops”.",
         buttonLabel: "Button caption",
         buttonHrefLabel: "Where it leads",
         buttonAlignmentLabel: "Button position",
