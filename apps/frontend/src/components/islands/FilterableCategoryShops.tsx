@@ -161,6 +161,7 @@ export default function FilterableCategoryShops({
               hasCoordinates={
                 shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
               }
+              likeCount={shop.likeCount}
             />
           ))}
         </div>

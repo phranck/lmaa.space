@@ -569,11 +569,10 @@ function AmountGrid({
           <span className={`flex items-center gap-2 ${bare ? "justify-center" : ""}`}>
             <span
               aria-hidden="true"
-              // On the sponsor card the currency follows the figure, the way an
-              // amount is written rather than the way a form labels a field.
-              // Moved by order alone, because it is hidden from a screen reader
-              // and its place in the markup decides nothing.
-              className={`leading-none font-bold ${bare ? "order-2" : ""}`}
+              // The currency stands before the figure, here and everywhere else
+              // on this page, because the site is run from Austria and that is
+              // how an amount is written there.
+              className="leading-none font-bold"
               style={{
                 fontFamily: "var(--ds-font-serif)",
                 // Bigger where the amount is the first thing to settle rather

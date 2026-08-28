@@ -106,6 +106,17 @@ describe("SupportLadder", () => {
     expect(html).not.toContain('placeholder="40"');
   });
 
+  it("writes the currency before the amount field, as Austria writes it", () => {
+    // The sponsor card once carried `order-2` on the symbol, which draws it
+    // after the field whilst leaving the markup untouched. Only the class says
+    // where it lands, so the class is what this reads, on that element alone.
+    const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);
+    const symbol = html.match(/<span[^>]*>€<\/span>/);
+
+    expect(symbol).not.toBeNull();
+    expect(symbol?.[0]).not.toMatch(/\border-\d/);
+  });
+
   it("names the sponsorship on the transfer once the amount earns one", () => {
     // The tab opens on the floor, which is exactly what a sponsorship costs.
     const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);

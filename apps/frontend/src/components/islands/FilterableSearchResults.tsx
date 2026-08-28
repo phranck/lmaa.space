@@ -241,6 +241,7 @@ export default function FilterableSearchResults({
                   shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
                 }
                 detailHref={buildShopDetailHref(shop.id, query.trim(), currentFilters)}
+                likeCount={shop.likeCount}
               />
             ))}
           </div>

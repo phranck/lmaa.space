@@ -21,6 +21,13 @@ interface ShopCardProps {
   detailHref: string;
   hasCoordinates?: boolean;
   hideLikeIndicator?: boolean;
+  /**
+   * How many people have kept this shop.
+   *
+   * Drawn beside the heart where it is greater than zero. Left out entirely by
+   * a caller that has no figure, which is a different statement from zero.
+   */
+  likeCount?: number;
 }
 
 const MAX_PILLS = 2;
@@ -44,10 +51,15 @@ export default function ShopCardReact({
   detailHref,
   hasCoordinates = false,
   hideLikeIndicator = false,
+  likeCount,
 }: ShopCardProps) {
   const domain = shopDomain(url);
   const letter = name.charAt(0).toUpperCase();
   const liked = !hideLikeIndicator && isShopLiked(shopId);
+  // The figure says how the shop stands with everyone, so it shows whether or
+  // not this reader kept it. Zero is left out: an empty card reads as a shop
+  // that failed rather than one nobody has found yet.
+  const zeigtZahl = typeof likeCount === "number" && likeCount > 0;
   const visibleCategories = categories?.slice(0, MAX_PILLS) ?? [];
   const extraCount = (categories?.length ?? 0) - MAX_PILLS;
 
@@ -56,9 +68,20 @@ export default function ShopCardReact({
       href={detailHref}
       className="relative block bg-white rounded-2xl border border-stone-200 p-2 sm:p-4 hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
-      {liked && (
-        <span className="absolute -right-2 -top-2 text-red-500 z-10" aria-hidden="true">
-          <HeartIcon weight="duotone" className="size-5" />
+      {(liked || zeigtZahl) && (
+        <span
+          className={`absolute -right-2 -top-2 z-10 inline-flex items-center gap-1 ${
+            liked ? "text-red-500" : "text-stone-400"
+          }`}
+          // The heart alone carries no reading, so it stays hidden. Where a
+          // figure stands beside it, the pair is announced as one label.
+          aria-hidden={zeigtZahl ? undefined : "true"}
+          aria-label={zeigtZahl ? `${likeCount} mal gemerkt` : undefined}
+        >
+          <HeartIcon weight="duotone" className="size-5" aria-hidden="true" />
+          {zeigtZahl && (
+            <span className="text-xs font-semibold tabular-nums leading-none">{likeCount}</span>
+          )}
         </span>
       )}
       {hasCoordinates && (
