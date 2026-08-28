@@ -30,6 +30,8 @@ DASHBOARD_URL=http://localhost:5174
 FRONTEND_URL=http://localhost:5173
 ```
 
+`PORT` ist optional und fällt auf 3000 zurück, den Port, den das Deployment in `zerops.yml` deklariert. Zerops belegt den Schlüssel selbst, deshalb steht er dort nicht.
+
 Wichtige produktive Variablen:
 
 - `DATABASE_URL`: Runtime-Verbindung zur PostgreSQL-Datenbank.

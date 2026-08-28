@@ -15,9 +15,19 @@ describe("envSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("requires PORT, DASHBOARD_URL and FRONTEND_URL", () => {
+  it("requires DASHBOARD_URL and FRONTEND_URL", () => {
     const result = envSchema.safeParse({ DATABASE_URL: "postgres://localhost/test" });
     expect(result.success).toBe(false);
+  });
+
+  it("falls back to the port the deployment declares", () => {
+    const { PORT: _unset, ...withoutPort } = VALID_BASE;
+    const result = envSchema.safeParse(withoutPort);
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.PORT).toBe(3000);
+    }
   });
 
   it("accepts valid minimal config", () => {
