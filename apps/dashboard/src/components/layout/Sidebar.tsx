@@ -65,6 +65,7 @@ import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminShops } from "@/features/content/shops/hooks/useAdminShops.ts";
 import { useDeadLinkReports } from "@/features/overview/hooks/useDeadLinks.ts";
+import { useReviewJobs } from "@/features/overview/hooks/useReviewJob.ts";
 import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { useSocialMediaAccounts } from "@/features/social/hooks/useSocialMediaAccounts.ts";
@@ -577,6 +578,7 @@ function ReportsGroup({
   pendingCount,
   deadLinksCount,
   shopReportsCount,
+  automatedChecksCount,
 }: {
   onItemClick?: () => void;
   globalOpenState?: boolean | null;
@@ -586,6 +588,7 @@ function ReportsGroup({
   pendingCount: number;
   deadLinksCount: number;
   shopReportsCount: number;
+  automatedChecksCount: number;
 }) {
   const { messages } = useI18n();
   const sidebarMessages = messages.layout.sidebar;
@@ -624,6 +627,7 @@ function ReportsGroup({
       >
         <RobotIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
         <span className="flex-1">{submissions.tabs.automatedChecks}</span>
+        <SidebarSubItemBadge count={automatedChecksCount} />
       </NavLink>
     </CollapsibleSidebarGroup>
   );
@@ -659,6 +663,9 @@ export function Sidebar({
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
+  // The same query the automated checks page reads, under the same key, so the
+  // badge counts exactly the rows that table shows.
+  const { data: reviewJobs = [] } = useReviewJobs();
   const { data: socialMediaAccounts = [] } = useSocialMediaAccounts();
   const { data: systemSettings } = useSystemSettings();
   // Read through the same parser the page uses, so the count cannot disagree
@@ -790,6 +797,7 @@ export function Sidebar({
                     pendingCount={pendingSubmissions.length}
                     deadLinksCount={deadLinks.length}
                     shopReportsCount={shopConcerns.length}
+                    automatedChecksCount={reviewJobs.length}
                   />
                 </DashboardSection.Body>
               </DashboardSection>
