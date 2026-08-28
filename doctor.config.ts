@@ -110,6 +110,14 @@ export default {
         files: ["src/lib/geocoding.ts"],
         rules: ["react-doctor/async-await-in-loop"],
       },
+      // An image is asked for again only because the attempt before it neither
+      // answered nor failed, and a pause sits between the two. Asking three
+      // times at once would send a stranger's server three requests to answer
+      // one question.
+      {
+        files: ["src/lib/og.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
       // Waiting for a provider batch is a polling loop against a deadline, so
       // each pass depends on the one before it.
       {
