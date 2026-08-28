@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   readBodyWithLimit,
+  readBodyPrefix,
   readJsonWithLimit,
   readTextPrefix,
   readTextWithLimit,
@@ -87,6 +88,21 @@ describe("readBodyWithLimit", () => {
     });
     const result = await readBodyWithLimit(new Response(body), 64);
     expect(Array.from(result ?? [])).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+describe("readBodyPrefix", () => {
+  it("ignores the total file size and keeps only the requested prefix", async () => {
+    const response = streamingResponse(8, 256, { "content-length": "1048576" });
+    const result = await readBodyPrefix(response, 512);
+
+    expect(result.byteLength).toBe(512);
+  });
+
+  it("returns a complete body when it ends before the prefix limit", async () => {
+    const result = await readBodyPrefix(streamingResponse(2, 32), 1024);
+
+    expect(result.byteLength).toBe(64);
   });
 });
 
