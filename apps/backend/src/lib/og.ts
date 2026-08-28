@@ -1,8 +1,4 @@
-import {
-  readBodyWithLimit,
-  readJsonWithLimit,
-  readTextPrefix,
-} from "./http-body.js";
+import { readBodyPrefix, readJsonWithLimit, readTextPrefix } from "./http-body.js";
 import { logger } from "./logger.js";
 import { isPublicFetchTarget } from "./validate.js";
 
@@ -14,8 +10,19 @@ const HEADERS = {
   "Cache-Control": "no-cache",
 };
 
-const SKIP_EXT = /\.(svg|gif|ico)(\?|$)/i;
-const SKIP_NAME_PATTERNS = /pixel|tracking|1x1|blank|spacer/i;
+const SKIP_EXT = /\.(gif|ico)(\?|$)/i;
+/**
+ * Paths and names that are never a shop's own mark, whatever their size.
+ *
+ * Three groups, each of which produced a wrong logo in the field. Payment and
+ * shipping marks belong to somebody else and sit in every footer. Product
+ * imagery is the shop's stock rather than its identity, and a catalogue page
+ * offers hundreds. Bot-challenge assets belong to the guard in front of the
+ * shop: die-buchfinken.de returned the Anubis mascot, because the crawler never
+ * saw the shop at all.
+ */
+const SKIP_NAME_PATTERNS =
+  /pixel|tracking|1x1|blank|spacer|paypal|klarna|visa|mastercard|maestro|amex|sofort|giropay|sepa|applepay|apple-pay|googlepay|google-pay|bancontact|ideal|eps[-_.]|p24|oxxo|zahlart|payment[-_]|paybybank|banktransfer|vorkasse|rechnung|nachnahme|dhl|dpd|hermes|gls|ups[-_.]|versand|product[-_]image|produktbild|thumbnail[-_]image|\/anubis\/|challenge|captcha/i;
 const MAX_REDIRECTS = 3;
 const PROBE_TIMEOUT_MS = 4000;
 const HTML_TIMEOUT_MS = 10000;
@@ -26,15 +33,39 @@ const MAX_INLINE_IMG_CANDIDATES = 12;
 // does not bound memory, because a fast server sends a great deal within it.
 /** Enough for the `<head>` of any real shop page, which is all that is parsed. */
 const MAX_HTML_BYTES = 512 * 1024;
-/** Twice what the `Range` header asks for, since a server may ignore it. */
-const MAX_IMAGE_PROBE_BYTES = 64 * 1024;
+/** Enough header data for images with unusually large metadata blocks. */
+const MAX_IMAGE_HEADER_BYTES = 1024 * 1024;
 /** A web app manifest is a small JSON document. */
 const MAX_MANIFEST_BYTES = 256 * 1024;
 
+/**
+ * The word standing on its own, between separators or at either end.
+ *
+ * `logout` is excluded by the trailing condition rather than by name: a letter
+ * may not follow, so `logo-` and `logo.` match whilst `logout` does not.
+ */
 const LOGO_NAME_PATTERN = /(^|[^a-z])(logo|brand|wordmark|signet)([^a-z]|$)/i;
-const THEME_ASSET_PATH_PATTERN = /\/(theme|themes|template|templates|skin|skins|assets|static)\//i;
 
-type CandidateKind = "apple-touch" | "og" | "manifest" | "icon" | "inline-logo" | "inline-other";
+/**
+ * The same word run into a name in camel case, as `KiddicraftLogo1000head`.
+ *
+ * Case matters here, which is why this is separate: the capital is what marks
+ * the word boundary a separator would otherwise provide. `logout` is refused
+ * again, since a shop that writes `ShopLogout` means the door and not the mark.
+ */
+const LOGO_CAMEL_PATTERN = /[a-z](Logo|Brand|Wordmark|Signet)(?!ut)/;
+
+type CandidateKind =
+  | "apple-touch"
+  | "og"
+  | "manifest"
+  | "icon"
+  | "inline-logo"
+  | "inline-other"
+  /** In the masthead and named like a logo: the shop's own mark. */
+  | "header-logo"
+  /** Not declared anywhere, tried at a path the platform conventionally uses. */
+  | "guessed";
 
 /**
  * What a caller is looking for on the page.
@@ -53,12 +84,16 @@ export type PreviewIntent = "site-mark" | "portrait";
  * purpose, whilst its `og:image` is usually a banner.
  */
 const SITE_MARK_PRIORITY: CandidateKind[] = [
+  // First, because it is the mark itself. A sharing image is a photograph often
+  // enough that a directory of shops would show scenery instead of brands.
+  "header-logo",
   "apple-touch",
-  "og",
   "manifest",
   "icon",
   "inline-logo",
-  "inline-other",
+  // A conventional touch icon is a stronger mark signal than a product photo
+  // from OpenGraph or an arbitrary inline image.
+  "guessed",
 ];
 
 /**
@@ -70,12 +105,16 @@ const SITE_MARK_PRIORITY: CandidateKind[] = [
  * nobody wants there.
  */
 const PORTRAIT_PRIORITY: CandidateKind[] = [
+  // A person's page wants the person, so a masthead mark ranks below the
+  // sharing image here, exactly opposite to a shop.
   "og",
   "apple-touch",
   "manifest",
   "icon",
   "inline-logo",
   "inline-other",
+  "header-logo",
+  "guessed",
 ];
 
 const MIN_DIMENSION_BY_KIND: Record<CandidateKind, number> = {
@@ -85,31 +124,29 @@ const MIN_DIMENSION_BY_KIND: Record<CandidateKind, number> = {
   icon: 96,
   "inline-logo": 64,
   "inline-other": 128,
+  "header-logo": 64,
+  guessed: 96,
 };
 
 /**
  * Detects whether a URL looks like a logo asset rather than a content image.
  *
  * @param url - Absolute or relative image URL.
- * @returns `true` when the URL contains a logo-style keyword in path/query or
- *          sits under a typical theme-asset directory.
+ * @returns `true` when the URL contains a logo-style keyword in path/query.
  *
  * @remarks
  * Used to upgrade plain inline `<img>` candidates to a higher priority group.
- * The heuristic intentionally accepts theme-asset paths because shop systems
- * (Shopware, Shopify, WordPress) keep their brand logo under `/theme/`,
- * `/assets/`, `/static/` etc., while hero/content images live under
- * `/media/`, `/uploads/`, `/cdn/`.
+ * A directory name alone is not enough: theme and asset directories also hold
+ * trust badges, widgets, hero banners and product imagery.
  */
 export function isLogoUrl(url: string): boolean {
   try {
     const u = new URL(url);
-    if (LOGO_NAME_PATTERN.test(u.pathname + u.search)) return true;
-    if (THEME_ASSET_PATH_PATTERN.test(u.pathname)) return true;
+    const name = u.pathname + u.search;
+    if (LOGO_NAME_PATTERN.test(name) || LOGO_CAMEL_PATTERN.test(name)) return true;
     return false;
   } catch {
-    if (LOGO_NAME_PATTERN.test(url)) return true;
-    if (THEME_ASSET_PATH_PATTERN.test(url)) return true;
+    if (LOGO_NAME_PATTERN.test(url) || LOGO_CAMEL_PATTERN.test(url)) return true;
     return false;
   }
 }
@@ -126,6 +163,35 @@ export function extractHomepage(url: string): string {
     return `${u.protocol}//${u.host}`;
   } catch {
     return url;
+  }
+}
+
+/**
+ * What a relative URL in this document resolves against.
+ *
+ * A browser obeys `<base href>` and so must anything reading the same markup.
+ * Several content management systems set one, and where the document sits
+ * deeper than the base, ignoring it turns every relative path into a wrong one.
+ * icomp.de serves `/index.php/en/news.html` with its assets at the root, so its
+ * logo resolved to a 404 until this was read.
+ *
+ * @param html - The document, or as much of it as was read.
+ * @param documentUrl - Where the document came from, after redirects.
+ * @returns The base to resolve against. The document URL where there is no
+ *   usable `base` tag, which is what the specification says.
+ */
+export function documentBase(html: string, documentUrl: string): string {
+  const tag = html.match(/<base\b[^>]*>/i)?.[0];
+  if (!tag) return documentUrl;
+
+  const href = tag.match(/\bhref=["']([^"']*)["']/i)?.[1]?.trim();
+  if (!href) return documentUrl;
+
+  try {
+    // Resolved against the document, because a base may itself be relative.
+    return new URL(href, documentUrl).toString();
+  } catch {
+    return documentUrl;
   }
 }
 
@@ -163,7 +229,7 @@ export async function fetchExternalResource(
   if (!(await isPublicFetchTarget(url))) return null;
 
   try {
-    return fetchExternalResourceHop(url, init, MAX_REDIRECTS, url);
+    return await fetchExternalResourceHop(url, init, MAX_REDIRECTS, url);
   } catch (err) {
     logger.error({ err }, "external resource fetch failed");
     return null;
@@ -438,6 +504,188 @@ export function parseImageDimensions(buf: Uint8Array): { width: number; height: 
   return null;
 }
 
+function parseSvgDimensions(buf: Uint8Array): { width: number; height: number } | null {
+  const svg = new TextDecoder().decode(buf);
+  if (!/<svg\b/i.test(svg)) return null;
+
+  const viewBox = svg.match(
+    /\bviewBox=["']\s*[-\d.]+[ ,]+[-\d.]+[ ,]+([\d.]+)[ ,]+([\d.]+)\s*["']/i,
+  );
+  if (viewBox) {
+    const width = Number(viewBox[1]);
+    const height = Number(viewBox[2]);
+    if (width > 0 && height > 0) return { width, height };
+  }
+
+  const width = Number(svg.match(/\bwidth=["']([\d.]+)/i)?.[1]);
+  const height = Number(svg.match(/\bheight=["']([\d.]+)/i)?.[1]);
+  return width > 0 && height > 0 ? { width, height } : null;
+}
+
+function isIcoImage(buf: Uint8Array): boolean {
+  if (buf.length < 6) return false;
+  const type = buf[2] | (buf[3] << 8);
+  const images = buf[4] | (buf[5] << 8);
+  return buf[0] === 0 && buf[1] === 0 && (type === 1 || type === 2) && images > 0;
+}
+
+async function fetchImageResource(
+  url: string,
+  range: boolean,
+): Promise<{ response: Response; finalUrl: string } | null> {
+  return fetchExternalResource(url, {
+    signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    headers: {
+      "User-Agent": HEADERS["User-Agent"],
+      Accept: "image/*",
+      ...(range ? { Range: "bytes=0-32767" } : {}),
+    },
+  });
+}
+
+async function fetchImageResourceWithFallback(
+  url: string,
+): Promise<{ response: Response; finalUrl: string } | null> {
+  const ranged = await fetchImageResource(url, true);
+  if (ranged?.response.status !== 416) return ranged;
+  return fetchImageResource(url, false);
+}
+
+export type ImageUrlStatus = "valid" | "broken" | "unreachable";
+
+export interface ImageUrlInspection {
+  status: ImageUrlStatus;
+  reason: string;
+  attempts: number;
+  httpStatus?: number;
+}
+
+function imageNetworkReason(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+  const cause = error.cause as { code?: string } | undefined;
+  return cause?.code ? `${error.name}: ${cause.code}` : `${error.name}: ${error.message}`;
+}
+
+function expiredSignedImageUrl(url: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return "invalid URL";
+  }
+  if (!["http:", "https:"].includes(parsed.protocol))
+    return `unsupported protocol ${parsed.protocol}`;
+
+  const expires = parsed.searchParams.get("Expires");
+  if (!expires || !/^\d+$/.test(expires)) return null;
+  const expiresAt = Number(expires) * 1000;
+  if (!Number.isFinite(expiresAt) || expiresAt > Date.now()) return null;
+  return `signed URL expired on ${new Date(expiresAt).toISOString()}`;
+}
+
+async function inspectImageUrlOnce(url: string): Promise<Omit<ImageUrlInspection, "attempts">> {
+  let result: Awaited<ReturnType<typeof fetchExternalResource>>;
+  try {
+    result = await fetchImageResourceWithFallback(url);
+  } catch (error) {
+    return { status: "unreachable", reason: imageNetworkReason(error) };
+  }
+
+  if (!result) return { status: "unreachable", reason: "target could not be fetched safely" };
+
+  const status = result.response.status;
+  if (status === 404 || status === 410) {
+    return { status: "broken", reason: `HTTP ${status}`, httpStatus: status };
+  }
+  if (status !== 200 && status !== 206) {
+    return { status: "unreachable", reason: `HTTP ${status}`, httpStatus: status };
+  }
+
+  const contentType = result.response.headers.get("content-type")?.toLowerCase() ?? "";
+  if (contentType && !contentType.startsWith("image/")) {
+    return {
+      status: "broken",
+      reason: `non-image content type ${contentType}`,
+      httpStatus: status,
+    };
+  }
+
+  try {
+    const body = await readBodyPrefix(result.response, MAX_IMAGE_HEADER_BYTES);
+    const svg = contentType.includes("image/svg+xml") || /\.svg(?:\?|$)/i.test(result.finalUrl);
+    if (isIcoImage(body))
+      return { status: "valid", reason: "readable ICO image", httpStatus: status };
+    const supportedRaster =
+      contentType.includes("image/png") ||
+      contentType.includes("image/jpeg") ||
+      contentType.includes("image/gif") ||
+      contentType.includes("image/webp");
+    if (!svg && !supportedRaster) {
+      return parseImageDimensions(body)
+        ? { status: "valid", reason: "readable image header", httpStatus: status }
+        : {
+            status: "unreachable",
+            reason: "unsupported or unknown image format",
+            httpStatus: status,
+          };
+    }
+    if (svg) {
+      return /<svg\b/i.test(new TextDecoder().decode(body))
+        ? { status: "valid", reason: "readable SVG image", httpStatus: status }
+        : { status: "broken", reason: "invalid SVG data", httpStatus: status };
+    }
+    const dimensions = parseImageDimensions(body);
+    return dimensions && dimensions.width > 0 && dimensions.height > 0
+      ? { status: "valid", reason: "readable image header", httpStatus: status }
+      : { status: "broken", reason: "invalid image data", httpStatus: status };
+  } catch (error) {
+    return { status: "unreachable", reason: imageNetworkReason(error), httpStatus: status };
+  }
+}
+
+export async function inspectImageUrlDetailed(
+  url: string,
+  options: { attempts?: number; retryDelayMs?: number } = {},
+): Promise<ImageUrlInspection> {
+  if (/&(?:amp|quot|apos|lt|gt);/i.test(url)) {
+    return { status: "broken", reason: "URL contains escaped HTML entities", attempts: 0 };
+  }
+
+  const invalid = expiredSignedImageUrl(url);
+  if (invalid) return { status: "broken", reason: invalid, attempts: 0 };
+
+  const attempts = Math.max(1, options.attempts ?? 3);
+  const retryDelayMs = Math.max(0, options.retryDelayMs ?? 250);
+  let latest: Omit<ImageUrlInspection, "attempts"> = {
+    status: "unreachable",
+    reason: "not checked",
+  };
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    latest = await inspectImageUrlOnce(url);
+    if (latest.status !== "unreachable") return { ...latest, attempts: attempt };
+    if (attempt < attempts && retryDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+    }
+  }
+  return {
+    ...latest,
+    reason: `${latest.reason} after ${attempts} attempts`,
+    attempts,
+  };
+}
+
+/**
+ * Checks whether an already stored image URL still returns readable image data.
+ *
+ * @param url - Existing image URL to inspect.
+ * @returns `valid` for a readable image, `broken` for a definitive invalid
+ *   response, or `unreachable` when a temporary network failure prevents a
+ *   reliable decision.
+ */
+export async function inspectImageUrl(url: string): Promise<ImageUrlStatus> {
+  return (await inspectImageUrlDetailed(url, { attempts: 1 })).status;
+}
+
 /**
  * Downloads enough of an image to read its native header and returns the real
  * pixel dimensions plus the final resolved URL.
@@ -447,24 +695,18 @@ export function parseImageDimensions(buf: Uint8Array): { width: number; height: 
  *
  * @remarks
  * Asks for `Range: bytes=0-32767` to keep the transfer small. A server may
- * ignore that and send the whole file, so the read is additionally capped at
- * {@link MAX_IMAGE_PROBE_BYTES} and the candidate is dropped once the body
- * passes it. The header bytes needed to size an image sit far below that.
+ * ignore that and send the whole file; only the leading header bytes are read
+ * and the stream is then cancelled. Total file size is not an acceptance
+ * criterion. Servers that reject ranges are retried with a normal GET.
  */
 async function probeImage(
   url: string,
+  kind: CandidateKind,
 ): Promise<{ url: string; width: number; height: number } | null> {
   if (SKIP_EXT.test(url)) return null;
   if (SKIP_NAME_PATTERNS.test(url)) return null;
 
-  const result = await fetchExternalResource(url, {
-    signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
-    headers: {
-      "User-Agent": HEADERS["User-Agent"],
-      Accept: "image/*",
-      Range: "bytes=0-32767",
-    },
-  });
+  const result = await fetchImageResourceWithFallback(url);
   if (!result) return null;
 
   const status = result.response.status;
@@ -474,12 +716,12 @@ async function probeImage(
   if (ct && !ct.startsWith("image/")) return null;
 
   try {
-    const buf = await readBodyWithLimit(result.response, MAX_IMAGE_PROBE_BYTES);
-    if (buf === null) {
-      logger.warn({ url, maxBytes: MAX_IMAGE_PROBE_BYTES }, "image probe exceeded size budget");
+    const buf = await readBodyPrefix(result.response, MAX_IMAGE_HEADER_BYTES);
+    const svg = ct.includes("image/svg+xml") || /\.svg(?:\?|$)/i.test(url);
+    if (svg && !["header-logo", "inline-logo", "apple-touch", "manifest", "icon"].includes(kind)) {
       return null;
     }
-    const dims = parseImageDimensions(buf);
+    const dims = svg ? parseSvgDimensions(buf) : parseImageDimensions(buf);
     if (!dims || dims.width <= 0 || dims.height <= 0) return null;
     return { url: result.finalUrl, ...dims };
   } catch (err) {
@@ -687,6 +929,38 @@ function collectJsonLdBlocks(
   }
 }
 
+/**
+ * How many pictures into a page the masthead still counts.
+ *
+ * Three, because a masthead holds a mark and rarely much else: often one
+ * picture, sometimes a second for narrow screens, occasionally a third.
+ */
+const MASTHEAD_IMAGE_COUNT = 3;
+
+/**
+ * Whether a picture is early enough on the page to be the shop's own mark.
+ *
+ * Counted in pictures rather than in bytes. Byte position looks like the
+ * obvious measure and is the wrong one: a modern storefront carries tens of
+ * kilobytes of inline styles and structured data before its first picture, and
+ * measuring bestware.com put its wordmark at byte 81.438 of 539.643. Counting
+ * pictures puts the same wordmark first, as it does for every page checked.
+ *
+ * A closing `header` still wins where a page has one, since that is the page
+ * saying so itself. Most do not: of the shops checked, not one carried a
+ * `header` element.
+ *
+ * @param html - The document, or as much of it as was read.
+ * @param imageIndex - Which picture this is, counted from zero.
+ * @param offset - Where the picture sits, in bytes.
+ * @returns Whether it belongs to the masthead.
+ */
+export function isMastheadImage(html: string, imageIndex: number, offset: number): boolean {
+  const closing = html.search(/<\/header\s*>/i);
+  if (closing > 0) return offset < closing;
+  return imageIndex < MASTHEAD_IMAGE_COUNT;
+}
+
 function collectInlineImages(
   html: string,
   base: string,
@@ -694,16 +968,34 @@ function collectInlineImages(
   seen: Set<string>,
 ): void {
   let added = 0;
-  for (const [, attrs] of html.matchAll(/<img\b([^>]+)>/gi)) {
+  let imageIndex = -1;
+  for (const match of html.matchAll(/<img\b([^>]+)>/gi)) {
     if (added >= MAX_INLINE_IMG_CANDIDATES) break;
+    imageIndex += 1;
+    const attrs = match[1];
     const srcMatch = attrs.match(/\bsrc=["']([^"']+)["']/i);
     if (!srcMatch) continue;
     const src = srcMatch[1].trim();
     if (SKIP_NAME_PATTERNS.test(src) || SKIP_EXT.test(src)) continue;
     const resolved = resolveUrl(src, base);
     if (!resolved) continue;
-    const kind: CandidateKind = isLogoUrl(resolved) ? "inline-logo" : "inline-other";
-    pushCandidate(out, seen, resolved, kind, kind === "inline-logo" ? "inline-logo" : "inline-img");
+
+    // A picture in the masthead whose name also says logo is the mark itself,
+    // and it beats the sharing image, which is usually a photograph. Both
+    // conditions are required: position alone would take a hero banner, and the
+    // name alone takes the brands a shop stocks, of which a hardware store
+    // carries a dozen further down the page.
+    const inMasthead = isMastheadImage(html, imageIndex, match.index ?? 0);
+    const named = isLogoUrl(resolved);
+    const kind: CandidateKind =
+      inMasthead && named ? "header-logo" : named ? "inline-logo" : "inline-other";
+    const via =
+      kind === "header-logo"
+        ? "header-logo"
+        : kind === "inline-logo"
+          ? "inline-logo"
+          : "inline-img";
+    pushCandidate(out, seen, resolved, kind, via);
     added++;
   }
 }
@@ -751,24 +1043,20 @@ function extractManifestHref(html: string, base: string): string | null {
  *
  * @remarks
  * All candidates from meta tags, link tags, JSON-LD, the web app manifest,
- * well-known paths, and inline images are collected, then each is fetched and
- * its real header dimensions are read. Candidates are bucketed by source kind
- * and the buckets are evaluated in this priority order:
+ * well-known paths, and inline images are collected, fetched and measured.
  *
- * 1. `apple-touch-icon` (intentional, logo quality)
- * 2. OpenGraph / Twitter / `<link rel="image_src">` / JSON-LD `image`
- * 3. Web app manifest icons
- * 4. `<link rel="icon">`
- * 5. Inline `<img>` whose URL signals a logo (filename contains
- *    `logo`/`brand`/`wordmark`/`signet`, or path lives under a theme/asset
- *    directory)
- * 6. Any other inline `<img>`
+ * A `site-mark` accepts only sources that identify themselves as a logo or an
+ * icon: header/inline images with an explicit logo-style name, declared touch,
+ * manifest and favicon entries, then conventional well-known icon paths. It
+ * deliberately returns `null` rather than fall back to OpenGraph, JSON-LD or an
+ * arbitrary inline image, because those are commonly product photos or banners.
+ * A `portrait` keeps those broad image fallbacks because that intent asks for a
+ * person or profile image rather than a site identity.
  *
  * Within each bucket the candidate with the largest real `max(width, height)`
  * wins. Site-declared `sizes` attributes are ignored deliberately because they
- * often misrepresent the actual asset. The logo bucket uses a lower minimum
- * dimension (64 px) than the other buckets (96–128 px) because real shop
- * logos are legitimately smaller than hero banners.
+ * often misrepresent the actual asset. Explicit SVG logos are measured from
+ * their `viewBox` or dimensions and accepted in logo/icon buckets.
  */
 export async function fetchPreviewImage(
   shopUrl: string,
@@ -791,15 +1079,18 @@ export async function fetchPreviewImage(
   const htmlEntries = await Promise.all(
     urlsToTry.map(async (url) => ({ url, html: await fetchHtml(url) })),
   );
-  const htmlMap = new Map<string, string>();
+  // Keyed by where the document came from, so two attempts stay apart, and
+  // carrying the base a browser would resolve against, which is not always the
+  // same thing.
+  const htmlMap = new Map<string, { html: string; base: string }>();
   for (const { url, html } of htmlEntries) {
-    if (html) htmlMap.set(url, html);
+    if (html) htmlMap.set(url, { html, base: documentBase(html, url) });
   }
 
   const candidates: Candidate[] = [];
   const seen = new Set<string>();
 
-  for (const [baseUrl, html] of htmlMap) {
+  for (const [, { html, base: baseUrl }] of htmlMap) {
     collectMetaImage(html, baseUrl, "og:image", "property", "og", "og:image", candidates, seen);
     collectMetaImage(
       html,
@@ -837,7 +1128,7 @@ export async function fetchPreviewImage(
   }
 
   const manifestIconEntries = await Promise.all(
-    Array.from(htmlMap).map(async ([baseUrl, html]) => {
+    Array.from(htmlMap).map(async ([, { html, base: baseUrl }]) => {
       const manifestUrl = extractManifestHref(html, baseUrl);
       return manifestUrl ? fetchManifestIcons(manifestUrl, manifestUrl) : [];
     }),
@@ -848,25 +1139,21 @@ export async function fetchPreviewImage(
 
   // Guessed at the site's root, so they belong to the service rather than to
   // whoever the page is about, and they are left out when a person is wanted.
+  // All of them are `guessed` rather than the kind their path suggests, because
+  // a guess must not outrank what the page declares about itself.
   if (intent !== "portrait") {
-    pushCandidate(
-      candidates,
-      seen,
-      `${homepage}/apple-touch-icon.png`,
-      "apple-touch",
-      "well-known",
-    );
+    pushCandidate(candidates, seen, `${homepage}/apple-touch-icon.png`, "guessed", "well-known");
     pushCandidate(
       candidates,
       seen,
       `${homepage}/apple-touch-icon-precomposed.png`,
-      "apple-touch",
+      "guessed",
       "well-known",
     );
-    pushCandidate(candidates, seen, `${homepage}/favicon.png`, "icon", "well-known");
+    pushCandidate(candidates, seen, `${homepage}/favicon.png`, "guessed", "well-known");
   }
 
-  for (const [baseUrl, html] of htmlMap) {
+  for (const [, { html, base: baseUrl }] of htmlMap) {
     collectInlineImages(html, baseUrl, candidates, seen);
   }
 
@@ -874,7 +1161,7 @@ export async function fetchPreviewImage(
 
   const probed = await Promise.all(
     candidates.map(async (c) => {
-      const probe = await probeImage(c.url);
+      const probe = await probeImage(c.url, c.kind);
       if (!probe) return null;
       return { ...probe, kind: c.kind, via: c.via, requestedUrl: c.url };
     }),
