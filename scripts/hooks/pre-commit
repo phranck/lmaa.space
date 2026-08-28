@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# Runs before every commit. `git config core.hooksPath scripts/hooks` points git
+# at this directory, and the root package.json sets that during `npm install`.
+
+# The quality gate blocks: what it checks has to hold before the change is
+# recorded.
+quality_gate_checks() {
+	printf '%s\n' "pre-commit: lint + typecheck + @lmaa/shared build…" >&2
+	npm run lint || return 1
+	npm run typecheck --workspaces --if-present || return 1
+	npm run build -w @lmaa/shared || return 1
+}
+
+if ! quality_gate_checks; then
+	printf '%s\n' \
+		"pre-commit: quality gate failed (lint/typecheck/shared-build)." \
+		"Fix the issue and re-stage before committing." >&2
+	exit 1
+fi
+
+# React Doctor advises rather than blocks, so its findings are printed and the
+# commit still goes through.
+#
+# It scans the working tree rather than the index. `--staged` copies the staged
+# files into a temporary directory and copies the root package.json beside them,
+# which names no React, so the scan refuses to start and exits non-zero with no
+# finding behind it. Pointed at a single project it does start, and then reports
+# every dependency the staged files happen not to import, because the snapshot
+# holds nothing else. Neither answers what the commit changed.
+run_react_doctor() {
+	if [ ! -x "./node_modules/.bin/react-doctor" ]; then
+		printf '%s\n' "react-doctor: not installed, skipping the scan." >&2
+		return 0
+	fi
+
+	./node_modules/.bin/react-doctor . --yes --no-score --no-color --blocking warning
+}
+
+react_doctor_output=$(run_react_doctor 2>&1)
+if [ $? -ne 0 ]; then
+	printf '%s\n' "$react_doctor_output" >&2
+	printf '%s\n' \
+		"React Doctor reported the findings above. The commit was recorded anyway." >&2
+fi
