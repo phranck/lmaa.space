@@ -1,4 +1,5 @@
 version: STSv1
-mode: enforce
+mode: testing
+mx: mail.lmaa.space
 mx: mail.qlogin.de
 max_age: 86400
