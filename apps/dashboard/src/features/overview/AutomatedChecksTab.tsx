@@ -15,6 +15,7 @@ import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useReviewJobs, useReviewSpend } from "@/features/overview/hooks/useReviewJob.ts";
+import { reviewJobTarget } from "@/features/overview/review-job-target.ts";
 
 /** Nano-units per whole currency unit, matching the backend's counting. */
 const NANO_PER_UNIT = 1_000_000_000;
@@ -142,7 +143,7 @@ export function AutomatedChecksTab() {
         cell: (job) => (
           <div className="min-w-0">
             <Link
-              to={`/reports/suggestions/${job.submissionId}`}
+              to={reviewJobTarget(job)}
               state={{ returnTo: `${pathname}${search}` }}
               className="block truncate font-medium text-[var(--ds-text)] hover:underline"
             >
@@ -229,7 +230,7 @@ export function AutomatedChecksTab() {
           <div className="flex justify-end">
             <TableActionButton
               onClick={() =>
-                navigate(`/reports/suggestions/${job.submissionId}`, {
+                navigate(reviewJobTarget(job), {
                   state: { returnTo: `${pathname}${search}` },
                 })
               }
