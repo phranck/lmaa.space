@@ -1,9 +1,11 @@
+import { StorefrontIcon } from "@phosphor-icons/react";
 import { useReducer, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
 import { REJECT_TOKEN_PLACEHOLDER } from "@lmaa/contracts";
 import { formatDateTime, generateRejectionToken, type Submission } from "@lmaa/shared";
 
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { EditorPageTitleDetails } from "@/components/ui/EditorPageTitleDetails.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -105,8 +107,39 @@ function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }
     );
   }
 
+  // An admitted suggestion is edited as the shop it became, so the page hands
+  // the reader on rather than showing fields that no longer decide anything.
+  if (submission?.status === "approved" && typeof submission.admittedShopId === "number") {
+    return <Navigate to={`/shops/${submission.admittedShopId}`} replace />;
+  }
+
+  // Whatever is left has no editor and no shop to hand on to. It says so, so a
+  // stale link reads as a stale link rather than as a button that does nothing.
   if (!submission || submission.status === "approved") {
-    return <Navigate to="/reports/suggestions" replace />;
+    const unavailable = submission
+      ? {
+          title: submissionsMessages.suggestions.admittedTitle,
+          subtitle: submissionsMessages.suggestions.admittedHint,
+        }
+      : {
+          title: submissionsMessages.suggestions.goneTitle,
+          subtitle: submissionsMessages.suggestions.goneHint,
+        };
+
+    return (
+      <EditorPageShell
+        title={submissionsMessages.suggestions.edit}
+        backLabel={submissionsMessages.title}
+        onBack={() => navigate(returnTo)}
+        headerContent={<div className="flex items-center gap-3"></div>}
+      >
+        <ContentUnavailableView
+          icon={<StorefrontIcon weight="duotone" aria-hidden />}
+          title={unavailable.title}
+          subtitle={unavailable.subtitle}
+        />
+      </EditorPageShell>
+    );
   }
 
   return (

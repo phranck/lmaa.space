@@ -40,6 +40,12 @@ export interface Submission {
   createdAt: string;
   updatedAt: string;
   headquarters?: ShopHeadquarters | null;
+  /**
+   * Shop this suggestion was admitted as. `null` whilst it is still under
+   * moderation, and for an admitted one whose shop was deleted or predates the
+   * reference being stored.
+   */
+  admittedShopId?: number | null;
 }
 
 /**

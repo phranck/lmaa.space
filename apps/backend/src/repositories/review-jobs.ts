@@ -33,7 +33,7 @@ import type {
 } from "@lmaa/shared";
 
 import { db } from "../db/client.js";
-import { reviewEvents, reviewJobs, reviewSpend, submissions } from "../db/schema.js";
+import { reviewEvents, reviewJobs, reviewSpend, shops, submissions } from "../db/schema.js";
 import type { ReviewEventRow, ReviewJobRow } from "../db/schema.js";
 import { CURRENT_REVIEW_RATE_CARD } from "../lib/review-cost.js";
 
@@ -677,11 +677,13 @@ export async function loadReviewJobMap(
  * Loads the review jobs with the submission each belongs to.
  *
  * @param limit - Largest number of rows to return.
- * @returns The newest jobs first, with the shop name, address and status.
+ * @returns The newest jobs first, with the shop name, address, status and the
+ * shop the submission was admitted as.
  *
  * @remarks
  * Joined rather than looked up per row, because the overview shows a shop name
- * next to every check and one query per row would grow with the list.
+ * next to every check and one query per row would grow with the list. The shop
+ * is joined on the left, because a submission still under moderation has none.
  */
 export async function listReviewJobsWithSubmission(limit = 200) {
   return db
@@ -690,9 +692,11 @@ export async function listReviewJobsWithSubmission(limit = 200) {
       shopName: submissions.shopName,
       shopUrl: submissions.shopUrl,
       submissionStatus: submissions.status,
+      shopId: shops.id,
     })
     .from(reviewJobs)
     .innerJoin(submissions, eq(submissions.id, reviewJobs.submissionId))
+    .leftJoin(shops, eq(shops.submissionId, submissions.id))
     .orderBy(desc(reviewJobs.id))
     .limit(limit);
 }

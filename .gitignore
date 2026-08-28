@@ -42,11 +42,15 @@ scripts/*
 !scripts/check-analytics-integrity.mjs
 !scripts/smoke-backend-bundle.mjs
 !scripts/verify-deploy-artifacts.mjs
+!scripts/install-git-hooks.mjs
 # Git does not descend into an ignored directory, so scripts/lib has to be
 # opened again before a single file inside it can be allowed through.
 !scripts/lib/
 scripts/lib/*
 !scripts/lib/runtime-smoke.mjs
+!scripts/hooks/
+scripts/hooks/*
+!scripts/hooks/pre-commit
 apps/frontend/image-originals/
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep

@@ -76,7 +76,8 @@ export function toReviewJob(row: ReviewJobRow): ReviewJob {
 /**
  * Maps a joined list row onto the shape the overview reads.
  *
- * @param entry - The job with its submission's name, address and status.
+ * @param entry - The job with its submission's name, address and status, and
+ * the shop the submission was admitted as.
  * @returns The list item.
  */
 export function toReviewJobListItem(entry: {
@@ -84,12 +85,14 @@ export function toReviewJobListItem(entry: {
   shopName: string;
   shopUrl: string;
   submissionStatus: string;
+  shopId: number | null;
 }): ReviewJobListItem {
   return {
     ...toReviewJob(entry.job),
     shopName: entry.shopName,
     shopUrl: entry.shopUrl,
     submissionStatus: entry.submissionStatus,
+    shopId: entry.shopId,
   };
 }
 

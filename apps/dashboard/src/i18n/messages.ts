@@ -550,6 +550,10 @@ export interface DashboardMessages {
       reject: string;
       onhold: string;
       edit: string;
+      admittedTitle: string;
+      admittedHint: string;
+      goneTitle: string;
+      goneHint: string;
       approve: string;
       delete: string;
       confirmDeleteTitle: string;
@@ -2108,6 +2112,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         reject: "Ablehnen",
         onhold: "Zurückstellen",
         edit: "Bearbeiten",
+        admittedTitle: "Dieser Vorschlag ist bereits aufgenommen",
+        admittedHint:
+          "Der Shop dazu lässt sich nicht mehr finden. Er wurde entweder gelöscht, oder er stammt aus der Zeit vor dieser Verknüpfung.",
+        goneTitle: "Diesen Vorschlag gibt es nicht mehr",
+        goneHint: "Er wurde gelöscht. Zurück führt zur Liste der Vorschläge.",
         approve: "Freischalten",
         delete: "Löschen",
         confirmDeleteTitle: "Vorschlag löschen?",
@@ -2781,7 +2790,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         title: "Jahressponsoren",
         newSponsor: "Neuer Sponsor",
         emptyTitle: "Noch keine Sponsoren",
-        emptyHint: "Wer die laufenden Kosten mitträgt, steht ein Jahr lang auf der Unterstützen-Seite.",
+        emptyHint:
+          "Wer die laufenden Kosten mitträgt, steht ein Jahr lang auf der Unterstützen-Seite.",
         nameLabel: "Name",
         firstNameLabel: "Vorname",
         lastNameLabel: "Nachname",
@@ -3734,6 +3744,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         reject: "Reject",
         onhold: "Put on hold",
         edit: "Edit",
+        admittedTitle: "This suggestion has already been admitted",
+        admittedHint:
+          "Its shop cannot be found. It was either deleted, or it predates this link being recorded.",
+        goneTitle: "This suggestion no longer exists",
+        goneHint: "It has been deleted. The back button leads to the list of suggestions.",
         approve: "Publish",
         delete: "Delete",
         confirmDeleteTitle: "Delete suggestion?",
@@ -4430,7 +4445,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         contributionTitle: "Contribution",
         costsTitle: "Running costs",
         payeeTitle: "Payee",
-        payeeHint: "Where the transfers go. Shown on the payment card and encoded into the GiroCode.",
+        payeeHint:
+          "Where the transfers go. Shown on the payment card and encoded into the GiroCode.",
         payeeNameLabel: "Account holder",
         payeeIbanLabel: "IBAN",
         payeeBicLabel: "BIC",

@@ -75,6 +75,7 @@ interface SubmissionReviewResult {
 /** Maps an approved submission to the canonical shop insert payload. */
 export function buildApprovedShopData(submission: Submission): typeof shops.$inferInsert {
   return {
+    submissionId: submission.id,
     name: submission.shopName,
     url: submission.shopUrl,
     region: submission.region,
@@ -142,13 +143,40 @@ async function hydrateSubmissionCategoryIds(
     categoryMap.set(row.submissionId, ids);
   }
 
-  const headquartersMap = await loadSubmissionHeadquartersMap(rows.map((row) => row.id));
+  const [headquartersMap, admittedShopMap] = await Promise.all([
+    loadSubmissionHeadquartersMap(submissionIds),
+    loadAdmittedShopMap(submissionIds),
+  ]);
 
   return rows.map((row) => ({
     ...row,
     categoryIds: categoryMap.get(row.id) ?? [],
     headquarters: headquartersMap.get(row.id) ?? null,
+    admittedShopId: admittedShopMap.get(row.id) ?? null,
   }));
+}
+
+/**
+ * Loads the shop each of the given submissions was admitted as.
+ *
+ * @param submissionIds - Submissions to look up.
+ * @returns Submission id to shop id, holding an entry only where a shop exists.
+ *
+ * @remarks
+ * Read in one query rather than per row, because the moderation list shows
+ * every submission at once.
+ */
+async function loadAdmittedShopMap(submissionIds: number[]): Promise<Map<number, number>> {
+  const rows = await db
+    .select({ shopId: shops.id, submissionId: shops.submissionId })
+    .from(shops)
+    .where(inArray(shops.submissionId, submissionIds));
+
+  const map = new Map<number, number>();
+  for (const row of rows) {
+    if (row.submissionId !== null) map.set(row.submissionId, row.shopId);
+  }
+  return map;
 }
 
 /**

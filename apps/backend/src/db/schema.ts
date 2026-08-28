@@ -100,6 +100,10 @@ export const shops = pgTable(
     likeCount: integer("like_count").notNull().default(0),
     needsReview: boolean("needs_review").notNull().default(false),
     reviewData: jsonb("review_data").$type<Record<string, unknown> | null>(),
+    /** Suggestion this shop was admitted from, `null` for shops entered by hand. */
+    submissionId: integer("submission_id")
+      .unique()
+      .references(() => submissions.id, { onDelete: "set null" }),
   },
   (table) => [
     index("idx_shops_active").on(table.isActive),
