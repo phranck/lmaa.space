@@ -9,6 +9,7 @@ import {
   isMastheadImage,
   fetchExternalResource,
   isLogoUrl,
+  secureImageUrl,
   parseImageDimensions,
   withoutSizeConstraints,
 } from "../lib/og.js";
@@ -409,6 +410,33 @@ describe("fetchPreviewImage site marks", () => {
     });
   });
 
+  it("stores an icon declared over http at its protected address", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: string | URL) => {
+        const url = String(input);
+        if (url === "https://shop.example/") {
+          return new Response('<link rel="icon" href="http://shop.example/logo.png">', {
+            headers: { "content-type": "text/html" },
+          });
+        }
+        if (url === "https://shop.example/logo.png") {
+          return new Response(buildPng(200, 200).buffer as ArrayBuffer, {
+            headers: { "content-type": "image/png" },
+          });
+        }
+        return new Response("missing", { status: 404 });
+      }),
+    );
+
+    await expect(
+      fetchPreviewImage("https://shop.example/", { intent: "site-mark" }),
+    ).resolves.toEqual({
+      url: "https://shop.example/logo.png",
+      via: "icon",
+    });
+  });
+
   it("returns nothing rather than using an unmarked product image", async () => {
     vi.stubGlobal(
       "fetch",
@@ -591,6 +619,26 @@ describe("detectPlatformFromHost", () => {
   it("refuses what is not an address", async () => {
     stubNodeinfo("pixelfed");
     expect(await detectPlatformFromHost("not an address")).toBeNull();
+  });
+});
+
+describe("secureImageUrl", () => {
+  it("raises an unprotected address to the protected one", () => {
+    expect(secureImageUrl("http://www.arktis.de/cdn/shop/files/logo.png")).toBe(
+      "https://www.arktis.de/cdn/shop/files/logo.png",
+    );
+  });
+
+  it("keeps the port, the path and the query", () => {
+    expect(secureImageUrl("http://example.com:8080/a/b.png?v=1")).toBe(
+      "https://example.com:8080/a/b.png?v=1",
+    );
+  });
+
+  it("leaves anything that is not http alone", () => {
+    expect(secureImageUrl("https://example.com/a.png")).toBe("https://example.com/a.png");
+    expect(secureImageUrl("data:image/png;base64,AAAA")).toBe("data:image/png;base64,AAAA");
+    expect(secureImageUrl("not a url")).toBe("not a url");
   });
 });
 
