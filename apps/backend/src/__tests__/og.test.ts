@@ -5,6 +5,7 @@ import {
   fetchExternalResource,
   isLogoUrl,
   parseImageDimensions,
+  withoutSizeConstraints,
 } from "../lib/og.js";
 
 // The SSRF guard resolves hostnames before fetching; resolve every test host to
@@ -269,5 +270,46 @@ describe("detectPlatformFromHost", () => {
   it("refuses what is not an address", async () => {
     stubNodeinfo("pixelfed");
     expect(await detectPlatformFromHost("not an address")).toBeNull();
+  });
+});
+
+describe("withoutSizeConstraints", () => {
+  it("drops the sizing a CDN was asked for, keeping the rest", () => {
+    // The shape bestware.com declares: a 200px file requested at 32px, which
+    // is what made the probe reject its own logo.
+    expect(
+      withoutSizeConstraints(
+        "https://bestware.com/cdn/shop/files/logo.png?crop=center&height=32&v=1741270148&width=32",
+      ),
+    ).toBe("https://bestware.com/cdn/shop/files/logo.png?v=1741270148");
+  });
+
+  it("keeps a version parameter, since dropping it can change what is served", () => {
+    expect(withoutSizeConstraints("https://example.com/a.png?width=64&v=9")).toBe(
+      "https://example.com/a.png?v=9",
+    );
+  });
+
+  it("leaves the question mark off where nothing else remains", () => {
+    expect(withoutSizeConstraints("https://example.com/a.png?width=64&height=64")).toBe(
+      "https://example.com/a.png",
+    );
+  });
+
+  it("returns null where there is nothing to strip", () => {
+    // A caller enqueues a second candidate only when this says something
+    // changed, so an unchanged URL must not come back as a duplicate.
+    expect(withoutSizeConstraints("https://example.com/a.png?v=9")).toBeNull();
+    expect(withoutSizeConstraints("https://example.com/a.png")).toBeNull();
+  });
+
+  it("matches the key regardless of case and ignores unrelated ones", () => {
+    expect(withoutSizeConstraints("https://example.com/a.png?WIDTH=64&alt=text")).toBe(
+      "https://example.com/a.png?alt=text",
+    );
+  });
+
+  it("leaves a URL it cannot parse alone", () => {
+    expect(withoutSizeConstraints("not a url at all")).toBeNull();
   });
 });

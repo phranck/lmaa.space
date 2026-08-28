@@ -1,4 +1,8 @@
-import { readBodyWithLimit, readJsonWithLimit, readTextWithLimit } from "./http-body.js";
+import {
+  readBodyWithLimit,
+  readJsonWithLimit,
+  readTextPrefix,
+} from "./http-body.js";
 import { logger } from "./logger.js";
 import { isPublicFetchTarget } from "./validate.js";
 
@@ -204,9 +208,15 @@ async function fetchHtml(url: string): Promise<string | null> {
   });
   if (!result?.response.ok) return null;
 
-  const html = await readTextWithLimit(result.response, MAX_HTML_BYTES);
-  if (html === null) {
-    logger.warn({ url, maxBytes: MAX_HTML_BYTES }, "external HTML exceeded size budget");
+  // The prefix rather than the whole document, because this HTML is scanned for
+  // tags and never parsed as a unit. Everything the scan wants sits in the
+  // head, so a storefront a few kilobytes over budget still answers, whereas
+  // discarding it answered nothing at all. bestware.com is 540 KB against a
+  // 512 KB budget and lost its logo to exactly that.
+  const html = await readTextPrefix(result.response, MAX_HTML_BYTES);
+  if (html.length === 0) {
+    logger.warn({ url }, "external HTML was empty");
+    return null;
   }
   return html;
 }
@@ -485,6 +495,66 @@ async function probeImage(
 
 type Candidate = { url: string; kind: CandidateKind; via: string };
 
+/**
+ * Query keys through which a CDN is asked for a particular size.
+ *
+ * Only unambiguous ones. A version or cache-busting key is deliberately absent,
+ * because dropping it can change what the CDN serves rather than only how large
+ * it serves it.
+ */
+const SIZE_QUERY_KEYS = new Set([
+  "crop",
+  "fit",
+  "h",
+  "height",
+  "max-h",
+  "max-w",
+  "maxheight",
+  "maxwidth",
+  "resize",
+  "s",
+  "size",
+  "sz",
+  "w",
+  "width",
+]);
+
+/**
+ * The same image without the size its page asked for.
+ *
+ * A page routinely declares a large logo at icon size, because that is what the
+ * page itself needs. The probe then measures the thumbnail, finds it under the
+ * minimum for its kind, and discards a picture that was never too small. Asking
+ * the same URL without those parameters returns the original.
+ *
+ * @param url - The URL as the page declared it.
+ * @returns The URL without sizing parameters, or `null` where there were none
+ *   to remove or the URL cannot be parsed. `null` means the caller has nothing
+ *   new to enqueue.
+ */
+export function withoutSizeConstraints(url: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+
+  let removed = false;
+  for (const key of [...parsed.searchParams.keys()]) {
+    if (!SIZE_QUERY_KEYS.has(key.toLowerCase())) continue;
+    parsed.searchParams.delete(key);
+    removed = true;
+  }
+  if (!removed) return null;
+
+  // `URL` keeps a bare "?" once every parameter is gone, and that string is not
+  // the same URL for the `seen` set or for a cache in front of it.
+  return parsed.searchParams.size === 0
+    ? `${parsed.origin}${parsed.pathname}${parsed.hash}`
+    : parsed.toString();
+}
+
 function pushCandidate(
   out: Candidate[],
   seen: Set<string>,
@@ -497,6 +567,16 @@ function pushCandidate(
   if (SKIP_EXT.test(url)) return;
   seen.add(url);
   out.push({ url, kind, via });
+
+  // Every source converges here, so one line covers link icons, manifests,
+  // meta tags and inline images alike. The stripped variant is probed like any
+  // other candidate; where it does not exist it fails that probe and costs a
+  // single request.
+  const full = withoutSizeConstraints(url);
+  if (full && !seen.has(full) && !SKIP_EXT.test(full)) {
+    seen.add(full);
+    out.push({ url: full, kind, via: `${via}-full` });
+  }
 }
 
 function collectMetaImage(
