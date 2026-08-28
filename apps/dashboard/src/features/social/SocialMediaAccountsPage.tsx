@@ -109,7 +109,7 @@ export function SocialMediaAccountsPage(): React.ReactElement {
           <Badge
             colorClass={
               row.canPost
-                ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                ? "bg-green-500/10 text-green-400"
                 : "bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]"
             }
           >
@@ -125,7 +125,7 @@ export function SocialMediaAccountsPage(): React.ReactElement {
           <Badge
             colorClass={
               row.showInFooter
-                ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                ? "bg-blue-500/10 text-blue-400"
                 : "bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]"
             }
           >

@@ -46,7 +46,7 @@ function StatusBadge({ status }: { status: string }) {
   const s = messages.content.pages.status;
   if (status === "published") {
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+      <span className="inline-flex items-center gap-1 text-xs text-green-400">
         <CheckCircleIcon weight="duotone" className="size-3.5" />
         {s.published}
       </span>
@@ -61,7 +61,7 @@ function StatusBadge({ status }: { status: string }) {
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+    <span className="inline-flex items-center gap-1 text-xs text-amber-400">
       <CircleIcon weight="duotone" className="size-3.5" />
       {s.draft}
     </span>

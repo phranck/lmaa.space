@@ -10,8 +10,8 @@ export function ContentEditorLoadingFallback() {
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="text-center">
-        <div className="w-12 h-12 rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 animate-spin mx-auto mb-4" />
-        <p className="text-slate-600 dark:text-slate-400 font-medium">
+        <div className="w-12 h-12 rounded-full border-4 border-slate-700 border-t-blue-400 animate-spin mx-auto mb-4" />
+        <p className="text-slate-400 font-medium">
           {messages.content.loadingFallback}
         </p>
       </div>

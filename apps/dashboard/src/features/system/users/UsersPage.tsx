@@ -64,10 +64,10 @@ export function UsersPage() {
                   <Badge
                     colorClass={
                       user.role === "owner"
-                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+                        ? "bg-amber-900/40 text-amber-400"
                         : user.role === "admin"
-                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
-                          : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                          ? "bg-blue-900/40 text-blue-400"
+                          : "bg-gray-800 text-gray-400"
                     }
                   >
                     {user.role === "owner"

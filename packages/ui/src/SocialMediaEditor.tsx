@@ -254,8 +254,8 @@ export function SocialMediaEditor({
                     onClick={() => selectPlatform(openDropdownId, p.key)}
                     className={`flex items-center gap-2.5 w-full px-3 py-1.5 text-sm transition-colors ${
                       isSelected
-                        ? "text-[var(--ds-text)] bg-black/5 dark:bg-white/8"
-                        : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-black/5 dark:hover:bg-white/8"
+                        ? "text-[var(--ds-text)] bg-white/8"
+                        : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-white/8"
                     }`}
                   >
                     <p.icon size={14} />

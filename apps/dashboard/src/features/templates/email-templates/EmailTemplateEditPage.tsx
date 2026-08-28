@@ -286,7 +286,7 @@ function EmailTemplateHeaderActions({
   return (
     <div className="flex items-center gap-3">
       {savedIndicator && (
-        <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+        <span className="flex items-center gap-1 text-xs text-green-400">
           <CheckCircleIcon weight="duotone" className="size-3.5" />
           {savedLabel}
         </span>
