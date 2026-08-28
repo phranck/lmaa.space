@@ -797,14 +797,39 @@ export function withoutSizeConstraints(url: string): string | null {
     : parsed.toString();
 }
 
+/**
+ * The same address over a protected connection.
+ *
+ * A page reached over `https` may still declare its own pictures over `http`,
+ * and a browser refuses those: the site's policy allows `img-src https:` only,
+ * so the shop shows no mark at all. Storing the secure form is the answer,
+ * because a host that answers on `https` serves the same file there. One that
+ * does not fails its probe, and the shop keeps the letter it falls back to
+ * rather than an address that can never be drawn.
+ *
+ * @param url - An absolute URL.
+ * @returns The `https` form, or the URL unchanged when it is not `http`.
+ */
+export function secureImageUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:") return url;
+    parsed.protocol = "https:";
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 function pushCandidate(
   out: Candidate[],
   seen: Set<string>,
-  url: string | null,
+  rawUrl: string | null,
   kind: CandidateKind,
   via: string,
 ): void {
-  if (!url) return;
+  if (!rawUrl) return;
+  const url = secureImageUrl(rawUrl);
   if (seen.has(url)) return;
   if (SKIP_EXT.test(url)) return;
   seen.add(url);
