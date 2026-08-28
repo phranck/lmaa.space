@@ -169,6 +169,12 @@ export interface ReviewJobListItem extends ReviewJob {
   shopUrl: string;
   /** Moderation status of the submission, which the check may have led to. */
   submissionStatus: string;
+  /**
+   * Shop the submission was admitted as, so a row can lead to what the check
+   * produced. `null` whilst the submission is still under moderation, and for
+   * an admitted one whose shop predates the reference being stored.
+   */
+  shopId: number | null;
 }
 
 /**
