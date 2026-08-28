@@ -366,7 +366,11 @@ export default function LikedShopsGrid({ supportPrompts }: LikedShopsGridProps) 
                   hasCoordinates={
                     shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
                   }
-                  hideLikeIndicator
+                  // The marker is not suppressed here any more. Every shop on
+                  // this page is kept by the reader, so the heart alone said
+                  // nothing; with its count beside it, it says how the shop
+                  // stands with everyone else.
+                  likeCount={shop.likeCount}
                 />
               ))}
             </div>
