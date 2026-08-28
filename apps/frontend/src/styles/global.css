@@ -393,6 +393,42 @@ details > summary::-webkit-details-marker {
   text-decoration: underline;
 }
 
+/* A footnote marker set as ordinary superscript is a grey speck a reader misses.
+   It gets the accent, weight and a tinted pill, so it reads as something to
+   follow rather than as a typographic accident. Sized in `em` so it rides the
+   text it belongs to, whatever that text is set at. */
+.lmaa-rich sup a,
+.prose sup a {
+  display: inline-block;
+  min-width: 1.35em;
+  padding: 0 0.28em;
+  border-radius: 0.35em;
+  background: var(--ds-accent-tint, rgb(180 131 27 / 0.14));
+  color: var(--colors-amber-800);
+  font-weight: 700;
+  font-size: 0.78em;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+}
+
+.lmaa-rich sup a:hover,
+.prose sup a:hover {
+  background: var(--colors-amber-700);
+  color: white;
+  text-decoration: none;
+}
+
+/* The return arrow beneath belongs to the note, not to the prose, so it stays
+   quiet and takes no pill. */
+.lmaa-rich .footnote-backref,
+.prose .footnote-backref {
+  background: none;
+  padding: 0;
+  min-width: 0;
+  font-size: 1em;
+}
+
 .lmaa-rich strong {
   font-weight: 600;
 }
