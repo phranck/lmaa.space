@@ -6,7 +6,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { ContentEditorLoadingFallback } from "@/components/app/ContentEditorLoadingFallback.tsx";
 import { I18nProvider } from "@/context/I18nContext.tsx";
-import { ThemeProvider, useTheme } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { KeyboardSaveProvider } from "@/lib/hooks/useKeyboardSave.ts";
 
@@ -547,20 +546,22 @@ function AppRoutes() {
 }
 
 /**
- * App-wide toast host. Rendered once inside the theme provider so notifications
- * adopt the active light/dark theme.
+ * App-wide toast host.
  *
  * @returns The react-toastify container for the whole dashboard.
+ *
+ * @remarks
+ * Dark, like the dashboard around it. There is one appearance here, so the
+ * notification does not have to ask which one is in force.
  */
 function AppToaster() {
-  const { effectiveTheme } = useTheme();
   return (
     <ToastContainer
       position="top-center"
       autoClose={5000}
       newestOnTop
       pauseOnFocusLoss={false}
-      theme={effectiveTheme}
+      theme="dark"
     />
   );
 }
@@ -574,12 +575,10 @@ export default function App() {
   return (
     <AuthProvider>
       <I18nProvider>
-        <ThemeProvider>
-          <KeyboardSaveProvider>
-            <AppRoutes />
-            <AppToaster />
-          </KeyboardSaveProvider>
-        </ThemeProvider>
+        <KeyboardSaveProvider>
+          <AppRoutes />
+          <AppToaster />
+        </KeyboardSaveProvider>
       </I18nProvider>
     </AuthProvider>
   );

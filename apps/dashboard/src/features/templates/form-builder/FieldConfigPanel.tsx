@@ -388,23 +388,23 @@ function RichTextFieldConfig({ field, onChange, m }: RichTextFieldConfigProps) {
               {
                 value: "info",
                 label: m.variantInfo,
-                base: "bg-blue-50 dark:bg-blue-950/50 text-blue-900 dark:text-blue-300",
-                active: "border-2 border-blue-400 dark:border-blue-500",
-                inactive: "border border-blue-200 dark:border-blue-800",
+                base: "bg-blue-950/50 text-blue-300",
+                active: "border-2 border-blue-500",
+                inactive: "border border-blue-800",
               },
               {
                 value: "warning",
                 label: m.variantWarning,
-                base: "bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300",
-                active: "border-2 border-amber-400 dark:border-amber-500",
-                inactive: "border border-amber-200 dark:border-amber-800",
+                base: "bg-amber-950/50 text-amber-300",
+                active: "border-2 border-amber-500",
+                inactive: "border border-amber-800",
               },
               {
                 value: "hint",
                 label: m.variantHint,
-                base: "bg-green-50 dark:bg-green-950/50 text-green-900 dark:text-green-300",
-                active: "border-2 border-green-500 dark:border-green-500",
-                inactive: "border border-green-200 dark:border-green-800",
+                base: "bg-green-950/50 text-green-300",
+                active: "border-2 border-green-500",
+                inactive: "border border-green-800",
               },
             ] as {
               value: RichTextVariant;

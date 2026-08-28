@@ -28,7 +28,7 @@ Der Orchestrator-Entscheid nach Abgleich:
 - Dropdown- und Combobox-Items verwenden fuer Hover und keyboardaktiven Zustand ausschliesslich definierte Interaktionstokens wie `--ds-control-hover-bg`; undefinierte Alias-Tokens wie `--ds-hover` sind in gemeinsamen Primitives nicht erlaubt.
 - Portal-Listboxen und Portal-Menues innerhalb von Dialogen muessen den aktiven Overlay-Z-Index aus dem Overlay-Kontext erben und mit kleinem Offset darueber liegen; globale Basis-Z-Index-Tokens allein duerfen Dialog-Popover nicht hinter der Card verschwinden lassen.
 - Enum-/Status-Comboboxen mit variierenden Label-Laengen verwenden `DashboardCombobox minWidthFromOptions`, statt feste `w-*`-Breiten zu raten. Die Trigger-Mindestbreite wird aus allen Optionslabels gemessen und bleibt opt-in, damit dichte Layouts nicht unbeabsichtigt wachsen.
-- Icon-Picker-Selections sind keine normale Outline-Primary-Action. Der aktive Icon-Button nutzt lokal einen leuchtenden Active-Fill, Primary-Border und im Dark Mode ein weisses Icon, ohne Shadow oder globale Button-Variant anzupassen.
+- Icon-Picker-Selections sind keine normale Outline-Primary-Action. Der aktive Icon-Button nutzt lokal einen leuchtenden Active-Fill, Primary-Border und ein weisses Icon, ohne Shadow oder globale Button-Variant anzupassen.
 
 ## Zielbild
 

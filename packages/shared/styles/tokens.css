@@ -59,15 +59,18 @@
      OKLCH lightness ramp for surfaces & text.
      Guaranteed contrast: min ΔL ≈ 0.40 between any
      text level and any surface level → WCAG AA.
-     Light mode uses calc(step); dark mode hand-tuned.   */
+     Stated as calc(step) here; the dashboard's own dark
+     values are hand-tuned in its stylesheet.            */
   --ds-neutral-c: 0.006;
   --ds-neutral-h: 250;
   --ds-L-surface-step: 0.025;
   --ds-L-text-step: 0.16;
 }
 
-/* ── SEMANTIC TOKENS · Light mode ────────────────────────────
-   GitHub Primer light default (exact @primer/primitives)
+/* ── SEMANTIC TOKENS ─────────────────────────────────────────
+   GitHub Primer light default (exact @primer/primitives).
+   This is what the public site renders. The dashboard is dark
+   only and overrides these in apps/dashboard/src/index.css.
    ──────────────────────────────────────────────────────────── */
 
 :root {
@@ -305,83 +308,7 @@
   --md-punctuation: #6e7781;
 }
 
-/* ── SEMANTIC TOKENS · Dark mode ──────────────────────────────
-   Applied when <html class="dark"> is set.
-   Accent/Brand and Motion tokens remain unchanged.
-   ──────────────────────────────────────────────────────────── */
-
-.dark {
-  /* Surface lightness overrides (dark mode: low L, not calc-based
-     because elevation order differs from light mode) */
-  --ds-L-surface: 0.225;
-  --ds-L-bg: 0.185;
-  --ds-L-elevated: 0.25;
-  --ds-L-inset: 0.205;
-
-  /* Text lightness overrides (dark mode: high L, reversed) */
-  --ds-L-text: 0.95;
-  --ds-L-muted: 0.65;
-  --ds-L-subtle: 0.5;
-  /* Darker rather than lighter here, because further from the text colour is
-     what makes a hint recede, and on a dark surface that direction reverses. */
-  --ds-L-placeholder: 0.4;
-
-  /* A label on a dark surface goes brighter than the running text, because it
-     names the field and is read before the value in it. Stated outright rather
-     than derived, so it does not move when the text scale is adjusted.
-     The light theme keeps `var(--ds-text)`, where the same intent means dark
-     on paper. */
-  --ds-text-label: #e3e3e3;
-
-  --ds-text-inverse: oklch(var(--ds-L-inset) 0 0);
-  /* Warm paper has no counterpart on a dark page, so the role falls back to the
-     neutral surface that means the same thing there: half a step off the page. */
-  --ds-surface-form: var(--ds-surface-soft);
-  --ds-input-bg: var(--ds-bg-elevated);
-
-  /* Borders — borderColor-default #3d444d · muted rgba · emphasis #656c76 */
-  --ds-border: #3d444d; /* borderColor-default */
-  --ds-border-strong: #656c76; /* borderColor-emphasis */
-  --ds-border-subtle: hsl(215 12% 28%);
-
-  /* Accent */
-  --ds-accent-subtle: hsl(215 30% 20%);
-  /* The same role on a dark wash, so it needs to be lighter rather than darker. */
-  --ds-accent-text: var(--ds-color-brand-300);
-
-  /* Focus and interaction */
-  --ds-focus-ring-offset: var(--ds-bg);
-  --ds-control-hover-bg: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.08);
-  --ds-control-active-bg: color-mix(in srgb, var(--color-primary) 22%, transparent);
-  --ds-bg-hover: var(--ds-control-hover-bg);
-  --ds-surface-hover: var(--ds-control-hover-bg);
-  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  --ds-nav-active-border: var(--ds-border-focus);
-  --ds-nav-hover-bg: var(--ds-nav-active-bg);
-
-  /* Status */
-  --ds-success-bg: hsl(135 25% 18%);
-  --ds-success-border: hsl(130 35% 35%);
-  --ds-success-text: hsl(135 50% 55%);
-  --ds-danger-bg: hsl(0 30% 20%);
-  --ds-danger-border: hsl(0 50% 38%);
-  --ds-danger-text: hsl(0 65% 62%);
-  --ds-warning-bg: hsl(40 35% 18%);
-  --ds-warning-border: hsl(40 50% 35%);
-  --ds-warning-text: hsl(38 60% 55%);
-  --ds-info-bg: hsl(215 30% 20%);
-  --ds-info-border: hsl(215 50% 38%);
-  --ds-info-text: hsl(212 70% 65%);
-
-  /* Shadows — stronger for very dark surfaces */
-  --ds-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
-  --ds-shadow-sm: 0 2px 8px rgb(0 0 0 / 0.45), 0 1px 3px rgb(0 0 0 / 0.35);
-  --ds-shadow-md: 0 6px 16px rgb(0 0 0 / 0.4), 0 2px 6px rgb(0 0 0 / 0.3);
-  --ds-shadow-lg: 0 10px 15px rgb(0 0 0 / 0.5), 0 4px 6px rgb(0 0 0 / 0.4);
-  --ds-shadow-xl: 0 20px 25px rgb(0 0 0 / 0.55), 0 8px 10px rgb(0 0 0 / 0.45);
-}
-
-/* ── COMPONENT TOKENS · Light mode ───────────────────────────
+/* ── COMPONENT TOKENS ────────────────────────────────────────
    Shared component-level tokens used across all apps.
    ──────────────────────────────────────────────────────────── */
 
@@ -449,68 +376,6 @@
   --ds-badge-info-text: hsl(212 80% 44%);
   --ds-badge-review-bg: hsl(270 70% 93%);
   --ds-badge-review-text: hsl(270 55% 50%);
-}
-
-/* ── COMPONENT TOKENS · Dark mode ────────────────────────────  */
-
-.dark {
-  /* Filled button — lighter on dark surfaces */
-  --ds-btn-filled-bg: var(--ds-color-neutral-700);
-  --ds-btn-filled-hover: var(--ds-color-neutral-600);
-
-  /* Outline action button: primary */
-  --ds-btn-primary-border: hsl(195 40% 30%);
-  --ds-btn-primary-text: hsl(195 80% 62%);
-  --ds-btn-primary-hover-border: hsl(195 50% 45%);
-  --ds-btn-primary-hover-bg: hsl(195 30% 20%);
-
-  /* Segment controls -- inherit from semantic tokens */
-  --ds-segment-bg: var(--ds-bg-elevated);
-  --ds-segment-active-bg: var(--ds-control-active-bg);
-  --ds-segment-active-border: color-mix(in srgb, var(--color-primary) 20%, var(--ds-border));
-
-  /* Neutral outline button */
-  --ds-btn-neutral-border: var(--ds-border);
-  --ds-btn-neutral-text: var(--ds-text-muted);
-  --ds-btn-neutral-hover-border: var(--ds-border-strong);
-  --ds-btn-neutral-hover-bg: hsl(215 12% 24%);
-
-  /* Outline action button: danger */
-  --ds-btn-danger-border: hsl(0 40% 30%);
-  --ds-btn-danger-text: hsl(0 65% 62%);
-  --ds-btn-danger-hover-bg: hsl(0 30% 20%);
-  --ds-btn-danger-hover-border: hsl(0 50% 42%);
-
-  /* Outline action button: success */
-  --ds-btn-success-border: hsl(130 30% 30%);
-  --ds-btn-success-text: hsl(135 50% 55%);
-  --ds-btn-success-hover-bg: hsl(135 25% 18%);
-  --ds-btn-success-hover-border: hsl(130 40% 42%);
-
-  /* Outline action button: warning */
-  --ds-btn-warning-border: hsl(40 40% 30%);
-  --ds-btn-warning-text: hsl(38 60% 55%);
-  --ds-btn-warning-hover-bg: hsl(40 35% 18%);
-  --ds-btn-warning-hover-border: hsl(40 50% 42%);
-
-  /* Status badges */
-  --ds-badge-pending-bg: hsl(40 40% 20%);
-  --ds-badge-pending-text: hsl(40 70% 65%);
-  --ds-badge-success-bg: hsl(135 30% 18%);
-  --ds-badge-success-text: hsl(135 50% 60%);
-  --ds-badge-danger-bg: hsl(0 35% 20%);
-  --ds-badge-danger-text: hsl(0 70% 65%);
-  --ds-badge-info-bg: hsl(210 40% 22%);
-  --ds-badge-info-text: hsl(210 80% 72%);
-  --ds-badge-review-bg: hsl(270 30% 25%);
-  --ds-badge-review-text: hsl(270 80% 80%);
-
-  /* Markdown editor syntax highlighting */
-  --md-heading: #79c0ff;
-  --md-emphasis: #d2a8ff;
-  --md-code: #ffa657;
-  --md-quote: #7ee787;
-  --md-punctuation: #8b949e;
 }
 
 /* Shared button content alignment

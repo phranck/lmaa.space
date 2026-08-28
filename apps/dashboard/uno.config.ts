@@ -2,7 +2,9 @@ import { defineConfig, presetTypography, presetWind4, transformerDirectives } fr
 
 export default defineConfig({
   presets: [
-    presetWind4({ dark: "class" }),
+    // No dark variant, because the dashboard has one appearance and states it
+    // in its own stylesheet. A `dark:` utility here would never match.
+    presetWind4(),
     presetTypography({
       cssExtend: {
         h1: {
