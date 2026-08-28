@@ -16,6 +16,18 @@ vi.mock("../repositories/admin-submissions.js", () => submissionRepository);
 const moderation = vi.hoisted(() => ({ reviewAdminSubmission: vi.fn() }));
 vi.mock("../services/admin-submissions.js", () => moderation);
 
+// Applying an acceptance resolves the address, and that is a call to a geocoding
+// service. Left alone it makes this test depend on a stranger answering within
+// the timeout, which is what turned the gate red.
+const geocoding = vi.hoisted(() => ({
+  geocodeAddress: vi.fn(async () => ({
+    latitude: 53.0757,
+    longitude: 8.8071,
+    source: "Photon (street-level)",
+  })),
+}));
+vi.mock("../lib/geocoding.js", () => geocoding);
+
 const { applyReviewResult, insertRejectionToken } = await import("../services/review/apply.js");
 
 const criteria = {
@@ -190,6 +202,19 @@ describe("applyReviewResult", () => {
       categoryIds: [7],
       contactEmail: "hallo@beispiel.de",
     });
+  });
+
+  it("writes the coordinates the lookup returned rather than the ones the model wrote", async () => {
+    await applyReviewResult({ submissionId: 42, result: acceptResult(), settings: settings() });
+
+    const [, editData] = submissionRepository.editSubmission.mock.calls[0];
+    expect(geocoding.geocodeAddress).toHaveBeenCalledWith({
+      street: "Musterweg 3",
+      postalCode: "28195",
+      city: "Bremen",
+      countryCode: "DE",
+    });
+    expect(editData.headquarters).toMatchObject({ latitude: 53.0757, longitude: 8.8071 });
   });
 
   it("approves only when acceptance is explicitly enabled", async () => {
