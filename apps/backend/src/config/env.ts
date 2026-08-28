@@ -6,7 +6,10 @@ export const DEFAULT_IP_HASH_SALT = "local-dev-salt-not-for-production";
 export const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-    PORT: z.coerce.number().int().positive(),
+    // 3000 is the port the deployment declares under `ports` in zerops.yml, and
+    // the platform reserves the PORT key, so the service has to arrive at that
+    // number without being told. Locally .env.local sets it.
+    PORT: z.coerce.number().int().positive().default(3000),
     DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
     DATABASE_URL_MIGRATOR: z.string().optional(),
     DB_MIGRATION_ROLE: z.string().optional(),

@@ -127,7 +127,11 @@ export default defineConfig({
     },
   },
   server: {
-    port: Number(process.env.PORT) || 4321,
+    // The fallback is the port the deployment declares under `ports` in
+    // zerops.yml, because the platform reserves the PORT key and the built
+    // server would otherwise listen on Astro's own 4321, which nothing routes
+    // to. Locally .env.local sets it.
+    port: Number(process.env.PORT) || 3000,
   },
   integrations: [
     UnoCSS({ injectReset: false }),

@@ -33,7 +33,10 @@ zerops:
           httpSupport: true
       envVariables:
         HOST: 0.0.0.0
-        PORT: "3000"
+        # No PORT here. Zerops holds that key itself and rejects the whole file
+        # when it is set, so the port lives under `ports` above and the service
+        # falls back to the same number on its own. See the default in
+        # apps/backend/src/config/env.ts.
         NODE_ENV: production
         DATABASE_URL: ${postgres_connectionString}
         DATABASE_URL_MIGRATOR: ${postgres_connectionString}
@@ -100,7 +103,9 @@ zerops:
           httpSupport: true
       envVariables:
         HOST: 0.0.0.0
-        PORT: "3000"
+        # No PORT here either, for the reason given on the backend service. The
+        # built server falls back to the same number, set in
+        # apps/frontend/astro.config.mjs.
         NODE_ENV: production
         API_URL: http://backend:3000/api/v1
         # Secrets (set in Zerops dashboard):
