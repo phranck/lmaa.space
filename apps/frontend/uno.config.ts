@@ -1,5 +1,7 @@
 import { defineConfig, presetTypography, presetWind4, transformerDirectives } from "unocss";
 
+import { transformerStableCustomPropertyOrder } from "./src/lib/stable-css-order.js";
+
 export default defineConfig({
   presets: [
     presetWind4({ dark: "class" }),
@@ -36,7 +38,7 @@ export default defineConfig({
       },
     }),
   ],
-  transformers: [transformerDirectives()],
+  transformers: [transformerDirectives(), transformerStableCustomPropertyOrder()],
   theme: {
     radius: {
       control: "0.75rem",
