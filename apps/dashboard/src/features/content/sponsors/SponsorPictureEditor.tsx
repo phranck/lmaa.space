@@ -37,7 +37,12 @@ export function SponsorPictureEditor({
     <div className="flex w-40 shrink-0 flex-col items-center gap-3">
       <div className="flex size-24 items-center justify-center overflow-hidden rounded-full bg-[var(--ds-bg-elevated)] ring-2 ring-[var(--ds-border)]">
         {imageUrl ? (
-          <img src={imageUrl} alt={displayName} className="size-full object-cover" />
+          <img
+            src={imageUrl}
+            alt={displayName}
+            className="size-full object-cover"
+            referrerPolicy="no-referrer"
+          />
         ) : (
           <span className="select-none text-3xl font-semibold text-[var(--ds-text-subtle)]">
             {displayName.trim()[0]?.toUpperCase() ?? "?"}

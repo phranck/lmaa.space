@@ -20,7 +20,9 @@ interface AvatarProps {
  *
  * Falls back to the first letter of the name, both when no picture was given
  * and when the one that was given fails to load. The second case matters here
- * because such a picture often sits on somebody else's server.
+ * because such a picture often sits on somebody else's server. For the same
+ * reason the picture is fetched without a referrer, since a server that guards
+ * against hotlinking refuses a request that names the page it is shown on.
  *
  * @param props - The name, the picture and how large to draw it.
  * @returns The picture, or a circle carrying the initial.
@@ -35,6 +37,7 @@ export function Avatar({ name, imageUrl, size = "md", className = "" }: AvatarPr
         src={imageUrl}
         alt={name}
         className={`${sizeClass} ${className} rounded-full shrink-0 object-cover`}
+        referrerPolicy="no-referrer"
         onError={() => setImageFailed(true)}
       />
     );
