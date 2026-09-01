@@ -203,6 +203,7 @@ export default {
           "src/features/analytics/AnalyticsSection.tsx",
           "src/features/analytics/RealtimeCard.tsx",
           "src/features/analytics/TabbedMetricCard.tsx",
+          "src/features/content/donations/DonationsPage.tsx",
           "src/features/content/footer-builder/FooterBuilderPage.tsx",
           "src/features/content/landing-page/HeroBannerTab.tsx",
           "src/features/content/shops/ShopEditorFormContent.tsx",
