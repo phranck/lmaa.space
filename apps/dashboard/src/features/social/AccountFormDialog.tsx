@@ -11,7 +11,7 @@ import {
   type SocialMediaAccountUpdateInput,
   type SocialMediaPlatformKey,
 } from "@lmaa/contracts";
-import { detectPlatformFromUrl } from "@lmaa/shared";
+import { detectProfilePlatform, isFediverseHandle } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
 import { PLATFORM_MAP, PLATFORMS } from "@lmaa/ui/social-media-platforms";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
@@ -222,9 +222,16 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
   function applyUrlAutoDetect(url: string): void {
     const trimmed = url.trim();
     if (!trimmed) return;
-    const detected = detectPlatformFromUrl(trimmed);
+    // Sorted the way the rest of the codebase sorts an address, so a fediverse
+    // handle is recognised here too. Reading it as a URL cannot work, because
+    // the instance is somebody's own domain and the `@user@` parses as userinfo.
+    const detected = detectProfilePlatform(trimmed);
     if (!detected) return;
+    const isHandle = isFediverseHandle(trimmed);
     setState((prev) => {
+      // A handle cannot tell Mastodon, Pixelfed and Friendica apart, so it
+      // fills an empty choice rather than replacing one somebody made.
+      if (isHandle && prev.platform && prev.platform !== "website") return prev;
       if (prev.platform !== "website" && prev.platform === detected) return prev;
       return { ...prev, platform: detected as SocialMediaPlatformKey };
     });

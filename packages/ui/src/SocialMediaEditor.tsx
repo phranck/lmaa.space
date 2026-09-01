@@ -8,7 +8,8 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
-  detectPlatformFromUrl,
+  detectProfilePlatform,
+  isFediverseHandle,
   normalizeSocialMediaValue,
   type SocialMediaLinks,
   type SocialPlatformKey,
@@ -191,13 +192,22 @@ export function SocialMediaEditor({
   }
 
   function updateUrl(id: string, url: string) {
-    const detected = detectPlatformFromUrl(url);
+    // Sorted the way the rest of the codebase sorts an address, so a fediverse
+    // handle such as `@kim@chaos.social` is recognised here too. Reading it as
+    // a URL cannot work: the instance is somebody's own domain, so no table
+    // holds it, and the `@kim@` in front parses as userinfo.
+    const detected = detectProfilePlatform(url);
     const entry = entries.find((e) => e.id === id);
     if (!entry) return;
 
+    // A bare handle is answered as Mastodon because that is the common case,
+    // but a Pixelfed and a Friendica handle are written identically. So it
+    // fills an empty choice and never overrules one somebody made by hand.
+    const overrulesChoice = detected !== null && !isFediverseHandle(url);
+
     // Auto-detect platform, but only if user hasn't manually overridden
     // or if the current platform is empty/website (generic fallback)
-    const shouldAutoDetect = !entry.platform || entry.platform === "website" || detected;
+    const shouldAutoDetect = !entry.platform || entry.platform === "website" || overrulesChoice;
     const platform = shouldAutoDetect
       ? (detected ?? (url.trim() ? "website" : ""))
       : entry.platform;
