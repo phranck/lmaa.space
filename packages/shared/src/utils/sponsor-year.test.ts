@@ -1,6 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import { daysLeft, isCurrent } from "./sponsor-year.js";
+import {
+  DONATION_MONTH_DAYS,
+  SPONSOR_YEAR_DAYS,
+  daysLeft,
+  isCurrent,
+  periodStart,
+} from "./sponsor-year.js";
+
+describe("periodStart", () => {
+  it("counts today as the whole of a one day window", () => {
+    expect(periodStart("2026-09-01", 1)).toBe("2026-09-01");
+  });
+
+  it("reaches back one day short of the window, so both ends count", () => {
+    expect(periodStart("2026-09-01", DONATION_MONTH_DAYS)).toBe("2026-08-03");
+  });
+
+  it("puts the sponsor year a day after the same date a year earlier", () => {
+    expect(periodStart("2026-09-01", SPONSOR_YEAR_DAYS)).toBe("2025-09-02");
+  });
+
+  it("crosses a leap day without losing one", () => {
+    expect(periodStart("2024-03-01", 2)).toBe("2024-02-29");
+  });
+});
 
 
 describe("daysLeft", () => {
