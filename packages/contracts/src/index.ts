@@ -44,3 +44,5 @@ export * from "./support-prompts";
 /** Yearly sponsor schemas: who carries the running costs. */
 export * from "./sponsors";
 export * from "./pending-sponsorships";
+/** Donation ledger schemas: every payment that arrives, whatever route it took. */
+export * from "./donations";

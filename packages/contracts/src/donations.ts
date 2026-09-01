@@ -1,0 +1,139 @@
+import { z } from "zod";
+
+import { socialMediaLinksSchema, socialMediaSchema } from "@lmaa/shared";
+
+/**
+ * Every payment that arrives, whatever route it took.
+ *
+ * The running costs are carried by the money rather than by the sponsorships,
+ * so a figure saying what is left to fund the year has to count all of it. One
+ * ledger answers that in one sum, which is what keeps a payment from being
+ * counted twice or not at all.
+ */
+
+/**
+ * Where a payment came in, against the name shown for it.
+ *
+ * The label travels with the key so the dashboard's select and the stored value
+ * cannot drift apart. GitHub Sponsors stands on its own although the money
+ * lands in the same PayPal account, because otherwise nobody can ask later what
+ * arrived through GitHub. Services no longer in use stay listed, so a payment
+ * from the time they were can still be filed where it belongs.
+ */
+export const DONATION_PROVIDERS = {
+  sepa: "Überweisung",
+  paypal: "PayPal",
+  ghsponsors: "GitHub Sponsors",
+  kofi: "Ko-fi",
+  liberapay: "Liberapay",
+  patreon: "Patreon",
+  stripe: "Stripe",
+  buymeacoffee: "Buy Me a Coffee",
+  cash: "Bar",
+  other: "Sonstiges",
+} as const satisfies Record<string, string>;
+
+/** Name of one route a payment took. */
+export type DonationProvider = keyof typeof DONATION_PROVIDERS;
+
+/** Every route, in declaration order, which is also the order the select shows. */
+export const DONATION_PROVIDER_KEYS = Object.keys(DONATION_PROVIDERS) as [
+  DonationProvider,
+  ...DonationProvider[],
+];
+
+/** Everything an editor records about one payment. */
+export const donationInputSchema = z.object({
+  /** The given name, split as a sponsor's is so both render alike. */
+  firstName: z.string().trim().min(1).max(80),
+  /** The family name, empty for anybody given under one name only. */
+  lastName: z.string().trim().max(80).default(""),
+  /**
+   * Where they can be found, as a platform key against a profile address.
+   *
+   * Optional and usually absent: a bank transfer carries no such address, and
+   * asking for one is only possible where the payment came with a message.
+   */
+  socialMedia: socialMediaSchema,
+  /**
+   * Whether they agreed to be named.
+   *
+   * False by default, and read by nothing today. Somebody who transfers money
+   * has consented to nothing, so the flag records an answer that was actually
+   * given rather than one assumed from silence. It is set at the moment the
+   * payment is entered because it cannot be reconstructed afterwards.
+   */
+  published: z.boolean().default(false),
+  /** What arrived, in cents. Never served on a public route. */
+  amountCents: z.coerce.number().int().min(0).max(1_000_000),
+  /** The day it arrived, which decides the periods it falls into. */
+  receivedAt: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a day as YYYY-MM-DD"),
+  /** Which route it took. */
+  provider: z.enum(DONATION_PROVIDER_KEYS),
+  /** Anything worth keeping about this one payment, such as a reference. */
+  note: z.string().trim().max(600).default(""),
+  /**
+   * The sponsorship this payment paid for, or null for an ordinary donation.
+   *
+   * The reference points from the payment to the person rather than the other
+   * way round, because a sponsorship is renewed by paying again and one sponsor
+   * therefore accumulates several payments over the years.
+   */
+  sponsorId: z.string().uuid().nullable().default(null),
+});
+
+/** A payment as stored and read back. */
+export const donationSchema = donationInputSchema.extend({
+  id: z.string().min(1).max(64),
+  /** Always a list when read back, empty where nothing was entered. */
+  socialMedia: socialMediaLinksSchema,
+  createdAt: z.string(),
+});
+
+/**
+ * The window a sum is asked for, as a pair of days.
+ *
+ * Both ends are inclusive, matching how a person reads a date range on a
+ * statement. An absent end means everything up to and including today.
+ */
+export const donationRangeSchema = z.object({
+  from: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a day as YYYY-MM-DD")
+    .optional(),
+  to: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a day as YYYY-MM-DD")
+    .optional(),
+});
+
+/**
+ * What came in over the periods the dashboard shows at a glance.
+ *
+ * Every window rolls back from today rather than following the calendar, which
+ * is what the sponsor year does as well. One idea of a period across the whole
+ * set, so a sentence quoting the month beside the year is not quoting two
+ * different things.
+ */
+export const donationTotalsSchema = z.object({
+  /** What came in over the last 30 days, in cents. */
+  monthCents: z.number().int(),
+  /** What came in over the sponsor year, in cents. */
+  yearCents: z.number().int(),
+  /** How many payments fall into that year. */
+  yearCount: z.number().int(),
+});
+
+/** Everything an editor records about one payment. */
+export type DonationInput = z.infer<typeof donationInputSchema>;
+/** A payment as stored and read back. */
+export type Donation = z.infer<typeof donationSchema>;
+/** The window a sum is asked for. */
+export type DonationRange = z.infer<typeof donationRangeSchema>;
+/** What came in over the periods the dashboard shows. */
+export type DonationTotals = z.infer<typeof donationTotalsSchema>;

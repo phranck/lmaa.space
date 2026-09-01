@@ -1347,3 +1347,61 @@ export type PendingSponsorshipRow = typeof pendingSponsorships.$inferSelect;
  * Inferred insert type for `pending_sponsorships`.
  */
 export type PendingSponsorshipInsert = typeof pendingSponsorships.$inferInsert;
+
+/**
+ * Every payment that arrives, whatever route it took.
+ *
+ * The running costs are carried by the money rather than by the sponsorships,
+ * so the figure saying what is left to fund the year has to count all of it.
+ * One row per payment and one sum over them, which is what keeps a payment
+ * from being counted twice or missed.
+ */
+export const donations = pgTable(
+  "donations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** The given name, split as a sponsor's is so both render alike. */
+    firstName: text("first_name").notNull(),
+    /** The family name, empty for anybody given under one name only. */
+    lastName: text("last_name").notNull().default(""),
+    /** Where they can be found. Usually empty: a transfer carries no address. */
+    socialMedia: jsonb("social_media").$type<SocialMediaLinks>().notNull().default([]),
+    /**
+     * Whether they agreed to be named.
+     *
+     * False unless somebody said otherwise, and read by nothing today. A
+     * transfer is not consent, and the answer cannot be reconstructed later.
+     */
+    published: boolean("published").notNull().default(false),
+    /** What arrived, in cents. Never served on a public route. */
+    amountCents: integer("amount_cents").notNull().default(0),
+    /** The day it arrived, which decides the periods it falls into. */
+    receivedAt: text("received_at").notNull(),
+    /** Which route it took, as a key from `DONATION_PROVIDERS`. */
+    provider: text("provider").notNull(),
+    /** Anything worth keeping about this one payment, such as a reference. */
+    note: text("note").notNull().default(""),
+    /**
+     * The sponsorship this payment paid for, or null for an ordinary donation.
+     *
+     * Set null rather than deleted when the sponsor goes, because the money
+     * still arrived and still carried that part of the year.
+     */
+    sponsorId: uuid("sponsor_id").references(() => sponsors.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_donations_received_at").on(table.receivedAt),
+    index("idx_donations_sponsor_id").on(table.sponsorId),
+    check("donations_amount_nonnegative", sql`${table.amountCents} >= 0`),
+  ],
+);
+
+/**
+ * Inferred select type for `donations`.
+ */
+export type DonationRow = typeof donations.$inferSelect;
+/**
+ * Inferred insert type for `donations`.
+ */
+export type DonationInsert = typeof donations.$inferInsert;

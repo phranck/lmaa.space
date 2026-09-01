@@ -624,6 +624,20 @@
       "when": 1787948380900,
       "tag": "0088_link_shops_to_their_submissions",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1788279756161,
+      "tag": "0089_acoustic_zarek",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1788279768452,
+      "tag": "0090_donations_backfill_from_sponsors",
+      "breakpoints": true
     }
   ]
 }
