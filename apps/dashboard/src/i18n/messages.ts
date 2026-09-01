@@ -71,6 +71,7 @@ export interface DashboardMessages {
       supportPrompts: string;
       sponsors: string;
       sponsorRequests: string;
+      donations: string;
       sponsoringSettings: string;
       sectionSponsoring: string;
       systemSettings: string;
@@ -1233,6 +1234,39 @@ export interface DashboardMessages {
       deleteTitle: string;
       deleteMessage: string;
     };
+    donations: {
+      title: string;
+      newDonation: string;
+      emptyTitle: string;
+      emptyHint: string;
+      nameLabel: string;
+      firstNameLabel: string;
+      lastNameLabel: string;
+      socialMediaLabel: string;
+      socialMediaHint: string;
+      publishedLabel: string;
+      publishedHint: string;
+      hiddenBadge: string;
+      amountLabel: string;
+      amountHint: string;
+      receivedAtLabel: string;
+      receivedAtHint: string;
+      providerLabel: string;
+      providerHint: string;
+      noteLabel: string;
+      noteHint: string;
+      sponsorBadge: string;
+      monthTotal: string;
+      yearTotal: string;
+      rangeTotal: string;
+      allTotal: string;
+      rangeFrom: string;
+      rangeTo: string;
+      rangeReset: string;
+      countSuffix: string;
+      deleteTitle: string;
+      deleteMessage: string;
+    };
     pendingSponsorships: {
       title: string;
       emptyTitle: string;
@@ -1616,6 +1650,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         supportPrompts: "Einblendungen",
         sponsors: "Jahressponsoren",
         sponsorRequests: "Sponsor Requests",
+        donations: "Spendeneingänge",
         sponsoringSettings: "Einstellungen",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Einstellungen",
@@ -2837,6 +2872,41 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deleteTitle: "Sponsor löschen",
         deleteMessage: "Der Eintrag verschwindet sofort von der Seite.",
       },
+      donations: {
+        title: "Spendeneingänge",
+        newDonation: "Neuer Eingang",
+        emptyTitle: "Noch nichts erfasst",
+        emptyHint:
+          "Hier steht jeder Betrag, der eingegangen ist. Aus dieser Liste rechnet sich, was für das laufende Jahr noch fehlt.",
+        nameLabel: "Name",
+        firstNameLabel: "Vorname",
+        lastNameLabel: "Nachname",
+        socialMediaLabel: "Social Media",
+        socialMediaHint: "Optional. Meist leer, denn eine Überweisung bringt keine Adresse mit.",
+        publishedLabel: "Darf genannt werden",
+        publishedHint:
+          "Nur setzen, wenn die Person zugestimmt hat. Die Seite zeigt bisher keine Spendernamen.",
+        hiddenBadge: "Nicht genannt",
+        amountLabel: "Betrag",
+        amountHint: "Was tatsächlich angekommen ist, in Euro.",
+        receivedAtLabel: "Eingang",
+        receivedAtHint: "Der Tag, an dem das Geld da war.",
+        providerLabel: "Dienstleister",
+        providerHint: "Über welchen Weg das Geld gekommen ist.",
+        noteLabel: "Notiz",
+        noteHint: "Verwendungszweck, Referenz oder was sonst zu diesem Eingang gehört.",
+        sponsorBadge: "Sponsoring",
+        monthTotal: "Letzte 30 Tage",
+        yearTotal: "Letzte 365 Tage",
+        rangeTotal: "Im gewählten Zeitraum",
+        allTotal: "Insgesamt erfasst",
+        rangeFrom: "Von",
+        rangeTo: "Bis",
+        rangeReset: "Zeitraum zurücksetzen",
+        countSuffix: "Eingänge",
+        deleteTitle: "Eingang löschen",
+        deleteMessage: "Der Betrag zählt danach nicht mehr für das Jahr.",
+      },
       pendingSponsorships: {
         title: "Sponsor Requests",
         emptyTitle: "Niemand wartet",
@@ -3251,6 +3321,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         supportPrompts: "Support prompts",
         sponsors: "Yearly sponsors",
         sponsorRequests: "Sponsor requests",
+        donations: "Donations received",
         sponsoringSettings: "Settings",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Settings",
@@ -4462,6 +4533,41 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         minAmountHint: "The least a sponsor has to pay.",
         deleteTitle: "Delete sponsor",
         deleteMessage: "The entry disappears from the site at once.",
+      },
+      donations: {
+        title: "Donations received",
+        newDonation: "New payment",
+        emptyTitle: "Nothing recorded yet",
+        emptyHint:
+          "Every payment that arrived stands here. What is still missing for the running year is worked out from this list.",
+        nameLabel: "Name",
+        firstNameLabel: "First name",
+        lastNameLabel: "Last name",
+        socialMediaLabel: "Social media",
+        socialMediaHint: "Optional, and usually empty: a bank transfer carries no address.",
+        publishedLabel: "May be named",
+        publishedHint:
+          "Set this only where they agreed to it. The site shows no donor names so far.",
+        hiddenBadge: "Not named",
+        amountLabel: "Amount",
+        amountHint: "What actually arrived, in euro.",
+        receivedAtLabel: "Received",
+        receivedAtHint: "The day the money was there.",
+        providerLabel: "Service",
+        providerHint: "Which route the money took.",
+        noteLabel: "Note",
+        noteHint: "The reference, the purpose, or whatever else belongs to this payment.",
+        sponsorBadge: "Sponsorship",
+        monthTotal: "Last 30 days",
+        yearTotal: "Last 365 days",
+        rangeTotal: "In the chosen period",
+        allTotal: "Recorded in total",
+        rangeFrom: "From",
+        rangeTo: "To",
+        rangeReset: "Clear the period",
+        countSuffix: "payments",
+        deleteTitle: "Delete payment",
+        deleteMessage: "The amount stops counting towards the year.",
       },
       pendingSponsorships: {
         title: "Sponsor requests",

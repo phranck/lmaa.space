@@ -118,6 +118,11 @@ const SponsoringSettingsPage = lazy(() =>
 const SponsorsPage = lazy(() =>
   import("@/features/content/sponsors/SponsorsPage.tsx").then((m) => ({ default: m.SponsorsPage })),
 );
+const DonationsPage = lazy(() =>
+  import("@/features/content/donations/DonationsPage.tsx").then((m) => ({
+    default: m.DonationsPage,
+  })),
+);
 const SupportPromptsPage = lazy(() =>
   import("@/features/content/support-prompts/SupportPromptsPage.tsx").then((m) => ({
     default: m.SupportPromptsPage,
@@ -433,6 +438,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <SponsorsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="donations"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <DonationsPage />
                   </Suspense>
                 }
               />

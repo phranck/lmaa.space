@@ -26,6 +26,7 @@ import {
   ImageIcon,
   LinkIcon,
   ListBulletsIcon,
+  HandCoinsIcon,
   HandHeartIcon,
   MegaphoneSimpleIcon,
   NotebookIcon,
@@ -923,6 +924,15 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<HandHeartIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.sponsors}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/donations" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<HandCoinsIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.donations}
                         active={isActive}
                       />
                     )}
