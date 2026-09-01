@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   classifyProfileLink,
   detectPlatformFromUrl,
+  detectProfilePlatform,
   findSocialMediaUrl,
+  isFediverseHandle,
   normalizeSocialMediaValue,
   socialMediaSchema,
   SOCIAL_PLATFORM_KEYS,
@@ -433,4 +435,44 @@ describe("a website address keeps no trailing slash", () => {
       ]),
     ).toEqual([{ platform: "website", url: "https://chillr.de" }]);
   });
+});
+
+describe("detectProfilePlatform", () => {
+  it.each([
+    ["@dasdom@chaos.social", "mastodon"],
+    ["dasdom@chaos.social", "mastodon"],
+    ["https://chaos.social/@dasdom", "mastodon"],
+    ["https://github.com/phranck", "github"],
+    ["instagram.com/jemand", "instagram"],
+  ])("names the service behind %s", (input, platform) => {
+    expect(detectProfilePlatform(input)).toBe(platform);
+  });
+
+  it.each([
+    // Nothing here says which service it is, and the editor relies on that
+    // silence to leave a platform somebody chose by hand alone.
+    ["example.com"],
+    ["https://example.com/somebody"],
+    ["foo"],
+    [""],
+    ["   "],
+  ])("stays silent on %s, which names no service", (input) => {
+    expect(detectProfilePlatform(input)).toBeNull();
+  });
+});
+
+describe("isFediverseHandle", () => {
+  it.each([["@dasdom@chaos.social"], ["dasdom@chaos.social"], ["kim@pixel.tchncs.de"]])(
+    "reads %s as a handle",
+    (input) => {
+      expect(isFediverseHandle(input)).toBe(true);
+    },
+  );
+
+  it.each([["https://chaos.social/@dasdom"], ["chaos.social"], ["foo"], [""]])(
+    "does not read %s as one",
+    (input) => {
+      expect(isFediverseHandle(input)).toBe(false);
+    },
+  );
 });

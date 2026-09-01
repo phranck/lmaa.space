@@ -916,6 +916,48 @@ export function classifyProfileLink(input: string): SocialMediaLink | null {
 }
 
 /**
+ * Whether an address is a bare fediverse handle such as `@kim@chaos.social`.
+ *
+ * A handle names an instance and a person and stops there, so it cannot say
+ * which fediverse service is running on that instance. Mastodon, Pixelfed and
+ * Friendica handles are written identically, and {@link detectProfilePlatform}
+ * answers Mastodon for all three because that is the common case.
+ *
+ * A caller that lets somebody name the service themselves asks this first, so a
+ * handle fills an empty choice without overruling one that was made.
+ *
+ * @param input - What the person typed.
+ * @returns `true` for `user@instance` and `@user@instance`.
+ */
+export function isFediverseHandle(input: string): boolean {
+  return FEDIVERSE_HANDLE.test(input.trim());
+}
+
+/**
+ * Names the service an address belongs to, or nothing where it names none.
+ *
+ * The same answer {@link classifyProfileLink} gives, reported the way a form
+ * needs it. That function falls back to `website` for anything it does not
+ * recognise, which is right when the answer has to be something. A control
+ * offering a platform to pick by hand needs the opposite: it has to know when
+ * the address said nothing, so it can leave the choice somebody made standing.
+ *
+ * Reach for this rather than {@link detectPlatformFromUrl} anywhere a person
+ * types an address. That one reads a URL and knows a service by its host, so it
+ * cannot see a fediverse handle: the instance is somebody's own domain and the
+ * `@user@` in front of it parses as URL userinfo.
+ *
+ * @param input - What the person typed, with or without a scheme.
+ * @returns The platform key, or `null` where the address names no particular
+ *   service and where it is not an address at all.
+ */
+export function detectProfilePlatform(input: string): SocialPlatformKey | null {
+  const classified = classifyProfileLink(input);
+  if (!classified || classified.platform === "website") return null;
+  return classified.platform;
+}
+
+/**
  * The two shapes a set of addresses arrives in.
  *
  * The list is what everything writes. The map from platform to address is what
