@@ -3,7 +3,7 @@ import {
   type SponsoringConfig,
   sponsoringConfigSchema,
 } from "@lmaa/contracts";
-import { SPONSOR_YEAR_DAYS } from "@lmaa/shared";
+import { SPONSOR_YEAR_DAYS, periodStart } from "@lmaa/shared";
 
 import { getSetting, putSetting } from "../repositories/app-settings.js";
 
@@ -40,7 +40,5 @@ export async function putSponsoringConfig(config: SponsoringConfig): Promise<voi
  * @returns A year earlier, as `YYYY-MM-DD`.
  */
 export function sponsorYearStart(today: string): string {
-  const day = new Date(`${today}T00:00:00Z`);
-  day.setUTCDate(day.getUTCDate() - SPONSOR_YEAR_DAYS + 1);
-  return day.toISOString().slice(0, 10);
+  return periodStart(today, SPONSOR_YEAR_DAYS);
 }
