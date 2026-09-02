@@ -129,6 +129,108 @@ export const donationTotalsSchema = z.object({
   yearCount: z.number().int(),
 });
 
+/**
+ * How wide one bar stands, as a period of the ledger.
+ *
+ * Two sizes and no week between them. A day and a month are both a prefix of
+ * the stored `YYYY-MM-DD`, so the database and the caller cut a period at the
+ * same place without either of them holding an idea of a calendar. A week has
+ * no such prefix, and the two sides would then have to agree separately on
+ * which day one starts.
+ */
+export const DONATION_BUCKETS = ["day", "month"] as const;
+
+/** How wide one bar stands. */
+export type DonationBucket = (typeof DONATION_BUCKETS)[number];
+
+/**
+ * How many days a window may cover before its bars are drawn per month.
+ *
+ * A quarter of daily bars is still a chart somebody can read. A year of them is
+ * 365 bars in the width of a card, which is a texture rather than a figure.
+ */
+export const DONATION_DAILY_LIMIT_DAYS = 92;
+
+/**
+ * Picks the period size a window of this length is drawn in.
+ *
+ * The server works this out rather than taking it from the caller. A requested
+ * period size would let one request ask for daily bars across a decade, and the
+ * length of the answer is then chosen by whoever sent the request. Deriving it
+ * from the window bounds the answer at `DONATION_DAILY_LIMIT_DAYS` entries.
+ *
+ * A window with an open end gives months for the same reason: how far it
+ * reaches is not known until the ledger has been read.
+ *
+ * @param from - The first day of the window, as `YYYY-MM-DD`, or nothing.
+ * @param to - The last day of the window, as `YYYY-MM-DD`, or nothing. Both
+ *   ends count.
+ * @returns Days whilst a closed window fits inside `DONATION_DAILY_LIMIT_DAYS`,
+ *   months in every other case.
+ */
+export function donationBucketFor(from?: string, to?: string): DonationBucket {
+  if (!from || !to) return "month";
+  const start = Date.parse(`${from}T00:00:00Z`);
+  const end = Date.parse(`${to}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end)) return "month";
+  const days = Math.floor((end - start) / 86_400_000) + 1;
+  return days >= 1 && days <= DONATION_DAILY_LIMIT_DAYS ? "day" : "month";
+}
+
+/**
+ * What came in over one period of the window.
+ *
+ * The two amounts are separate rather than one total and a share, because a
+ * stacked bar draws them as two heights and a share would have to be turned
+ * back into one.
+ */
+export const donationPeriodSchema = z.object({
+  /** The first day of the period, as `YYYY-MM-DD`. */
+  start: z.string(),
+  /** What came in through sponsorships over it, in cents. */
+  sponsorCents: z.number().int(),
+  /** What came in without paying for a sponsorship, in cents. */
+  donationCents: z.number().int(),
+  /** How many payments the two amounts are made of. */
+  count: z.number().int(),
+});
+
+/** What came in through one payment route over the whole window. */
+export const donationProviderTotalSchema = z.object({
+  /** Which route, as a key of `DONATION_PROVIDERS`. */
+  provider: z.enum(DONATION_PROVIDER_KEYS),
+  /** What arrived through it, in cents. */
+  cents: z.number().int(),
+  /** How many payments took it. */
+  count: z.number().int(),
+});
+
+/**
+ * The ledger grouped, which is what a chart draws.
+ *
+ * Every period inside the window is present, including the ones nothing came in
+ * over. A month with nothing in it is a fact about the year, and a chart that
+ * leaves it out draws a line between two bars that are not neighbours.
+ *
+ * The window's own totals travel with it rather than being added up from the
+ * periods, so a figure printed above the chart cannot disagree with the bars
+ * beneath it.
+ */
+export const donationBreakdownSchema = z.object({
+  /** How wide the periods are, echoed back as it was applied. */
+  bucket: z.enum(DONATION_BUCKETS),
+  /** One entry per period, oldest first, gaps included as zero. */
+  periods: z.array(donationPeriodSchema),
+  /** One entry per route that carried money, largest first. */
+  providers: z.array(donationProviderTotalSchema),
+  /** What the whole window adds up to, in cents. */
+  totalCents: z.number().int(),
+  /** How many payments the window holds. */
+  totalCount: z.number().int(),
+  /** How much of the total paid for a sponsorship, in cents. */
+  sponsorCents: z.number().int(),
+});
+
 /** Everything an editor records about one payment. */
 export type DonationInput = z.infer<typeof donationInputSchema>;
 /** A payment as stored and read back. */
@@ -137,3 +239,9 @@ export type Donation = z.infer<typeof donationSchema>;
 export type DonationRange = z.infer<typeof donationRangeSchema>;
 /** What came in over the periods the dashboard shows. */
 export type DonationTotals = z.infer<typeof donationTotalsSchema>;
+/** What came in over one period of the window. */
+export type DonationPeriod = z.infer<typeof donationPeriodSchema>;
+/** What came in through one payment route. */
+export type DonationProviderTotal = z.infer<typeof donationProviderTotalSchema>;
+/** The ledger grouped, which is what a chart draws. */
+export type DonationBreakdown = z.infer<typeof donationBreakdownSchema>;
