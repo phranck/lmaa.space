@@ -9,6 +9,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 
 import { formatDateTime, type ReviewCost, type ReviewJobListItem } from "@lmaa/shared";
 
+import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
@@ -16,6 +17,7 @@ import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useReviewJobs, useReviewSpend } from "@/features/overview/hooks/useReviewJob.ts";
 import { reviewJobTarget } from "@/features/overview/review-job-target.ts";
+import { VERDICT_COLORS } from "@/features/overview/verdict-colors.ts";
 
 /** Nano-units per whole currency unit, matching the backend's counting. */
 const NANO_PER_UNIT = 1_000_000_000;
@@ -175,11 +177,14 @@ export function AutomatedChecksTab() {
         header: t.columnVerdict,
         className: "w-48",
         sortKey: (job) => job.verdict ?? "",
-        cell: (job) => (
-          <span className="text-sm text-[var(--ds-text)]">
-            {job.verdict ? reviewMessages.verdicts[job.verdict] : "–"}
-          </span>
-        ),
+        cell: (job) =>
+          job.verdict ? (
+            <Badge colorClass={VERDICT_COLORS[job.verdict]}>
+              {reviewMessages.verdicts[job.verdict]}
+            </Badge>
+          ) : (
+            <span className="text-sm text-[var(--ds-text-subtle)]">–</span>
+          ),
       },
       {
         id: "model",

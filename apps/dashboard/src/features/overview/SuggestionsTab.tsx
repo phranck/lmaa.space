@@ -2,7 +2,7 @@ import { FileTextIcon, RobotIcon, SealWarningIcon, TrayIcon } from "@phosphor-ic
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { formatDateTime, type ReviewVerdict, type SubmissionStatus } from "@lmaa/shared";
+import { formatDateTime, type SubmissionStatus } from "@lmaa/shared";
 
 import { Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -13,26 +13,13 @@ import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useReviewVerdictBySubmission } from "@/features/overview/hooks/useReviewJob.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
+import { VERDICT_COLORS } from "@/features/overview/verdict-colors.ts";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
   onhold: "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]",
   approved: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
   rejected: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
-};
-
-/**
- * The colour each recommendation carries.
- *
- * @remarks
- * A recommendation to admit and one to reject are opposite answers, so they
- * take the same colours the resulting status takes further down the table
- * rather than one shared accent that makes the reader stop and read the word.
- */
-const VERDICT_COLORS: Record<ReviewVerdict, string> = {
-  accept: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
-  reject: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
-  onhold: "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]",
 };
 
 function useStatusLabels() {
