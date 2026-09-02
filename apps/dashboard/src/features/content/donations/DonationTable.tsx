@@ -5,7 +5,7 @@ import { DONATION_PROVIDERS, type Donation } from "@lmaa/contracts";
 import { formatEuroCents, fullName } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
-import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
+import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -44,12 +44,12 @@ function DonationTableComponent({ donations, onEdit }: DonationTableProps) {
             {/* Said in the list, because a payment that paid for a sponsorship
                 is the one row whose amount is also carried by a second page. */}
             {donation.sponsorId && (
-              <Badge className="shrink-0" colorClass="bg-emerald-500/10 text-emerald-400">
+              <Badge className="shrink-0" colorClass={BADGE_TONES.success}>
                 {text.sponsorBadge}
               </Badge>
             )}
             {!donation.published && (
-              <Badge className="shrink-0" colorClass={badgeNeutralClass}>
+              <Badge className="shrink-0" colorClass={BADGE_TONES.neutral}>
                 {text.hiddenBadge}
               </Badge>
             )}

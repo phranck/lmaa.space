@@ -4,7 +4,7 @@ import { memo, useMemo } from "react";
 import { formatCreditorReference, formatEuroCents, fullName } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
-import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
+import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -63,7 +63,7 @@ function PendingSponsorshipTableComponent({
               {fullName(entry.firstName, entry.lastName)}
             </span>
             {!entry.published && (
-              <Badge className="shrink-0" colorClass={badgeNeutralClass}>
+              <Badge className="shrink-0" colorClass={BADGE_TONES.neutral}>
                 {sponsorText.hiddenBadge}
               </Badge>
             )}
