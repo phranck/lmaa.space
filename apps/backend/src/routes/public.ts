@@ -29,7 +29,6 @@ import { logger } from "../lib/logger.js";
 import { shopFilterSchema } from "../lib/shop-filters.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
 import { validate } from "../middleware/validate-request.js";
-import { sumDonations } from "../repositories/donations.js";
 import { getFooterConfig } from "../repositories/footer-config.js";
 import { listCurrentSponsors } from "../repositories/sponsors.js";
 import { listPublishedSupportPrompts } from "../repositories/support-prompts.js";
@@ -39,6 +38,7 @@ import {
 } from "../services/admin-form-config.js";
 import { getMediaAliasMap, getMediaShortcodeAssetMap } from "../services/admin-media.js";
 import { getContentPreviewSession } from "../services/content-preview-store.js";
+import { getDonationTotals } from "../services/donations.js";
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
@@ -294,15 +294,15 @@ publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
   const [current, config, received] = await Promise.all([
     listCurrentSponsors(yearStart),
     getSponsoringConfig(),
-    sumDonations({ from: yearStart, to: today }),
+    getDonationTotals(today),
   ]);
 
   const costsTotalCents = config.costs.reduce((sum, item) => sum + item.amountCents, 0);
   // Every payment counts towards the year, whatever route it took and whether
   // or not it earned a sponsorship: the costs are carried by the money rather
-  // than by the mention. Summed over the ledger, which is the only place a
-  // payment is recorded, so nothing is counted twice and nothing is missed.
-  const coveredCents = received.cents;
+  // than by the mention. Both windows come from the ledger through the same
+  // service the dashboard reads, so the site and the charts cannot disagree.
+  const coveredCents = received.yearCents;
 
   // Named against the contract the site reads, so a field renamed on one side
   // cannot quietly go missing on the other. The amounts stay out of it, and so
@@ -325,6 +325,7 @@ publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
     ),
     costsTotalCents,
     coveredCents,
+    donatedMonthCents: received.monthCents,
     minAmountCents: config.minAmountCents,
   };
 

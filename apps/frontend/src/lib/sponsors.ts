@@ -12,6 +12,7 @@ export const EMPTY_SPONSORS: SponsorsPayload = {
   sponsors: [],
   costsTotalCents: 0,
   coveredCents: 0,
+  donatedMonthCents: 0,
   minAmountCents: 0,
 };
 
