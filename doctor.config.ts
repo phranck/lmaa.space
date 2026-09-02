@@ -60,8 +60,39 @@ export default {
           "src/features/analytics/AnalyticsCharts.tsx",
           "src/JsonEditor.tsx",
           "src/MarkdownEditorCore.tsx",
+          "src/features/content/donations/charts/IncomeOverTimeChart.tsx",
+          "src/features/content/donations/charts/PaymentRouteChart.tsx",
         ],
         rules: ["react-doctor/prefer-dynamic-import"],
+      },
+      // The chart page passes its view switch to the section header's `addOn`,
+      // which is how every card in the dashboard puts a control beside its
+      // title. Hoisting it would separate the control from the state it reads.
+      {
+        files: ["src/features/content/donations/DonationChartsPage.tsx"],
+        rules: ["react-doctor/jsx-no-jsx-as-prop"],
+      },
+      // The funding bar reports a value inside a known range, which is what
+      // `meter` means. The HTML element of that name carries a rendering the
+      // browsers disagree about and will not take the card's own tokens, so the
+      // role goes on a styled element with the full figure in `aria-valuetext`.
+      {
+        files: ["src/features/content/donations/charts/FundingProgressBar.tsx"],
+        rules: ["react-doctor/prefer-tag-over-role"],
+      },
+      // The date formatters are built once per language and period size and
+      // held in a module-level map. The rule sees the constructor inside a
+      // function and cannot see the cache around it.
+      {
+        files: ["src/features/content/donations/charts/chart-axis.ts"],
+        rules: ["react-doctor/js-hoist-intl"],
+      },
+      // Every donation mutation invalidates through one shared helper, so the
+      // three queries a saved payment shows up in cannot be forgotten one at a
+      // time. The rule looks for the invalidation inside `onSuccess` itself.
+      {
+        files: ["src/features/content/donations/hooks/useDonations.ts"],
+        rules: ["react-doctor/query-mutation-missing-invalidation"],
       },
       // Chunk uploads and font preparation must remain ordered for progress and canvas correctness.
       {
