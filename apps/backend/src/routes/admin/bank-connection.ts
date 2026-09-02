@@ -12,6 +12,7 @@ import {
   disconnectBank,
   getBankConnectionStatus,
 } from "../../services/bank-connection.js";
+import { runBankIngestion } from "../../services/bank-ingestion.js";
 import { isEnableBankingConfigured } from "../../services/enable-banking-client.js";
 
 /**
@@ -88,4 +89,17 @@ bankConnectionRoutes.delete("/bank-connection", async (c) => {
     return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
   }
   return ok(c, await disconnectBank());
+});
+
+// POST /api/v1/admin/bank-connection/sync
+//
+// Reads the account now rather than waiting for the next background run. This
+// is the account holder asking for their own information, which Article 36(5)(a)
+// of Commission Delegated Regulation (EU) 2018/389 does not cap, so it draws on
+// a budget of its own and cannot lock the automatic run out.
+bankConnectionRoutes.post("/bank-connection/sync", async (c) => {
+  if (!isEnableBankingConfigured()) {
+    return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
+  }
+  return ok(c, await runBankIngestion("manual"));
 });

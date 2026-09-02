@@ -1260,6 +1260,11 @@ export interface DashboardMessages {
       receivedAtHint: string;
       providerLabel: string;
       providerHint: string;
+      /** How a row got into the ledger, which `provider` does not answer. */
+      originLabel: string;
+      origins: { all: string; manual: string; bank: string };
+      /** Stands where a payment carries no name, which the bank's ones do not. */
+      nameAbsent: string;
       noteLabel: string;
       noteHint: string;
       sponsorBadge: string;
@@ -2971,6 +2976,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         receivedAtHint: "Der Tag, an dem das Geld da war.",
         providerLabel: "Dienstleister",
         providerHint: "Über welchen Weg das Geld gekommen ist.",
+        originLabel: "Herkunft",
+        origins: { all: "Alle", manual: "Von Hand", bank: "Von der Bank" },
+        nameAbsent: "Ohne Namen",
         noteLabel: "Notiz",
         noteHint: "Verwendungszweck, Referenz oder was sonst zu diesem Eingang gehört.",
         sponsorBadge: "Sponsoring",
@@ -4715,6 +4723,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         receivedAtHint: "The day the money was there.",
         providerLabel: "Service",
         providerHint: "Which route the money took.",
+        originLabel: "Origin",
+        origins: { all: "All", manual: "Entered by hand", bank: "Read from the bank" },
+        nameAbsent: "No name",
         noteLabel: "Note",
         noteHint: "The reference, the purpose, or whatever else belongs to this payment.",
         sponsorBadge: "Sponsorship",

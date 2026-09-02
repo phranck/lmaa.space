@@ -340,6 +340,9 @@ describe("takeOverPendingSponsorship", () => {
       provider: "sepa",
       note: "",
       sponsorId: "sponsor-1",
+      // Null, because the operator entered this one. It carries what the bank
+      // called the entry only where the site read the payment itself.
+      externalRef: null,
     });
   });
 

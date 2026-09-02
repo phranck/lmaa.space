@@ -22,6 +22,7 @@ import {
   deletePendingSponsorship,
   deletePendingSponsorshipsBefore,
   getPendingSponsorship,
+  getPendingSponsorshipByReference,
   insertPendingSponsorship,
   updatePendingSponsorshipByReference,
 } from "../repositories/pending-sponsorships.js";
@@ -295,11 +296,65 @@ export function startPendingSponsorshipExpiry(): NodeJS.Timeout {
  */
 export async function takeOverPendingSponsorship(
   id: string,
-  payment: { amountCents: number; paidAt: string },
+  payment: PendingSponsorshipPayment,
 ): Promise<Result<{ sponsor: SponsorRow }, "not_found">> {
   const pending = await getPendingSponsorship(id);
   if (!pending) return failure("not_found");
 
+  return success({ sponsor: await takeOverPending(pending, payment) });
+}
+
+/**
+ * Turns the entry a reference was issued for into a sponsor.
+ *
+ * The same step as above, reached from the other side: the operator works from
+ * the entry, whilst the automatic run works from what a payment carried.
+ *
+ * @param reference - The reference as it arrived, spaces and any case allowed.
+ * @param payment - What arrived, when, and what the bank called the entry.
+ * @returns The sponsor as stored, or `not_found` when no entry carries that
+ *   reference. That is the ordinary case for a reference that has already been
+ *   taken over, so the caller treats it as nothing to do rather than as a fault.
+ */
+export async function takeOverPendingSponsorshipByReference(
+  reference: string,
+  payment: PendingSponsorshipPayment,
+): Promise<Result<{ sponsor: SponsorRow }, "not_found">> {
+  const stored = normalizeCreditorReference(reference);
+  if (!stored) return failure("not_found");
+
+  const pending = await getPendingSponsorshipByReference(stored);
+  if (!pending) return failure("not_found");
+
+  return success({ sponsor: await takeOverPending(pending, payment) });
+}
+
+/** What arrived against an announcement, however the arrival was noticed. */
+export interface PendingSponsorshipPayment {
+  /** What arrived, in cents. */
+  amountCents: number;
+  /** The day it arrived, which starts the sponsor's year, as `YYYY-MM-DD`. */
+  paidAt: string;
+  /**
+   * What the bank called the entry, for a payment the site read itself.
+   *
+   * Left out for one the operator entered. It is what keeps a second run from
+   * writing the same payment again.
+   */
+  externalRef?: string;
+}
+
+/**
+ * Writes the sponsor, the payment and the removal of the entry.
+ *
+ * @param pending - The entry, already read.
+ * @param payment - What arrived and when.
+ * @returns The sponsor as stored.
+ */
+async function takeOverPending(
+  pending: PendingSponsorshipRow,
+  payment: PendingSponsorshipPayment,
+): Promise<SponsorRow> {
   const imageUrl = await resolveSponsorAvatar(pending.socialMedia);
 
   const sponsor = await insertSponsor({
@@ -329,17 +384,18 @@ export async function takeOverPendingSponsorship(
     provider: "sepa",
     note: "",
     sponsorId: sponsor.id,
+    externalRef: payment.externalRef ?? null,
   });
 
   // Removed only once the sponsor is written, so a failure above leaves the
   // entry standing and the operator can try again rather than losing what
   // somebody typed.
-  await deletePendingSponsorship(id);
+  await deletePendingSponsorship(pending.id);
 
   logger.info(
     { event: "pending_sponsorship.taken_over", sponsorId: sponsor.id },
     "A pending sponsorship became a sponsor",
   );
 
-  return success({ sponsor });
+  return sponsor;
 }

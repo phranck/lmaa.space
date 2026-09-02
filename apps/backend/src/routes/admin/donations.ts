@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 
-import { donationInputSchema, donationRangeSchema } from "@lmaa/contracts";
+import { donationInputSchema, donationListQuerySchema, donationRangeSchema } from "@lmaa/contracts";
 
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
@@ -33,13 +33,19 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-// GET /api/admin/donations?from=&to= — the ledger, most recent first
+// GET /api/admin/donations?from=&to=&origin=
 //
-// The same range that filters the list also produces the sum below it, so the
-// page never shows a total for one window beside rows from another.
-donationRoutes.get("/donations", validate("query", donationRangeSchema), async (c) => {
-  const range = c.req.valid("query");
-  const [rows, sum] = await Promise.all([listDonations(range), sumDonations(range)]);
+// The ledger, most recent first. The same window that filters the list also
+// produces the sum below it, so the page never shows a total for one period
+// beside rows from another.
+donationRoutes.get("/donations", validate("query", donationListQuerySchema), async (c) => {
+  const query = c.req.valid("query");
+  // The sum takes the window without the origin, so the total under the table
+  // keeps describing the whole period rather than following the filter above it.
+  const [rows, sum] = await Promise.all([
+    listDonations(query),
+    sumDonations({ from: query.from, to: query.to }),
+  ]);
   return ok(c, { donations: rows, rangeCents: sum.cents, rangeCount: sum.count });
 });
 

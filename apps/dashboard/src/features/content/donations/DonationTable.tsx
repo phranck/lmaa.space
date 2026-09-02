@@ -11,6 +11,8 @@ import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useFavicons } from "@/lib/useFavicons.ts";
 
+import { DONATION_ORIGIN_COLORS } from "./donation-origin-colors.ts";
+
 interface DonationTableProps {
   donations: Donation[];
   onEdit: (donation: Donation) => void;
@@ -38,8 +40,18 @@ function DonationTableComponent({ donations, onEdit }: DonationTableProps) {
         sortKey: (donation) => fullName(donation.firstName, donation.lastName),
         cell: (donation) => (
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-[var(--ds-text)]">
-              {fullName(donation.firstName, donation.lastName)}
+            {/* A payment the site read for itself carries no name: the payer's
+                name stands in the statement and is deliberately not taken. The
+                cell says so rather than standing empty, which would read as
+                something having gone wrong. */}
+            <span
+              className={
+                fullName(donation.firstName, donation.lastName)
+                  ? "text-sm font-medium text-[var(--ds-text)]"
+                  : "text-sm italic text-[var(--ds-text-hint)]"
+              }
+            >
+              {fullName(donation.firstName, donation.lastName) || text.nameAbsent}
             </span>
             {/* Said in the list, because a payment that paid for a sponsorship
                 is the one row whose amount is also carried by a second page. */}
@@ -66,6 +78,17 @@ function DonationTableComponent({ donations, onEdit }: DonationTableProps) {
             className="flex items-center gap-2"
             linkable={false}
           />
+        ),
+      },
+      {
+        id: "origin",
+        header: text.originLabel,
+        className: "w-36",
+        sortKey: (donation) => donation.origin,
+        cell: (donation) => (
+          <Badge className="shrink-0" colorClass={DONATION_ORIGIN_COLORS[donation.origin]}>
+            {text.origins[donation.origin]}
+          </Badge>
         ),
       },
       {

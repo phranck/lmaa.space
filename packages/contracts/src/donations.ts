@@ -44,8 +44,16 @@ export const DONATION_PROVIDER_KEYS = Object.keys(DONATION_PROVIDERS) as [
 
 /** Everything an editor records about one payment. */
 export const donationInputSchema = z.object({
-  /** The given name, split as a sponsor's is so both render alike. */
-  firstName: z.string().trim().min(1).max(80),
+  /**
+   * The given name, split as a sponsor's is so both render alike.
+   *
+   * May be empty, and is for every payment the site read from the bank: the
+   * payer's name stands in the statement and is a third party's data nobody
+   * gave for this, so it is not taken. A payment entered by hand may be nameless
+   * too, because sometimes nobody knows who paid, and refusing to record it
+   * would lose the money from the ledger rather than the name.
+   */
+  firstName: z.string().trim().max(80).default(""),
   /** The family name, empty for anybody given under one name only. */
   lastName: z.string().trim().max(80).default(""),
   /**
@@ -85,11 +93,32 @@ export const donationInputSchema = z.object({
   sponsorId: z.string().uuid().nullable().default(null),
 });
 
+/**
+ * How a payment got into the ledger.
+ *
+ * Not the route the money took, which `provider` already says. A transfer can
+ * have been typed in by hand long after it arrived, so the two answer different
+ * questions and a reader of the ledger wants both.
+ */
+export const DONATION_ORIGINS = ["manual", "bank"] as const;
+
+/** Where a row in the ledger came from. */
+export type DonationOrigin = (typeof DONATION_ORIGINS)[number];
+
 /** A payment as stored and read back. */
 export const donationSchema = donationInputSchema.extend({
   id: z.string().min(1).max(64),
   /** Always a list when read back, empty where nothing was entered. */
   socialMedia: socialMediaLinksSchema,
+  /**
+   * Whether a person entered this payment or the site read it from the bank.
+   *
+   * Derived from whether the row carries what the bank called the entry, so
+   * there is one fact behind it rather than a flag that could disagree with it.
+   * The identifier itself is not served: it says nothing a reader needs and
+   * belongs to the account rather than to the ledger.
+   */
+  origin: z.enum(DONATION_ORIGINS),
   createdAt: z.string(),
 });
 
@@ -110,6 +139,17 @@ export const donationRangeSchema = z.object({
     .trim()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a day as YYYY-MM-DD")
     .optional(),
+});
+
+/**
+ * What the ledger's own list takes, being the window and an origin.
+ *
+ * Its own schema rather than a field on the window, because the sums beside the
+ * list are asked for with the window alone. A total that quietly followed the
+ * filter would answer a different question from the one its label asks.
+ */
+export const donationListQuerySchema = donationRangeSchema.extend({
+  origin: z.enum(DONATION_ORIGINS).optional(),
 });
 
 /**
@@ -237,6 +277,8 @@ export type DonationInput = z.infer<typeof donationInputSchema>;
 export type Donation = z.infer<typeof donationSchema>;
 /** The window a sum is asked for. */
 export type DonationRange = z.infer<typeof donationRangeSchema>;
+/** The window and an origin, which is what the ledger's list takes. */
+export type DonationListQuery = z.infer<typeof donationListQuerySchema>;
 /** What came in over the periods the dashboard shows. */
 export type DonationTotals = z.infer<typeof donationTotalsSchema>;
 /** What came in over one period of the window. */

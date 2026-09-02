@@ -1389,11 +1389,23 @@ export const donations = pgTable(
      * still arrived and still carried that part of the year.
      */
     sponsorId: uuid("sponsor_id").references(() => sponsors.id, { onDelete: "set null" }),
+    /**
+     * What the bank calls this entry, for a payment the site read itself.
+     *
+     * Null for every row a person typed, which is what tells the two apart on
+     * the ledger. Set, it is the route and the bank's own entry reference
+     * together, and the unique index below is what keeps a second run from
+     * writing the same payment twice.
+     */
+    externalRef: text("external_ref"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
     index("idx_donations_received_at").on(table.receivedAt),
     index("idx_donations_sponsor_id").on(table.sponsorId),
+    // Unique where set. Postgres lets a unique index hold any number of nulls,
+    // so the rows entered by hand are unaffected by it.
+    uniqueIndex("idx_donations_external_ref").on(table.externalRef),
     check("donations_amount_nonnegative", sql`${table.amountCents} >= 0`),
   ],
 );
@@ -1493,3 +1505,60 @@ export type BankConnectionInsert = typeof bankConnections.$inferInsert;
  * Inferred select type for `bank_authorization_states`.
  */
 export type BankAuthorizationStateRow = typeof bankAuthorizationStates.$inferSelect;
+
+/** Who asked the bank: the background job, or a person pressing the button. */
+const BANK_READ_KIND_SQL = sql`'background', 'manual'`;
+
+/**
+ * Every time the site read its own account, and what came of it.
+ *
+ * Two questions are answered from this one table. How many background reads
+ * happened in the last 24 hours, which is what Article 36(5) of Commission
+ * Delegated Regulation (EU) 2018/389 caps at four whilst nobody is asking. And
+ * how far the ledger has been brought, so the next run starts where the last
+ * one finished rather than reading the same weeks again.
+ *
+ * A stored row is what makes both of those survive a restart. A timer does not:
+ * a deployment starts it again, and two containers briefly run one each.
+ */
+export const bankAccountReads = pgTable(
+  "bank_account_reads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /**
+     * Which kind of read this was.
+     *
+     * The two are counted apart on purpose. A person looking for themselves
+     * falls under Article 36(5)(a) and is not capped, so counting the button
+     * against the background budget would let somebody's own impatience stop
+     * the automatic run.
+     */
+    kind: text("kind").notNull(),
+    readAt: timestamp("read_at").defaultNow().notNull(),
+    /** False until the run finished, so an interrupted one is not a cursor. */
+    succeeded: boolean("succeeded").notNull().default(false),
+    /**
+     * The last day this run covered, as `YYYY-MM-DD`.
+     *
+     * The next run starts the day after the latest of these. Null whilst a run
+     * is in flight and on one that failed, because a run that did not finish
+     * says nothing about what has been seen.
+     */
+    bookedThrough: text("booked_through"),
+    /** How many entries came back, before anything was decided about them. */
+    transactionsRead: integer("transactions_read").notNull().default(0),
+    /** How many became a row in the ledger. */
+    imported: integer("imported").notNull().default(0),
+    /** How many were recognised and already stood in the ledger. */
+    skipped: integer("skipped").notNull().default(0),
+  },
+  (table) => [
+    index("idx_bank_account_reads_read_at").on(table.readAt),
+    check("bank_account_reads_kind", sql`${table.kind} IN (${BANK_READ_KIND_SQL})`),
+  ],
+);
+
+/**
+ * Inferred select type for `bank_account_reads`.
+ */
+export type BankAccountReadRow = typeof bankAccountReads.$inferSelect;

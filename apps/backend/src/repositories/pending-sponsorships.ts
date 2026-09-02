@@ -70,6 +70,22 @@ export async function getPendingSponsorship(id: string): Promise<PendingSponsors
 }
 
 /**
+ * Returns the entry a reference was issued for, or `null` when none was.
+ *
+ * @param reference - The reference as it is stored, without spaces, upper case.
+ */
+export async function getPendingSponsorshipByReference(
+  reference: string,
+): Promise<PendingSponsorshipRow | null> {
+  const [row] = await db
+    .select()
+    .from(pendingSponsorships)
+    .where(eq(pendingSponsorships.reference, reference))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
  * Removes every entry announced before the given moment.
  *
  * @param before - Entries created earlier than this are removed.

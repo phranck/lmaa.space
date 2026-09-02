@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { Donation, DonationBreakdown, DonationInput, DonationTotals } from "@lmaa/contracts";
+import type {
+  Donation,
+  DonationBreakdown,
+  DonationInput,
+  DonationOrigin,
+  DonationTotals,
+} from "@lmaa/contracts";
 
 import { api } from "@/lib/api.ts";
 
@@ -19,22 +25,31 @@ export interface DonationRangeFilter {
   to?: string;
 }
 
+/** The window, and optionally one origin, which is what the list takes. */
+export interface DonationListFilter extends DonationRangeFilter {
+  /** Left out to list both origins together. */
+  origin?: DonationOrigin;
+}
+
 /**
  * Every payment in a window, most recent first, with that window's sum.
  *
  * The list and the sum come from one request, so the total under the table can
- * never describe a different window from the rows above it.
+ * never describe a different window from the rows above it. The sum ignores the
+ * origin on purpose: it answers what came in over the period, and following the
+ * filter would make its label wrong.
  *
- * @param range - The days to include. Both ends count.
+ * @param filter - The days to include, both ends counting, and which origin.
  */
-export function useDonations(range: DonationRangeFilter = {}) {
+export function useDonations(filter: DonationListFilter = {}) {
   const query = new URLSearchParams();
-  if (range.from) query.set("from", range.from);
-  if (range.to) query.set("to", range.to);
+  if (filter.from) query.set("from", filter.from);
+  if (filter.to) query.set("to", filter.to);
+  if (filter.origin) query.set("origin", filter.origin);
   const suffix = query.size > 0 ? `?${query.toString()}` : "";
 
   return useQuery({
-    queryKey: ["donations", range.from ?? "", range.to ?? ""],
+    queryKey: ["donations", filter.from ?? "", filter.to ?? "", filter.origin ?? ""],
     queryFn: () => api.get<DonationLedger>(`/admin/donations${suffix}`),
     staleTime: 30 * 1000,
   });

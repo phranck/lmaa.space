@@ -129,6 +129,14 @@ export default {
         files: ["src/services/pending-sponsorships.ts"],
         rules: ["react-doctor/async-await-in-loop"],
       },
+      // Reading the account is sequential twice over. A page is asked for with
+      // the key the page before it answered, and the entries are written one at
+      // a time because two of them can name the same announcement and the order
+      // is what decides which becomes the sponsorship.
+      {
+        files: ["src/services/bank-ingestion.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
       // The picture is looked for on the most telling service first and the
       // search stops at the first hit. Asking every service at once would send
       // a request to each of a sponsor's platforms whenever the first already

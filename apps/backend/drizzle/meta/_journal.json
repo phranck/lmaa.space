@@ -659,6 +659,13 @@
       "when": 1788386467707,
       "tag": "0093_bank_connection",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1788392572707,
+      "tag": "0094_bank_ingestion",
+      "breakpoints": true
     }
   ]
 }

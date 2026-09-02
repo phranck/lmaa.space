@@ -1,6 +1,7 @@
 import { HandCoinsIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import type { DonationOrigin } from "@lmaa/contracts";
 import { formatEuroCents } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -11,13 +12,14 @@ import { DashboardField } from "@/components/ui/DashboardControls.tsx";
 import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { StatFigure } from "@/components/ui/StatFigure.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 import { DonationEditorCard } from "./DonationEditorCard.tsx";
 import { DonationTable } from "./DonationTable.tsx";
-import { type DonationRangeFilter, useDonations, useDonationTotals } from "./hooks/useDonations.ts";
+import { type DonationListFilter, useDonations, useDonationTotals } from "./hooks/useDonations.ts";
 
 /**
  * Every payment that came in, whatever route it took.
@@ -30,14 +32,25 @@ export function DonationsPage() {
   const { messages } = useI18n();
   const text = messages.system.donations;
 
-  const [range, setRange] = useState<DonationRangeFilter>({});
-  const { data: ledger, isLoading } = useDonations(range);
+  const originOptions = useMemo(
+    () =>
+      [
+        { value: "" as const, label: text.origins.all },
+        { value: "manual" as const, label: text.origins.manual },
+        { value: "bank" as const, label: text.origins.bank },
+      ] satisfies readonly { value: DonationOrigin | ""; label: string }[],
+    [text],
+  );
+
+  const [filter, setFilter] = useState<DonationListFilter>({});
+  const { data: ledger, isLoading } = useDonations(filter);
   const { data: totals } = useDonationTotals();
   /** Which payment the card is showing, or nothing when it is closed. */
   const [editing, setEditing] = useState<string | null>(null);
 
   const donations = ledger?.donations ?? [];
-  const hasRange = Boolean(range.from ?? range.to);
+  const hasRange = Boolean(filter.from ?? filter.to);
+  const hasFilter = hasRange || Boolean(filter.origin);
 
   return (
     <PageLayout>
@@ -73,19 +86,30 @@ export function DonationsPage() {
                 <DashboardField label={text.rangeFrom}>
                   <DateTimePicker
                     mode="date"
-                    value={range.from ?? ""}
-                    onChange={(value) => setRange((current) => ({ ...current, from: value }))}
+                    value={filter.from ?? ""}
+                    onChange={(value) => setFilter((current) => ({ ...current, from: value }))}
                   />
                 </DashboardField>
                 <DashboardField label={text.rangeTo}>
                   <DateTimePicker
                     mode="date"
-                    value={range.to ?? ""}
-                    onChange={(value) => setRange((current) => ({ ...current, to: value }))}
+                    value={filter.to ?? ""}
+                    onChange={(value) => setFilter((current) => ({ ...current, to: value }))}
                   />
                 </DashboardField>
-                {hasRange && (
-                  <DashboardButton onClick={() => setRange({})}>{text.rangeReset}</DashboardButton>
+                <DashboardField label={text.originLabel}>
+                  {/* Typed to allow an empty choice, which is the state where
+                      both origins are listed together. */}
+                  <SegmentedControl<DonationOrigin | "">
+                    options={originOptions}
+                    value={filter.origin ?? ""}
+                    onChange={(next) =>
+                      setFilter((current) => ({ ...current, origin: next || undefined }))
+                    }
+                  />
+                </DashboardField>
+                {hasFilter && (
+                  <DashboardButton onClick={() => setFilter({})}>{text.rangeReset}</DashboardButton>
                 )}
                 <div className="ml-auto">
                   <StatFigure
