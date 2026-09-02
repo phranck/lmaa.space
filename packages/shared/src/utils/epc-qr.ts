@@ -31,7 +31,15 @@ const MAX_PAYLOAD_BYTES = 331;
 const MAX_BENEFICIARY_NAME = 70;
 const MAX_IBAN = 34;
 const MAX_BIC = 11;
-const MAX_REMITTANCE_UNSTRUCTURED = 140;
+
+/**
+ * How long a remittance text may be, per EPC069-12 v3.1.
+ *
+ * Exported because the settings that produce such a text bound their fields by
+ * the same number. A longer value has to be refused where it is typed, not
+ * discovered when somebody scans the code.
+ */
+export const MAX_REMITTANCE_UNSTRUCTURED = 140;
 
 /** Amount bounds in euro, per EPC069-12 v3.1. */
 const MIN_AMOUNT_EUR = 0.01;

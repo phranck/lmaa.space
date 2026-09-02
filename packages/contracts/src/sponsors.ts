@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { socialMediaLinksSchema, socialMediaSchema } from "@lmaa/shared";
+import {
+  MAX_REMITTANCE_UNSTRUCTURED,
+  socialMediaLinksSchema,
+  socialMediaSchema,
+} from "@lmaa/shared";
 
 /**
  * The people who carry the running costs for a year.
@@ -124,6 +128,24 @@ export const sponsoringConfigSchema = z.object({
       message: "Expected a BIC",
     })
     .default(""),
+  /**
+   * What a plain donation carries as its remittance text.
+   *
+   * Bounded by what the GiroCode can hold, so a value too long to be encoded is
+   * refused where it is typed rather than discovered by whoever scans it.
+   */
+  purposeDonation: z.string().trim().max(MAX_REMITTANCE_UNSTRUCTURED).default("Spende: lmaa.space"),
+  /** The same for a payment large enough to earn a sponsorship. */
+  purposeSponsor: z.string().trim().max(MAX_REMITTANCE_UNSTRUCTURED).default("Sponsor: lmaa.space"),
+  /**
+   * What a PayPal donor is asked to write into their note.
+   *
+   * Shorter than the two above on purpose. The GiroCode writes its text by
+   * itself, whilst this one is typed by a person on a telephone, and every
+   * character there is one they have to get right. The same account carries
+   * several projects, which is what the note tells apart.
+   */
+  purposePaypal: z.string().trim().max(MAX_REMITTANCE_UNSTRUCTURED).default("lmaa.space"),
 });
 
 /** What the site needs to draw the sponsors and say what is covered. */
@@ -158,6 +180,9 @@ export const payeeSchema = z.object({
   payeeName: z.string(),
   payeeIban: z.string(),
   payeeBic: z.string(),
+  purposeDonation: z.string(),
+  purposeSponsor: z.string(),
+  purposePaypal: z.string(),
 });
 
 /** Everything an editor records about one sponsor. */

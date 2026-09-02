@@ -2,7 +2,7 @@ import { BankIcon, CoinsIcon, MedalIcon, PlusIcon, TrashIcon } from "@phosphor-i
 import { useMemo, useState } from "react";
 
 import { SPONSORING_DEFAULTS, type RunningCostItem, type SponsoringConfig } from "@lmaa/contracts";
-import { formatEuroCents } from "@lmaa/shared";
+import { MAX_REMITTANCE_UNSTRUCTURED, formatEuroCents } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { CopyableCode } from "@/components/ui/CopyableCode.tsx";
@@ -27,6 +27,9 @@ interface CostDraft {
   payeeName: string;
   payeeIban: string;
   payeeBic: string;
+  purposeDonation: string;
+  purposeSponsor: string;
+  purposePaypal: string;
 }
 
 let costRowCount = 0;
@@ -58,6 +61,9 @@ function toDraft(config: SponsoringConfig | undefined): CostDraft {
     payeeName: config?.payeeName ?? "",
     payeeIban: config?.payeeIban ?? "",
     payeeBic: config?.payeeBic ?? "",
+    purposeDonation: config?.purposeDonation ?? SPONSORING_DEFAULTS.purposeDonation,
+    purposeSponsor: config?.purposeSponsor ?? SPONSORING_DEFAULTS.purposeSponsor,
+    purposePaypal: config?.purposePaypal ?? SPONSORING_DEFAULTS.purposePaypal,
   };
 }
 
@@ -74,6 +80,9 @@ function toConfig(draft: CostDraft): SponsoringConfig {
     payeeName: draft.payeeName,
     payeeIban: draft.payeeIban,
     payeeBic: draft.payeeBic,
+    purposeDonation: draft.purposeDonation,
+    purposeSponsor: draft.purposeSponsor,
+    purposePaypal: draft.purposePaypal,
   };
 }
 
@@ -271,6 +280,38 @@ export function SponsoringSettingsPage() {
                   hint={<VariableHint name="payeeBic" before={text.payeeBicHint} />}
                   value={current.payeeBic}
                   onChange={(event) => updateConfig({ ...current, payeeBic: event.target.value })}
+                />
+              </div>
+
+              {/* Beneath the account, because these are the words that travel
+                  with a payment to it rather than a property of the payee. */}
+              <div className="grid gap-4 md:grid-cols-3">
+                <DashboardInput
+                  label={text.purposeDonationLabel}
+                  hint={<VariableHint name="purposeDonation" />}
+                  maxLength={MAX_REMITTANCE_UNSTRUCTURED}
+                  value={current.purposeDonation}
+                  onChange={(event) =>
+                    updateConfig({ ...current, purposeDonation: event.target.value })
+                  }
+                />
+                <DashboardInput
+                  label={text.purposeSponsorLabel}
+                  hint={<VariableHint name="purposeSponsor" />}
+                  maxLength={MAX_REMITTANCE_UNSTRUCTURED}
+                  value={current.purposeSponsor}
+                  onChange={(event) =>
+                    updateConfig({ ...current, purposeSponsor: event.target.value })
+                  }
+                />
+                <DashboardInput
+                  label={text.purposePaypalLabel}
+                  hint={<VariableHint name="purposePaypal" before={text.purposePaypalHint} />}
+                  maxLength={MAX_REMITTANCE_UNSTRUCTURED}
+                  value={current.purposePaypal}
+                  onChange={(event) =>
+                    updateConfig({ ...current, purposePaypal: event.target.value })
+                  }
                 />
               </div>
             </DashboardSection.Body>
