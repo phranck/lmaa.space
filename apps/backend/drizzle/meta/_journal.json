@@ -638,6 +638,20 @@
       "when": 1788279768452,
       "tag": "0090_donations_backfill_from_sponsors",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1788343228258,
+      "tag": "0091_rescue_unlinked_sponsor_amounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1788343239985,
+      "tag": "0092_chilly_skrulls",
+      "breakpoints": true
     }
   ]
 }

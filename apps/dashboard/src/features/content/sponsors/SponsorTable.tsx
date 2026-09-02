@@ -72,6 +72,10 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
       {
         id: "amount",
         header: text.amountLabel,
+        // Summed by the server from the payments linked to this sponsor, so it
+        // covers a renewal too. Shown and not edited: the amount is changed on
+        // the ledger page, where the payment itself lives.
+        //
         // Money is read against money, so it ends where the next figure ends.
         className: "w-32 text-right",
         sortKey: (sponsor) => sponsor.amountCents,

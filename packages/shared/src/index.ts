@@ -48,6 +48,8 @@ export * from "./utils/text-tokens.js";
 export * from "./utils/creditor-reference.js";
 /** How long a sponsorship stands and how much of it is left. */
 export * from "./utils/sponsor-year.js";
+/** How far the year's running costs are carried, as one answer for every surface. */
+export * from "./utils/funding-progress.js";
 /** Given name and family name joined into one display name. */
 export * from "./utils/person-name.js";
 /** Logo background color helper for shop avatars. */

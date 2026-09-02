@@ -5,7 +5,7 @@ import SponsorCard from "@/components/SponsorCard.astro";
 import { getFavicons } from "@/lib/favicons";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { SponsorsPayload } from "@lmaa/contracts";
-import { daysLeft, formatDate, formatEuroWhole, fullName } from "@lmaa/shared";
+import { daysLeft, formatDate, formatEuroWhole, fullName, fundingProgress } from "@lmaa/shared";
 
 interface Props {
   /**
@@ -96,8 +96,9 @@ const claims = await Promise.all(
   ),
 );
 
-const covered = payload.coveredCents >= payload.costsTotalCents && payload.costsTotalCents > 0;
-const missingCents = Math.max(payload.costsTotalCents - payload.coveredCents, 0);
+// Worked out in the shared module rather than here, so this block and any
+// sentence naming the same figure elsewhere cannot disagree about what is left.
+const { covered, missingCents } = fundingProgress(payload.costsTotalCents, payload.coveredCents);
 
 /**
  * The sentence under the row, with the outstanding amount written into it.

@@ -29,6 +29,7 @@ import { logger } from "../lib/logger.js";
 import { shopFilterSchema } from "../lib/shop-filters.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
 import { validate } from "../middleware/validate-request.js";
+import { sumDonations } from "../repositories/donations.js";
 import { getFooterConfig } from "../repositories/footer-config.js";
 import { listCurrentSponsors } from "../repositories/sponsors.js";
 import { listPublishedSupportPrompts } from "../repositories/support-prompts.js";
@@ -289,15 +290,19 @@ publicRoutes.get("/content", publicReadLimit, async (c) => {
 // name turns a list of people into a ranking.
 publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
   const today = new Date().toISOString().slice(0, 10);
-  const [current, config] = await Promise.all([
-    listCurrentSponsors(sponsorYearStart(today)),
+  const yearStart = sponsorYearStart(today);
+  const [current, config, received] = await Promise.all([
+    listCurrentSponsors(yearStart),
     getSponsoringConfig(),
+    sumDonations({ from: yearStart, to: today }),
   ]);
 
   const costsTotalCents = config.costs.reduce((sum, item) => sum + item.amountCents, 0);
-  // Everybody who paid counts towards the year, including whoever asked not to
-  // be named: the costs are carried by the money rather than by the mention.
-  const coveredCents = current.reduce((sum, sponsor) => sum + sponsor.amountCents, 0);
+  // Every payment counts towards the year, whatever route it took and whether
+  // or not it earned a sponsorship: the costs are carried by the money rather
+  // than by the mention. Summed over the ledger, which is the only place a
+  // payment is recorded, so nothing is counted twice and nothing is missed.
+  const coveredCents = received.cents;
 
   // Named against the contract the site reads, so a field renamed on one side
   // cannot quietly go missing on the other. The amounts stay out of it, and so

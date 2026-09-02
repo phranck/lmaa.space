@@ -39,14 +39,6 @@ export const sponsorInputSchema = z.object({
    * doing it.
    */
   published: z.boolean().default(true),
-  /**
-   * What they gave, in cents.
-   *
-   * Kept because the site needs the sum to say whether the year is covered. It
-   * is never shown next to a name: a visible amount turns a list of people into
-   * a ranking, and the person at the bottom is publicly at the bottom.
-   */
-  amountCents: z.coerce.number().int().min(0).max(1_000_000),
   /** The day they paid, which starts their year. */
   paidAt: z
     .string()
@@ -59,6 +51,19 @@ export const sponsorSchema = sponsorInputSchema.extend({
   id: z.string().min(1).max(64),
   /** Always a list when read back, empty where nothing was entered. */
   socialMedia: socialMediaLinksSchema,
+  /**
+   * What they have given, in cents, summed from the payments linked to them.
+   *
+   * Read only, and absent from the input schema above, because a sponsorship is
+   * a person and a payment is an event in the ledger. Editing the figure here
+   * would put the same amount in two places, and the whole reason the ledger
+   * exists is that it is the only place a payment is recorded.
+   *
+   * Never shown next to a name on the site: a visible amount turns a list of
+   * people into a ranking, and the person at the bottom is publicly at the
+   * bottom.
+   */
+  amountCents: z.number().int(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

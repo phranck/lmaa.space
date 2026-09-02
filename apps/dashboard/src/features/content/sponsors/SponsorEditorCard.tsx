@@ -1,7 +1,7 @@
 import { HandHeartIcon } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
 
-import { SPONSORING_DEFAULTS, type Sponsor, type SponsorInput } from "@lmaa/contracts";
+import type { Sponsor, SponsorInput } from "@lmaa/contracts";
 import { fullName, type SocialMediaLinks } from "@lmaa/shared";
 import { SocialMediaEditor } from "@lmaa/ui";
 
@@ -14,7 +14,6 @@ import {
 import {
   DashboardField,
   DashboardInput,
-  DashboardNumberInput,
   DashboardSwitchField,
   DashboardTextarea,
 } from "@/components/ui/DashboardControls.tsx";
@@ -31,19 +30,17 @@ import {
   useDeleteSponsor,
   useResolveSponsorAvatar,
   useSaveSponsor,
-  useSponsoringConfig,
   useSponsors,
 } from "./hooks/useSponsors.ts";
 import { canFetchPicture, lookupKey, shouldFetchPicture } from "./sponsor-picture-lookup.ts";
 import { SponsorPictureEditor } from "./SponsorPictureEditor.tsx";
 
 /**
- * A new sponsor, with the amount already at the minimum in force.
+ * A new sponsor, dated today.
  *
- * @param minAmountCents - The least a sponsor gives to be named, in cents.
  * @returns An empty form state.
  */
-function emptySponsor(minAmountCents: number): SponsorInput {
+function emptySponsor(): SponsorInput {
   return {
     firstName: "",
     lastName: "",
@@ -51,7 +48,6 @@ function emptySponsor(minAmountCents: number): SponsorInput {
     imageUrl: "",
     claim: "",
     published: true,
-    amountCents: minAmountCents,
     paidAt: new Date().toISOString().slice(0, 10),
   };
 }
@@ -59,11 +55,20 @@ function emptySponsor(minAmountCents: number): SponsorInput {
 /**
  * Strips what the server owns from a stored sponsor.
  *
+ * `amountCents` is among those: it is summed from the ledger rather than typed
+ * here, so it is read back and never sent.
+ *
  * @param sponsor - A sponsor as read back from the backend.
  * @returns The editable fields alone.
  */
 function toInput(sponsor: Sponsor): SponsorInput {
-  const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...fields } = sponsor;
+  const {
+    id: _id,
+    amountCents: _amountCents,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    ...fields
+  } = sponsor;
   return fields;
 }
 
@@ -91,7 +96,6 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
   const isNew = sponsorId === "new";
 
   const { data: sponsors } = useSponsors();
-  const { data: config } = useSponsoringConfig();
   const create = useCreateSponsor();
   const save = useSaveSponsor();
   const remove = useDeleteSponsor();
@@ -104,10 +108,9 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
   /** What the last lookup asked about, so the same question is not asked twice. */
   const lastLookup = useRef("");
 
-  const minAmountCents = config?.minAmountCents ?? SPONSORING_DEFAULTS.minAmountCents;
   const base = useMemo(
-    () => (isNew ? emptySponsor(minAmountCents) : stored ? toInput(stored) : null),
-    [isNew, minAmountCents, stored],
+    () => (isNew ? emptySponsor() : stored ? toInput(stored) : null),
+    [isNew, stored],
   );
   const fields = draft ?? base;
   const isPending = create.isPending || save.isPending || remove.isPending;
@@ -230,25 +233,17 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
                   onCheckedChange={(checked) => update({ published: checked })}
                 />
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <DashboardNumberInput
-                    label={text.amountLabel}
-                    hint={text.amountHint}
-                    value={fields.amountCents / 100}
-                    min={0}
-                    step={1}
-                    onChange={(event) =>
-                      update({ amountCents: Math.round(Number(event.target.value) * 100) })
-                    }
+                {/* No amount here. What somebody gave is a payment, and a
+                    payment is edited in the ledger under Spendeneingänge, so
+                    it is recorded once. The list behind this card shows the
+                    total. */}
+                <DashboardField label={text.paidAtLabel} hint={text.paidAtHint}>
+                  <DateTimePicker
+                    mode="date"
+                    value={fields.paidAt}
+                    onChange={(value) => update({ paidAt: value })}
                   />
-                  <DashboardField label={text.paidAtLabel} hint={text.paidAtHint}>
-                    <DateTimePicker
-                      mode="date"
-                      value={fields.paidAt}
-                      onChange={(value) => update({ paidAt: value })}
-                    />
-                  </DashboardField>
-                </div>
+                </DashboardField>
               </div>
             </div>
           )}

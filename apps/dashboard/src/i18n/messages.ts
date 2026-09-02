@@ -1207,7 +1207,6 @@ export interface DashboardMessages {
       publishedHint: string;
       hiddenBadge: string;
       amountLabel: string;
-      amountHint: string;
       paidAtLabel: string;
       paidAtHint: string;
       remainingLabel: string;
@@ -2845,7 +2844,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "Aus heisst: der Beitrag zählt für das Jahr, der Name steht aber nicht auf der Seite.",
         hiddenBadge: "Nicht genannt",
         amountLabel: "Betrag",
-        amountHint: "In Euro. Steht nie neben einem Namen auf der Seite.",
         paidAtLabel: "Bezahlt am",
         paidAtHint: "Ab diesem Tag läuft das Jahr, nicht ab Januar.",
         remainingLabel: "Läuft noch",
@@ -4506,7 +4504,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "Off means the contribution still counts towards the year, but the name stays off the page.",
         hiddenBadge: "Not named",
         amountLabel: "Amount",
-        amountHint: "In euro. Never shown beside a name on the site.",
         paidAtLabel: "Paid on",
         paidAtHint: "Their year runs from this day, not from January.",
         remainingLabel: "Still stands",
