@@ -26,8 +26,8 @@ import { CopyActionButton, SaveActionButton } from "@/components/ui/DashboardAct
 import { DashboardCheckboxField, DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
 import { SystemTemplateCheckbox } from "@/components/ui/SystemTemplateCheckbox.tsx";
+import { SystemTemplateChip } from "@/components/ui/SystemTemplateChip.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { usePostingAccount } from "@/features/social/hooks/useSocialMediaAccounts.ts";
@@ -262,7 +262,7 @@ function SocialMediaPostTemplateEditor({
           label={m.templateName}
         />
         <div className="ml-auto flex items-center">
-          {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
+          {form.isSystemTemplate && !isOwner && <SystemTemplateChip label={m.systemBadge} />}
           {isOwner && (
             <SystemTemplateCheckbox
               checked={form.isSystemTemplate ?? false}

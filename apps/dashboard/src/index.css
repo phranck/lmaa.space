@@ -136,6 +136,13 @@
   --ds-badge-neutral-bg: hsl(215 12% 24%);
   --ds-badge-neutral-text: hsl(215 15% 72%);
 
+  /* Chips. A chip names a thing and a badge reports a state, so they are two
+     roles and carry two colours. A chip stays out of the badge family
+     altogether: a category, a platform or a scope is not an answer to how a
+     row is doing, and colouring it like one makes the reader stop and check. */
+  --ds-chip-bg: color-mix(in oklab, var(--ds-surface-hover) 65%, var(--ds-border) 35%);
+  --ds-chip-text: var(--ds-text-muted);
+
   /* Markdown editor syntax highlighting */
   --md-heading: #79c0ff;
   --md-emphasis: #d2a8ff;

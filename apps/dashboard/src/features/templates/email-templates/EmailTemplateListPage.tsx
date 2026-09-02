@@ -23,7 +23,7 @@ import {
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
-import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
+import { SystemTemplateChip } from "@/components/ui/SystemTemplateChip.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
 import { DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
@@ -117,7 +117,7 @@ export function EmailTemplateListPage() {
             >
               {tpl.name}
             </button>
-            {tpl.isSystemTemplate && <SystemTemplateBadge label={m.systemBadge} />}
+            {tpl.isSystemTemplate && <SystemTemplateChip label={m.systemBadge} />}
           </div>
         ),
       },

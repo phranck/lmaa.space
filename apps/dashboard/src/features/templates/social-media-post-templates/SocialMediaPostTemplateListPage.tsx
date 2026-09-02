@@ -6,7 +6,7 @@ import type { SocialMediaPostTemplate } from "@lmaa/contracts";
 import { formatDate } from "@lmaa/shared";
 import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
 
-import { Badge } from "@/components/ui/Badge.tsx";
+import { Chip } from "@/components/ui/Chip.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
@@ -16,7 +16,7 @@ import {
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
-import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
+import { SystemTemplateChip } from "@/components/ui/SystemTemplateChip.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
 import { DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
@@ -50,7 +50,7 @@ export function SocialMediaPostTemplateListPage() {
             >
               {template.name}
             </button>
-            {template.isSystemTemplate && <SystemTemplateBadge label={m.systemBadge} />}
+            {template.isSystemTemplate && <SystemTemplateChip label={m.systemBadge} />}
           </div>
         ),
       },
@@ -60,7 +60,7 @@ export function SocialMediaPostTemplateListPage() {
         cell: (template) => (
           <div className="flex gap-1">
             {template.platforms.map((platform) => (
-              <PlatformBadge key={platform} platform={platform} />
+              <PlatformChip key={platform} platform={platform} />
             ))}
           </div>
         ),
@@ -71,12 +71,7 @@ export function SocialMediaPostTemplateListPage() {
         cell: (template) => (
           <div className="flex gap-1">
             {template.scopes.map((scope) => (
-              <span
-                key={scope}
-                className="rounded-control bg-[var(--ds-bg-elevated)] px-2 py-0.5 text-xs text-[var(--ds-text-muted)]"
-              >
-                {m.scopes[scope]}
-              </span>
+              <Chip key={scope}>{m.scopes[scope]}</Chip>
             ))}
           </div>
         ),
@@ -182,16 +177,9 @@ export function SocialMediaPostTemplateListPage() {
   );
 }
 
-function PlatformBadge({ platform }: { platform: string }) {
+function PlatformChip({ platform }: { platform: string }) {
   const def = PLATFORM_MAP.get(platform);
   if (!def) return null;
   const Icon = def.icon;
-  return (
-    <Badge
-      colorClass="bg-[var(--ds-surface-hover)] text-[var(--ds-text)]"
-      icon={<Icon size={14} />}
-    >
-      {def.label}
-    </Badge>
-  );
+  return <Chip icon={<Icon size={14} />}>{def.label}</Chip>;
 }

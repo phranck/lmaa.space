@@ -3,7 +3,7 @@ import { memo, useMemo } from "react";
 
 import type { SupportPrompt } from "@lmaa/contracts";
 
-import { Badge } from "@/components/ui/Badge.tsx";
+import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -85,9 +85,7 @@ function SupportPromptTableComponent({ prompts, today, onEdit }: SupportPromptTa
             <Badge
               className="shrink-0"
               colorClass={
-                state === "live"
-                  ? "bg-emerald-500/10 text-emerald-400"
-                  : "bg-stone-500/10 text-stone-400"
+                state === "live" ? "bg-emerald-500/10 text-emerald-400" : badgeNeutralClass
               }
             >
               {text.states[state]}

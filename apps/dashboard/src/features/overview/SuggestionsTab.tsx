@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router";
 
 import { formatDateTime, type SubmissionStatus } from "@lmaa/shared";
 
-import { Badge } from "@/components/ui/Badge.tsx";
+import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { StatusBadge } from "@/components/ui/StatusBadge.tsx";
@@ -17,7 +17,11 @@ import { VERDICT_COLORS } from "@/features/overview/verdict-colors.ts";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
-  onhold: "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]",
+  // The grey `VERDICT_COLORS` gives a recommendation that is not yet an answer,
+  // because "on hold" says the same thing about a submission. It is a badge
+  // token rather than a surface one, so the badge carries its own colour
+  // instead of taking the colour of whatever stands behind it.
+  onhold: badgeNeutralClass,
   approved: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
   rejected: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
 };

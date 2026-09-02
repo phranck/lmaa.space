@@ -19,7 +19,8 @@ import {
 } from "@lmaa/shared";
 
 import { Badge } from "@/components/ui/Badge.tsx";
-import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
+import { Chip } from "@/components/ui/Chip.tsx";
+import { ShopCategoryChips } from "@/components/ui/ShopCategoryChips.tsx";
 import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -158,11 +159,11 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
           const remainingCount = shop.categories.length - visibleCategories.length;
           return (
             <div className="flex flex-wrap items-center gap-1">
-              <ShopCategoryBadges categories={visibleCategories} emptyLabel="–" />
+              <ShopCategoryChips categories={visibleCategories} emptyLabel="–" />
               {remainingCount > 0 && (
-                <Badge colorClass="bg-[color-mix(in_oklab,var(--ds-surface-hover)_65%,var(--ds-border)_35%)] text-[var(--ds-text-muted)]">
+                <Chip>
                   {shopsMessages.table.categoriesMore.replace("{n}", String(remainingCount))}
-                </Badge>
+                </Chip>
               )}
             </div>
           );

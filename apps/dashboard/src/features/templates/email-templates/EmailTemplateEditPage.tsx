@@ -21,8 +21,8 @@ import { DashboardActionButton, SaveActionButton } from "@/components/ui/Dashboa
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
 import { SystemTemplateCheckbox } from "@/components/ui/SystemTemplateCheckbox.tsx";
+import { SystemTemplateChip } from "@/components/ui/SystemTemplateChip.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.tsx";
@@ -347,7 +347,7 @@ function EmailTemplateMetaBar({
         label={labels.templateName}
       />
       <div className="ml-auto flex items-center">
-        {isSystemTemplate && !isOwner && <SystemTemplateBadge label={labels.systemBadge} />}
+        {isSystemTemplate && !isOwner && <SystemTemplateChip label={labels.systemBadge} />}
         {isOwner && (
           <SystemTemplateCheckbox
             checked={isSystemTemplate}

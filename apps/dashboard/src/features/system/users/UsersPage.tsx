@@ -2,7 +2,7 @@ import { TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { Avatar } from "@/components/ui/Avatar.tsx";
-import { Badge } from "@/components/ui/Badge.tsx";
+import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
 import { ItemCard } from "@/components/ui/Card.tsx";
 import {
   CancelActionButton,
@@ -67,7 +67,7 @@ export function UsersPage() {
                         ? "bg-amber-900/40 text-amber-400"
                         : user.role === "admin"
                           ? "bg-blue-900/40 text-blue-400"
-                          : "bg-gray-800 text-gray-400"
+                          : badgeNeutralClass
                     }
                   >
                     {user.role === "owner"
@@ -77,9 +77,7 @@ export function UsersPage() {
                         : usersMessages.role.moderator}
                   </Badge>
                   {user.id === me?.id && (
-                    <Badge colorClass="bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]">
-                      {usersMessages.you}
-                    </Badge>
+                    <Badge colorClass={badgeNeutralClass}>{usersMessages.you}</Badge>
                   )}
                 </div>
                 <p className="text-sm text-[var(--ds-text-subtle)]">{user.email}</p>

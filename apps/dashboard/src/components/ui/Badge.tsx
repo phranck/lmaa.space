@@ -12,6 +12,19 @@ import type { ReactNode } from "react";
 const badgeShapeClass =
   "inline-flex h-5 items-center gap-1 rounded-full px-2 text-xs font-medium leading-none";
 
+/**
+ * The grey a status badge takes where the state has no colour of its own.
+ *
+ * @remarks
+ * Named here rather than written at each call site, because the same grey
+ * reports "not named on the site", "run out" and "this row is you" across four
+ * tables. It stands beside the coloured verdicts in `VERDICT_COLORS` and comes
+ * from the same badge token family, so grey reads as one of the answers rather
+ * than as the absence of one.
+ */
+export const badgeNeutralClass =
+  "bg-[var(--ds-badge-neutral-bg)] text-[var(--ds-badge-neutral-text)]";
+
 interface BadgeProps {
   /** Background and text colour, as utility classes reading design tokens. */
   colorClass: string;
