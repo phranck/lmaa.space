@@ -123,6 +123,11 @@ const DonationsPage = lazy(() =>
     default: m.DonationsPage,
   })),
 );
+const DonationChartsPage = lazy(() =>
+  import("@/features/content/donations/DonationChartsPage.tsx").then((m) => ({
+    default: m.DonationChartsPage,
+  })),
+);
 const SupportPromptsPage = lazy(() =>
   import("@/features/content/support-prompts/SupportPromptsPage.tsx").then((m) => ({
     default: m.SupportPromptsPage,
@@ -446,6 +451,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <DonationsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="donation-charts"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <DonationChartsPage />
                   </Suspense>
                 }
               />

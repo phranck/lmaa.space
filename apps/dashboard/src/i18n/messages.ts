@@ -72,6 +72,7 @@ export interface DashboardMessages {
       sponsors: string;
       sponsorRequests: string;
       donations: string;
+      donationCharts: string;
       sponsoringSettings: string;
       sectionSponsoring: string;
       systemSettings: string;
@@ -1266,6 +1267,37 @@ export interface DashboardMessages {
       deleteTitle: string;
       deleteMessage: string;
     };
+    donationCharts: {
+      title: string;
+      windowTitle: string;
+      windowHint: string;
+      presets: { month: string; quarter: string; thisYear: string; year: string; all: string };
+      figureTotal: string;
+      figureCount: string;
+      figureAverage: string;
+      figureSponsorShare: string;
+      /** What stands where a figure cannot be worked out, such as an average of nothing. */
+      figureAbsent: string;
+      emptyTitle: string;
+      emptyHint: string;
+      overTimeTitle: string;
+      viewPerPeriod: string;
+      viewAccumulated: string;
+      /** Explains whichever of the two views is showing, beside the switch. */
+      overTimeHintPerPeriod: string;
+      overTimeHintAccumulated: string;
+      seriesSponsorships: string;
+      seriesDonations: string;
+      seriesTotal: string;
+      routesTitle: string;
+      routesHint: string;
+      fundingTitle: string;
+      fundingHint: string;
+      fundingCovered: string;
+      fundingCosts: string;
+      fundingMissing: string;
+      fundingDone: string;
+    };
     pendingSponsorships: {
       title: string;
       emptyTitle: string;
@@ -1650,6 +1682,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         sponsors: "Jahressponsoren",
         sponsorRequests: "Sponsor Requests",
         donations: "Spendeneingänge",
+        donationCharts: "Einnahmen",
         sponsoringSettings: "Einstellungen",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Einstellungen",
@@ -2905,6 +2938,45 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deleteTitle: "Eingang löschen",
         deleteMessage: "Der Betrag zählt danach nicht mehr für das Jahr.",
       },
+      donationCharts: {
+        title: "Einnahmen",
+        windowTitle: "Zeitraum",
+        windowHint:
+          "Gilt für alles auf dieser Seite ausser der Jahresdeckung unten. Die zählt immer das Sponsorjahr, weil die laufenden Kosten dafür gesetzt sind.",
+        presets: {
+          month: "30 Tage",
+          quarter: "90 Tage",
+          thisYear: "Dieses Jahr",
+          year: "12 Monate",
+          all: "Alles",
+        },
+        figureTotal: "Im Zeitraum",
+        figureCount: "Zahlungen",
+        figureAverage: "Pro Zahlung",
+        figureSponsorShare: "Davon Sponsoring",
+        figureAbsent: "keine",
+        emptyTitle: "Nichts zu zeichnen",
+        emptyHint:
+          "In diesem Zeitraum ist kein Geld eingegangen. Wähl einen längeren, oder trag den ersten Eingang unter Spendeneingänge ein.",
+        overTimeTitle: "Verlauf",
+        viewPerPeriod: "Einzeln",
+        viewAccumulated: "Laufende Summe",
+        overTimeHintPerPeriod: "Jeder Balken zeigt, was allein in diesem Zeitraum eingegangen ist.",
+        overTimeHintAccumulated:
+          "Jeder Balken zählt alles mit, was davor eingegangen ist. Der letzte ist die Summe des ganzen Zeitraums.",
+        seriesSponsorships: "Sponsoring",
+        seriesDonations: "Freie Spenden",
+        seriesTotal: "Zusammen",
+        routesTitle: "Zahlungswege",
+        routesHint: "Über welchen Weg das Geld im gewählten Zeitraum gekommen ist.",
+        fundingTitle: "Jahresdeckung",
+        fundingHint:
+          "Was in den letzten 365 Tagen eingegangen ist, gegen das, was das Jahr kostet.",
+        fundingCovered: "Eingegangen",
+        fundingCosts: "von",
+        fundingMissing: "Es fehlen",
+        fundingDone: "Das Jahr ist getragen",
+      },
       pendingSponsorships: {
         title: "Sponsor Requests",
         emptyTitle: "Niemand wartet",
@@ -3320,6 +3392,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         sponsors: "Yearly sponsors",
         sponsorRequests: "Sponsor requests",
         donations: "Donations received",
+        donationCharts: "Income",
         sponsoringSettings: "Settings",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Settings",
@@ -4565,6 +4638,44 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         countSuffix: "payments",
         deleteTitle: "Delete payment",
         deleteMessage: "The amount stops counting towards the year.",
+      },
+      donationCharts: {
+        title: "Income",
+        windowTitle: "Period",
+        windowHint:
+          "Applies to everything on this page except the yearly funding below. That one always counts the sponsor year, because the running costs are set against it.",
+        presets: {
+          month: "30 days",
+          quarter: "90 days",
+          thisYear: "This year",
+          year: "12 months",
+          all: "Everything",
+        },
+        figureTotal: "In this period",
+        figureCount: "Payments",
+        figureAverage: "Per payment",
+        figureSponsorShare: "Of that, sponsorships",
+        figureAbsent: "none",
+        emptyTitle: "Nothing to draw",
+        emptyHint:
+          "No money came in over this period. Pick a longer one, or record the first payment under donations received.",
+        overTimeTitle: "Over time",
+        viewPerPeriod: "Separately",
+        viewAccumulated: "Running total",
+        overTimeHintPerPeriod: "Each bar shows what came in over that period alone.",
+        overTimeHintAccumulated:
+          "Each bar counts everything before it as well. The last one is the total for the whole period.",
+        seriesSponsorships: "Sponsorships",
+        seriesDonations: "Free donations",
+        seriesTotal: "Together",
+        routesTitle: "Payment routes",
+        routesHint: "Which route the money took over the chosen period.",
+        fundingTitle: "Yearly funding",
+        fundingHint: "What came in over the last 365 days, against what the year costs.",
+        fundingCovered: "Received",
+        fundingCosts: "of",
+        fundingMissing: "Still missing",
+        fundingDone: "The year is carried",
       },
       pendingSponsorships: {
         title: "Sponsor requests",

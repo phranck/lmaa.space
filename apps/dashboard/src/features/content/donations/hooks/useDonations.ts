@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { Donation, DonationInput, DonationTotals } from "@lmaa/contracts";
+import type { Donation, DonationBreakdown, DonationInput, DonationTotals } from "@lmaa/contracts";
 
 import { api } from "@/lib/api.ts";
 
@@ -40,6 +40,30 @@ export function useDonations(range: DonationRangeFilter = {}) {
   });
 }
 
+/**
+ * The ledger grouped into periods and payment routes, which is what a chart
+ * draws.
+ *
+ * The window is the only thing sent. How wide a period is follows from it on
+ * the server, and comes back on `bucket` so an axis can be labelled by day or
+ * by month without the page working it out a second time.
+ *
+ * @param range - The days to include. Both ends count, and either may be left
+ *   out, in which case the chart reaches as far as the ledger does.
+ */
+export function useDonationBreakdown(range: DonationRangeFilter = {}) {
+  const query = new URLSearchParams();
+  if (range.from) query.set("from", range.from);
+  if (range.to) query.set("to", range.to);
+  const suffix = query.size > 0 ? `?${query.toString()}` : "";
+
+  return useQuery({
+    queryKey: ["donation-breakdown", range.from ?? "", range.to ?? ""],
+    queryFn: () => api.get<DonationBreakdown>(`/admin/donations/breakdown${suffix}`),
+    staleTime: 30 * 1000,
+  });
+}
+
 /** What came in over the last 30 and the last 365 days. */
 export function useDonationTotals() {
   return useQuery({
@@ -52,15 +76,17 @@ export function useDonationTotals() {
 /**
  * Invalidates everything a changed payment shows up in.
  *
- * The ledger is cached per window and the figures above it are their own query,
- * so a saved payment has to reach both. Held here rather than repeated in each
- * mutation, because a third mutation would otherwise forget one of them.
+ * The ledger is cached per window, the figures above it are their own query,
+ * and the chart page holds a third, so a saved payment has to reach all of
+ * them. Held here rather than repeated in each mutation, because a mutation
+ * written later would otherwise forget one.
  */
 function useRefreshLedger() {
   const queryClient = useQueryClient();
   return () => {
     void queryClient.invalidateQueries({ queryKey: ["donations"] });
     void queryClient.invalidateQueries({ queryKey: ["donation-totals"] });
+    void queryClient.invalidateQueries({ queryKey: ["donation-breakdown"] });
   };
 }
 

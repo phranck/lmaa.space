@@ -195,6 +195,36 @@
   /* Subtle surface hover (icon buttons, section headers, inline notes) */
   --ds-surface-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
+  /* Charts.
+     Two series and no more. The only thing colour distinguishes in a chart
+     here is a sponsorship from a free donation, because every other grouping
+     the dashboard draws is named on an axis and needs no hue at all.
+
+     Both steps were validated against the two surfaces a chart stands on,
+     --ds-section-body-bg and --ds-card-bg. Each sits inside the dark lightness
+     band of 0.48 to 0.67, carries chroma above the floor, and clears 3:1
+     contrast against both. Their separation is ΔE 23.0 under the worst colour
+     vision deficiency against a target of 8, and 24.2 for normal vision
+     against a floor of 15.
+
+     The first is the brand step itself, so sponsorship money is drawn in the
+     colour the site uses for sponsorship. The second carries the hue of
+     --ds-btn-primary-bg one step darker, which is what brings it into the
+     band. */
+  --ds-chart-series-1: var(--ds-color-brand-700);
+  --ds-chart-series-2: oklch(0.65 0.14 235);
+
+  /* The grid a bar is read against, stated in the same way as the table's own
+     row tints.
+
+     Placed between the two lines the dashboard already has for this kind of
+     job, measured against --ds-section-body-bg: it reaches 1.41 to 1, where
+     --ds-table-row-separator reaches 1.11 and --ds-border-subtle 1.62. A grid
+     line has to carry further than a row separator, because a reader follows a
+     bar to it and reads a value off it, and it has to stay under a border,
+     which is drawn to be seen in its own right. */
+  --ds-chart-grid: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.12);
+
   /* Section card backgrounds */
   --ds-section-header-bg: #2a3033;
   --ds-section-body-bg: #212528;

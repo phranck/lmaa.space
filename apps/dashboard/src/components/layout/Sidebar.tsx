@@ -11,6 +11,7 @@ import {
   BlueprintIcon,
   CaretCircleDoubleDownIcon,
   CaretCircleDoubleUpIcon,
+  ChartBarIcon,
   CheckCircleIcon,
   CircleIcon,
   ClockIcon,
@@ -933,6 +934,15 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<HandCoinsIcon weight="duotone" className="w-4 h-4" />}
                         label={sidebarMessages.donations}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/donation-charts" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.donationCharts}
                         active={isActive}
                       />
                     )}
