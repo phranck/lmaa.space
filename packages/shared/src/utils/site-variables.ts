@@ -122,6 +122,18 @@ export const SITE_VARIABLES = {
     label: "BIC des Empfängers",
     example: "TRBKATW2XXX",
   },
+  purposeDonation: {
+    label: "Verwendungszweck einer Spende, wie unter Sponsoring eingetragen",
+    example: "Spende: lmaa.space",
+  },
+  purposeSponsor: {
+    label: "Verwendungszweck ab dem Sponsor-Mindestbetrag, wie unter Sponsoring eingetragen",
+    example: "Sponsor: lmaa.space",
+  },
+  purposePaypal: {
+    label: "Was in die PayPal-Notiz gehört, wie unter Sponsoring eingetragen",
+    example: "lmaa.space",
+  },
 } as const satisfies Record<string, { label: string; example: string }>;
 
 /** Name of one variable. */
@@ -142,6 +154,12 @@ export interface SiteVariableValues {
   payeeIban: string;
   /** The bank, or empty for a payee inside the EEA who names none. */
   payeeBic: string;
+  /** What a plain donation carries as its remittance text. */
+  purposeDonation: string;
+  /** The same for a payment large enough to earn a sponsorship. */
+  purposeSponsor: string;
+  /** What a PayPal donor is asked to write into their note. */
+  purposePaypal: string;
   /**
    * What came in over the last 365 days, in cents.
    *
@@ -232,6 +250,15 @@ export function expandSiteVariables(
         return groupIban(values.payeeIban);
       case "payeeBic":
         return values.payeeBic;
+      // Carried across as written. These are the words somebody has to be able
+      // to type or read back against their statement, so nothing about them is
+      // reformatted here.
+      case "purposeDonation":
+        return values.purposeDonation;
+      case "purposeSponsor":
+        return values.purposeSponsor;
+      case "purposePaypal":
+        return values.purposePaypal;
     }
   });
 }

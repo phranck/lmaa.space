@@ -26,6 +26,9 @@ export const EMPTY_PAYEE: Payee = {
   payeeName: "",
   payeeIban: "",
   payeeBic: "",
+  purposeDonation: "",
+  purposeSponsor: "",
+  purposePaypal: "",
 };
 
 /**

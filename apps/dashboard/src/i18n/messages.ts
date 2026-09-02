@@ -1224,6 +1224,11 @@ export interface DashboardMessages {
       payeeIbanLabel: string;
       payeeBicLabel: string;
       payeeBicHint: string;
+      purposeDonationLabel: string;
+      purposeSponsorLabel: string;
+      purposePaypalLabel: string;
+      /** Says why the PayPal note is shorter than the transfer's purpose. */
+      purposePaypalHint: string;
       variableLabel: string;
       costsVariables: string;
       costsHint: string;
@@ -2929,6 +2934,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         payeeIbanLabel: "IBAN",
         payeeBicLabel: "BIC",
         payeeBicHint: "Innerhalb des EWR nicht nötig.",
+        purposeDonationLabel: "Verwendungszweck einer Spende",
+        purposeSponsorLabel: "Verwendungszweck einer Sponsorschaft",
+        purposePaypalLabel: "Notiz bei PayPal",
+        purposePaypalHint: "Kurz halten, das tippt jemand am Telefon.",
         variableLabel: "Als Variable:",
         costsVariables: "Als Variablen im Text: {annualCost} und {monthlyCost}",
         costsHint: "Summe im Jahr",
@@ -4669,6 +4678,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         payeeIbanLabel: "IBAN",
         payeeBicLabel: "BIC",
         payeeBicHint: "Not needed inside the EEA.",
+        purposeDonationLabel: "Remittance text for a donation",
+        purposeSponsorLabel: "Remittance text for a sponsorship",
+        purposePaypalLabel: "Note on PayPal",
+        purposePaypalHint: "Keep it short, somebody types this on a phone.",
         variableLabel: "As a variable:",
         costsVariables: "As variables in a text: {annualCost} and {monthlyCost}",
         costsHint: "Total per year",

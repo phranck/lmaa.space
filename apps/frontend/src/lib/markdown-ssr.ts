@@ -65,6 +65,9 @@ async function loadSiteVariables(): Promise<SiteVariableValues | null> {
       payeeName: payee.payeeName,
       payeeIban: payee.payeeIban,
       payeeBic: payee.payeeBic,
+      purposeDonation: payee.purposeDonation,
+      purposeSponsor: payee.purposeSponsor,
+      purposePaypal: payee.purposePaypal,
       donatedYearCents: sponsors.coveredCents,
       donatedMonthCents: sponsors.donatedMonthCents,
     };

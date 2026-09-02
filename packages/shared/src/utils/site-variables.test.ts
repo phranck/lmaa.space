@@ -14,6 +14,9 @@ const values: SiteVariableValues = {
   payeeName: "Frank Gregor",
   payeeIban: "AT551900104704666811",
   payeeBic: "TRBKATW2XXX",
+  purposeDonation: "Spende: lmaa.space",
+  purposeSponsor: "Sponsor: lmaa.space",
+  purposePaypal: "lmaa.space",
   donatedYearCents: 12_000,
   donatedMonthCents: 2_500,
 };
@@ -56,6 +59,20 @@ describe("expandSiteVariables", () => {
   it("prints the account in fours, the way a banking app shows it", () => {
     // Somebody is going to compare the two character by character.
     expect(expand("{payeeIban}")).toBe("AT55 1900 1047 0466 6811");
+  });
+
+  it("writes the three remittance texts exactly as they were entered", () => {
+    // Nothing about them is reformatted: they are what somebody types into a
+    // note or reads back against their statement.
+    expect(expand("{purposeDonation}")).toBe("Spende: lmaa.space");
+    expect(expand("{purposeSponsor}")).toBe("Sponsor: lmaa.space");
+    expect(expand("{purposePaypal}")).toBe("lmaa.space");
+  });
+
+  it("keeps the PayPal note separate from the transfer's purpose", () => {
+    // Deliberately different: the GiroCode writes its text by itself, whilst a
+    // PayPal note is typed by a person on a telephone.
+    expect(expand("{purposePaypal}")).not.toBe(expand("{purposeDonation}"));
   });
 
   it("leaves a name it does not know exactly as it was", () => {

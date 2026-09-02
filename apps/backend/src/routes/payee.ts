@@ -24,6 +24,12 @@ payeeRoutes.get("/payee", async (c) => {
     payeeName: config.payeeName,
     payeeIban: config.payeeIban,
     payeeBic: config.payeeBic,
+    // The three remittance texts travel with the account rather than with the
+    // public figures, because they are read in the same breath as the IBAN and
+    // one fetch is what the renderer needs.
+    purposeDonation: config.purposeDonation,
+    purposeSponsor: config.purposeSponsor,
+    purposePaypal: config.purposePaypal,
   };
 
   c.header("Cache-Control", "no-store");
