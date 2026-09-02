@@ -14,7 +14,7 @@ import {
   sumDonations,
   updateDonation,
 } from "../../repositories/donations.js";
-import { getDonationTotals } from "../../services/donations.js";
+import { getDonationBreakdown, getDonationTotals } from "../../services/donations.js";
 
 /**
  * Managing the ledger of what came in, whatever route it took.
@@ -45,6 +45,15 @@ donationRoutes.get("/donations", validate("query", donationRangeSchema), async (
 
 // GET /api/admin/donations/totals — the month and the year at a glance
 donationRoutes.get("/donations/totals", async (c) => ok(c, await getDonationTotals(today())));
+
+// GET /api/admin/donations/breakdown?from=&to= — the ledger grouped, for a chart
+//
+// Takes the same window as the list above and no period size. How wide a period
+// is follows from that window, so one request cannot ask for daily figures
+// across a decade and decide the length of the answer for itself.
+donationRoutes.get("/donations/breakdown", validate("query", donationRangeSchema), async (c) =>
+  ok(c, await getDonationBreakdown(c.req.valid("query"), today())),
+);
 
 // POST /api/admin/donations
 donationRoutes.post("/donations", validate("json", donationInputSchema), async (c) =>

@@ -12,6 +12,8 @@ vi.mock("../middleware/auth.js", () => ({
 
 const repositoryMocks = vi.hoisted(() => ({
   listDonations: vi.fn(),
+  listDonationPeriods: vi.fn(),
+  listDonationProviders: vi.fn(),
   sumDonations: vi.fn(),
   getDonation: vi.fn(),
   insertDonation: vi.fn(),
@@ -49,6 +51,8 @@ describe("donation routes", () => {
     vi.clearAllMocks();
     repositoryMocks.listDonations.mockResolvedValue([sampleDonation]);
     repositoryMocks.sumDonations.mockResolvedValue({ cents: 2_500, count: 1 });
+    repositoryMocks.listDonationPeriods.mockResolvedValue([]);
+    repositoryMocks.listDonationProviders.mockResolvedValue([]);
   });
 
   it("passes the requested window to both the list and its sum", async () => {
@@ -78,6 +82,52 @@ describe("donation routes", () => {
 
     expect(response.status).toBe(400);
     expect(repositoryMocks.listDonations).not.toHaveBeenCalled();
+  });
+
+  describe("the grouped ledger", () => {
+    it("groups the same window the list would have taken", async () => {
+      repositoryMocks.listDonationPeriods.mockResolvedValue([
+        { start: "2026-08-20", sponsorCents: 0, donationCents: 2_500, count: 1 },
+      ]);
+
+      const response = await makeApp().request(
+        "/donations/breakdown?from=2026-08-01&to=2026-08-31",
+      );
+
+      expect(response.status).toBe(200);
+      const window = { from: "2026-08-01", to: "2026-08-31" };
+      expect(repositoryMocks.listDonationPeriods).toHaveBeenCalledWith(window, "day");
+      expect(repositoryMocks.listDonationProviders).toHaveBeenCalledWith(window);
+
+      const body = await response.json();
+      expect(body.data).toMatchObject({ bucket: "day", totalCents: 2_500, totalCount: 1 });
+      expect(body.data.periods).toHaveLength(31);
+    });
+
+    it("refuses a day that is not a day", async () => {
+      const response = await makeApp().request("/donations/breakdown?from=Michaelmas");
+
+      expect(response.status).toBe(400);
+      expect(repositoryMocks.listDonationPeriods).not.toHaveBeenCalled();
+    });
+
+    it("takes no period size from the caller, so the answer stays bounded", async () => {
+      // A year asked for in daily bars would be 365 entries. The window decides,
+      // and a parameter naming a size is simply not read.
+      await makeApp().request("/donations/breakdown?from=2025-09-02&to=2026-09-02&bucket=day");
+
+      expect(repositoryMocks.listDonationPeriods).toHaveBeenCalledWith(
+        { from: "2025-09-02", to: "2026-09-02" },
+        "month",
+      );
+    });
+
+    it("is not swallowed by the route that reads one payment", async () => {
+      await makeApp().request("/donations/breakdown");
+
+      expect(repositoryMocks.getDonation).not.toHaveBeenCalled();
+      expect(repositoryMocks.listDonationPeriods).toHaveBeenCalled();
+    });
   });
 
   it("stores a payment and defaults the consent to withheld", async () => {
