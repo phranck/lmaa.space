@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac } from "node:crypto";
 
 import { getDomain } from "tldts";
 
@@ -12,6 +12,7 @@ import { encodeShopToken } from "@lmaa/shared";
 import { findMatchingDomainAlertRule } from "./domain-alert-rules.js";
 import { env } from "../config/env.js";
 import { UNKNOWN_CLIENT_IP } from "../lib/client-ip.js";
+import { equalsInConstantTime } from "../lib/constant-time.js";
 import { extractEuropeanPostalCodePrefix } from "../lib/postal-code.js";
 import { type Result, failure, success } from "../lib/result.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
@@ -145,12 +146,7 @@ function validateLikeToken(shopId: number, token: string): { valid: boolean; rea
   const payload = `${shopId}:${timestamp}`;
   const expected = createHmac("sha256", env.IP_HASH_SALT).update(payload).digest("hex");
 
-  if (hmac.length !== expected.length) return { valid: false, reason: "invalid_hmac" };
-
-  const a = Buffer.from(hmac, "hex");
-  const b = Buffer.from(expected, "hex");
-  if (a.length !== b.length || !timingSafeEqual(a, b))
-    return { valid: false, reason: "invalid_hmac" };
+  if (!equalsInConstantTime(hmac, expected)) return { valid: false, reason: "invalid_hmac" };
 
   return { valid: true };
 }
