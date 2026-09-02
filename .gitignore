@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# TypeScript writes this next to every project it builds, including under
+# --noEmit, so it appears for anybody who runs the quality gate.
+*.tsbuildinfo
 apps/backend/docs-dist/
 apps/backend/openapi.generated.json
 **/.astro/
