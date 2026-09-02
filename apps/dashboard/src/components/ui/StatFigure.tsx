@@ -20,12 +20,18 @@ export interface StatFigureProps {
  * The figure is set in a tabular face so a column of them lines up digit under
  * digit, which is what makes two of them comparable at a glance.
  *
+ * Everything in it is set flush right, because that is how a figure is read:
+ * against the figure beside it, last digit under last digit. The label goes
+ * with it rather than staying left, since a label sitting over the far end of
+ * its own figure reads as a fault. Stated here rather than at each call site,
+ * because a figure is aligned the same way wherever it appears.
+ *
  * @param props - The name, the written figure, and an optional second line.
  * @returns A labelled figure.
  */
 export function StatFigure({ label, value, suffix }: StatFigureProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 text-right">
       <span className="text-xs text-[var(--ds-text-hint)]">{label}</span>
       <span className="text-lg font-semibold tabular-nums text-[var(--ds-text)]">{value}</span>
       {suffix && <span className="text-xs text-[var(--ds-text-hint)]">{suffix}</span>}
