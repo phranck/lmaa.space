@@ -14,18 +14,46 @@
  * - HTML numeric entities: `&#NNN;` (decimal), `&#xHH;` (hex).
  *
  * Unknown tokens are left untouched.
+ *
+ * These work in a form field and nowhere else, because `expandTextTokens` is
+ * called only from the form renderer. A content page is Markdown, where the
+ * character can be written directly or as an HTML entity, so it needs no second
+ * notation. Something written in braces on a content page is a site variable,
+ * per `site-variables.ts`, or a placeholder belonging to one shortcode
+ * attribute, and neither of those is expanded here.
  */
 
-const NAMED_TOKENS: Record<string, string> = {
-  nbhy: "‑",
-  nbsp: " ",
-  wj: "⁠",
-  shy: "­",
-  ndash: "–",
-  mdash: "—",
-  zwj: "‍",
-  zwnj: "‌",
-};
+/**
+ * Every named token, with the character it stands for.
+ *
+ * The form builder's reference is rendered from this, so the table an editor
+ * reads cannot list a token the expander does not know, nor miss one it does.
+ *
+ * @remarks
+ * The codepoint is stated rather than derived from the character, because it is
+ * the form an editor types when they reach for `U+XXXX` instead, and that form
+ * is padded to four digits whilst `toString(16)` is not.
+ */
+export const TEXT_TOKENS = {
+  nbhy: { character: "‑", codepoint: "U+2011" },
+  nbsp: { character: " ", codepoint: "U+00A0" },
+  wj: { character: "⁠", codepoint: "U+2060" },
+  shy: { character: "­", codepoint: "U+00AD" },
+  ndash: { character: "–", codepoint: "U+2013" },
+  mdash: { character: "—", codepoint: "U+2014" },
+  zwj: { character: "‍", codepoint: "U+200D" },
+  zwnj: { character: "‌", codepoint: "U+200C" },
+} as const satisfies Record<string, { character: string; codepoint: string }>;
+
+/** Name of one text token. */
+export type TextTokenName = keyof typeof TEXT_TOKENS;
+
+/** Every text token, in declaration order. */
+export const TEXT_TOKEN_NAMES = Object.keys(TEXT_TOKENS) as TextTokenName[];
+
+const NAMED_TOKENS: Record<string, string> = Object.fromEntries(
+  TEXT_TOKEN_NAMES.map((name) => [name, TEXT_TOKENS[name].character]),
+);
 
 const NAMED_TOKEN_PATTERN = /\{([a-zA-Z]+)\}/g;
 const HTML_DECIMAL_PATTERN = /&#(\d+);/g;

@@ -118,7 +118,18 @@ function ParamRow({ param }: { param: MarkdownShortcodeParamDefinition }) {
           </span>
         )}
       </td>
-      <td className="py-1 pr-3 text-[var(--ds-text-muted)]">{param.label ?? ""}</td>
+      <td className="py-1 pr-3 text-[var(--ds-text-muted)]">
+        {param.label ?? ""}
+        {/* A name this one value accepts, and nothing else does. It stands with
+            the parameter rather than in the variables table, because that is
+            the only place it means anything. */}
+        {param.placeholders?.map((placeholder) => (
+          <span key={placeholder.name} className="mt-0.5 block text-[var(--ds-text-hint)]">
+            <code className="font-mono text-[var(--ds-text)]">{`{${placeholder.name}}`}</code> wird
+            ersetzt durch {placeholder.description}
+          </span>
+        ))}
+      </td>
       <td className="py-1 font-mono text-[0.9em] text-[var(--ds-text-hint)]">
         {describeType(param)}
         {param.aliases && param.aliases.length > 0 && (
@@ -275,9 +286,14 @@ function DefinitionEntry({
 /**
  * Every variable at once, in the column that describes things.
  *
- * They share one entry in the list rather than thirteen, because a variable is
+ * They share one entry in the list rather than one each, because a variable is
  * one line and a reader looking for the right name wants them side by side.
  * The description does the sorting that the list would otherwise have to.
+ *
+ * The paragraph above the table names the other two things written in braces.
+ * All three look identical whilst being typed, so somebody who has learnt a
+ * variable here has no way of knowing that the other two exist, or that one of
+ * them does nothing on a content page.
  */
 function VariableTable() {
   return (
@@ -287,6 +303,13 @@ function VariableTable() {
         <p className="mt-1 text-[var(--ds-text-hint)] text-[0.8125rem] leading-relaxed">
           Eine Variable steht in geschweiften Klammern und wird eingesetzt, bevor der Text gelesen
           wird. Sie gilt deshalb im Fliesstext genauso wie in einem Feld eines Shortcodes.
+        </p>
+        <p className="mt-2 text-[var(--ds-text-hint)] text-[0.8125rem] leading-relaxed">
+          In geschweiften Klammern steht noch zweierlei anderes. Einzelne Felder eines Shortcodes
+          nehmen einen eigenen Platzhalter an, der nur in diesem einen Feld gilt; er steht links
+          beim jeweiligen Shortcode unter dem Feld. Und im Formular-Baukasten gibt es Zeichen wie{" "}
+          <code className="font-mono text-[var(--ds-text)]">{"{nbsp}"}</code>, die nur in
+          Formularfeldern wirken und auf einer Inhaltsseite unverändert stehen bleiben.
         </p>
       </header>
 
@@ -338,8 +361,8 @@ function ShortcodeList({
         );
       })}
 
-      {/* One entry rather than thirteen. A variable is a single line, so the
-          column beside this one can show them all at once. */}
+      {/* One entry rather than one per variable. A variable is a single line,
+          so the column beside this one can show them all at once. */}
       <p className="lmaa-help-nav-group">Weiteres</p>
 
       <button
@@ -638,6 +661,7 @@ export function MarkdownShortcodeReference({
         Ein Shortcode steht in doppelten eckigen Klammern und darf über mehrere Zeilen gehen. Ein
         Stern markiert ein Pflichtfeld, eingerückte Einträge gelten nur innerhalb ihres Elternteils.
         Eine Variable steht in geschweiften Klammern und gilt im Fliesstext wie in einem Feld.
+        Einzelne Felder nehmen zusätzlich einen eigenen Platzhalter an, der nur dort gilt.
       </p>
 
       <div className="lmaa-help-split">
