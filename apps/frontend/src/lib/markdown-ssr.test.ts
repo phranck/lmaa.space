@@ -24,10 +24,18 @@ async function freshRenderer() {
  * one, so both have to answer before any figure reaches the text.
  *
  * @param costsTotalCents - What the settings say a year costs.
+ * @param received - What the ledger has over the year and over the month, in
+ *   cents. Nothing by default, which is the state a new site is in.
  */
-function backendAnswers(costsTotalCents: number) {
+function backendAnswers(
+  costsTotalCents: number,
+  received: { coveredCents: number; donatedMonthCents: number } = {
+    coveredCents: 0,
+    donatedMonthCents: 0,
+  },
+) {
   apiMocks.apiGet.mockImplementation(async (path: string) => {
-    if (path === "/sponsors") return { costsTotalCents };
+    if (path === "/sponsors") return { costsTotalCents, ...received };
     return {};
   });
   apiMocks.apiGetInternal.mockResolvedValue({
@@ -60,6 +68,25 @@ describe("renderMarkdownSSR", () => {
     const html = await render("Das sind {monthlyCost} im Monat.");
 
     expect(html).toContain("18,83");
+  });
+
+  it("writes what came in and what is still missing", async () => {
+    backendAnswers(22_600, { coveredCents: 9_000, donatedMonthCents: 1_500 });
+    const render = await freshRenderer();
+
+    const html = await render("{donatedYear} kam rein, {donatedMonth} davon zuletzt.");
+
+    expect(html).toContain("90,00");
+    expect(html).toContain("15,00");
+  });
+
+  it("subtracts what came in from the year's costs", async () => {
+    backendAnswers(22_600, { coveredCents: 9_000, donatedMonthCents: 1_500 });
+    const render = await freshRenderer();
+
+    const html = await render("Es fehlen noch {missingYear}.");
+
+    expect(html).toContain("136,00");
   });
 
   it("leaves a name it does not own exactly as it was", async () => {

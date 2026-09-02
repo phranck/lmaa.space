@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MAX_PENDING_CLAIM } from "@lmaa/contracts";
+import { DONATION_MONTH_DAYS, SPONSOR_YEAR_DAYS, periodStart } from "@lmaa/shared";
 
 const envMock = vi.hoisted(() => ({
   env: { NODE_ENV: "development" as string, LOG_LEVEL: "silent" },
@@ -524,6 +525,7 @@ describe("publicRoutes", () => {
       expect(Object.keys(body.data).sort()).toEqual([
         "costsTotalCents",
         "coveredCents",
+        "donatedMonthCents",
         "minAmountCents",
         "sponsors",
       ]);
@@ -578,14 +580,34 @@ describe("publicRoutes", () => {
       // being both a sponsor and a payment. The window is the one the sponsors
       // are listed for, so a payment that has aged out of the year is out of
       // the figure as well.
+      const today = new Date().toISOString().slice(0, 10);
       const res = await app.request("/sponsors");
       const body = await res.json();
 
       expect(donationRepoMocks.sumDonations).toHaveBeenCalledWith({
-        from: "2025-08-24",
-        to: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+        from: periodStart(today, SPONSOR_YEAR_DAYS),
+        to: today,
       });
       expect(body.data.coveredCents).toBe(4_500);
+    });
+
+    it("reads the month over its own window, so a page can name both figures", async () => {
+      // Two windows off the same ledger. A page writes `{donatedMonth}` beside
+      // `{donatedYear}`, and the two have to be different questions rather than
+      // the same sum printed twice.
+      const today = new Date().toISOString().slice(0, 10);
+      const monthStart = periodStart(today, DONATION_MONTH_DAYS);
+      donationRepoMocks.sumDonations.mockImplementation(({ from }: { from: string }) =>
+        Promise.resolve(
+          from === monthStart ? { cents: 2_500, count: 1 } : { cents: 12_000, count: 4 },
+        ),
+      );
+
+      const res = await app.request("/sponsors");
+      const body = await res.json();
+
+      expect(body.data.donatedMonthCents).toBe(2_500);
+      expect(body.data.coveredCents).toBe(12_000);
     });
   });
 

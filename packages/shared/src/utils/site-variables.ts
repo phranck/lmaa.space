@@ -11,6 +11,8 @@
  * same text without treating each other's tokens as mistakes.
  */
 
+import { fundingProgress } from "./funding-progress.js";
+
 /** Months in a year, which is what the monthly figure is divided by. */
 const MONTHS_PER_YEAR = 12;
 
@@ -63,6 +65,18 @@ export const SITE_VARIABLES = {
   monthlyCost: {
     label: "Dieselben Kosten auf einen Monat gerechnet",
     example: "15,00 €",
+  },
+  donatedYear: {
+    label: "Was in den letzten 365 Tagen eingegangen ist",
+    example: "120,00 €",
+  },
+  donatedMonth: {
+    label: "Was in den letzten 30 Tagen eingegangen ist",
+    example: "20,00 €",
+  },
+  missingYear: {
+    label: "Was bis zu den Jahreskosten noch fehlt, null sobald sie getragen sind",
+    example: "60,00 €",
   },
   amountWeek: {
     label: "Betrag für eine Woche, gerundet und ohne Währung, für einen Spendenbetrag",
@@ -128,6 +142,15 @@ export interface SiteVariableValues {
   payeeIban: string;
   /** The bank, or empty for a payee inside the EEA who names none. */
   payeeBic: string;
+  /**
+   * What came in over the last 365 days, in cents.
+   *
+   * The same rolling window a sponsorship runs for, so a sentence naming this
+   * and the sponsor list beside it describes one period rather than two.
+   */
+  donatedYearCents: number;
+  /** What came in over the last 30 days, in cents. */
+  donatedMonthCents: number;
 }
 
 /** Four at a time, which is how an IBAN is printed and read back. */
@@ -163,6 +186,17 @@ export function expandSiteVariables(
         // Rounded to the cent, because a third of a cent is not money and the
         // figure is read rather than added up.
         return formatMoney(Math.round(values.annualCostCents / MONTHS_PER_YEAR));
+      case "donatedYear":
+        return formatMoney(values.donatedYearCents);
+      case "donatedMonth":
+        return formatMoney(values.donatedMonthCents);
+      // Through `fundingProgress`, which is the same subtraction the sponsor
+      // block writes into its `missing=`. A second one here would eventually
+      // disagree with it and nothing would say which figure to believe.
+      case "missingYear":
+        return formatMoney(
+          fundingProgress(values.annualCostCents, values.donatedYearCents).missingCents,
+        );
       // The six below render a bare number rather than money, because they are
       // written into a shortcode's `amount=` and read back with parseFloat.
       case "amountWeek":

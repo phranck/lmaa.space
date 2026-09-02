@@ -65,6 +65,8 @@ async function loadSiteVariables(): Promise<SiteVariableValues | null> {
       payeeName: payee.payeeName,
       payeeIban: payee.payeeIban,
       payeeBic: payee.payeeBic,
+      donatedYearCents: sponsors.coveredCents,
+      donatedMonthCents: sponsors.donatedMonthCents,
     };
     variablesTimestamp = now;
   } catch {

@@ -14,6 +14,8 @@ const values: SiteVariableValues = {
   payeeName: "Frank Gregor",
   payeeIban: "AT551900104704666811",
   payeeBic: "TRBKATW2XXX",
+  donatedYearCents: 12_000,
+  donatedMonthCents: 2_500,
 };
 
 /** Money the way the site writes it, standing in for the real formatter. */
@@ -148,5 +150,29 @@ describe("suggested amounts derived from the annual cost", () => {
   it("does not divide by a rung of nothing", () => {
     const nothing = { ...values, annualCostCents: 0 };
     expect(expandSiteVariables("{peoplePerYear}", nothing, money)).toBe("0");
+  });
+});
+
+describe("what came in", () => {
+  it("writes the year and the month as money", () => {
+    expect(expand("{donatedYear} im Jahr, {donatedMonth} im Monat.")).toBe(
+      "120,00 € im Jahr, 25,00 € im Monat.",
+    );
+  });
+
+  it("subtracts what came in from the year's costs", () => {
+    // 180 minus 120, which is the same subtraction the sponsor block writes
+    // into its `missing=`.
+    expect(expand("Es fehlen noch {missingYear}.")).toBe("Es fehlen noch 60,00 €.");
+  });
+
+  it("answers a covered year with nothing outstanding rather than a negative", () => {
+    const surplus = { ...values, donatedYearCents: 25_000 };
+    expect(expandSiteVariables("{missingYear}", surplus, money)).toBe("0,00 €");
+  });
+
+  it("counts the full costs as outstanding whilst nothing has come in", () => {
+    const nothing = { ...values, donatedYearCents: 0 };
+    expect(expandSiteVariables("{missingYear}", nothing, money)).toBe("180,00 €");
   });
 });

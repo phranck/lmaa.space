@@ -131,8 +131,17 @@ export const sponsorsPayloadSchema = z.object({
   sponsors: z.array(publicSponsorSchema),
   /** The sum of the year's costs, in cents. */
   costsTotalCents: z.number().int(),
-  /** What the current sponsors together have covered, in cents. */
+  /**
+   * What came in over the last 365 days, in cents.
+   *
+   * Every payment counts, whatever route it took and whether or not it earned a
+   * sponsorship, because the costs are carried by the money rather than by the
+   * mention. The window is the one a sponsorship runs for, so this figure and
+   * the list of sponsors beside it describe the same period.
+   */
   coveredCents: z.number().int(),
+  /** What came in over the last 30 days, in cents. */
+  donatedMonthCents: z.number().int(),
   minAmountCents: z.number().int(),
 });
 
