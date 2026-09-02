@@ -12,7 +12,7 @@ import {
 import { SETTINGS_KEYS } from "@lmaa/shared";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
-import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
+import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
@@ -420,7 +420,7 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
         header: t.tableColumnStatus,
         cell: (row) => (
           <Badge
-            colorClass={row.isActive ? "bg-emerald-500/10 text-emerald-400" : badgeNeutralClass}
+            colorClass={row.isActive ? BADGE_TONES.success : BADGE_TONES.neutral}
           >
             {row.isActive ? t.active : t.inactive}
           </Badge>

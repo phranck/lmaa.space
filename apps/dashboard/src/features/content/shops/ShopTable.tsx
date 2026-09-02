@@ -18,7 +18,7 @@ import {
   type ShopSummary,
 } from "@lmaa/shared";
 
-import { Badge } from "@/components/ui/Badge.tsx";
+import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
 import { Chip } from "@/components/ui/Chip.tsx";
 import { ShopCategoryChips } from "@/components/ui/ShopCategoryChips.tsx";
 import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
@@ -46,7 +46,7 @@ const VisibilityBadge = memo(function VisibilityBadge({
   if (visibility === "onhold") {
     return (
       <Badge
-        colorClass="bg-amber-500/10 text-amber-400"
+        colorClass={BADGE_TONES.pending}
         className="shrink-0"
         icon={<PauseCircleIcon weight="duotone" className="size-3.5" />}
       >
@@ -57,7 +57,7 @@ const VisibilityBadge = memo(function VisibilityBadge({
   if (visibility === "deleted") {
     return (
       <Badge
-        colorClass="bg-red-500/10 text-red-400"
+        colorClass={BADGE_TONES.danger}
         className="shrink-0"
         icon={<TrashIcon weight="duotone" className="size-3.5" />}
       >
@@ -68,7 +68,7 @@ const VisibilityBadge = memo(function VisibilityBadge({
   if (visibility === "rejected") {
     return (
       <Badge
-        colorClass="bg-orange-500/10 text-orange-400"
+        colorClass={BADGE_TONES.rejected}
         className="shrink-0"
         icon={<XCircleIcon weight="duotone" className="size-3.5" />}
       >
@@ -122,7 +122,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
               </p>
               {shop.needsReview && (
                 <Badge
-                  colorClass="bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]"
+                  colorClass={BADGE_TONES.review}
                   className="shrink-0"
                   icon={<SealWarningIcon weight="duotone" className="size-3.5" />}
                 >

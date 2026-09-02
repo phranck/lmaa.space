@@ -10,7 +10,7 @@ import {
 } from "@lmaa/contracts";
 import { SETTINGS_KEYS } from "@lmaa/shared";
 
-import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
+import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
@@ -409,7 +409,7 @@ export const RedirectUrlsPage = memo(function RedirectUrlsPage() {
         header: t.tableColumnStatus,
         cell: (row) => (
           <Badge
-            colorClass={row.isActive ? "bg-emerald-500/10 text-emerald-400" : badgeNeutralClass}
+            colorClass={row.isActive ? BADGE_TONES.success : BADGE_TONES.neutral}
           >
             {row.isActive ? t.active : t.inactive}
           </Badge>

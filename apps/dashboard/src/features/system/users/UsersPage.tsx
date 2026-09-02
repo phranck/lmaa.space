@@ -2,7 +2,7 @@ import { TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { Avatar } from "@/components/ui/Avatar.tsx";
-import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
+import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
 import { ItemCard } from "@/components/ui/Card.tsx";
 import {
   CancelActionButton,
@@ -16,6 +16,7 @@ import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminUsers, useDeleteUser } from "@/features/system/hooks/useAdminUsers.ts";
+import { USER_ROLE_COLORS } from "@/features/system/users/user-role-colors.ts";
 
 import { UserCreateCard } from "./UserCreateCard.tsx";
 import { UserEditCard } from "./UserEditCard.tsx";
@@ -61,23 +62,11 @@ export function UsersPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium text-[var(--ds-text)]">{user.username}</p>
-                  <Badge
-                    colorClass={
-                      user.role === "owner"
-                        ? "bg-amber-900/40 text-amber-400"
-                        : user.role === "admin"
-                          ? "bg-blue-900/40 text-blue-400"
-                          : badgeNeutralClass
-                    }
-                  >
-                    {user.role === "owner"
-                      ? usersMessages.role.owner
-                      : user.role === "admin"
-                        ? usersMessages.role.admin
-                        : usersMessages.role.moderator}
+                  <Badge colorClass={USER_ROLE_COLORS[user.role]}>
+                    {usersMessages.role[user.role]}
                   </Badge>
                   {user.id === me?.id && (
-                    <Badge colorClass={badgeNeutralClass}>{usersMessages.you}</Badge>
+                    <Badge colorClass={BADGE_TONES.neutral}>{usersMessages.you}</Badge>
                   )}
                 </div>
                 <p className="text-sm text-[var(--ds-text-subtle)]">{user.email}</p>

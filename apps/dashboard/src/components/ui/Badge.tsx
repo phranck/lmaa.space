@@ -13,17 +13,42 @@ const badgeShapeClass =
   "inline-flex h-5 items-center gap-1 rounded-full px-2 text-xs font-medium leading-none";
 
 /**
- * The grey a status badge takes where the state has no colour of its own.
+ * The colours a status badge can take, named by what each one answers.
  *
  * @remarks
- * Named here rather than written at each call site, because the same grey
- * reports "not named on the site", "run out" and "this row is you" across four
- * tables. It stands beside the coloured verdicts in `VERDICT_COLORS` and comes
- * from the same badge token family, so grey reads as one of the answers rather
- * than as the absence of one.
+ * A feature maps its own states onto these rather than naming a colour, which
+ * is what `VERDICT_COLORS`, `STATUS_COLORS` and `USER_ROLE_COLORS` do. The
+ * mapping belongs beside the states it describes; the colour belongs here, so
+ * green means the same thing in every table that uses it.
+ *
+ * Every entry reads a `--ds-badge-*` token. A surface token draws the badge in
+ * the colour of whatever stands behind it, and a raw utility colour puts a
+ * value outside the design system where nothing can move it.
  */
-export const badgeNeutralClass =
-  "bg-[var(--ds-badge-neutral-bg)] text-[var(--ds-badge-neutral-text)]";
+export const BADGE_TONES = {
+  /** Waiting on somebody, and nothing has gone wrong. */
+  pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
+  /** In force, still running, or affirmed. */
+  success: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
+  /** Gone, failed, or removed. */
+  danger: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
+  /** Turned down, which is a decision against something rather than its removal. */
+  rejected: "bg-[var(--ds-badge-rejected-bg)] text-[var(--ds-badge-rejected-text)]",
+  /** Worth knowing, and neither good nor bad. */
+  info: "bg-[var(--ds-badge-info-bg)] text-[var(--ds-badge-info-text)]",
+  /** Wants a person to look at it. */
+  review: "bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]",
+  /**
+   * Deliberately no answer either way.
+   *
+   * Grey with a little saturation rather than none, so it reads as one of the
+   * answers above rather than as the absence of one.
+   */
+  neutral: "bg-[var(--ds-badge-neutral-bg)] text-[var(--ds-badge-neutral-text)]",
+} as const satisfies Record<string, string>;
+
+/** Name of one badge colour. */
+export type BadgeTone = keyof typeof BADGE_TONES;
 
 interface BadgeProps {
   /** Background and text colour, as utility classes reading design tokens. */
