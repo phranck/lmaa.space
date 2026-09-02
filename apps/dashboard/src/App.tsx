@@ -208,6 +208,18 @@ const SocialMediaAccountsPage = lazy(() =>
   })),
 );
 
+const BankConnectionPage = lazy(() =>
+  import("@/features/system/bank-connection/BankConnectionPage.tsx").then((m) => ({
+    default: m.BankConnectionPage,
+  })),
+);
+
+const BankConnectionCallbackPage = lazy(() =>
+  import("@/features/system/bank-connection/BankConnectionCallbackPage.tsx").then((m) => ({
+    default: m.BankConnectionCallbackPage,
+  })),
+);
+
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
 
@@ -331,14 +343,35 @@ function AppRoutes() {
             }
           />
           {user.isOwner && (
-            <Route
-              path="users"
-              element={
-                <Suspense fallback={<ContentEditorLoadingFallback />}>
-                  <UsersPage />
-                </Suspense>
-              }
-            />
+            <>
+              <Route
+                path="users"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <UsersPage />
+                  </Suspense>
+                }
+              />
+              {/* Connecting a bank account is the owner's alone. The callback
+                  path is the address registered with the provider, so it is
+                  fixed and cannot be renamed here on its own. */}
+              <Route
+                path="bank-connection"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <BankConnectionPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="bank-connection/callback"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <BankConnectionCallbackPage />
+                  </Suspense>
+                }
+              />
+            </>
           )}
           {user.role !== "moderator" && (
             <>

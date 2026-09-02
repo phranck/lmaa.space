@@ -652,6 +652,13 @@
       "when": 1788343239985,
       "tag": "0092_chilly_skrulls",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1788386467707,
+      "tag": "0093_bank_connection",
+      "breakpoints": true
     }
   ]
 }

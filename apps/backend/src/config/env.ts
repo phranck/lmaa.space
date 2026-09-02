@@ -76,6 +76,19 @@ export const envSchema = z
     // worker checks for it and stays idle when it is missing, which keeps a
     // missing provider credential from taking the website down.
     ANTHROPIC_API_KEY: z.string().optional(),
+    // ── Enable Banking ───────────────────────────────────────────────────────
+    // The site reads its own bank account through Enable Banking, and these two
+    // are one credential in two halves: the application the provider knows us
+    // by, and the private key that proves a request came from us. See
+    // docs/adr/0001. Both are set in the Zerops dashboard and neither is in the
+    // repository, which is public.
+    //
+    // Optional, because the site runs without a bank connection and the routes
+    // answer 503 whilst they are absent. Neither is optional of the other
+    // though: `superRefine` below refuses a start where only one is set, so a
+    // half-armed configuration fails at boot rather than at the first request.
+    ENABLE_BANKING_APPLICATION_ID: z.string().uuid().optional(),
+    ENABLE_BANKING_PRIVATE_KEY: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.IP_HASH_SALT && data.IP_HASH_SALT.length < 16) {
@@ -106,6 +119,21 @@ export const envSchema = z
       });
     }
 
+    const enableBankingHalves = [
+      ["ENABLE_BANKING_APPLICATION_ID", data.ENABLE_BANKING_APPLICATION_ID],
+      ["ENABLE_BANKING_PRIVATE_KEY", data.ENABLE_BANKING_PRIVATE_KEY],
+    ] as const;
+    const missingEnableBankingHalves = enableBankingHalves.filter(([, value]) => !value);
+    if (missingEnableBankingHalves.length === 1) {
+      for (const [name] of missingEnableBankingHalves) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [name],
+          message: `${name} is required whenever the other Enable Banking variable is set`,
+        });
+      }
+    }
+
     if (data.NODE_ENV !== "production" && !data.FRONTEND_URL) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -123,6 +151,10 @@ export const envSchema = z
     // Production-only fallbacks; non-prod paths are blocked by superRefine above.
     DASHBOARD_URL: data.DASHBOARD_URL ?? "https://dashboard.lmaa.space",
     FRONTEND_URL: data.FRONTEND_URL ?? "https://lmaa.space",
+    // A PEM is several lines and the Zerops variable editor holds one, so the
+    // value arrives with its line breaks written out. `createSign` needs them
+    // back as breaks before it will read the key.
+    ENABLE_BANKING_PRIVATE_KEY: data.ENABLE_BANKING_PRIVATE_KEY?.replace(/\\n/g, "\n"),
   }));
 
 /**

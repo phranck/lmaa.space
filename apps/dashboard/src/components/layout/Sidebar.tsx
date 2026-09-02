@@ -8,6 +8,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   ArticleIcon,
+  BankIcon,
   BlueprintIcon,
   CaretCircleDoubleDownIcon,
   CaretCircleDoubleUpIcon,
@@ -965,6 +966,19 @@ export function Sidebar({
                       />
                     )}
                   </NavLink>
+                  {/* Owner only: this connects a bank account, which is not a
+                      moderation task and not an ordinary admin's business. */}
+                  {user?.isOwner && (
+                    <NavLink to="/bank-connection" onClick={onItemClick} className="contents">
+                      {({ isActive }) => (
+                        <DashboardSection.Item
+                          icon={<BankIcon weight="duotone" className="w-4 h-4" />}
+                          label={sidebarMessages.bankConnection}
+                          active={isActive}
+                        />
+                      )}
+                    </NavLink>
+                  )}
                 </DashboardSection.Body>
               </DashboardSection>
             ),

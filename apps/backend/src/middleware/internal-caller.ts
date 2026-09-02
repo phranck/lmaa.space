@@ -1,8 +1,7 @@
-import { timingSafeEqual } from "node:crypto";
-
 import { createMiddleware } from "hono/factory";
 
 import { env } from "../config/env.js";
+import { equalsInConstantTime } from "../lib/constant-time.js";
 import { fail } from "../lib/http.js";
 
 /** Header the website's server-side renderer uses to identify itself. */
@@ -22,9 +21,7 @@ const INTERNAL_TOKEN_HEADER = "X-Internal-Token";
  * meant for a single visitor.
  *
  * Returns `false` whenever `INTERNAL_API_TOKEN` is unset, so a missing secret
- * closes the door instead of opening it. The comparison is constant-time, and
- * the length check in front of it is required because `timingSafeEqual` throws
- * on differing lengths.
+ * closes the door instead of opening it.
  */
 export function isInternalCaller(headers: Headers): boolean {
   const configured = env.INTERNAL_API_TOKEN;
@@ -33,11 +30,7 @@ export function isInternalCaller(headers: Headers): boolean {
   const presented = headers.get(INTERNAL_TOKEN_HEADER);
   if (!presented) return false;
 
-  const presentedBytes = Buffer.from(presented, "utf8");
-  const configuredBytes = Buffer.from(configured, "utf8");
-  if (presentedBytes.length !== configuredBytes.length) return false;
-
-  return timingSafeEqual(presentedBytes, configuredBytes);
+  return equalsInConstantTime(presented, configured);
 }
 
 /**

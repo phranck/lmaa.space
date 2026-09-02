@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 import { authRoutes } from "./auth.js";
+import { bankConnectionRoutes } from "./bank-connection.js";
 import { categoriesRoutes } from "./categories.js";
 import { contentRoutes } from "./content.js";
 import { deadLinkReportsRoutes } from "./dead-link-reports.js";
@@ -59,6 +60,7 @@ protectedRoutes.route("/", sponsorRoutes);
 protectedRoutes.route("/", adminFaviconRoutes);
 protectedRoutes.route("/", pendingSponsorshipRoutes);
 protectedRoutes.route("/", donationRoutes);
+protectedRoutes.route("/", bankConnectionRoutes);
 protectedRoutes.route("/", navAdminRoutes);
 protectedRoutes.route("/", usersRoutes);
 protectedRoutes.route("/", formConfigRoutes);
