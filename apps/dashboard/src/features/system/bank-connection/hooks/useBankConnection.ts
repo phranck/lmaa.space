@@ -13,13 +13,17 @@ const BANK_CONNECTION_KEY = ["bank-connection"] as const;
 /**
  * What the site knows about its link to the bank account.
  *
+ * @param enabled - Whether to ask at all. The route belongs to the owner, so a
+ *   caller that renders for everybody passes their ownership here rather than
+ *   letting the request come back 403 for the rest.
  * @returns The query holding the status, which is answered from the site's own
  *   database and therefore also whilst the bank is unreachable.
  */
-export function useBankConnection() {
+export function useBankConnection(enabled = true) {
   return useQuery({
     queryKey: BANK_CONNECTION_KEY,
     queryFn: () => api.get<BankConnectionStatus>("/admin/bank-connection"),
+    enabled,
   });
 }
 
@@ -49,6 +53,26 @@ export function useCompleteBankAuthorization() {
       api.post<BankConnectionStatus>("/admin/bank-connection/session", input),
     onSuccess: (status) => {
       queryClient.setQueryData(BANK_CONNECTION_KEY, status);
+    },
+  });
+}
+
+/**
+ * Lets the account go and ends the consent behind it.
+ *
+ * @returns The mutation.
+ *
+ * @remarks
+ * Invalidates whether it succeeded or not. The backend withdraws the connection
+ * before it tries to close the session at the bank, so even the failure leaves
+ * the stored status different from what the page is holding.
+ */
+export function useDisconnectBank() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.delete<BankConnectionStatus>("/admin/bank-connection"),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: BANK_CONNECTION_KEY });
     },
   });
 }

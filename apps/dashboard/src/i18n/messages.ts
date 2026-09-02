@@ -1306,8 +1306,20 @@ export interface DashboardMessages {
       renew: string;
       stateTitle: string;
       stateHint: string;
-      badgeConnected: string;
-      badgeDisconnected: string;
+      /** One word per state, shown on the card and on the sidebar entry alike. */
+      states: {
+        unconfigured: string;
+        disconnected: string;
+        expired: string;
+        expiring: string;
+        connected: string;
+      };
+      disconnect: string;
+      disconnectTitle: string;
+      disconnectConfirm: string;
+      disconnectFailed: string;
+      /** The site let go, and the bank would not close the consent behind it. */
+      disconnectPartial: string;
       institutionLabel: string;
       connectedAtLabel: string;
       consentValidUntilLabel: string;
@@ -3010,8 +3022,20 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         stateTitle: "Zugriff auf das Konto",
         stateHint:
           "Über diese Verbindung liest die Seite die Zahlungseingänge auf dem eigenen Konto. Sie läuft ab und wird dann im Browser erneuert.",
-        badgeConnected: "Verbunden",
-        badgeDisconnected: "Nicht verbunden",
+        states: {
+          unconfigured: "Kein Zugang",
+          disconnected: "Nicht verbunden",
+          expired: "Abgelaufen",
+          expiring: "Läuft bald ab",
+          connected: "Verbunden",
+        },
+        disconnect: "Verbindung trennen",
+        disconnectTitle: "Verbindung trennen",
+        disconnectConfirm:
+          "Die Seite liest danach keine Zahlungseingänge mehr, und die Zustimmung bei der Bank wird geschlossen. Verbinden geht jederzeit wieder, dauert aber denselben Weg über die Bank.",
+        disconnectFailed: "Das Trennen hat nicht geklappt. Versuch es später noch einmal.",
+        disconnectPartial:
+          "Getrennt. Die Zustimmung bei der Bank liess sich nicht schliessen und läuft von selbst ab.",
         institutionLabel: "Bank",
         connectedAtLabel: "Verbunden seit",
         consentValidUntilLabel: "Zustimmung gilt bis",
@@ -4737,8 +4761,20 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         stateTitle: "Access to the account",
         stateHint:
           "The site reads the payments arriving in its own account through this connection. It expires, and renewing it happens in the browser.",
-        badgeConnected: "Connected",
-        badgeDisconnected: "Not connected",
+        states: {
+          unconfigured: "No credential",
+          disconnected: "Not connected",
+          expired: "Expired",
+          expiring: "Expiring soon",
+          connected: "Connected",
+        },
+        disconnect: "Disconnect",
+        disconnectTitle: "Disconnect the bank",
+        disconnectConfirm:
+          "The site stops reading payments, and the consent at the bank is closed. Connecting again is possible at any time, and it takes the same walk through the bank.",
+        disconnectFailed: "Disconnecting did not work. Try again later.",
+        disconnectPartial:
+          "Disconnected. The consent at the bank could not be closed and will lapse on its own.",
         institutionLabel: "Bank",
         connectedAtLabel: "Connected since",
         consentValidUntilLabel: "Consent lasts until",

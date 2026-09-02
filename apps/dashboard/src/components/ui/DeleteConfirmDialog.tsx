@@ -1,4 +1,5 @@
 import { TrashIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 
 import { CancelActionButton, DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
@@ -10,6 +11,11 @@ interface DeleteConfirmDialogProps {
   cancelLabel: string;
   deleteLabel: string;
   isPending?: boolean;
+  /**
+   * Replaces the bin in the header, for a confirmation that is destructive
+   * without being a deletion. Sized by `dialogHeaderIconClass` like the default.
+   */
+  titleIcon?: ReactNode;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -21,6 +27,7 @@ export function DeleteConfirmDialog({
   cancelLabel,
   deleteLabel,
   isPending = false,
+  titleIcon,
   onClose,
   onConfirm,
 }: DeleteConfirmDialogProps) {
@@ -28,7 +35,7 @@ export function DeleteConfirmDialog({
     <Dialog
       open={open}
       title={title}
-      titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
+      titleIcon={titleIcon ?? <TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
       onClose={onClose}
     >
       {description && (

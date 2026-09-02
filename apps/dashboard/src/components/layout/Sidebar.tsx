@@ -57,6 +57,7 @@ import { CollapsibleSidebarGroup } from "@/components/layout/CollapsibleSidebarG
 import { sidebarGroupItemClass } from "@/components/layout/sidebar-group-styles.ts";
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
+import { Badge } from "@/components/ui/Badge.tsx";
 import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import { SubMenu } from "@/components/ui/SubMenu.tsx";
@@ -72,6 +73,9 @@ import { useReviewJobs } from "@/features/overview/hooks/useReviewJob.ts";
 import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { useSocialMediaAccounts } from "@/features/social/hooks/useSocialMediaAccounts.ts";
+import { BANK_CONNECTION_STATE_COLORS } from "@/features/system/bank-connection/bank-connection-colors.ts";
+import { resolveBankConnectionState } from "@/features/system/bank-connection/bank-connection-state.ts";
+import { useBankConnection } from "@/features/system/bank-connection/hooks/useBankConnection.ts";
 import { useAdminMedia } from "@/features/system/hooks/useAdminMedia.ts";
 import { useAdminUsers } from "@/features/system/hooks/useAdminUsers.ts";
 import { useSocialPreviewProjects } from "@/features/system/hooks/useSocialPreviewImages.ts";
@@ -670,6 +674,12 @@ export function Sidebar({
   // badge counts exactly the rows that table shows.
   const { data: reviewJobs = [] } = useReviewJobs();
   const { data: socialMediaAccounts = [] } = useSocialMediaAccounts();
+  // Only the owner may read the connection, and only the owner sees the entry
+  // it belongs to, so nobody else asks for it.
+  const { data: bankConnection } = useBankConnection(user?.isOwner === true);
+  const bankConnectionState = bankConnection
+    ? resolveBankConnectionState(bankConnection, new Date())
+    : null;
   const { data: systemSettings } = useSystemSettings();
   // Read through the same parser the page uses, so the count cannot disagree
   // with the list it counts.
@@ -975,6 +985,19 @@ export function Sidebar({
                           icon={<BankIcon weight="duotone" className="w-4 h-4" />}
                           label={sidebarMessages.bankConnection}
                           active={isActive}
+                          addOn={
+                            // Through `addOn` rather than `badge`, which counts
+                            // things. The right margin matches the spacer a
+                            // counting badge carries, so both line up.
+                            bankConnectionState && bankConnectionState !== "unconfigured" ? (
+                              <Badge
+                                className="mr-3.5 shrink-0"
+                                colorClass={BANK_CONNECTION_STATE_COLORS[bankConnectionState]}
+                              >
+                                {messages.system.bankConnection.states[bankConnectionState]}
+                              </Badge>
+                            ) : undefined
+                          }
                         />
                       )}
                     </NavLink>
