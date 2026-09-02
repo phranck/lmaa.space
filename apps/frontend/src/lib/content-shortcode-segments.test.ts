@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   parseContentShortcodeSegments,
+  type SupportLadderRoute,
   type SupportLadderVariant,
 } from "./content-shortcode-segments";
 
@@ -141,6 +142,27 @@ describe("parseContentShortcodeSegments", () => {
       type: "support-ladder",
       bankAccount: { purposeDonation: "Spende: lmaa.space" },
     });
+  });
+
+  it("reads the hint of a route, and leaves it out where none is written", () => {
+    // Die Bitte, das Projekt zu benennen, steht abgesetzt vom beschreibenden
+    // Text, weil sie etwas verlangt statt etwas zu erklären.
+    const [segment] = parseContentShortcodeSegments(
+      [
+        "[[support-ladder",
+        '  [[interval key="once" label="Einmalig" [[option amount=5]] ]]',
+        '  [[paypalme url="https://www.paypal.com/paypalme/phranck" text="Praktisch."',
+        '    hint="Schreib **lmaa.space** dazu, dann landet es hier richtig."]]',
+        '  [[ghsponsor url="https://github.com/sponsors/phranck"]]',
+        "]]",
+      ].join("\n"),
+    );
+
+    const routes = (segment as { routes: SupportLadderRoute[] }).routes;
+    expect(routes.find((route) => route.token === "paypalme")?.hint).toBe(
+      "Schreib **lmaa.space** dazu, dann landet es hier richtig.",
+    );
+    expect(routes.find((route) => route.token === "ghsponsor")?.hint).toBeUndefined();
   });
 
   it("drops a tab that offers neither an amount nor a field", () => {

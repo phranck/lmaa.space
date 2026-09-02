@@ -134,6 +134,14 @@ export interface SupportLadderLink {
   url: string;
   title: string;
   text: string;
+  /**
+   * A note set apart from the text, shown between it and the button.
+   *
+   * For what somebody has to do rather than for what the route is. The PayPal
+   * card asks payers to name the project, because that note reaches PayPal's
+   * own interface and nothing else, so the payment is attributed by hand.
+   */
+  hint?: string;
   button: string;
   /** Name of the brand mark shown beside the heading. */
   icon?: string;
@@ -420,6 +428,7 @@ function readLink(
     url,
     title: getStringParam(node.params.title)?.trim() || fallbackTitle,
     text: unescapeText(getStringParam(node.params.text)?.trim() ?? ""),
+    hint: unescapeText(getStringParam(node.params.hint)?.trim() ?? "") || undefined,
     button: getStringParam(node.params.button)?.trim() || fallbackTitle,
     icon: getStringParam(node.params.icon)?.trim() || undefined,
   };
