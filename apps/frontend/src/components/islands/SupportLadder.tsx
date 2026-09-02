@@ -384,6 +384,14 @@ function OutboundRoute({ route }: { route: SupportLadderRoute }) {
           style={{ color: "var(--ds-text-muted)" }}
         />
       )}
+      {/* Zwischen Text und Knopf: gelesen, sobald klar ist worum es geht, und
+          bevor jemand klickt. Ohne `inset`, weil die Notiz in einer Karte sitzt
+          und deshalb den inneren Radius nimmt. */}
+      {route.hint && (
+        <NoticeCard className="mt-3">
+          <RichText html={route.hint} />
+        </NoticeCard>
+      )}
       <a
         href={route.url}
         rel="noopener noreferrer"

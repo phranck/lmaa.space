@@ -555,6 +555,7 @@ const SUPPORT_LADDER_SPONSORS: MarkdownShortcodeDefinition = {
     { name: "url", type: "string", required: true, label: "Adresse" },
     { name: "title", type: "string", label: "Überschrift" },
     { name: "text", type: "string", aliases: ["description"], label: "Beschreibender Text" },
+    { name: "hint", type: "string", label: "Hinweis als Notizkarte, unter dem Text" },
     { name: "button", type: "string", label: "Beschriftung des Knopfes" },
     // Marke aus der Zahlungsmethoden-Sammlung, dieselbe wie auf den
     // Shop-Detailseiten, oder "github" für das GitHub-Zeichen.
@@ -570,11 +571,15 @@ const SUPPORT_LADDER_PAYPAL: MarkdownShortcodeDefinition = {
   placement: "block",
   label: "PayPal",
   description: "Der PayPal.Me-Weg, nur bei einmaligen Zahlungen sichtbar.",
-  examples: ['[[paypalme title="PayPal" url="https://www.paypal.com/paypalme/…"]]'],
+  examples: [
+    '[[paypalme title="PayPal" url="https://www.paypal.com/paypalme/…"',
+    '  hint="Schreib **lmaa.space** dazu, dann landet es hier richtig."]]',
+  ],
   params: [
     { name: "url", type: "string", required: true, label: "Adresse" },
     { name: "title", type: "string", label: "Überschrift" },
     { name: "text", type: "string", label: "Beschreibender Text" },
+    { name: "hint", type: "string", label: "Hinweis als Notizkarte, unter dem Text" },
     { name: "button", type: "string", label: "Beschriftung des Knopfes" },
     // Marke aus der Zahlungsmethoden-Sammlung, dieselbe wie auf den
     // Shop-Detailseiten, oder "github" für das GitHub-Zeichen.
