@@ -65,11 +65,16 @@ export default {
         ],
         rules: ["react-doctor/prefer-dynamic-import"],
       },
-      // The chart page passes its view switch to the section header's `addOn`,
-      // which is how every card in the dashboard puts a control beside its
-      // title. Hoisting it would separate the control from the state it reads.
+      // Both pages put something beside a section title through the header's
+      // `addOn`, which is how every card in the dashboard does it: the chart
+      // page a view switch, the bank connection page the badge saying whether
+      // one is in force. Hoisting either would separate it from the state it
+      // reads.
       {
-        files: ["src/features/content/donations/DonationChartsPage.tsx"],
+        files: [
+          "src/features/content/donations/DonationChartsPage.tsx",
+          "src/features/system/bank-connection/BankConnectionPage.tsx",
+        ],
         rules: ["react-doctor/jsx-no-jsx-as-prop"],
       },
       // The funding bar reports a value inside a known range, which is what
@@ -92,6 +97,14 @@ export default {
       // time. The rule looks for the invalidation inside `onSuccess` itself.
       {
         files: ["src/features/content/donations/hooks/useDonations.ts"],
+        rules: ["react-doctor/query-mutation-missing-invalidation"],
+      },
+      // Starting a bank authorisation answers with the bank's own address and
+      // changes nothing the dashboard holds. What it does change is decided at
+      // the bank, and the browser leaves this page to go there, so there is no
+      // cached answer that could go stale behind it.
+      {
+        files: ["src/features/system/bank-connection/hooks/useBankConnection.ts"],
         rules: ["react-doctor/query-mutation-missing-invalidation"],
       },
       // Chunk uploads and font preparation must remain ordered for progress and canvas correctness.
@@ -303,9 +316,16 @@ export default {
         ],
         rules: ["react-doctor/query-mutation-missing-invalidation"],
       },
-      // The dialog barrel and compound menu deliberately mix component and support exports.
+      // The dialog barrel, the compound menu and the badge deliberately mix
+      // component and support exports. A badge's tones are the vocabulary that
+      // component understands, so they belong beside it rather than in a file
+      // every caller has to know about separately.
       {
-        files: ["src/components/ui/Dialog.tsx", "src/components/ui/SubMenu.tsx"],
+        files: [
+          "src/components/ui/Badge.tsx",
+          "src/components/ui/Dialog.tsx",
+          "src/components/ui/SubMenu.tsx",
+        ],
         rules: ["react-doctor/only-export-components"],
       },
       // The timer ref intentionally resolves the latest pending copy-reset handle on unmount.

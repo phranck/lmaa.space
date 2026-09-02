@@ -74,6 +74,7 @@ export interface DashboardMessages {
       donations: string;
       donationCharts: string;
       sponsoringSettings: string;
+      bankConnection: string;
       sectionSponsoring: string;
       systemSettings: string;
       redirectUrls: string;
@@ -1299,6 +1300,27 @@ export interface DashboardMessages {
       fundingMissing: string;
       fundingDone: string;
     };
+    bankConnection: {
+      title: string;
+      connect: string;
+      renew: string;
+      stateTitle: string;
+      stateHint: string;
+      badgeConnected: string;
+      badgeDisconnected: string;
+      institutionLabel: string;
+      connectedAtLabel: string;
+      consentValidUntilLabel: string;
+      /** What stands where the site holds no answer, such as before the first connection. */
+      valueAbsent: string;
+      startFailed: string;
+      unconfiguredTitle: string;
+      unconfiguredHint: string;
+      callbackPending: string;
+      callbackFailedTitle: string;
+      callbackFailedHint: string;
+      callbackBack: string;
+    };
     pendingSponsorships: {
       title: string;
       emptyTitle: string;
@@ -1685,6 +1707,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         donations: "Spendeneingänge",
         donationCharts: "Einnahmen",
         sponsoringSettings: "Einstellungen",
+        bankConnection: "Bankverbindung",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Einstellungen",
         redirectUrls: "Redirect URLs",
@@ -2980,6 +3003,30 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         fundingMissing: "Es fehlen",
         fundingDone: "Das Jahr ist getragen",
       },
+      bankConnection: {
+        title: "Bankverbindung",
+        connect: "Verbindung herstellen",
+        renew: "Verbindung erneuern",
+        stateTitle: "Zugriff auf das Konto",
+        stateHint:
+          "Über diese Verbindung liest die Seite die Zahlungseingänge auf dem eigenen Konto. Sie läuft ab und wird dann im Browser erneuert.",
+        badgeConnected: "Verbunden",
+        badgeDisconnected: "Nicht verbunden",
+        institutionLabel: "Bank",
+        connectedAtLabel: "Verbunden seit",
+        consentValidUntilLabel: "Zustimmung gilt bis",
+        valueAbsent: "-",
+        startFailed:
+          "Die Bank konnte nicht erreicht werden. Versuch es später noch einmal.",
+        unconfiguredTitle: "Kein Zugang hinterlegt",
+        unconfiguredHint:
+          "Anwendungs-ID und privater Schlüssel liegen als Umgebungsvariablen in Zerops. Ohne beide bleibt die Verbindung aus.",
+        callbackPending: "Die Verbindung wird hergestellt …",
+        callbackFailedTitle: "Die Verbindung kam nicht zustande",
+        callbackFailedHint:
+          "Die Rückmeldung der Bank war unvollständig oder zu alt. Starte die Verbindung noch einmal.",
+        callbackBack: "Zurück zur Bankverbindung",
+      },
       pendingSponsorships: {
         title: "Sponsor Requests",
         emptyTitle: "Niemand wartet",
@@ -3397,6 +3444,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         donations: "Donations received",
         donationCharts: "Income",
         sponsoringSettings: "Settings",
+        bankConnection: "Bank connection",
         sectionSponsoring: "Sponsoring",
         systemSettings: "Settings",
         redirectUrls: "Redirect URLs",
@@ -4681,6 +4729,29 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         fundingCosts: "of",
         fundingMissing: "Still missing",
         fundingDone: "The year is carried",
+      },
+      bankConnection: {
+        title: "Bank connection",
+        connect: "Connect",
+        renew: "Renew the connection",
+        stateTitle: "Access to the account",
+        stateHint:
+          "The site reads the payments arriving in its own account through this connection. It expires, and renewing it happens in the browser.",
+        badgeConnected: "Connected",
+        badgeDisconnected: "Not connected",
+        institutionLabel: "Bank",
+        connectedAtLabel: "Connected since",
+        consentValidUntilLabel: "Consent lasts until",
+        valueAbsent: "-",
+        startFailed: "The bank could not be reached. Try again later.",
+        unconfiguredTitle: "No credential is held",
+        unconfiguredHint:
+          "The application id and the private key are environment variables in Zerops. Without both, the connection stays off.",
+        callbackPending: "Establishing the connection …",
+        callbackFailedTitle: "The connection was not made",
+        callbackFailedHint:
+          "What the bank sent back was incomplete or too old. Start the connection again.",
+        callbackBack: "Back to the bank connection",
       },
       pendingSponsorships: {
         title: "Sponsor requests",
