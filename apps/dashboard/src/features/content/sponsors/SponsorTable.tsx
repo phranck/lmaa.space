@@ -6,7 +6,7 @@ import { daysLeft, formatEuroCents, fullName } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
 import { Avatar } from "@/components/ui/Avatar.tsx";
-import { Badge } from "@/components/ui/Badge.tsx";
+import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -49,7 +49,7 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
               {/* Said in the list, because whether somebody is named is the one
                   thing about them that the page does not show. */}
               {!sponsor.published && (
-                <Badge className="shrink-0" colorClass="bg-stone-500/10 text-stone-400">
+                <Badge className="shrink-0" colorClass={badgeNeutralClass}>
                   {text.hiddenBadge}
                 </Badge>
               )}
@@ -103,9 +103,7 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
           return (
             <Badge
               className="shrink-0"
-              colorClass={
-                left > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-stone-500/10 text-stone-400"
-              }
+              colorClass={left > 0 ? "bg-emerald-500/10 text-emerald-400" : badgeNeutralClass}
             >
               {left > 0 ? `${left} ${text.daysLeft}` : text.expired}
             </Badge>

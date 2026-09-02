@@ -5,7 +5,7 @@ import { DONATION_PROVIDERS, type Donation } from "@lmaa/contracts";
 import { formatEuroCents, fullName } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
-import { Badge } from "@/components/ui/Badge.tsx";
+import { Badge, badgeNeutralClass } from "@/components/ui/Badge.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -49,7 +49,7 @@ function DonationTableComponent({ donations, onEdit }: DonationTableProps) {
               </Badge>
             )}
             {!donation.published && (
-              <Badge className="shrink-0" colorClass="bg-stone-500/10 text-stone-400">
+              <Badge className="shrink-0" colorClass={badgeNeutralClass}>
                 {text.hiddenBadge}
               </Badge>
             )}
