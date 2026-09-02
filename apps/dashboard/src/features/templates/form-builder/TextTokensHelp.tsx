@@ -1,5 +1,7 @@
 import { QuestionIcon } from "@phosphor-icons/react";
 
+import { TEXT_TOKENS, TEXT_TOKEN_NAMES } from "@lmaa/shared";
+
 import { CloseActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -9,17 +11,6 @@ interface TextTokensHelpProps {
   open: boolean;
   onClose: () => void;
 }
-
-const TOKEN_ROWS = [
-  { token: "nbhy", symbol: "‑", codepoint: "U+2011" },
-  { token: "nbsp", symbol: " ", codepoint: "U+00A0" },
-  { token: "wj", symbol: "⁠", codepoint: "U+2060" },
-  { token: "shy", symbol: "­", codepoint: "U+00AD" },
-  { token: "ndash", symbol: "–", codepoint: "U+2013" },
-  { token: "mdash", symbol: "—", codepoint: "U+2014" },
-  { token: "zwj", symbol: "‍", codepoint: "U+200D" },
-  { token: "zwnj", symbol: "‌", codepoint: "U+200C" },
-] as const;
 
 export function TextTokensHelp({ open, onClose }: TextTokensHelpProps) {
   const { messages } = useI18n();
@@ -42,6 +33,13 @@ export function TextTokensHelp({ open, onClose }: TextTokensHelpProps) {
 
       <OverlayCard.Body className="space-y-6">
         <p className="text-sm text-[var(--ds-text-muted)] leading-relaxed">{t.description}</p>
+
+        {/* Three different things are written as {name} in this project and they
+            look identical whilst being typed, so this says which one is which
+            from the side an editor is standing on. */}
+        <p className="border-l-2 border-[var(--ds-border)] pl-3 text-sm text-[var(--ds-text-muted)] leading-relaxed">
+          {t.scopeNote}
+        </p>
 
         <section className="space-y-3">
           <h4 className="text-sm font-semibold text-[var(--ds-text)]">{t.notations.title}</h4>
@@ -85,15 +83,20 @@ export function TextTokensHelp({ open, onClose }: TextTokensHelpProps) {
                 </tr>
               </thead>
               <tbody>
-                {TOKEN_ROWS.map(({ token, symbol, codepoint }) => (
+                {/* Rendered from the expander's own list, so this table cannot
+                    name a token the form renderer does not know, nor leave one
+                    out that it does. */}
+                {TEXT_TOKEN_NAMES.map((token) => (
                   <tr key={token} className="border-t border-[var(--ds-border)]">
                     <td className="px-3 py-1 font-mono text-[var(--ds-text)]">{`{${token}}`}</td>
                     <td className="px-3 py-1 font-mono text-[var(--ds-text)] text-base">
                       <span className="inline-block min-w-4 border-b border-dashed border-[var(--ds-border)]">
-                        {symbol}
+                        {TEXT_TOKENS[token].character}
                       </span>
                     </td>
-                    <td className="px-3 py-1 font-mono text-[var(--ds-text-muted)]">{codepoint}</td>
+                    <td className="px-3 py-1 font-mono text-[var(--ds-text-muted)]">
+                      {TEXT_TOKENS[token].codepoint}
+                    </td>
                     <td className="px-3 py-1 text-[var(--ds-text-muted)]">{t.tokens[token]}</td>
                   </tr>
                 ))}

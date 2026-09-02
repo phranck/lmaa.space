@@ -16,6 +16,32 @@ export type MarkdownShortcodeBodyRule = "forbidden" | "markdown";
 
 export type MarkdownShortcodeParamType = "boolean" | "enum" | "integer" | "string";
 
+/**
+ * A name in braces that one attribute's value accepts, and nothing else does.
+ *
+ * Three kinds of `{name}` are written in this project and they look identical
+ * to whoever is typing. A site variable works in any text and is expanded
+ * before the page is parsed. A text token works in a form field and nowhere
+ * else. This is the third: a name that means something inside one attribute of
+ * one shortcode, substituted by that shortcode's own renderer against a figure
+ * only it holds.
+ *
+ * Declared here rather than described in the attribute's label, so the
+ * reference panel can render it the way it renders everything else instead of
+ * hiding it in a sentence somebody has to open the shortcode to read.
+ */
+export interface MarkdownShortcodePlaceholder {
+  /** The name, without its braces. */
+  name: string;
+  /**
+   * What is put in its place, in the words an editor would use.
+   *
+   * Written to follow "wird ersetzt durch", which is how the reference panel
+   * renders it, so it begins in lower case and in the accusative.
+   */
+  description: string;
+}
+
 export interface MarkdownShortcodeParamDefinition {
   name: string;
   type: MarkdownShortcodeParamType;
@@ -34,6 +60,11 @@ export interface MarkdownShortcodeParamDefinition {
   defaultLabel?: string;
   /** Human name of the parameter, shown in the editor's reference. */
   label?: string;
+  /**
+   * Names this attribute's value accepts, each substituted by this shortcode
+   * and by nothing else. Absent where the value is taken as it stands.
+   */
+  placeholders?: readonly MarkdownShortcodePlaceholder[];
   max?: number;
   min?: number;
   required?: boolean;
@@ -143,7 +174,8 @@ export const SPONSOR_FORM_LABELS = {
   claimLabel: { value: "Dein Satz", label: "Beschriftung des Feldes Satz" },
   claimRemaining: {
     value: "noch {n} Zeichen",
-    label: "Restzähler am Feld Satz, {n} wird ersetzt",
+    label: "Restzähler am Feld Satz",
+    placeholders: [{ name: "n", description: "die Zahl der noch freien Zeichen" }],
   },
   publishedLabel: {
     value: "Mit meinem Namen auf der Seite erscheinen",
@@ -172,7 +204,10 @@ export const SPONSOR_FORM_LABELS = {
     value: "Keine Verbindung zum Server. Bitte prüfe deine Verbindung.",
     label: "Meldung, wenn der Server nicht erreichbar war",
   },
-} as const satisfies Record<string, { value: string; label: string }>;
+} as const satisfies Record<
+  string,
+  { value: string; label: string; placeholders?: readonly MarkdownShortcodePlaceholder[] }
+>;
 
 /** Name of one word on the sponsor form. */
 export type SponsorFormLabelKey = keyof typeof SPONSOR_FORM_LABELS;
@@ -329,12 +364,23 @@ const SUPPORT_LADDER_SPONSOR_FORM: MarkdownShortcodeDefinition = {
   description:
     "Das Formular, mit dem jemand seine Angaben hinterlässt und dafür eine Referenz bekommt. Gehört unter die Variante mit key=\"sponsor\". Ohne diesen Knoten erscheint kein Formular.",
   examples: ['[[sponsorform firstNameLabel="Vorname" submitLabel="Angaben absenden"]]'],
-  params: SPONSOR_FORM_LABEL_KEYS.map((name) => ({
-    name,
-    type: "string" as const,
-    defaultValue: SPONSOR_FORM_LABELS[name].value,
-    label: SPONSOR_FORM_LABELS[name].label,
-  })),
+  params: SPONSOR_FORM_LABEL_KEYS.map((name) => {
+    // Widened on the way out, because only one of the entries declares a
+    // placeholder and reading the property off the literal union otherwise
+    // fails on the ones that do not.
+    const entry: {
+      value: string;
+      label: string;
+      placeholders?: readonly MarkdownShortcodePlaceholder[];
+    } = SPONSOR_FORM_LABELS[name];
+    return {
+      name,
+      type: "string" as const,
+      defaultValue: entry.value,
+      label: entry.label,
+      placeholders: entry.placeholders,
+    };
+  }),
 };
 
 /**
@@ -472,13 +518,17 @@ const SUPPORT_LADDER_INTERVAL: MarkdownShortcodeDefinition = {
       name: "text",
       type: "string",
       aliases: ["description"],
-      label: "Beschreibender Text. {annualAmount} wird durch die Jahressumme ersetzt",
+      label: "Beschreibender Text",
+      placeholders: [
+        { name: "annualAmount", description: "die Summe, die dieses Intervall im Jahr ergibt" },
+      ],
     },
     { name: "hint", type: "string", label: "Hinweis unter dem Schalter" },
     {
       name: "belowMinimum",
       type: "string",
-      label: "Hinweis, wenn der Betrag zu klein ist. {min} wird durch den Mindestbetrag ersetzt",
+      label: "Hinweis, wenn der Betrag zu klein ist",
+      placeholders: [{ name: "min", description: "den Mindestbetrag für eine Sponsorschaft" }],
     },
   ],
   children: [SUPPORT_LADDER_OPTION, SUPPORT_LADDER_CUSTOM],
@@ -921,7 +971,10 @@ export const MARKDOWN_SHORTCODE_DEFINITIONS = [
       {
         name: "missing",
         type: "string",
-        label: "Satz, solange etwas fehlt. {missing} wird durch den Betrag ersetzt",
+        label: "Satz, solange etwas fehlt",
+        placeholders: [
+          { name: "missing", description: "den Betrag, der bis zu den Jahreskosten noch fehlt" },
+        ],
       },
       {
         name: "empty",

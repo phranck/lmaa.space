@@ -996,6 +996,7 @@ export interface DashboardMessages {
       open: string;
       title: string;
       description: string;
+      scopeNote: string;
       notations: {
         title: string;
         unicodeTitle: string;
@@ -2631,6 +2632,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         title: "Formatierungs-Tokens",
         description:
           "In Bezeichnung, Platzhalter, Hilfstext, Inhalt und Optionen können typografische Sonderzeichen über Tokens eingegeben werden. Sie werden beim Rendern automatisch durch das jeweilige Unicode-Zeichen ersetzt.",
+        scopeNote:
+          "Diese Tokens gelten nur in Formularfeldern. Eine Variable aus dem Inhalts-Editor, etwa {annualCost}, wird hier nicht ersetzt und bliebe genau so stehen, wie sie geschrieben ist.",
         notations: {
           title: "Drei Notationen",
           unicodeTitle: "Unicode-Notation",
@@ -2643,7 +2646,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           entityBody:
             "&#NNN; (dezimal) oder &#xHH; (hexadezimal). Beispiel: &#8209; oder &#x2011; werden zum geschützten Bindestrich ‑.",
           edgeCaseNote:
-            "Hinweis: U+XXXX funktioniert nur, wenn nach den Hex-Ziffern ein Nicht-Hex-Zeichen folgt (z.B. Leerzeichen, Punkt, Komma). Folgt direkt ein Buchstabe a–f, wird der Token nicht ersetzt — in dem Fall {nbhy} oder &#8209; verwenden.",
+            "Hinweis: U+XXXX funktioniert nur, wenn nach den Hex-Ziffern ein Nicht-Hex-Zeichen folgt (z.B. Leerzeichen, Punkt, Komma). Folgt direkt ein Buchstabe a–f, wird der Token nicht ersetzt. In dem Fall {nbhy} oder &#8209; verwenden.",
         },
         tableTitle: "Verfügbare benannte Tokens",
         cols: {
@@ -4335,6 +4338,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         title: "Formatting tokens",
         description:
           "Label, placeholder, help text, content and options support typographic special characters via tokens. They are automatically replaced with the corresponding Unicode character when rendered.",
+        scopeNote:
+          "These tokens work in form fields only. A variable from the content editor, such as {annualCost}, is not substituted here and would stay exactly as it is written.",
         notations: {
           title: "Three notations",
           unicodeTitle: "Unicode notation",
@@ -4347,7 +4352,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           entityBody:
             "&#NNN; (decimal) or &#xHH; (hex). Example: &#8209; or &#x2011; become the non-breaking hyphen ‑.",
           edgeCaseNote:
-            "Note: U+XXXX only works when the hex digits are followed by a non-hex character (e.g. space, period, comma). If a letter a–f follows directly, the token is left untouched — in that case use {nbhy} or &#8209; instead.",
+            "Note: U+XXXX only works when the hex digits are followed by a non-hex character (e.g. space, period, comma). If a letter a–f follows directly, the token is left untouched. In that case use {nbhy} or &#8209; instead.",
         },
         tableTitle: "Available named tokens",
         cols: {
