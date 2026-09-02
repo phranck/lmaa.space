@@ -106,6 +106,7 @@ async function renderSupportLadderProse(segment: SupportLadderIsland): Promise<S
       segment.routes.map(async (route) => ({
         ...route,
         text: await renderMarkdown(route.text, { breaks: true }),
+        hint: route.hint ? await renderMarkdown(route.hint, { breaks: true }) : undefined,
       })),
     ),
   ]);

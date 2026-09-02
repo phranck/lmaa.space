@@ -27,6 +27,29 @@ beforeEach(() => {
 });
 
 describe("renderContentSegments", () => {
+  it("renders the hint of a route through the same pipeline as its text", async () => {
+    // Der Hinweis wird wie jeder andere Text der Leiter geschrieben, also muss
+    // er auch wie jeder andere durch den Renderer. Ohne das steht die
+    // Auszeichnung als Sternchen auf der Seite.
+    const render = await freshRenderer();
+
+    const [segment] = await render(
+      [
+        "[[support-ladder",
+        '  [[interval key="once" label="Einmalig" [[option amount=5]] ]]',
+        '  [[paypalme url="https://www.paypal.com/paypalme/x" text="Praktisch."',
+        '    hint="Schreib **lmaa.space** in die Notiz."]]',
+        "]]",
+      ].join("\n"),
+    );
+
+    const route = (segment as { routes: { token: string; hint?: string }[] }).routes.find(
+      (entry) => entry.token === "paypalme",
+    );
+    expect(route?.hint).toContain("<strong>lmaa.space</strong>");
+    expect(route?.hint).not.toContain("**");
+  });
+
   it("expands a variable inside a shortcode's attribute", async () => {
     // The shortcodes are read from the raw page, so a variable that were only
     // expanded on render would stand in an attribute as its own name.
