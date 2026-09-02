@@ -12,6 +12,7 @@ vi.mock("../middleware/auth.js", () => ({
 const serviceMocks = vi.hoisted(() => ({
   beginBankAuthorization: vi.fn(),
   completeBankAuthorization: vi.fn(),
+  disconnectBank: vi.fn(),
   getBankConnectionStatus: vi.fn(),
 }));
 
@@ -58,6 +59,7 @@ describe("bank connection routes", () => {
     serviceMocks.getBankConnectionStatus.mockResolvedValue(disconnected);
     serviceMocks.beginBankAuthorization.mockResolvedValue({ url: "https://bank.example" });
     serviceMocks.completeBankAuthorization.mockResolvedValue({ ...disconnected, connected: true });
+    serviceMocks.disconnectBank.mockResolvedValue(disconnected);
   });
 
   it("answers the status from the site's own database", async () => {
@@ -94,11 +96,28 @@ describe("bank connection routes", () => {
       expect(serviceMocks.completeBankAuthorization).not.toHaveBeenCalled();
     });
 
+    it("refuses to disconnect, because closing needs the same credential", async () => {
+      const response = await makeApp().request("/bank-connection", { method: "DELETE" });
+
+      expect(response.status).toBe(503);
+      expect(serviceMocks.disconnectBank).not.toHaveBeenCalled();
+    });
+
     it("still answers the status", async () => {
       const response = await makeApp().request("/bank-connection");
 
       expect(response.status).toBe(200);
     });
+  });
+
+  it("lets the account go without being told which one", async () => {
+    const response = await makeApp().request("/bank-connection", { method: "DELETE" });
+
+    expect(response.status).toBe(200);
+    // No identifier reaches the service, so nothing could point at a connection
+    // other than the one in force.
+    expect(serviceMocks.disconnectBank).toHaveBeenCalledWith();
+    expect((await response.json()).data).toEqual(disconnected);
   });
 
   describe("the return from the bank", () => {

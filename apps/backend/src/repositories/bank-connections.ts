@@ -119,3 +119,20 @@ export async function replaceBankConnection(
     return created;
   });
 }
+
+/**
+ * Retires the connection in force, leaving the site with none.
+ *
+ * @param now - The moment it stopped being current.
+ * @returns The row as it was before it was retired, or `null` when none was in
+ *   force. The caller needs the session it held, because closing that session
+ *   at the provider is what ends the consent rather than merely forgetting it.
+ */
+export async function revokeLiveBankConnection(now: Date): Promise<BankConnectionRow | null> {
+  const [revoked] = await db
+    .update(bankConnections)
+    .set({ revokedAt: now })
+    .where(isNull(bankConnections.revokedAt))
+    .returning();
+  return revoked ?? null;
+}

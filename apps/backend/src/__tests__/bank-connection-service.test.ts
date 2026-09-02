@@ -5,6 +5,7 @@ vi.mock("../config/env.js", () => ({
 }));
 
 const clientMocks = vi.hoisted(() => ({
+  closeSession: vi.fn(),
   createSession: vi.fn(),
   isEnableBankingConfigured: vi.fn(() => true),
   startAuthorization: vi.fn(),
@@ -14,6 +15,7 @@ const repositoryMocks = vi.hoisted(() => ({
   getLiveBankConnection: vi.fn(),
   insertAuthorizationState: vi.fn(),
   replaceBankConnection: vi.fn(),
+  revokeLiveBankConnection: vi.fn(),
   takeAuthorizationState: vi.fn(),
 }));
 
@@ -24,6 +26,7 @@ import { HttpError } from "../lib/http.js";
 import {
   beginBankAuthorization,
   completeBankAuthorization,
+  disconnectBank,
   getBankConnectionStatus,
 } from "../services/bank-connection.js";
 
@@ -46,6 +49,7 @@ describe("the bank connection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clientMocks.isEnableBankingConfigured.mockReturnValue(true);
+    clientMocks.closeSession.mockResolvedValue(undefined);
     repositoryMocks.insertAuthorizationState.mockImplementation(
       async (state: string, authorizationId: string, expiresAt: Date) => ({
         state,
@@ -169,6 +173,29 @@ describe("the bank connection", () => {
         code: "bank_unexpected_accounts",
       });
       expect(repositoryMocks.replaceBankConnection).not.toHaveBeenCalled();
+      // Closed at the provider as well, or the consent behind it stands for
+      // months with nobody holding the identifier that could withdraw it.
+      expect(clientMocks.closeSession).toHaveBeenCalledWith("session-2");
+    });
+
+    it("still refuses when the discarded session cannot be closed either", async () => {
+      repositoryMocks.takeAuthorizationState.mockResolvedValue({
+        state: ISSUED,
+        authorizationId: "auth-1",
+      });
+      clientMocks.createSession.mockResolvedValue({
+        sessionId: "session-4",
+        accountUids: ["account-1", "account-2"],
+        aspspName: "",
+        aspspCountry: "",
+        consentValidUntil: null,
+      });
+      clientMocks.closeSession.mockRejectedValue(new Error("provider refused"));
+
+      await expect(completeBankAuthorization("code-1", ISSUED)).rejects.toMatchObject({
+        code: "bank_unexpected_accounts",
+      });
+      expect(repositoryMocks.replaceBankConnection).not.toHaveBeenCalled();
     });
 
     it("stores nothing when the session reaches no account at all", async () => {
@@ -214,6 +241,40 @@ describe("the bank connection", () => {
         institutionCountry: "AT",
         consentValidUntil: storedConnection.consentValidUntil.toISOString(),
       });
+    });
+  });
+
+  describe("letting the account go", () => {
+    it("refuses when nothing is in force", async () => {
+      repositoryMocks.revokeLiveBankConnection.mockResolvedValue(null);
+
+      await expect(disconnectBank()).rejects.toMatchObject({
+        status: 404,
+        code: "bank_not_connected",
+      });
+      expect(clientMocks.closeSession).not.toHaveBeenCalled();
+    });
+
+    it("withdraws it and closes the session behind it", async () => {
+      repositoryMocks.revokeLiveBankConnection.mockResolvedValue(storedConnection);
+
+      const status = await disconnectBank();
+
+      expect(clientMocks.closeSession).toHaveBeenCalledWith(storedConnection.sessionId);
+      expect(status).toMatchObject({ connected: false, institutionName: "", connectedAt: null });
+    });
+
+    it("keeps the withdrawal even when the bank will not close the consent", async () => {
+      repositoryMocks.revokeLiveBankConnection.mockResolvedValue(storedConnection);
+      clientMocks.closeSession.mockRejectedValue(new Error("provider refused"));
+
+      await expect(disconnectBank()).rejects.toMatchObject({
+        status: 502,
+        code: "bank_close_failed",
+      });
+      // The site stopped reading the account regardless, which is the part it
+      // gets to decide on its own.
+      expect(repositoryMocks.revokeLiveBankConnection).toHaveBeenCalledTimes(1);
     });
   });
 });

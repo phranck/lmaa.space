@@ -65,13 +65,14 @@ export default {
         ],
         rules: ["react-doctor/prefer-dynamic-import"],
       },
-      // Both pages put something beside a section title through the header's
-      // `addOn`, which is how every card in the dashboard does it: the chart
-      // page a view switch, the bank connection page the badge saying whether
-      // one is in force. Hoisting either would separate it from the state it
-      // reads.
+      // All three put something beside a title through an `addOn`, which is how
+      // the dashboard does it: the chart page a view switch, the bank
+      // connection page and the sidebar entry the badge saying what state the
+      // connection is in. Hoisting any of them would separate it from the state
+      // it reads.
       {
         files: [
+          "src/components/layout/Sidebar.tsx",
           "src/features/content/donations/DonationChartsPage.tsx",
           "src/features/system/bank-connection/BankConnectionPage.tsx",
         ],

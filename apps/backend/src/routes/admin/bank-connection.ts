@@ -9,6 +9,7 @@ import { validate } from "../../middleware/validate-request.js";
 import {
   beginBankAuthorization,
   completeBankAuthorization,
+  disconnectBank,
   getBankConnectionStatus,
 } from "../../services/bank-connection.js";
 import { isEnableBankingConfigured } from "../../services/enable-banking-client.js";
@@ -75,3 +76,16 @@ bankConnectionRoutes.post(
     return ok(c, await completeBankAuthorization(code, state));
   },
 );
+
+// DELETE /api/v1/admin/bank-connection
+//
+// Lets the account go. Takes no identifier, so there is nothing that could
+// point at a connection other than the one in force. The 503 stands here too,
+// because closing the session at the bank needs the same credential as opening
+// it did.
+bankConnectionRoutes.delete("/bank-connection", async (c) => {
+  if (!isEnableBankingConfigured()) {
+    return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
+  }
+  return ok(c, await disconnectBank());
+});

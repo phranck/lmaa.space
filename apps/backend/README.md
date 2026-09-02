@@ -89,6 +89,8 @@ Der Schlüssel hat mehrere Zeilen, das Variablenfeld in Zerops hat eine. Deshalb
 
 Verbunden wird im Dashboard unter Sponsoring → Bankverbindung, und nur vom Owner. Der Ablauf ist der übliche: das Backend holt beim Anbieter eine Adresse zur Bank, die Bank schickt die Person auf `https://dashboard.lmaa.space/bank-connection/callback` zurück, und das Dashboard reicht den Code an das Backend weiter, das ihn einlöst. Diese Rückadresse ist beim Anbieter hinterlegt und lässt sich nicht einseitig im Code ändern. Die Zustimmung läuft ab; erneuert wird sie, indem man denselben Weg noch einmal geht.
 
+Getrennt wird auf derselben Seite. Das Backend widerruft die Verbindung zuerst bei sich und schliesst danach die Sitzung beim Anbieter, was die Zustimmung bei der Bank mit beendet. Der Widerruf steht auch dann, wenn das Schliessen scheitert, denn das Aufhören mit dem Lesen ist die Entscheidung dieser Seite; die Antwort sagt in dem Fall, dass die Zustimmung bei der Bank noch bis zu ihrem Ablauf steht. Der Zustand der Verbindung steht als Abzeichen am Eintrag in der Seitenleiste, und vierzehn Tage vor Ablauf wechselt es die Farbe.
+
 ## Datenbank
 
 ```bash

@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import type { BankAuthorizationStart, BankConnectionStatus } from "@lmaa/contracts";
 
 import {
+  closeSession,
   createSession,
   isEnableBankingConfigured,
   startAuthorization,
@@ -15,6 +16,7 @@ import {
   getLiveBankConnection,
   insertAuthorizationState,
   replaceBankConnection,
+  revokeLiveBankConnection,
   takeAuthorizationState,
 } from "../repositories/bank-connections.js";
 
@@ -97,6 +99,64 @@ export async function getBankConnectionStatus(): Promise<BankConnectionStatus> {
 }
 
 /**
+ * Closes a session at the provider without letting that failure decide the
+ * caller's flow.
+ *
+ * @param sessionId - The session as it was stored.
+ * @returns `true` when the provider closed it, `false` when it refused.
+ *
+ * @remarks
+ * Closing is what ends the consent at the bank, so forgetting the identifier
+ * without it leaves a permission standing that nobody can withdraw any more.
+ * The two callers want different things when it fails, which is why this
+ * reports rather than throws, and neither of them stays silent about it.
+ */
+async function closeSessionQuietly(sessionId: string): Promise<boolean> {
+  try {
+    await closeSession(sessionId);
+    return true;
+  } catch (cause) {
+    logger.error(
+      { cause: cause instanceof Error ? cause.message : "unknown" },
+      "bank session could not be closed at the provider",
+    );
+    return false;
+  }
+}
+
+/**
+ * Withdraws the connection in force and ends the consent behind it.
+ *
+ * @returns The status afterwards, which reports nothing connected.
+ * @throws {HttpError} 404 when no connection is in force, 502 when the site let
+ *   go of the connection but the provider would not close the session.
+ *
+ * @remarks
+ * The local withdrawal happens first and stands whatever the provider answers,
+ * because the operator asked the site to stop reading the account and that part
+ * is this site's own to decide. A provider that then refuses to close leaves a
+ * consent at the bank which lapses on its own, and the caller is told rather
+ * than left thinking everything is gone.
+ */
+export async function disconnectBank(): Promise<BankConnectionStatus> {
+  const revoked = await revokeLiveBankConnection(new Date());
+  if (!revoked) {
+    throw new HttpError(404, "No bank connection is in force", "bank_not_connected");
+  }
+
+  if (!(await closeSessionQuietly(revoked.sessionId))) {
+    throw new HttpError(
+      502,
+      "The connection was withdrawn, but the consent could not be closed at the bank",
+      "bank_close_failed",
+    );
+  }
+
+  logger.info({ connectionId: revoked.id }, "bank connection withdrawn");
+  return toStatus(null);
+}
+
+/**
  * Starts an authorisation and says where to send the person.
  *
  * @returns The bank's address, which the dashboard navigates to.
@@ -161,10 +221,16 @@ export async function completeBankAuthorization(
 
   const session = await createSession(code);
   if (session.accountUids.length !== EXPECTED_ACCOUNT_COUNT) {
-    // Not stored, so nothing here can read the account. The session itself
-    // stays open at the provider until its consent lapses.
+    // Not stored, so nothing here can read the account, and closed at the
+    // provider so the consent behind it does not stand for months with nobody
+    // holding the identifier that could withdraw it.
+    const closed = await closeSessionQuietly(session.sessionId);
     logger.error(
-      { authorizationId: started.authorizationId, accountCount: session.accountUids.length },
+      {
+        authorizationId: started.authorizationId,
+        accountCount: session.accountUids.length,
+        closedAtProvider: closed,
+      },
       "bank session discarded: unexpected number of accounts",
     );
     throw new HttpError(

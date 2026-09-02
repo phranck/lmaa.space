@@ -158,8 +158,9 @@ function signRequestToken(): string {
 /**
  * Sends one request to the provider and returns its parsed answer.
  *
+ * @param method - The verb the operation uses.
  * @param path - The path against the provider's base address.
- * @param body - What to send, as JSON.
+ * @param body - What to send, as JSON, or nothing where the operation has no body.
  * @returns The answer, still unvalidated.
  * @throws {HttpError} 502 when the provider cannot be reached or refuses.
  *
@@ -173,7 +174,11 @@ function signRequestToken(): string {
  * session are the things this request exists to move, and none of them is
  * loggable.
  */
-async function postToEnableBanking(path: string, body: unknown): Promise<unknown> {
+async function callEnableBanking(
+  method: "POST" | "DELETE",
+  path: string,
+  body?: unknown,
+): Promise<unknown> {
   const url = new URL(path, ENABLE_BANKING_BASE_URL);
   if (url.protocol !== "https:" || url.host !== ENABLE_BANKING_HOST) {
     throw new HttpError(500, "Refused an unexpected destination", "bank_bad_destination");
@@ -186,13 +191,13 @@ async function postToEnableBanking(path: string, body: unknown): Promise<unknown
   let response: Response;
   try {
     response = await fetch(url, {
-      method: "POST",
+      method,
       redirect: "error",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   } catch (cause) {
@@ -256,7 +261,7 @@ export async function startAuthorization(
   const path = "/auth";
   const answer = parseAnswer(
     authorizationResponseSchema,
-    await postToEnableBanking(path, {
+    await callEnableBanking("POST", path, {
       access: { valid_until: validUntil.toISOString() },
       aspsp: ASPSP,
       state,
@@ -284,7 +289,7 @@ export async function createSession(code: string): Promise<EnableBankingSession>
   const path = "/sessions";
   const answer = parseAnswer(
     sessionResponseSchema,
-    await postToEnableBanking(path, { code }),
+    await callEnableBanking("POST", path, { code }),
     path,
   );
 
@@ -299,4 +304,38 @@ export async function createSession(code: string): Promise<EnableBankingSession>
     consentValidUntil:
       consentValidUntil && !Number.isNaN(consentValidUntil.getTime()) ? consentValidUntil : null,
   };
+}
+
+/**
+ * What a session identifier may consist of before it is put into a path.
+ *
+ * The identifier comes from this site's own database and originally from the
+ * provider, so it is not caller input. The pattern is here because it is about
+ * to become part of a URL, and a value that cannot hold a slash or a dot
+ * segment cannot leave the path it was meant for whatever else changes around
+ * it.
+ */
+const SESSION_ID_PATTERN = /^[A-Za-z0-9._~-]{1,200}$/;
+
+/** An identifier made only of dots is a path segment rather than a name. */
+const DOT_SEGMENT_PATTERN = /^\.+$/;
+
+/**
+ * Closes a session at the provider, which ends the consent behind it.
+ *
+ * @param sessionId - The session as it was stored when it was created.
+ * @throws {HttpError} 500 when the identifier is not one this site could have
+ *   stored, 503 when unconfigured, 502 when the provider fails.
+ *
+ * @remarks
+ * The provider closes the bank's consent with the session where it can, which
+ * is what makes this more than forgetting the identifier locally. A session
+ * nobody closes stays open until its consent lapses on its own.
+ */
+export async function closeSession(sessionId: string): Promise<void> {
+  if (!SESSION_ID_PATTERN.test(sessionId) || DOT_SEGMENT_PATTERN.test(sessionId)) {
+    throw new HttpError(500, "Refused an unexpected destination", "bank_bad_destination");
+  }
+
+  await callEnableBanking("DELETE", `/sessions/${encodeURIComponent(sessionId)}`);
 }
