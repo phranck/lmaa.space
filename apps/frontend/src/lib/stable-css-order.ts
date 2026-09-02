@@ -70,7 +70,9 @@ function sortBlockBody(body: string): string | null {
   if (!names.every((name) => name !== null && name.startsWith("--"))) return null;
   if (new Set(names).size !== names.length) return null;
 
-  const sorted = [...declarations].sort((left, right) =>
+  // Compared in one fixed locale, because the order only has to be the same on
+  // every machine that builds this, not right in any particular language.
+  const sorted = declarations.toSorted((left, right) =>
     (propertyName(left) ?? "").localeCompare(propertyName(right) ?? "", "en"),
   );
 
