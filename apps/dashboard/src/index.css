@@ -45,15 +45,17 @@
   /* Lighter than the wash it stands on, which is what the role asks for here. */
   --ds-accent-text: var(--ds-color-brand-300);
 
-  /* Focus and interaction */
+  /* Focus and interaction.
+     A control being hovered takes a stronger wash than a surface that carries
+     one whilst nothing is happening, such as a counter pill, a chip or a
+     section header. Two roles, so two values, and `--ds-bg-hover` is the
+     control one, which it follows from the shared token file. The nav tokens
+     are further down, in the block that holds the rest of the navigation. */
   --ds-focus-ring-offset: var(--ds-bg);
   --ds-control-hover-bg: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.08);
+  /* Icon buttons, section headers, inline notes. */
+  --ds-surface-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
   --ds-control-active-bg: color-mix(in srgb, var(--color-primary) 22%, transparent);
-  --ds-bg-hover: var(--ds-control-hover-bg);
-  --ds-surface-hover: var(--ds-control-hover-bg);
-  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  --ds-nav-active-border: var(--ds-border-focus);
-  --ds-nav-hover-bg: var(--ds-nav-active-bg);
 
   /* Status */
   --ds-success-bg: hsl(135 25% 18%);
@@ -198,9 +200,6 @@
 
   /* Table row separator (subtler than --ds-border-subtle) */
   --ds-table-row-separator: hsl(215 10% 18%);
-
-  /* Subtle surface hover (icon buttons, section headers, inline notes) */
-  --ds-surface-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
   /* Charts.
      Two series and no more. The only thing colour distinguishes in a chart

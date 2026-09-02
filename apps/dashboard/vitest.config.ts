@@ -16,6 +16,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    // `tests` holds what needs node rather than a browser, such as reading a
+    // source file off disk. The browser project carries no node types, so those
+    // cannot live under `src`.
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "tests/**/*.test.ts"],
   },
 });
