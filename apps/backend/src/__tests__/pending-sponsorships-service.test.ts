@@ -14,6 +14,10 @@ const sponsorRepoMocks = vi.hoisted(() => ({
   insertSponsor: vi.fn(),
 }));
 
+const donationRepoMocks = vi.hoisted(() => ({
+  insertDonation: vi.fn(),
+}));
+
 const avatarMocks = vi.hoisted(() => ({
   resolveSponsorAvatar: vi.fn(),
 }));
@@ -24,6 +28,7 @@ const configMocks = vi.hoisted(() => ({
 
 vi.mock("../repositories/pending-sponsorships.js", () => repoMocks);
 vi.mock("../repositories/sponsors.js", () => sponsorRepoMocks);
+vi.mock("../repositories/donations.js", () => donationRepoMocks);
 vi.mock("../services/sponsor-avatar.js", () => avatarMocks);
 vi.mock("../services/sponsors.js", () => configMocks);
 vi.mock("../lib/logger.js", () => ({
@@ -315,9 +320,37 @@ describe("takeOverPendingSponsorship", () => {
       imageUrl: "https://example.test/kim.png",
       claim: "Weil es sonst niemand macht.",
       published: false,
-      amountCents: 4500,
       paidAt: "2026-08-23",
     });
+  });
+
+  it("writes the payment into the ledger, linked to the new sponsor", async () => {
+    await takeOverPendingSponsorship("entry-1", payment);
+
+    // The amount is nowhere on the sponsor, so the ledger is the only record
+    // of it and the figure on the site cannot count it twice.
+    expect(sponsorRepoMocks.insertSponsor.mock.calls[0][0]).not.toHaveProperty("amountCents");
+    expect(donationRepoMocks.insertDonation).toHaveBeenCalledWith({
+      firstName: "Kim",
+      lastName: "Lorenz",
+      socialMedia: [{ platform: "github", url: "https://github.com/kim" }],
+      published: false,
+      amountCents: 4500,
+      receivedAt: "2026-08-23",
+      provider: "sepa",
+      note: "",
+      sponsorId: "sponsor-1",
+    });
+  });
+
+  it("withholds consent on the payment even for a sponsor who is named", async () => {
+    repoMocks.getPendingSponsorship.mockResolvedValue({ ...entry, published: true });
+
+    await takeOverPendingSponsorship("entry-1", payment);
+
+    // What they agreed to is the sponsor wall. This flag governs a donor list
+    // that does not exist, so it stays false until somebody says otherwise.
+    expect(donationRepoMocks.insertDonation.mock.calls[0][0].published).toBe(false);
   });
 
   it("looks for the picture only now, when somebody has read the entry", async () => {

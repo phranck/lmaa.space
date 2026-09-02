@@ -1279,17 +1279,18 @@ export const sponsors = pgTable(
      * seen doing it.
      */
     published: boolean("published").notNull().default(true),
-    /** What they gave, in cents. Never shown beside a name. */
-    amountCents: integer("amount_cents").notNull().default(0),
-    /** The day they paid, which starts their year. */
+    /**
+     * The day they paid, which starts their year.
+     *
+     * What they paid is not here. A payment is a row in `donations` pointing
+     * back at this sponsor, so the amount is recorded once and the ledger is
+     * the only place that answers how much money came in.
+     */
     paidAt: text("paid_at").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [
-    index("idx_sponsors_paid_at").on(table.paidAt),
-    check("sponsors_amount_nonnegative", sql`${table.amountCents} >= 0`),
-  ],
+  (table) => [index("idx_sponsors_paid_at").on(table.paidAt)],
 );
 
 /**

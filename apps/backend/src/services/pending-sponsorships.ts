@@ -17,6 +17,7 @@ import { isUniqueViolation } from "../lib/db-errors.js";
 import { logger } from "../lib/logger.js";
 import { detectPlatformFromHost } from "../lib/og.js";
 import { type Result, failure, success } from "../lib/result.js";
+import { insertDonation } from "../repositories/donations.js";
 import {
   deletePendingSponsorship,
   deletePendingSponsorshipsBefore,
@@ -308,8 +309,26 @@ export async function takeOverPendingSponsorship(
     imageUrl: imageUrl ?? "",
     claim: pending.claim,
     published: pending.published,
-    amountCents: payment.amountCents,
     paidAt: payment.paidAt,
+  });
+
+  // The payment goes into the ledger rather than onto the sponsor, because the
+  // ledger is the only place money is recorded and the figure on the site is a
+  // sum over it. The link is what keeps this from being counted twice.
+  //
+  // Consent stays withheld even though the sponsor may be named: what they
+  // agreed to is the sponsor wall, and this flag governs a donor list that
+  // does not exist.
+  await insertDonation({
+    firstName: pending.firstName,
+    lastName: pending.lastName,
+    socialMedia: pending.socialMedia,
+    published: false,
+    amountCents: payment.amountCents,
+    receivedAt: payment.paidAt,
+    provider: "sepa",
+    note: "",
+    sponsorId: sponsor.id,
   });
 
   // Removed only once the sponsor is written, so a failure above leaves the

@@ -86,6 +86,10 @@ const sponsorRepoMocks = vi.hoisted(() => ({
   listCurrentSponsors: vi.fn(),
 }));
 
+const donationRepoMocks = vi.hoisted(() => ({
+  sumDonations: vi.fn(),
+}));
+
 const sponsorServiceMocks = vi.hoisted(() => ({
   getSponsoringConfig: vi.fn(),
   sponsorYearStart: vi.fn(() => "2025-08-24"),
@@ -108,6 +112,7 @@ vi.mock("../repositories/support-prompts.js", () => supportPromptMocks);
 vi.mock("../services/support-prompts.js", () => supportPromptServiceMocks);
 vi.mock("../services/pending-sponsorships.js", () => pendingSponsorshipMocks);
 vi.mock("../repositories/sponsors.js", () => sponsorRepoMocks);
+vi.mock("../repositories/donations.js", () => donationRepoMocks);
 vi.mock("../services/sponsors.js", () => sponsorServiceMocks);
 vi.mock("../middleware/rate-limit.js", () => ({
   rateLimit: vi.fn(() => (_c: unknown, next: () => Promise<void>) => next()),
@@ -505,6 +510,7 @@ describe("publicRoutes", () => {
         payeeIban: "AT551900104704666811",
         payeeBic: "TRBKATW2XXX",
       });
+      donationRepoMocks.sumDonations.mockResolvedValue({ cents: 4_500, count: 1 });
     });
 
     it("does not carry the account the money goes to", async () => {
@@ -533,7 +539,6 @@ describe("publicRoutes", () => {
           imageUrl: "",
           claim: "",
           paidAt: "2026-08-01",
-          amountCents: 4500,
           published: true,
         },
         {
@@ -544,7 +549,6 @@ describe("publicRoutes", () => {
           imageUrl: "",
           claim: "",
           paidAt: "2026-08-02",
-          amountCents: 5500,
           published: false,
         },
       ]);
@@ -555,8 +559,33 @@ describe("publicRoutes", () => {
       expect(body.data.sponsors).toHaveLength(1);
       expect(body.data.sponsors[0].id).toBe("sponsor-1");
       expect(body.data.sponsors[0]).not.toHaveProperty("amountCents");
-      // What the unnamed one gave still counts towards the year.
-      expect(body.data.coveredCents).toBe(10_000);
+    });
+
+    it("counts every payment in the year, not only the ones that bought a sponsorship", async () => {
+      // Two sponsors on the wall and 12,500 in the ledger, of which 9,000 paid
+      // for those two and 3,500 arrived from people who wanted nothing in
+      // return. The figure is the ledger's, so the 3,500 counts.
+      donationRepoMocks.sumDonations.mockResolvedValue({ cents: 12_500, count: 5 });
+
+      const res = await app.request("/sponsors");
+      const body = await res.json();
+
+      expect(body.data.coveredCents).toBe(12_500);
+    });
+
+    it("counts a sponsor's payment once, over the same year the wall shows", async () => {
+      // The sum comes from one table, so a sponsorship cannot be added twice by
+      // being both a sponsor and a payment. The window is the one the sponsors
+      // are listed for, so a payment that has aged out of the year is out of
+      // the figure as well.
+      const res = await app.request("/sponsors");
+      const body = await res.json();
+
+      expect(donationRepoMocks.sumDonations).toHaveBeenCalledWith({
+        from: "2025-08-24",
+        to: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      });
+      expect(body.data.coveredCents).toBe(4_500);
     });
   });
 
