@@ -12,30 +12,12 @@ import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
+import { StatFigure } from "@/components/ui/StatFigure.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 import { DonationEditorCard } from "./DonationEditorCard.tsx";
 import { DonationTable } from "./DonationTable.tsx";
 import { type DonationRangeFilter, useDonations, useDonationTotals } from "./hooks/useDonations.ts";
-
-/**
- * One figure with the period it covers, for the row above the ledger.
- *
- * @param label - What the period is called.
- * @param cents - What came in over it.
- * @param suffix - An optional line under the figure, such as a count.
- */
-function TotalFigure({ label, cents, suffix }: { label: string; cents: number; suffix?: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-[var(--ds-text-hint)]">{label}</span>
-      <span className="text-lg font-semibold tabular-nums text-[var(--ds-text)]">
-        {formatEuroCents(cents)}
-      </span>
-      {suffix && <span className="text-xs text-[var(--ds-text-hint)]">{suffix}</span>}
-    </div>
-  );
-}
 
 /**
  * Every payment that came in, whatever route it took.
@@ -71,10 +53,13 @@ export function DonationsPage() {
               title={text.title}
               addOn={
                 <div className="flex items-start gap-8">
-                  <TotalFigure label={text.monthTotal} cents={totals?.monthCents ?? 0} />
-                  <TotalFigure
+                  <StatFigure
+                    label={text.monthTotal}
+                    value={formatEuroCents(totals?.monthCents ?? 0)}
+                  />
+                  <StatFigure
                     label={text.yearTotal}
-                    cents={totals?.yearCents ?? 0}
+                    value={formatEuroCents(totals?.yearCents ?? 0)}
                     suffix={`${totals?.yearCount ?? 0} ${text.countSuffix}`}
                   />
                 </div>
@@ -103,9 +88,9 @@ export function DonationsPage() {
                   <DashboardButton onClick={() => setRange({})}>{text.rangeReset}</DashboardButton>
                 )}
                 <div className="ml-auto">
-                  <TotalFigure
+                  <StatFigure
                     label={hasRange ? text.rangeTotal : text.allTotal}
-                    cents={ledger?.rangeCents ?? 0}
+                    value={formatEuroCents(ledger?.rangeCents ?? 0)}
                     suffix={`${ledger?.rangeCount ?? 0} ${text.countSuffix}`}
                   />
                 </div>
@@ -131,10 +116,7 @@ export function DonationsPage() {
             // The table fills the card to its edges, so the card's own corners
             // are the table's corners and there is no seam between the two.
             <DashboardSection className="overflow-hidden">
-              <DonationTable
-                donations={donations}
-                onEdit={(donation) => setEditing(donation.id)}
-              />
+              <DonationTable donations={donations} onEdit={(donation) => setEditing(donation.id)} />
             </DashboardSection>
           )}
         </div>
