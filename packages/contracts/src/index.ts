@@ -46,3 +46,5 @@ export * from "./sponsors";
 export * from "./pending-sponsorships";
 /** Donation ledger schemas: every payment that arrives, whatever route it took. */
 export * from "./donations";
+/** Bank connection schemas: the link through which the account is read. */
+export * from "./bank-connection";

@@ -74,6 +74,21 @@ Warum die Trennung: der Schlüssel ist ein Geheimnis und gehört nicht in eine E
 
 Lokal reicht in `apps/backend/.env.local` der Schlüssel; den Modus stellst du im Dashboard auf `assist`. In Produktion bleibt er so lange auf `off`, bis die Strecke abgenommen ist. Zum Ausprobieren ohne echten Vorschlag gibt es `npm run review:shop -w @lmaa/backend -- <url>`, das eine synthetische Prüfung anlegt und danach wieder entfernt.
 
+### Bankverbindung
+
+Die Seite liest die Zahlungseingänge auf ihrem eigenen Konto über Enable Banking, einen lizenzierten Kontoinformationsdienst. Warum dieser Weg und kein anderer, steht in `docs/adr/0001`.
+
+| Variable                        | Pflicht | Bedeutung                                                                                       |
+| ------------------------------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `ENABLE_BANKING_APPLICATION_ID` | nein    | Die Anwendung, unter der die Seite beim Anbieter geführt wird.                                    |
+| `ENABLE_BANKING_PRIVATE_KEY`    | nein    | Der private RSA-Schlüssel dieser Anwendung, als PKCS#8-PEM. Signiert jede Anfrage an den Anbieter. |
+
+Beide gehören zusammen. Ist nur eine von beiden gesetzt, bricht der Start ab, statt halb bewaffnet zu laufen. Sind beide leer, bleibt die Funktion aus: `/api/v1/admin/bank-connection` meldet `configured: false`, die beiden anderen Routen antworten mit 503, und der Rest des Backends läuft unverändert.
+
+Der Schlüssel hat mehrere Zeilen, das Variablenfeld in Zerops hat eine. Deshalb dürfen die Zeilenumbrüche als `\n` ausgeschrieben sein; `src/config/env.ts` macht daraus wieder Umbrüche.
+
+Verbunden wird im Dashboard unter Sponsoring → Bankverbindung, und nur vom Owner. Der Ablauf ist der übliche: das Backend holt beim Anbieter eine Adresse zur Bank, die Bank schickt die Person auf `https://dashboard.lmaa.space/bank-connection/callback` zurück, und das Dashboard reicht den Code an das Backend weiter, das ihn einlöst. Diese Rückadresse ist beim Anbieter hinterlegt und lässt sich nicht einseitig im Code ändern. Die Zustimmung läuft ab; erneuert wird sie, indem man denselben Weg noch einmal geht.
+
 ## Datenbank
 
 ```bash

@@ -106,4 +106,45 @@ describe("envSchema", () => {
       expect(result.data.PORT).toBe(8080);
     }
   });
+
+  describe("the Enable Banking credential", () => {
+    const APPLICATION_ID = "a05dc68a-0000-4000-8000-000000000000";
+    const PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\\nMII\\n-----END PRIVATE KEY-----\\n";
+
+    it("may be absent altogether", () => {
+      const result = envSchema.safeParse(VALID_BASE);
+      expect(result.success).toBe(true);
+    });
+
+    it("is refused with the key but no application", () => {
+      const result = envSchema.safeParse({
+        ...VALID_BASE,
+        ENABLE_BANKING_PRIVATE_KEY: PRIVATE_KEY,
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("is refused with the application but no key", () => {
+      const result = envSchema.safeParse({
+        ...VALID_BASE,
+        ENABLE_BANKING_APPLICATION_ID: APPLICATION_ID,
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("turns the written-out line breaks of the key back into breaks", () => {
+      const result = envSchema.safeParse({
+        ...VALID_BASE,
+        ENABLE_BANKING_APPLICATION_ID: APPLICATION_ID,
+        ENABLE_BANKING_PRIVATE_KEY: PRIVATE_KEY,
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.ENABLE_BANKING_PRIVATE_KEY).toBe(
+          "-----BEGIN PRIVATE KEY-----\nMII\n-----END PRIVATE KEY-----\n",
+        );
+      }
+    });
+  });
 });

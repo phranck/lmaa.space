@@ -44,6 +44,14 @@ _Avoid_: Integration, link, bank account
 The part of a bank connection that expires. Renewing it means authenticating at the bank again; nothing about the account itself changes.
 _Avoid_: Authorisation, grant, permission
 
+**Authorisation**:
+The one walk through the bank's own pages that produces a consent. It is a thing that happens rather than a thing that is held, and it is over in minutes; what remains afterwards is the bank connection. Renewing a connection is another authorisation.
+_Avoid_: Login, sign-in, approval
+
+**Session**:
+The credential the account information service issues at the end of an authorisation, which every later read of the account presents. It is what a bank connection holds, never shown and never served on a route.
+_Avoid_: Token, key, access
+
 **Ingestion**:
 Reading the account and writing what belongs to this project into the ledger. It recognises payments rather than receiving them, so a payment it cannot recognise is not a donation as far as the site is concerned.
 _Avoid_: Import, sync, reconciliation

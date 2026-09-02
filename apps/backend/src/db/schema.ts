@@ -1406,3 +1406,90 @@ export type DonationRow = typeof donations.$inferSelect;
  * Inferred insert type for `donations`.
  */
 export type DonationInsert = typeof donations.$inferInsert;
+
+/**
+ * The link to the bank account, as it stands and as it stood before.
+ *
+ * A connection is a session at Enable Banking plus the one account that session
+ * reaches. It lapses when the consent behind it expires, and renewing it means
+ * walking the same authorisation again, so a renewal writes a new row and marks
+ * the old one revoked rather than overwriting it. That is what keeps it
+ * answerable since when which connection was in force, which matters as soon as
+ * a period shows no payments and somebody has to tell a quiet month from a
+ * connection that had already lapsed.
+ */
+export const bankConnections = pgTable(
+  "bank_connections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /**
+     * The session Enable Banking issued, which every later read presents.
+     *
+     * Never logged and never served on a route: it is the credential that
+     * reaches the account.
+     */
+    sessionId: text("session_id").notNull(),
+    /** The one account the session carries, as the provider identifies it. */
+    accountUid: text("account_uid").notNull(),
+    /** The institution as the provider names it, which the dashboard shows. */
+    aspspName: text("aspsp_name").notNull().default(""),
+    /** Its country, in the two letters the provider pairs with the name. */
+    aspspCountry: text("aspsp_country").notNull().default(""),
+    /**
+     * When the consent lapses, as the provider stated it on creation.
+     *
+     * Null where the answer carried none. The dashboard shows this so a
+     * connection can be renewed before it stops answering rather than after.
+     */
+    consentValidUntil: timestamp("consent_valid_until"),
+    /** When this connection was replaced or withdrawn; null whilst it is live. */
+    revokedAt: timestamp("revoked_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    // At most one live connection, enforced by the database rather than by the
+    // service that writes it. The indexed expression is the same for every live
+    // row and the index covers only those rows, so a second one cannot be
+    // written even if two requests complete an authorisation at once.
+    uniqueIndex("idx_bank_connections_one_live")
+      .on(sql`(${table.revokedAt} IS NULL)`)
+      .where(sql`${table.revokedAt} IS NULL`),
+    index("idx_bank_connections_created_at").on(table.createdAt),
+  ],
+);
+
+/**
+ * An authorisation that has been started and not yet come back.
+ *
+ * The bank returns the person to the dashboard carrying a code and the value
+ * this row holds. Recognising that value is what says the return belongs to an
+ * authorisation this site started, so the row is removed as it is recognised
+ * and a second return with the same value finds nothing.
+ */
+export const bankAuthorizationStates = pgTable(
+  "bank_authorization_states",
+  {
+    /** 32 random bytes as hex, so 256 bits and 64 characters. */
+    state: text("state").primaryKey(),
+    /** What Enable Banking called this authorisation, kept for the log. */
+    authorizationId: text("authorization_id").notNull().default(""),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    /** After this the row no longer counts, whether or not it is still here. */
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (table) => [index("idx_bank_authorization_states_expires_at").on(table.expiresAt)],
+);
+
+/**
+ * Inferred select type for `bank_connections`.
+ */
+export type BankConnectionRow = typeof bankConnections.$inferSelect;
+/**
+ * Inferred insert type for `bank_connections`.
+ */
+export type BankConnectionInsert = typeof bankConnections.$inferInsert;
+
+/**
+ * Inferred select type for `bank_authorization_states`.
+ */
+export type BankAuthorizationStateRow = typeof bankAuthorizationStates.$inferSelect;

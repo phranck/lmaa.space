@@ -52,6 +52,13 @@ zerops:
         #   rate limits, which it needs because those requests reach the backend
         #   directly and therefore carry no client address. Optional: while it is
         #   unset nothing is exempt and every caller is limited as before.
+        # ENABLE_BANKING_APPLICATION_ID and ENABLE_BANKING_PRIVATE_KEY. The two
+        #   halves of one credential, through which the site reads its own bank
+        #   account. Set both or neither: with only one the service refuses to
+        #   start. With neither, the bank connection routes answer 503 and
+        #   nothing else changes. The key is a PKCS#8 PEM, and the variable
+        #   editor holds one line, so its line breaks are written out as \n and
+        #   turned back by apps/backend/src/config/env.ts.
       initCommands:
         - node apps/backend/dist/db/doctor.js
         - node apps/backend/dist/db/migrate.js
