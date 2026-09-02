@@ -130,6 +130,11 @@
   --ds-badge-info-text: hsl(210 80% 72%);
   --ds-badge-review-bg: hsl(270 30% 25%);
   --ds-badge-review-text: hsl(270 80% 80%);
+  /* Grey, for a state that is deliberately no answer yet. Saturation is low
+     rather than absent, so it sits in the same family as the five above and
+     not beside them. */
+  --ds-badge-neutral-bg: hsl(215 12% 24%);
+  --ds-badge-neutral-text: hsl(215 15% 72%);
 
   /* Markdown editor syntax highlighting */
   --md-heading: #79c0ff;
