@@ -105,8 +105,10 @@ function VariableHint({ name, before }: { name: string; before?: string }) {
   const { messages } = useI18n();
   return (
     <span className="inline-flex flex-wrap items-center gap-x-1.5 gap-y-1">
-      {before}
-      {messages.system.sponsors.variableLabel}
+      {/* Each sentence is its own element, because two text nodes side by side
+          are one flex item and the gap between them never appears. */}
+      {before && <span>{before}</span>}
+      <span>{messages.system.sponsors.variableLabel}</span>
       <CopyableCode value={`{${name}}`} copyLabel={messages.common.copy} />
     </span>
   );
@@ -262,7 +264,7 @@ export function SponsoringSettingsPage() {
               subtitle={text.payeeHint}
             />
             <DashboardSection.Body>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2">
                 <DashboardInput
                   label={text.payeeNameLabel}
                   hint={<VariableHint name="payeeName" />}
@@ -285,7 +287,7 @@ export function SponsoringSettingsPage() {
 
               {/* Beneath the account, because these are the words that travel
                   with a payment to it rather than a property of the payee. */}
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2">
                 <DashboardInput
                   label={text.purposeDonationLabel}
                   hint={<VariableHint name="purposeDonation" />}
