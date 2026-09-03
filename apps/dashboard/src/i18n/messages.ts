@@ -1427,7 +1427,6 @@ export interface DashboardMessages {
       review: {
         title: string;
         subtitle: string;
-        keyMissing: string;
         modeLabel: string;
         modeOff: string;
         modeAssist: string;
@@ -3184,8 +3183,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           title: "Automatische Prüfung von Shop-Vorschlägen",
           subtitle:
             "Änderungen wirken beim nächsten Durchlauf des Workers, spätestens nach 30 Sekunden.",
-          keyMissing:
-            "ANTHROPIC_API_KEY ist nicht gesetzt. Der Worker bleibt stehen, bis der Schlüssel in der Umgebung liegt.",
           modeLabel: "Modus",
           modeOff: "Aus",
           modeAssist: "Unterstützend",
@@ -4939,8 +4936,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         review: {
           title: "Automated review of shop suggestions",
           subtitle: "Changes take effect on the worker's next run, within thirty seconds.",
-          keyMissing:
-            "ANTHROPIC_API_KEY is not set. The worker stays idle until the key is present in the environment.",
           modeLabel: "Mode",
           modeOff: "Off",
           modeAssist: "Assist",
