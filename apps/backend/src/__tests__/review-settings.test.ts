@@ -60,3 +60,63 @@ describe("the configured provider", () => {
     expect(resolveReviewEffort).toHaveBeenCalledWith("mistral", "mistral-large-2512", "xhigh");
   });
 });
+
+describe("a model that belongs to the other provider", () => {
+  beforeEach(() => {
+    stored = {};
+    vi.mocked(resolveReviewEffort).mockClear();
+  });
+
+  it("does not reach the provider that cannot run it", async () => {
+    // The reported state: a Mistral model saved whilst no provider row exists,
+    // so the provider falls back to Anthropic. The Anthropic adapter was then
+    // handed `mistral-medium-latest`, submitted it as an Anthropic batch, and
+    // had it refused after burning three attempts.
+    stored = { [SETTINGS_KEYS.REVIEW_MODEL]: "mistral-medium-latest" };
+
+    const settings = await loadReviewSettings();
+
+    expect(settings.provider).toBe("anthropic");
+    expect(settings.model).toBe("claude-opus-5");
+  });
+
+  it("gives way to the provider rather than the other way round", async () => {
+    // The provider decides which account is billed, so it is the one that
+    // stands. Deriving the provider from the model instead would move the
+    // spending to an account nobody chose.
+    stored = {
+      [SETTINGS_KEYS.REVIEW_PROVIDER]: "mistral",
+      [SETTINGS_KEYS.REVIEW_MODEL]: "claude-opus-5",
+    };
+
+    const settings = await loadReviewSettings();
+
+    expect(settings.provider).toBe("mistral");
+    expect(settings.model).toBe("mistral-medium-latest");
+  });
+
+  it("leaves a matching pair alone", async () => {
+    stored = {
+      [SETTINGS_KEYS.REVIEW_PROVIDER]: "mistral",
+      [SETTINGS_KEYS.REVIEW_MODEL]: "mistral-large-2512",
+    };
+
+    const settings = await loadReviewSettings();
+
+    expect(settings.model).toBe("mistral-large-2512");
+  });
+
+  it("lets a model no card knows reach its provider as configured", async () => {
+    // A model released after the rate card was written. It fails at the
+    // provider with the provider's own wording, which says more than this
+    // quietly running something else would.
+    stored = {
+      [SETTINGS_KEYS.REVIEW_PROVIDER]: "anthropic",
+      [SETTINGS_KEYS.REVIEW_MODEL]: "claude-opus-6",
+    };
+
+    const settings = await loadReviewSettings();
+
+    expect(settings.model).toBe("claude-opus-6");
+  });
+});

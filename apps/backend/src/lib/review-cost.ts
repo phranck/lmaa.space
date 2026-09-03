@@ -1,4 +1,4 @@
-import type { ReviewCost, ReviewUsage } from "@lmaa/shared";
+import type { ReviewCost, ReviewProviderName, ReviewUsage } from "@lmaa/shared";
 
 /**
  * Nano-units per whole currency unit.
@@ -41,6 +41,16 @@ export interface ReviewRateCardPrices {
  */
 export interface ReviewRateCard {
   version: string;
+  /**
+   * Provider whose published prices this card holds.
+   *
+   * @remarks
+   * A model belongs to exactly one provider, so this is also what says which
+   * provider owns each model the card prices. {@link reviewProviderForModel}
+   * is the lookup, and the settings hold the configured model against the
+   * configured provider with it.
+   */
+  provider: ReviewProviderName;
   /** Currency the provider bills in, which is what the stored amount counts. */
   currency: string;
   /** ISO 8601 date from which these prices and this conversion apply. */
@@ -138,6 +148,7 @@ const MISTRAL_DERIVATION: ReviewPriceDerivation = {
  */
 const REVIEW_RATE_CARD_V1: ReviewRateCard = {
   version: "anthropic-2026-08-15",
+  provider: "anthropic",
   currency: "USD",
   effectiveFrom: "2026-08-15",
   // 1 USD was 0.865 EUR on 2026-08-15. Pinned rather than fetched, because a
@@ -177,6 +188,7 @@ const REVIEW_RATE_CARD_V1: ReviewRateCard = {
  */
 const MISTRAL_RATE_CARD_V1: ReviewRateCard = {
   version: "mistral-2026-09-03",
+  provider: "mistral",
   currency: "USD",
   effectiveFrom: "2026-09-03",
   displayCurrency: "EUR",
@@ -227,6 +239,22 @@ export const DEFAULT_REVIEW_RATE_CARD = REVIEW_RATE_CARD_V1;
  */
 function reviewRateCardFor(model: string): ReviewRateCard | undefined {
   return CURRENT_REVIEW_RATE_CARDS.find((card) => card.prices[model] !== undefined);
+}
+
+/**
+ * Says which provider a model belongs to.
+ *
+ * @param model - Model identifier as its provider names it.
+ * @returns The provider that publishes it, or `undefined` for a model no
+ * current card knows.
+ *
+ * @remarks
+ * Read from the rate cards rather than from a table of its own, because they
+ * already enumerate every model a check may run on and a second list would
+ * disagree with them the first time a model was added to one of the two.
+ */
+export function reviewProviderForModel(model: string): ReviewProviderName | undefined {
+  return reviewRateCardFor(model)?.provider;
 }
 
 /**

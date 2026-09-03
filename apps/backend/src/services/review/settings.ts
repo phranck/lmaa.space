@@ -1,6 +1,8 @@
 import {
   REVIEW_AUTOMATION_MODES,
+  REVIEW_DEFAULT_PROVIDER,
   REVIEW_EFFORT_LEVELS,
+  REVIEW_PROVIDER_DEFAULT_MODELS,
   REVIEW_PROVIDERS,
   REVIEW_SETTING_DEFAULTS,
   SETTINGS_KEYS,
@@ -14,7 +16,8 @@ import type {
 } from "@lmaa/shared";
 
 import { resolveReviewEffort } from "./models.js";
-import { costLimitToNano } from "../../lib/review-cost.js";
+import { logger } from "../../lib/logger.js";
+import { costLimitToNano, reviewProviderForModel } from "../../lib/review-cost.js";
 import { getSettings } from "../../repositories/app-settings.js";
 
 /**
@@ -69,6 +72,33 @@ function readBoolean(raw: string | undefined): boolean {
 }
 
 /**
+ * Holds a configured model against the provider it will run on.
+ *
+ * @param provider - Provider the check is configured for.
+ * @param model - Model the operator configured.
+ * @returns The model where it belongs to that provider, and the provider's own
+ * default model where it does not.
+ *
+ * @remarks
+ * A model no card knows is left alone. It reaches its provider as configured
+ * and fails there with the provider's own wording, which is more useful than
+ * this quietly running something else.
+ */
+function resolveModelForProvider(provider: ReviewProviderName, model: string): string {
+  const owner = reviewProviderForModel(model);
+  if (owner === undefined || owner === provider) return model;
+
+  const fallback = REVIEW_PROVIDER_DEFAULT_MODELS[provider];
+  // Logged rather than silently corrected, because a setting that quietly
+  // works is a setting nobody goes and puts right.
+  logger.warn(
+    { provider, configuredModel: model, belongsTo: owner, using: fallback },
+    "review settings: the configured model belongs to another provider",
+  );
+  return fallback;
+}
+
+/**
  * Loads the automated review's configuration.
  *
  * @returns The settings, with defaults filled in for anything unsaved.
@@ -100,10 +130,20 @@ export async function loadReviewSettings(): Promise<ReviewSettings> {
 
   const templateId = readTemplateId(SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID);
 
-  const provider = readEnum(read(SETTINGS_KEYS.REVIEW_PROVIDER), REVIEW_PROVIDERS, "anthropic");
+  const provider = readEnum(
+    read(SETTINGS_KEYS.REVIEW_PROVIDER),
+    REVIEW_PROVIDERS,
+    REVIEW_DEFAULT_PROVIDER,
+  );
 
-  const model =
-    read(SETTINGS_KEYS.REVIEW_MODEL).trim() || REVIEW_SETTING_DEFAULTS[SETTINGS_KEYS.REVIEW_MODEL];
+  // The two settings are stored apart and can therefore disagree, and when they
+  // do the adapter for one provider is handed the other provider's model,
+  // submits it, and has it refused. The provider is what stands, because it
+  // decides which account is billed, so the model gives way instead.
+  const model = resolveModelForProvider(
+    provider,
+    read(SETTINGS_KEYS.REVIEW_MODEL).trim() || REVIEW_SETTING_DEFAULTS[SETTINGS_KEYS.REVIEW_MODEL],
+  );
 
   // Which levels a model accepts differs between models, so the stored level is
   // held against the model it will run on. Without this a level that was valid

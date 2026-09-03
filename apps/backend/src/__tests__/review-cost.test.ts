@@ -85,6 +85,7 @@ describe("calculateReviewCost", () => {
   it("prices against an older rate card without changing the current one", () => {
     const older = {
       version: "test-2020",
+      provider: "anthropic" as const,
       currency: "USD",
       effectiveFrom: "2020-01-01",
       displayCurrency: "EUR",
