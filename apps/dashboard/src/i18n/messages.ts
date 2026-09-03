@@ -1224,6 +1224,9 @@ export interface DashboardMessages {
       payeeIbanLabel: string;
       payeeBicLabel: string;
       payeeBicHint: string;
+      /** The card the three remittance texts stand in, beside the account. */
+      purposesTitle: string;
+      purposesHint: string;
       purposeDonationLabel: string;
       purposeSponsorLabel: string;
       purposePaypalLabel: string;
@@ -2951,6 +2954,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         payeeIbanLabel: "IBAN",
         payeeBicLabel: "BIC",
         payeeBicHint: "Innerhalb des EWR nicht nötig.",
+        purposesTitle: "Verwendungszwecke",
+        purposesHint:
+          "Was auf einer Zahlung steht. Der GiroCode schreibt es hinein, und die Übernahme erkennt daran, dass eine Zahlung diesem Projekt gehört.",
         purposeDonationLabel: "Verwendungszweck einer Spende",
         purposeSponsorLabel: "Verwendungszweck einer Sponsorschaft",
         purposePaypalLabel: "Notiz bei PayPal",
@@ -3080,8 +3086,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         connectedAtLabel: "Verbunden seit",
         consentValidUntilLabel: "Zustimmung gilt bis",
         valueAbsent: "-",
-        startFailed:
-          "Die Bank konnte nicht erreicht werden. Versuch es später noch einmal.",
+        startFailed: "Die Bank konnte nicht erreicht werden. Versuch es später noch einmal.",
         unconfiguredTitle: "Kein Zugang hinterlegt",
         unconfiguredHint:
           "Anwendungs-ID und privater Schlüssel liegen als Umgebungsvariablen in Zerops. Ohne beide bleibt die Verbindung aus.",
@@ -4709,6 +4714,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         payeeIbanLabel: "IBAN",
         payeeBicLabel: "BIC",
         payeeBicHint: "Not needed inside the EEA.",
+        purposesTitle: "Remittance texts",
+        purposesHint:
+          "What stands on a payment. The GiroCode writes it in, and it is what tells the ingestion that a payment belongs to this project.",
         purposeDonationLabel: "Remittance text for a donation",
         purposeSponsorLabel: "Remittance text for a sponsorship",
         purposePaypalLabel: "Note on PayPal",
