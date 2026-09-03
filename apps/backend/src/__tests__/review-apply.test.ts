@@ -132,6 +132,7 @@ function settings(overrides: Record<string, unknown> = {}) {
     reportTemplateId: null,
     notifyAcceptTemplateId: null,
     notifyRejectTemplateId: null,
+    socialTemplates: [],
     ...overrides,
   } as Parameters<typeof applyReviewResult>[0]["settings"];
 }

@@ -25,6 +25,7 @@ export const SETTINGS_KEYS = {
   REVIEW_REPORT_TEMPLATE_ID: "review.report.templateId",
   REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID: "review.notify.acceptTemplateId",
   REVIEW_NOTIFY_REJECT_TEMPLATE_ID: "review.notify.rejectTemplateId",
+  REVIEW_SOCIAL_TEMPLATES: "review.social.templates",
 } as const;
 
 export type SettingsKey = (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
@@ -56,6 +57,7 @@ export const SYSTEM_REVIEW_SETTINGS_KEYS = [
   SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID,
   SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID,
   SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID,
+  SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES,
 ] as const;
 
 /** All keys exposed to the system settings UI. */
@@ -142,6 +144,10 @@ export const REVIEW_SETTING_DEFAULTS = {
   // step that is taken by choosing what to write.
   [SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID]: "",
   [SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID]: "",
+  // Empty by default, which means nothing is posted. Each entry names an
+  // account and the template it posts with, and an account without an entry
+  // stays quiet.
+  [SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES]: "[]",
 } as const;
 
 /**

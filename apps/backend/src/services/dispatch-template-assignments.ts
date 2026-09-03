@@ -15,7 +15,10 @@ import { getSocialMediaPostTemplateById } from "../repositories/social-media-pos
  * given context. Each assignment is processed independently — failures are
  * recorded via `recordBackgroundError` and never abort the loop.
  *
- * @param adminUserId - Admin who triggered the dispatch (for sticky choice).
+ * @param adminUserId - Admin who triggered the dispatch, or `null` for the
+ *   automated check. The identifier is used for the sticky per-moderator
+ *   choice and for nothing else, so an automated dispatch simply remembers
+ *   nothing.
  * @param scope - Origin of the dispatch (`submission` or `category`); must
  *   be present in the template's `scopes` array for the post to fire.
  * @param assignments - Per-account template selections from the UI.
@@ -23,7 +26,7 @@ import { getSocialMediaPostTemplateById } from "../repositories/social-media-pos
  *   `postToMastodonAccount` / `postToBlueskyAccount` to render variables.
  */
 export async function dispatchTemplateAssignments(
-  adminUserId: number,
+  adminUserId: number | null,
   scope: SocialMediaPostTemplateScope,
   assignments: TemplateAssignment[],
   context: PostContext,
@@ -36,19 +39,23 @@ export async function dispatchTemplateAssignments(
 }
 
 async function dispatchTemplateAssignment(
-  adminUserId: number,
+  adminUserId: number | null,
   scope: SocialMediaPostTemplateScope,
   assignment: TemplateAssignment,
   context: PostContext,
 ): Promise<void> {
-  try {
-    await upsertChoice(adminUserId, assignment.accountId, assignment.templateId, scope);
-  } catch (err) {
-    await recordBackgroundError("template-choice-upsert", err, {
-      adminUserId,
-      accountId: assignment.accountId,
-      scope,
-    });
+  // The sticky choice is what a moderator's next dialogue opens with, so there
+  // is nothing to remember for a check nobody opened.
+  if (adminUserId !== null) {
+    try {
+      await upsertChoice(adminUserId, assignment.accountId, assignment.templateId, scope);
+    } catch (err) {
+      await recordBackgroundError("template-choice-upsert", err, {
+        adminUserId,
+        accountId: assignment.accountId,
+        scope,
+      });
+    }
   }
 
   if (assignment.templateId === null) return;

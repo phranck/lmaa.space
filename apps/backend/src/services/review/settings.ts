@@ -1,3 +1,14 @@
+
+import { z } from "zod";
+
+import { templateAssignmentSchema } from "@lmaa/contracts";
+import type { TemplateAssignment } from "@lmaa/contracts";
+import type {
+  ReviewAutomationMode,
+  ReviewAutoApplyVerdict,
+  ReviewEffortLevel,
+  ReviewProviderName,
+} from "@lmaa/shared";
 import {
   REVIEW_AUTOMATION_MODES,
   REVIEW_DEFAULT_PROVIDER,
@@ -7,12 +18,6 @@ import {
   REVIEW_SETTING_DEFAULTS,
   SETTINGS_KEYS,
   SYSTEM_REVIEW_SETTINGS_KEYS,
-} from "@lmaa/shared";
-import type {
-  ReviewAutomationMode,
-  ReviewAutoApplyVerdict,
-  ReviewEffortLevel,
-  ReviewProviderName,
 } from "@lmaa/shared";
 
 import { resolveReviewEffort } from "./models.js";
@@ -50,6 +55,33 @@ export interface ReviewSettings {
   notifyAcceptTemplateId: number | null;
   /** Template an automatic rejection is written with, or `null` when none is chosen. */
   notifyRejectTemplateId: number | null;
+  /**
+   * Which social account posts an automatic admission, and with which template.
+   *
+   * @remarks
+   * Empty unless somebody chose one, and an account whose entry carries no
+   * template stays quiet. The same shape the manual admission sends, so both
+   * go through one dispatch.
+   */
+  socialTemplates: TemplateAssignment[];
+}
+
+/**
+ * The stored social choices, which are whatever the settings table holds.
+ *
+ * @remarks
+ * Parsed rather than trusted: the table takes any string, and a malformed value
+ * must mean that nothing is posted rather than that a check fails.
+ */
+const socialTemplatesSchema = z.array(templateAssignmentSchema);
+
+function readSocialTemplates(raw: string): TemplateAssignment[] {
+  try {
+    const parsed = socialTemplatesSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : [];
+  } catch {
+    return [];
+  }
 }
 
 function readEnum<T extends string>(
@@ -171,5 +203,6 @@ export async function loadReviewSettings(): Promise<ReviewSettings> {
     reportTemplateId: templateId,
     notifyAcceptTemplateId: readTemplateId(SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID),
     notifyRejectTemplateId: readTemplateId(SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID),
+    socialTemplates: readSocialTemplates(read(SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES)),
   };
 }

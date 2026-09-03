@@ -267,6 +267,69 @@ describe("admin-submissions service", () => {
     );
   });
 
+  it("dispatches for an automatic admission, which has no moderator", async () => {
+    // The check approves with `adminId: null`. Requiring a moderator here is
+    // what kept every automatic admission from ever announcing itself.
+    const submission = {
+      id: 6,
+      shopName: "Tea Shop",
+      shopUrl: "https://tea.example",
+      ogImage: "https://cdn.example.com/preview.png",
+    };
+    reviewSubmission.mockResolvedValue({
+      submission,
+      newShop: { id: 18, url: "https://tea.example" },
+      conflict: null,
+    });
+    getSubmissionCategoryNames.mockResolvedValue(["Tea"]);
+    dispatchTemplateAssignments.mockResolvedValue(undefined);
+    const service = await loadServiceModule();
+
+    await service.reviewAdminSubmission({
+      id: 6,
+      status: "approved",
+      adminId: null,
+      templateAssignments: [{ accountId: 50, templateId: 12 }],
+    });
+
+    await flushPromises();
+
+    expect(dispatchTemplateAssignments).toHaveBeenCalledWith(
+      null,
+      "submission",
+      [{ accountId: 50, templateId: 12 }],
+      expect.objectContaining({ kind: "submission", newShopId: 18 }),
+    );
+  });
+
+  it("posts nothing when no template was chosen for the check", async () => {
+    // An empty list is the state the settings start in, and it has to stay
+    // silent rather than post with whatever a moderator last picked.
+    const submission = {
+      id: 7,
+      shopName: "Quiet Shop",
+      shopUrl: "https://quiet.example",
+      ogImage: "https://cdn.example.com/preview.png",
+    };
+    reviewSubmission.mockResolvedValue({
+      submission,
+      newShop: { id: 19, url: "https://quiet.example" },
+      conflict: null,
+    });
+    const service = await loadServiceModule();
+
+    await service.reviewAdminSubmission({
+      id: 7,
+      status: "approved",
+      adminId: null,
+      templateAssignments: [],
+    });
+
+    await flushPromises();
+
+    expect(dispatchTemplateAssignments).not.toHaveBeenCalled();
+  });
+
   it("does not dispatch when status is not approved", async () => {
     const submission = {
       id: 8,

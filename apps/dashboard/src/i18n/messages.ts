@@ -1442,6 +1442,11 @@ export interface DashboardMessages {
         autoApplyBlocked: string;
         providerLabel: string;
         providerHint: string;
+        notifyTitle: string;
+        socialTitle: string;
+        socialHint: string;
+        socialNoPost: string;
+        socialNoAccounts: string;
         modelLabel: string;
         modelHint: string;
         modelLoading: string;
@@ -3202,6 +3207,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           notifyAcceptTemplateLabel: "E-Mail bei automatischer Aufnahme",
           notifyRejectTemplateLabel: "E-Mail bei automatischer Ablehnung",
           autoApplyBlocked: "Nur im Modus Unterstützend verfügbar.",
+          notifyTitle: "E-Mail an die vorschlagende Person",
+          socialTitle: "Beitrag bei automatischer Aufnahme",
+          socialHint:
+            "Je Konto die Vorlage, mit der die Automatik eine Aufnahme ankündigt. Ohne Vorlage wird auf diesem Konto nichts gepostet.",
+          socialNoPost: "Kein Beitrag",
+          socialNoAccounts: "Es ist kein sendebereites Konto eingerichtet.",
           providerLabel: "Anbieter",
           providerHint:
             "Bestimmt, welche Modelle zur Auswahl stehen und welcher Schlüssel in der Umgebung gebraucht wird. Ein Wechsel setzt das Modell zurück, weil ein Modell immer zu genau einem Anbieter gehört.",
@@ -4958,6 +4969,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           notifyAcceptTemplateLabel: "Email on an automatic admission",
           notifyRejectTemplateLabel: "Email on an automatic rejection",
           autoApplyBlocked: "Available in Assist mode only.",
+          notifyTitle: "Email to whoever suggested the shop",
+          socialTitle: "Post on an automatic admission",
+          socialHint:
+            "The template each account announces an admission with. Without one, that account posts nothing.",
+          socialNoPost: "No post",
+          socialNoAccounts: "No account is set up to post.",
           providerLabel: "Provider",
           providerHint:
             "Decides which models are on offer and which key the environment needs. Changing it resets the model, because a model belongs to exactly one provider.",

@@ -1,6 +1,12 @@
-import { CurrencyDollarIcon, EnvelopeIcon, RobotIcon } from "@phosphor-icons/react";
+import {
+  CurrencyDollarIcon,
+  EnvelopeIcon,
+  RobotIcon,
+  ShareNetworkIcon,
+} from "@phosphor-icons/react";
 import { memo, useCallback, useMemo, useState } from "react";
 
+import type { TemplateAssignment } from "@lmaa/contracts";
 import {
   REVIEW_EFFORT_LEVELS,
   REVIEW_PROVIDER_LABELS,
@@ -30,6 +36,7 @@ import {
   useSystemSettings,
 } from "./hooks/useSystemSettings.ts";
 import { resolveReviewModelChoice } from "./review-model-choice.ts";
+import { ReviewSocialTemplates } from "./ReviewSocialTemplates.tsx";
 
 const EDITED_KEYS = [
   SETTINGS_KEYS.REVIEW_MODE,
@@ -45,6 +52,7 @@ const EDITED_KEYS = [
   SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID,
   SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID,
   SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID,
+  SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES,
 ] as const;
 
 /** The settings this tab edits, as the strings they are stored as. */
@@ -101,6 +109,16 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
   }
 
   const selectedProvider = draft[SETTINGS_KEYS.REVIEW_PROVIDER] as ReviewProviderName;
+  // Stored as JSON in one setting, so a malformed value means nothing is posted
+  // rather than a settings page that will not render.
+  const socialTemplates = useMemo<TemplateAssignment[]>(() => {
+    try {
+      const parsed: unknown = JSON.parse(draft[SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES] || "[]");
+      return Array.isArray(parsed) ? (parsed as TemplateAssignment[]) : [];
+    } catch {
+      return [];
+    }
+  }, [draft]);
   // Follows the draft rather than what is saved, so the model list changes with
   // the field instead of only after the form has been submitted.
   const { data: models, isLoading: modelsLoading } = useReviewModels(selectedProvider);
@@ -284,67 +302,100 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
           </DashboardSection>
         </div>
 
-        {/* Only rendered in assist mode, because that is the only mode it affects. */}
+        {/* All three are rendered in assist mode only, because that is the
+            only mode they affect. */}
         {assistMode ? (
-          <div className="break-inside-avoid pb-6">
-            <DashboardSection>
-              <DashboardSection.Header
-                icon={<RobotIcon weight="duotone" className="size-4" />}
-                title={t.autoApplyTitle}
-              />
-              <DashboardSection.Body className="flex flex-col gap-3">
-                <p className={introClass}>{t.autoApplyHint}</p>
-                <div className="flex items-center justify-between gap-4">
-                  <span className={rowLabelClass}>{t.autoApplyAccept}</span>
-                  <ToggleSwitch
-                    checked={draft[SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT] === "true"}
-                    disabled={saving}
-                    onChange={(next) =>
-                      set(SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT, next ? "true" : "false")
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className={rowLabelClass}>{t.autoApplyReject}</span>
-                  <ToggleSwitch
-                    checked={draft[SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT] === "true"}
-                    disabled={saving}
-                    onChange={(next) =>
-                      set(SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT, next ? "true" : "false")
-                    }
-                  />
-                </div>
-
-                {/* No switch beside these: the chosen template is the switch,
-                    and nothing is written whilst none is chosen. */}
-                <p className={introClass}>{t.notifyHint}</p>
-
-                <DashboardCombobox
-                  id="review-notify-accept-template"
-                  fullWidth
-                  label={t.notifyAcceptTemplateLabel}
-                  disabled={templatesLoading || saving}
-                  value={draft[SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID]}
-                  onValueChange={(value) =>
-                    set(SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID, value)
-                  }
-                  options={templateOptions}
+          <>
+            <div className="break-inside-avoid pb-6">
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<RobotIcon weight="duotone" className="size-4" />}
+                  title={t.autoApplyTitle}
                 />
+                <DashboardSection.Body className="flex flex-col gap-3">
+                  <p className={introClass}>{t.autoApplyHint}</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className={rowLabelClass}>{t.autoApplyAccept}</span>
+                    <ToggleSwitch
+                      checked={draft[SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT] === "true"}
+                      disabled={saving}
+                      onChange={(next) =>
+                        set(SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT, next ? "true" : "false")
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className={rowLabelClass}>{t.autoApplyReject}</span>
+                    <ToggleSwitch
+                      checked={draft[SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT] === "true"}
+                      disabled={saving}
+                      onChange={(next) =>
+                        set(SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT, next ? "true" : "false")
+                      }
+                    />
+                  </div>
+                </DashboardSection.Body>
+              </DashboardSection>
+            </div>
 
-                <DashboardCombobox
-                  id="review-notify-reject-template"
-                  fullWidth
-                  label={t.notifyRejectTemplateLabel}
-                  disabled={templatesLoading || saving}
-                  value={draft[SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID]}
-                  onValueChange={(value) =>
-                    set(SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID, value)
-                  }
-                  options={templateOptions}
+            <div className="break-inside-avoid pb-6">
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<EnvelopeIcon weight="duotone" className="size-4" />}
+                  title={t.notifyTitle}
                 />
-              </DashboardSection.Body>
-            </DashboardSection>
-          </div>
+                <DashboardSection.Body className="flex flex-col gap-3">
+                  {/* No switch beside these: the chosen template is the switch,
+                      and nothing is written whilst none is chosen. */}
+                  <p className={introClass}>{t.notifyHint}</p>
+
+                  <DashboardCombobox
+                    id="review-notify-accept-template"
+                    fullWidth
+                    label={t.notifyAcceptTemplateLabel}
+                    disabled={templatesLoading || saving}
+                    value={draft[SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID]}
+                    onValueChange={(value) =>
+                      set(SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID, value)
+                    }
+                    options={templateOptions}
+                  />
+
+                  <DashboardCombobox
+                    id="review-notify-reject-template"
+                    fullWidth
+                    label={t.notifyRejectTemplateLabel}
+                    disabled={templatesLoading || saving}
+                    value={draft[SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID]}
+                    onValueChange={(value) =>
+                      set(SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID, value)
+                    }
+                    options={templateOptions}
+                  />
+                </DashboardSection.Body>
+              </DashboardSection>
+            </div>
+
+            <div className="break-inside-avoid pb-6">
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<ShareNetworkIcon weight="duotone" className="size-4" />}
+                  title={t.socialTitle}
+                />
+                <DashboardSection.Body className="flex flex-col gap-3">
+                  <p className={introClass}>{t.socialHint}</p>
+
+                  <ReviewSocialTemplates
+                    assignments={socialTemplates}
+                    onChange={(next) =>
+                      set(SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES, JSON.stringify(next))
+                    }
+                    disabled={saving}
+                  />
+                </DashboardSection.Body>
+              </DashboardSection>
+            </div>
+          </>
         ) : null}
 
         <div className="break-inside-avoid pb-6">
