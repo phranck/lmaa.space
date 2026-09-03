@@ -55,6 +55,20 @@ export const bankConnectionStatusSchema = z.object({
   consentValidUntil: z.string().nullable(),
   /** When the connection in force was made, or `null` where there is none. */
   connectedAt: z.string().nullable(),
+  /**
+   * The last four characters of the account identifier, empty whilst
+   * unconnected.
+   *
+   * Enough to recognise which account this is and not enough to pass on. The
+   * whole identifier stays in the database, as the session does.
+   */
+  accountSuffix: z.string(),
+  /** When the account was last read, or `null` before the first time. */
+  lastReadAt: z.string().nullable(),
+  /** Whether that read finished. `null` where there has been none. */
+  lastReadSucceeded: z.boolean().nullable(),
+  /** How many payments that read took into the ledger. */
+  lastReadImported: z.number().int(),
 });
 
 /** Where to send the browser so the person can identify themselves. */

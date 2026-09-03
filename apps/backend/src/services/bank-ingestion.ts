@@ -1,5 +1,6 @@
 import { normalizeCreditorReference } from "@lmaa/shared";
 
+import { announceConsentRefused, announceConsentStage } from "./bank-consent.js";
 import { fetchTransactions, type BankTransaction } from "./enable-banking-client.js";
 import { takeOverPendingSponsorshipByReference } from "./pending-sponsorships.js";
 import { env } from "../config/env.js";
@@ -229,6 +230,9 @@ export async function runBankIngestion(kind: BankReadKind): Promise<BankIngestio
   const now = new Date();
   if (connection.consentValidUntil && connection.consentValidUntil.getTime() <= now.getTime()) {
     logger.warn({ event: "bank_ingestion.consent_expired" }, "bank consent has lapsed");
+    // What actually happened rather than what the date predicted, so the owner
+    // is told even where the bank withdrew earlier than it promised.
+    await announceConsentRefused();
     return { ran: false, reason: "consent_expired" };
   }
 
@@ -298,18 +302,27 @@ export async function runBankIngestion(kind: BankReadKind): Promise<BankIngestio
 }
 
 /**
- * Starts the background run, and does one at once.
+ * Starts everything the bank connection does on its own, and does one round at
+ * once.
  *
  * @returns The timer, so shutting down can stop it.
  *
  * @remarks
- * The interval is not what keeps the run inside its cap. A deployment restarts
+ * Two jobs on one timer, because both are about the same connection and both
+ * want the same rhythm. The warning about a lapsing consent goes first and runs
+ * whatever the read then does, since a consent that has run out is exactly when
+ * the read will not happen.
+ *
+ * The interval is not what keeps the read inside its cap. A deployment restarts
  * it, and two containers briefly hold one each, so the cap comes from the
  * stored reads that `claimBankRead` counts. The interval only decides how often
  * the question is asked.
  */
-export function startBankIngestion(): NodeJS.Timeout {
+export function startBankWorker(): NodeJS.Timeout {
   const tick = () => {
+    void announceConsentStage().catch((error) => {
+      logger.error({ err: error }, "bank consent warning failed");
+    });
     void runBankIngestion("background").catch((error) => {
       logger.error({ err: error }, "bank ingestion failed");
     });
@@ -317,6 +330,6 @@ export function startBankIngestion(): NodeJS.Timeout {
 
   tick();
   const timer = setInterval(tick, BACKGROUND_INTERVAL_MS);
-  logger.info({ intervalMs: BACKGROUND_INTERVAL_MS }, "bank ingestion started");
+  logger.info({ intervalMs: BACKGROUND_INTERVAL_MS }, "bank worker started");
   return timer;
 }

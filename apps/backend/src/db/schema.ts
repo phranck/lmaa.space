@@ -1456,6 +1456,14 @@ export const bankConnections = pgTable(
     consentValidUntil: timestamp("consent_valid_until"),
     /** When this connection was replaced or withdrawn; null whilst it is live. */
     revokedAt: timestamp("revoked_at"),
+    /**
+     * The furthest warning about this consent that has already gone out.
+     *
+     * Null until the first one. It sits on the connection rather than in a
+     * timer so a restart or a second container cannot send a stage twice, and a
+     * renewal starts a new row, which starts the staircase again from nothing.
+     */
+    consentNoticeStage: text("consent_notice_stage"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [

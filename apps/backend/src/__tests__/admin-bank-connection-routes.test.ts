@@ -6,6 +6,7 @@ vi.mock("../config/env.js", () => ({
 }));
 
 vi.mock("../middleware/auth.js", () => ({
+  requireAdmin: vi.fn((_c: unknown, next: () => Promise<void>) => next()),
   requireOwner: vi.fn((_c: unknown, next: () => Promise<void>) => next()),
 }));
 
@@ -23,6 +24,7 @@ const clientMocks = vi.hoisted(() => ({
 vi.mock("../services/bank-connection.js", () => serviceMocks);
 vi.mock("../services/enable-banking-client.js", () => clientMocks);
 
+import { requireAdmin, requireOwner } from "../middleware/auth.js";
 import { bankConnectionRoutes } from "../routes/admin/bank-connection.js";
 
 /** A value of the shape and length the site issues. */
@@ -36,6 +38,10 @@ const disconnected = {
   institutionCountry: "",
   consentValidUntil: null,
   connectedAt: null,
+  accountSuffix: "",
+  lastReadAt: null,
+  lastReadSucceeded: null,
+  lastReadImported: 0,
 };
 
 function makeApp() {
@@ -67,6 +73,18 @@ describe("bank connection routes", () => {
 
     expect(response.status).toBe(200);
     expect((await response.json()).data).toEqual(disconnected);
+  });
+
+  it("lets an admin read the status, and only the owner act", async () => {
+    // Reading is a status anybody keeping the books may see. Everything that
+    // reaches the bank account belongs to the owner alone.
+    await makeApp().request("/bank-connection");
+    expect(requireAdmin).toHaveBeenCalled();
+    expect(requireOwner).not.toHaveBeenCalled();
+
+    vi.clearAllMocks();
+    await makeApp().request("/bank-connection/sync", { method: "POST" });
+    expect(requireOwner).toHaveBeenCalled();
   });
 
   it("hands out the address to send the browser to", async () => {

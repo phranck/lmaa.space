@@ -19,8 +19,15 @@ const repositoryMocks = vi.hoisted(() => ({
   takeAuthorizationState: vi.fn(),
 }));
 
+const readMocks = vi.hoisted(() => ({ getLastBankRead: vi.fn() }));
+
 vi.mock("../services/enable-banking-client.js", () => clientMocks);
 vi.mock("../repositories/bank-connections.js", () => repositoryMocks);
+vi.mock("../repositories/bank-reads.js", () => readMocks);
+vi.mock("../services/bank-consent.js", () => ({
+  announceConsentRefused: vi.fn(),
+  announceConsentStage: vi.fn(),
+}));
 
 import { HttpError } from "../lib/http.js";
 import {
@@ -50,6 +57,7 @@ describe("the bank connection", () => {
     vi.clearAllMocks();
     clientMocks.isEnableBankingConfigured.mockReturnValue(true);
     clientMocks.closeSession.mockResolvedValue(undefined);
+    readMocks.getLastBankRead.mockResolvedValue(null);
     repositoryMocks.insertAuthorizationState.mockImplementation(
       async (state: string, authorizationId: string, expiresAt: Date) => ({
         state,
@@ -71,6 +79,10 @@ describe("the bank connection", () => {
         institutionCountry: "",
         consentValidUntil: null,
         connectedAt: null,
+        accountSuffix: "",
+        lastReadAt: null,
+        lastReadSucceeded: null,
+        lastReadImported: 0,
       });
     });
 

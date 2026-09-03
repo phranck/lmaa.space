@@ -9,7 +9,7 @@ import {
   startAuthorization,
 } from "./enable-banking-client.js";
 import { env } from "../config/env.js";
-import type { BankConnectionRow } from "../db/schema.js";
+import type { BankAccountReadRow, BankConnectionRow } from "../db/schema.js";
 import { HttpError } from "../lib/http.js";
 import { logger } from "../lib/logger.js";
 import {
@@ -19,6 +19,7 @@ import {
   revokeLiveBankConnection,
   takeAuthorizationState,
 } from "../repositories/bank-connections.js";
+import { getLastBankRead } from "../repositories/bank-reads.js";
 
 /**
  * How many random bytes the value carried through the return is made of.
@@ -67,12 +68,23 @@ const CALLBACK_PATH = "/bank-connection/callback";
 const EXPECTED_ACCOUNT_COUNT = 1;
 
 /**
+ * How many characters of the account identifier the dashboard is shown.
+ *
+ * Four, which is what a person recognises their own account by and what a
+ * statement prints. Any more would be passing the identifier on in instalments.
+ */
+const ACCOUNT_SUFFIX_LENGTH = 4;
+
+/**
  * Turns the stored connection into what the dashboard shows.
  *
  * @param connection - The connection in force, or `null` where there is none.
  * @returns The status, which carries nothing that could reach the account.
  */
-function toStatus(connection: BankConnectionRow | null): BankConnectionStatus {
+function toStatus(
+  connection: BankConnectionRow | null,
+  lastRead: BankAccountReadRow | null = null,
+): BankConnectionStatus {
   return {
     configured: isEnableBankingConfigured(),
     connected: connection !== null,
@@ -80,6 +92,12 @@ function toStatus(connection: BankConnectionRow | null): BankConnectionStatus {
     institutionCountry: connection?.aspspCountry ?? "",
     consentValidUntil: connection?.consentValidUntil?.toISOString() ?? null,
     connectedAt: connection?.createdAt.toISOString() ?? null,
+    // Four characters, which is enough to recognise the account and not enough
+    // to pass on. The identifier itself never leaves the database.
+    accountSuffix: connection ? connection.accountUid.slice(-ACCOUNT_SUFFIX_LENGTH) : "",
+    lastReadAt: lastRead?.readAt.toISOString() ?? null,
+    lastReadSucceeded: lastRead?.succeeded ?? null,
+    lastReadImported: lastRead?.imported ?? 0,
   };
 }
 
@@ -95,7 +113,8 @@ function toStatus(connection: BankConnectionRow | null): BankConnectionStatus {
  * what it knows rather than nothing.
  */
 export async function getBankConnectionStatus(): Promise<BankConnectionStatus> {
-  return toStatus(await getLiveBankConnection());
+  const [connection, lastRead] = await Promise.all([getLiveBankConnection(), getLastBankRead()]);
+  return toStatus(connection, lastRead);
 }
 
 /**

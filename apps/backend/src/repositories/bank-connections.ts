@@ -121,6 +121,23 @@ export async function replaceBankConnection(
 }
 
 /**
+ * Records the furthest warning that has gone out about this consent.
+ *
+ * @param id - The connection the warning was about.
+ * @param stage - The rung reached.
+ *
+ * @remarks
+ * Written after the warning was sent rather than before, so one that failed to
+ * go out is tried again at the next tick instead of being counted as said.
+ */
+export async function setConsentNoticeStage(id: string, stage: string): Promise<void> {
+  await db
+    .update(bankConnections)
+    .set({ consentNoticeStage: stage })
+    .where(eq(bankConnections.id, id));
+}
+
+/**
  * Retires the connection in force, leaving the site with none.
  *
  * @param now - The moment it stopped being current.
