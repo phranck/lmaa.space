@@ -231,8 +231,8 @@ Gib genau zwei Markdown-Codeblöcke aus, durch eine Leerzeile getrennt:
    `## Ablehnungsgründe`, passenden `###`-Unterabschnitten, `## Schluss` und
    `### Quellen`.
 
-Konkrete Fakten erhalten Fußnoten `[^N]`. Jede Quelle ist eine überprüfbare URL
-im Format `[^N]: [Beschreibung](URL), Stand: $DATUM`. Registerdaten, Sitz und
+Konkrete Fakten erhalten Quellenverweise `[n]`. Jede Quelle ist eine überprüfbare URL
+im Format `[n] URL — Beschreibung, Stand: $DATUM`. Registerdaten, Sitz und
 Konzernzugehörigkeit werden immer belegt. `[REJECT_TOKEN]` bleibt exakt stehen.
 
 ## Pitfalls
@@ -251,8 +251,8 @@ Konzernzugehörigkeit werden immer belegt. `[REJECT_TOKEN]` bleibt exakt stehen.
 
 - Alle acht Kriterien wurden intern mit `✓`, `✗` oder `~` bewertet.
 - Ablehnung: beide Blöcke, intakter Token, 300 bis 500 Wörter und mindestens fünf
-  unterschiedliche überprüfbare URLs; jede harte Tatsachenbehauptung hat eine
-  Fußnote.
+  unterschiedliche überprüfbare URLs; jede harte Tatsachenbehauptung hat einen
+  Quellenverweis.
 - Aufnahme: JSON-Parsing erfolgreich; jedes Schemafeld vorhanden oder explizit
   leer; Koordinatenkaskade ausgeschöpft; nur kanonische Versand- und
   Paymentwerte.
