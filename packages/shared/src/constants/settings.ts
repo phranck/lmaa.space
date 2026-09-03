@@ -109,6 +109,19 @@ export const REVIEW_PROVIDERS = ["anthropic", "mistral"] as const;
 export type ReviewProviderName = (typeof REVIEW_PROVIDERS)[number];
 
 /**
+ * How each provider is named on screen.
+ *
+ * @remarks
+ * Beside the list rather than in the locale files, because these are company
+ * names and read the same in every language. Keeping them here also means a
+ * provider cannot be added to the list without being given a name.
+ */
+export const REVIEW_PROVIDER_LABELS: Readonly<Record<ReviewProviderName, string>> = {
+  anthropic: "Anthropic",
+  mistral: "Mistral",
+};
+
+/**
  * Reasoning effort levels the review may be configured with.
  *
  * @remarks
