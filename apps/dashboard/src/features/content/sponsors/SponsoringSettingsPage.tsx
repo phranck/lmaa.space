@@ -160,9 +160,15 @@ export function SponsoringSettingsPage() {
 
       <PageBody className="overflow-y-auto">
         {/* The items on the left and the payee on the right, because the list
-            is read down whilst the three lines beside it are read across. */}
+            is read down whilst the three lines beside it are read across.
+            
+            The `min-w-0` on both columns and on every field is what keeps them
+            inside the page. A grid item is at least as wide as its content, and
+            a text input carries an intrinsic width of about twenty characters
+            whatever `w-full` says, so without it a column widens past its track
+            and takes the card with it. */}
         <div className="grid gap-4 md:grid-cols-7 items-start">
-          <div className="grid gap-4 md:col-span-3">
+          <div className="grid gap-4 md:col-span-3 min-w-0">
             <DashboardSection>
               <DashboardSection.Header
                 icon={<CoinsIcon weight="duotone" className="size-4" />}
@@ -264,7 +270,7 @@ export function SponsoringSettingsPage() {
             </DashboardSection>
           </div>
 
-          <div className="grid gap-4 md:col-span-4">
+          <div className="grid gap-4 md:col-span-4 min-w-0">
             <DashboardSection>
               <DashboardSection.Header
                 icon={<BankIcon weight="duotone" className="size-4" />}
@@ -272,7 +278,7 @@ export function SponsoringSettingsPage() {
                 subtitle={text.payeeHint}
               />
               <DashboardSection.Body>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2 [&>*]:min-w-0">
                   <DashboardInput
                     label={text.payeeNameLabel}
                     hint={<VariableHint name="payeeName" />}
@@ -309,7 +315,7 @@ export function SponsoringSettingsPage() {
                 subtitle={text.purposesHint}
               />
               <DashboardSection.Body>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2 [&>*]:min-w-0">
                   <DashboardInput
                     label={text.purposeDonationLabel}
                     hint={<VariableHint name="purposeDonation" />}
