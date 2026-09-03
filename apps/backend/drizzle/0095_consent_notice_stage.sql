@@ -1,0 +1,1 @@
+ALTER TABLE "bank_connections" ADD COLUMN "consent_notice_stage" text;

@@ -27,6 +27,7 @@ import {
   windowForPreset,
 } from "./donation-chart-window.ts";
 import { useDonationBreakdown, useDonationTotals } from "./hooks/useDonations.ts";
+import { BankConnectionCard } from "../../system/bank-connection/BankConnectionCard.tsx";
 import { useSponsoringConfig } from "../sponsors/hooks/useSponsors.ts";
 
 /** Which of the two views of the same figures the time series draws. */
@@ -208,6 +209,10 @@ export function DonationChartsPage() {
               </div>
             </DashboardSection.Body>
           </DashboardSection>
+
+          {/* Beneath the figures, because it says whether they are still being
+              kept up to date. */}
+          <BankConnectionCard />
 
           {isLoading && (
             <DashboardSection className="overflow-hidden">

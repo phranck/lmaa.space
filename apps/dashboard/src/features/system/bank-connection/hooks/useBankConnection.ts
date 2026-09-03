@@ -57,6 +57,34 @@ export function useCompleteBankAuthorization() {
   });
 }
 
+/** What a run over the account did, or why it did nothing. */
+export type BankSyncResult =
+  | { ran: true; from: string; to: string; read: number; imported: number; skipped: number }
+  | { ran: false; reason: string };
+
+/**
+ * Reads the account now rather than waiting for the next background run.
+ *
+ * @returns The mutation. Its result says what the run found, or why it did
+ *   nothing, which is an ordinary answer rather than a failure.
+ *
+ * @remarks
+ * Invalidates the ledger as well as the connection, because a run that took
+ * payments in has changed what every figure on the income page adds up to.
+ */
+export function useSyncBank() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.post<BankSyncResult>("/admin/bank-connection/sync"),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: BANK_CONNECTION_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["donations"] });
+      void queryClient.invalidateQueries({ queryKey: ["donation-totals"] });
+      void queryClient.invalidateQueries({ queryKey: ["donation-breakdown"] });
+    },
+  });
+}
+
 /**
  * Lets the account go and ends the consent behind it.
  *

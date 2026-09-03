@@ -74,6 +74,7 @@ export default {
         files: [
           "src/components/layout/Sidebar.tsx",
           "src/features/content/donations/DonationChartsPage.tsx",
+          "src/features/system/bank-connection/BankConnectionCard.tsx",
           "src/features/system/bank-connection/BankConnectionPage.tsx",
         ],
         rules: ["react-doctor/jsx-no-jsx-as-prop"],

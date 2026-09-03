@@ -666,6 +666,13 @@
       "when": 1788392572707,
       "tag": "0094_bank_ingestion",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1788396124775,
+      "tag": "0095_consent_notice_stage",
+      "breakpoints": true
     }
   ]
 }

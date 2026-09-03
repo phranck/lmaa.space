@@ -1330,6 +1330,18 @@ export interface DashboardMessages {
       disconnectFailed: string;
       /** The site let go, and the bank would not close the consent behind it. */
       disconnectPartial: string;
+      /** The same connection, shown beside the figures it keeps current. */
+      cardTitle: string;
+      cardHint: string;
+      accountLabel: string;
+      lastReadLabel: string;
+      lastReadNever: string;
+      lastReadFailed: string;
+      /** Follows a count, as in "3 Zahlungen übernommen". */
+      lastReadImported: string;
+      syncNow: string;
+      syncing: string;
+      syncFailed: string;
       institutionLabel: string;
       connectedAtLabel: string;
       consentValidUntilLabel: string;
@@ -3053,6 +3065,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         disconnectFailed: "Das Trennen hat nicht geklappt. Versuch es später noch einmal.",
         disconnectPartial:
           "Getrennt. Die Zustimmung bei der Bank liess sich nicht schliessen und läuft von selbst ab.",
+        cardTitle: "Bankverbindung",
+        cardHint:
+          "Über diese Verbindung führen sich die Zahlen oben von selbst nach. Läuft sie ab, bleiben sie stehen.",
+        accountLabel: "Konto",
+        lastReadLabel: "Zuletzt gelesen",
+        lastReadNever: "Noch nie",
+        lastReadFailed: "fehlgeschlagen",
+        lastReadImported: "übernommen",
+        syncNow: "Jetzt abrufen",
+        syncing: "Wird abgerufen …",
+        syncFailed: "Der Abruf hat nicht geklappt. Versuch es später noch einmal.",
         institutionLabel: "Bank",
         connectedAtLabel: "Verbunden seit",
         consentValidUntilLabel: "Zustimmung gilt bis",
@@ -4799,6 +4822,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         disconnectFailed: "Disconnecting did not work. Try again later.",
         disconnectPartial:
           "Disconnected. The consent at the bank could not be closed and will lapse on its own.",
+        cardTitle: "Bank connection",
+        cardHint:
+          "The figures above keep themselves current through this connection. Once it lapses, they stand still.",
+        accountLabel: "Account",
+        lastReadLabel: "Last read",
+        lastReadNever: "Never",
+        lastReadFailed: "failed",
+        lastReadImported: "taken in",
+        syncNow: "Read now",
+        syncing: "Reading …",
+        syncFailed: "The read did not work. Try again later.",
         institutionLabel: "Bank",
         connectedAtLabel: "Connected since",
         consentValidUntilLabel: "Consent lasts until",

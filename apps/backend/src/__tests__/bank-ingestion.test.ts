@@ -33,6 +33,10 @@ vi.mock("../repositories/bank-connections.js", () => ({
 vi.mock("../repositories/donations.js", () => ({
   insertDonation: repositoryMocks.insertDonation,
 }));
+vi.mock("../services/bank-consent.js", () => ({
+  announceConsentRefused: vi.fn(),
+  announceConsentStage: vi.fn(),
+}));
 
 import {
   carriesSiteMarker,

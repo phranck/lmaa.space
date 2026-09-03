@@ -92,6 +92,25 @@ export async function getAdminUserById(id: number): Promise<AdminUserRow | null>
 }
 
 /**
+ * Finds the owner, who is the one account a background job writes to.
+ *
+ * @returns The owner, or `null` before the first account exists.
+ *
+ * @remarks
+ * There is one. The role is what `requireOwner` reads, and nothing in the
+ * dashboard offers a way to make a second, so this takes the first row and
+ * means the only one.
+ */
+export async function getOwner(): Promise<AdminUserRow | null> {
+  const [row] = await db
+    .select(ADMIN_USER_FIELDS)
+    .from(adminUsers)
+    .where(eq(adminUsers.role, "owner"))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
  * Creates one admin user row.
  *
  * @param input - Validated create payload with hashed password.

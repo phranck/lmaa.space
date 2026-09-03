@@ -93,6 +93,12 @@ Steht die Verbindung, liest ein Hintergrundlauf alle sechs Stunden die Eingänge
 
 Wie oft gelesen werden darf, steht in Artikel 36 Absatz 5 der Delegierten Verordnung (EU) 2018/389: viermal in 24 Stunden, solange der Kontoinhaber nicht selbst fragt. Der Zähler kommt aus der Tabelle `bank_account_reads` statt aus einem Timer, denn ein Deployment startet einen Timer neu und lässt kurz zwei Container mit je einem laufen. `POST /api/v1/admin/bank-connection/sync` löst einen Lauf von Hand aus und zählt getrennt, weil das der Fall aus Buchstabe a ist.
 
+Die Zustimmung läuft ab, und ein Badge allein sieht nur, wer das Dashboard aufmacht. Deshalb meldet sich die Seite von selbst: vierzehn Tage vorher, drei Tage vorher und beim Ablauf, je einmal, per E-Mail an `OWNER_EMAIL` und per Push an den Owner. Welche Stufe schon rausging, steht auf der Verbindung und nicht in einem Timer, sodass weder ein Neustart noch ein zweiter Container sie wiederholt. Eine erneuerte Verbindung ist eine neue Zeile und fängt die Staffel von vorn an.
+
+Scheitert ein Abruf, weil die Bank die Zustimmung zurückgezogen hat, geht dieselbe Meldung raus, auch wenn das gespeicherte Datum noch Luft hatte. Das gespeicherte Datum ist nur, was die Bank beim Erteilen gesagt hat; der abgelehnte Abruf ist, was tatsächlich passiert ist. Beide teilen sich den Vermerk, damit dieselbe Nachricht nicht zweimal kommt.
+
+Auf der Seite Einnahmen steht eine Karte mit Bank, den letzten vier Stellen der Kontokennung, dem Ablaufdatum und dem letzten Lauf. Sie steht dort, weil sich dort die Folge zeigt: läuft die Verbindung ab, bleiben die Zahlen darüber stehen. Lesen darf diese Karte jeder Admin, die beiden Knöpfe darauf sieht nur der Owner, denn beide greifen auf das Konto zu.
+
 In der Liste der Spendeneingänge steht je Zeile, woher sie kam, und darüber lässt sich filtern. Dahinter steckt kein zweites Kennzeichen: eine Zeile mit der Kennung, die die Bank ihrem Eintrag gegeben hat, kam über die Bank, eine ohne wurde von Hand eingetragen.
 
 Getrennt wird auf derselben Seite. Das Backend widerruft die Verbindung zuerst bei sich und schliesst danach die Sitzung beim Anbieter, was die Zustimmung bei der Bank mit beendet. Der Widerruf steht auch dann, wenn das Schliessen scheitert, denn das Aufhören mit dem Lesen ist die Entscheidung dieser Seite; die Antwort sagt in dem Fall, dass die Zustimmung bei der Bank noch bis zu ihrem Ablauf steht. Der Zustand der Verbindung steht als Abzeichen am Eintrag in der Seitenleiste, und vierzehn Tage vor Ablauf wechselt es die Farbe.
