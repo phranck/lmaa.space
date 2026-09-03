@@ -193,6 +193,11 @@ async function listAnthropicModels(): Promise<ReviewModelOption[]> {
  * unlike the Anthropic path which drops such a model. The two differ because a
  * check submitted to Anthropic asks for adaptive thinking outright and is
  * refused without it, whilst a Mistral request simply omits the effort.
+ *
+ * The list holds every alias as an entry of its own, and an alias carries the
+ * name of the model it points at. `mistral-large-latest` and
+ * `mistral-large-2512` are therefore two entries for one model, so only the
+ * canonical one is offered. See {@link isCanonicalMistralModel}.
  */
 async function listMistralModels(): Promise<ReviewModelOption[]> {
   const apiKey = env.MISTRAL_API_KEY;
@@ -203,8 +208,8 @@ async function listMistralModels(): Promise<ReviewModelOption[]> {
 
   return (listed.data ?? []).flatMap((entry) => {
     // The SDK's model list is a union that includes a card shape it does not
-    // know, so the two fields this needs are read off the raw object rather
-    // than narrowed. A model without an identifier cannot be offered anyway.
+    // know, so the fields this needs are read off the raw object rather than
+    // narrowed. A model without an identifier cannot be offered anyway.
     const model = entry as {
       id?: unknown;
       name?: unknown;
@@ -213,15 +218,39 @@ async function listMistralModels(): Promise<ReviewModelOption[]> {
 
     if (typeof model.id !== "string" || !hasReviewPrices(model.id)) return [];
     if (model.capabilities?.completionChat === false) return [];
+    if (!isCanonicalMistralModel(model.id, model.name)) return [];
 
     return [
       {
+        // Mistral's `name` is the canonical identifier rather than a title, so
+        // there is nothing friendlier than the identifier to show. Anthropic's
+        // `display_name` has no counterpart here.
         id: model.id,
-        displayName: typeof model.name === "string" ? model.name : model.id,
+        displayName: model.id,
         efforts: model.capabilities?.reasoning ? [...MISTRAL_EFFORT_LEVELS] : [],
       },
     ];
   });
+}
+
+/**
+ * Decides whether a listed Mistral model is the model itself or an alias to it.
+ *
+ * @param id - The identifier this entry is listed under.
+ * @param name - What the entry names as its model.
+ * @returns `false` where the entry points at a different model.
+ *
+ * @remarks
+ * Mistral lists an alias as a full entry whose `name` is the identifier it
+ * resolves to, so one model appears several times. Offering all of them puts
+ * entries in the settings that are labelled identically and differ only in a
+ * value nobody can see, which is what this prevents.
+ *
+ * An entry naming nothing is kept, because an unknown is not a reason to hide a
+ * model that the rate card can price.
+ */
+export function isCanonicalMistralModel(id: string, name: unknown): boolean {
+  return typeof name !== "string" || name === "" || name === id;
 }
 
 /**
