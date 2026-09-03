@@ -456,7 +456,10 @@ function EmailTemplateEditorGrid({ form, labels, onFieldChange }: EmailTemplateE
           </div>
         </div>
 
-        <div className="min-h-[32rem] overflow-hidden xl:min-h-0">
+        {/* Scrolls on its own, exactly as the editor column beside it does. The
+            preview is as tall as the email, and the grid holds both columns to
+            the page height. */}
+        <div className="min-w-0 overflow-y-auto">
           <EmailPreview
             headerBannerUrl={form.headerBannerUrl}
             headerText={form.headerText}

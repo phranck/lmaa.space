@@ -34,6 +34,7 @@ export function EmailPreview({
   const m = messages.emailTemplates;
   const [srcDoc, setSrcDoc] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
   // Light to begin with, which is what a mail client shows unless its reader
   // asked for the other one.
   const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
@@ -58,17 +59,57 @@ export function EmailPreview({
     };
   }, [headerBannerUrl, headerText, bodyText, footerText, footerBannerUrl, colorScheme]);
 
+  // The frame is as tall as the email inside it, measured from the document
+  // rather than asked for as a percentage of the card. `DashboardSection` puts
+  // its collapse grid between the section and the body, so no definite height
+  // reaches this far, and a percentage then resolves to the frame's intrinsic
+  // 150 pixels, which cut off all but the banner.
+  //
+  // The height is watched rather than polled, because the banner is an image
+  // that arrives after the document and makes the email taller once it does.
+  // Each preview brings a new document and therefore needs its own observer,
+  // which is why this runs again whenever the rendered email changes.
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    let observer: ResizeObserver | null = null;
+
+    const fitToContent = () => {
+      const root = frame.contentDocument?.documentElement;
+      if (root) frame.style.height = `${root.scrollHeight}px`;
+    };
+
+    const onLoad = () => {
+      fitToContent();
+      const root = frame.contentDocument?.documentElement;
+      if (!root) return;
+      observer?.disconnect();
+      observer = new ResizeObserver(fitToContent);
+      observer.observe(root);
+    };
+
+    frame.addEventListener("load", onLoad);
+    return () => {
+      frame.removeEventListener("load", onLoad);
+      observer?.disconnect();
+    };
+  }, [srcDoc]);
+
   return (
-    <DashboardSection className="flex h-full min-h-0 flex-col overflow-hidden">
+    <DashboardSection>
       <DashboardSection.Header
         icon={<EyeIcon weight="duotone" className="size-4" />}
         title={m.previewTitle}
         addOn={<ColorSchemeSegmentedControl value={colorScheme} onChange={setColorScheme} />}
       />
-      <DashboardSection.Body className="min-h-0 flex-1 !gap-0 !p-0">
+      <DashboardSection.Body className="!gap-0 !p-0">
         <iframe
+          ref={frameRef}
           srcDoc={srcDoc}
-          className="w-full h-full border-0"
+          // The floor holds the card open whilst the first preview is still
+          // being fetched. Everything above it comes from the email itself.
+          className="block w-full min-h-32 border-0"
           title={m.previewTitle}
           sandbox="allow-same-origin"
         />
