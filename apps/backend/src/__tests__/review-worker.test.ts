@@ -114,6 +114,7 @@ function fakeProvider(result: ReviewProviderOutcome, configured = true): ReviewP
   return {
     name: "fake",
     model: "claude-opus-5",
+    billing: "batch" as const,
     effort: "high",
     isConfigured: () => configured,
     repairTexts: vi.fn(async () => ({ texts: new Map(), usage: {} })),
@@ -418,6 +419,7 @@ describe("review worker", () => {
       name: "slow",
       model: "claude-opus-5",
       effort: "high",
+      billing: "batch" as const,
       isConfigured: () => true,
       repairTexts: vi.fn(async () => ({ texts: new Map(), usage: {} })),
     runReview: vi.fn(

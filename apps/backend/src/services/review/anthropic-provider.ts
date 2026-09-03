@@ -277,6 +277,8 @@ export class AnthropicReviewProvider implements ReviewProvider {
   readonly name = ANTHROPIC_PROVIDER_NAME;
   readonly model: string;
   readonly effort: ReviewEffortLevel | null;
+  /** Checks are queued as batches here, which the provider bills at half. */
+  readonly billing = "batch" as const;
 
   private readonly client: Anthropic | null;
 
@@ -575,7 +577,7 @@ export class AnthropicReviewProvider implements ReviewProvider {
     // Priced as a batch, because that is how it was submitted and therefore how
     // it is billed. Pricing it at the standard rate would trip the ceiling at
     // half the spending the operator allowed.
-    const spent = BigInt(calculateReviewCost(usage, this.model, undefined, "batch").totalNano);
+    const spent = BigInt(calculateReviewCost(usage, this.model, undefined, this.billing).totalNano);
 
     if (message.stop_reason === "refusal") {
       return this.outcome("refused", {

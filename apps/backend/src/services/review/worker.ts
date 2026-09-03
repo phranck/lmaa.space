@@ -329,7 +329,7 @@ export class ReviewWorker {
     }
 
     // Every check is submitted as a batch, which the provider bills at half.
-    const cost = calculateReviewCost(outcome.usage, outcome.model, undefined, "batch");
+    const cost = calculateReviewCost(outcome.usage, outcome.model, undefined, provider.billing);
     const attemptRecord = buildAttemptRecord(job, provider, outcome, cost, startedAt);
 
     // A cancellation ends the job at once, so by the time the aborted run
@@ -419,7 +419,7 @@ export class ReviewWorker {
           const reparsed = reviewResultSchema.safeParse(rewritten);
 
           usage = sumReviewUsage([outcome.usage, repair.usage]);
-          const cost = calculateReviewCost(usage, outcome.model, undefined, "batch");
+          const cost = calculateReviewCost(usage, outcome.model, undefined, provider.billing);
           attempt = { ...attemptRecord, usage, cost };
 
           await recordReviewEvent(db, {

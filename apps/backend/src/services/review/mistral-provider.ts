@@ -26,44 +26,14 @@ import { calculateReviewCost } from "../../lib/review-cost.js";
 const MISTRAL_PROVIDER_NAME = "mistral";
 
 /**
- * The API a check is submitted against.
+ * How long one check may take before it is given up on.
  *
  * @remarks
- * Mistral's hosted web search exists on the conversations API and nowhere else,
- * and a check without search cannot research a shop. Batch processing accepts
- * this endpoint as a target, so the combination is available; it is also the
- * only one that works, which makes it a constraint rather than a choice.
+ * A conversation researches a shop with its hosted search, so minutes rather
+ * than seconds. The ceiling is what stops a run that has stopped making
+ * progress from holding a lease and a worker until the lease expires.
  */
-const CONVERSATIONS_ENDPOINT = "/v1/conversations";
-
-/**
- * How often a submitted batch is asked whether it has finished.
- *
- * @remarks
- * The same interval the Anthropic adapter uses, and for the same reason: one
- * cheap request every ten seconds keeps a finished check from sitting around
- * unnoticed.
- */
-const BATCH_POLL_INTERVAL_MS = 10_000;
-
-/**
- * How long one attempt waits for its batch.
- *
- * @remarks
- * An attempt gives up well before the provider's own deadline, because waiting
- * longer holds a lease and a worker. The job is then retried and resumes the
- * same batch rather than paying for a second one.
- */
-const MAX_BATCH_WAIT_MS = 90 * 60 * 1000;
-
-/**
- * How long the provider may hold the batch before abandoning it.
- *
- * @remarks
- * Set on the job rather than left to the default, so a batch that nobody
- * resumes cannot sit in the queue indefinitely and be billed a day later.
- */
-const BATCH_TIMEOUT_HOURS = 24;
+const MAX_RUN_WAIT_MS = 15 * 60 * 1000;
 
 /**
  * Output ceiling per request.
@@ -73,31 +43,6 @@ const BATCH_TIMEOUT_HOURS = 24;
  * the reasoning, and this covers both with room to spare.
  */
 const MAX_TOKENS = 64_000;
-
-/**
- * What one finished batch tells us, which is all these two steps read off it.
- *
- * @remarks
- * Narrower than the SDK's job type on purpose. The poll hands the job to the
- * reader rather than the reader fetching it again, and naming the three fields
- * that travel keeps that hand-off from widening into "the whole job object,
- * whatever is on it".
- */
-interface FinishedBatchJob {
-  status: string;
-  outputs?: Array<Record<string, unknown>> | null;
-  outputFile?: string | null;
-}
-
-/**
- * Statuses that mean the batch will not change again.
- */
-const TERMINAL_BATCH_STATUSES = new Set([
-  "SUCCESS",
-  "FAILED",
-  "TIMEOUT_EXCEEDED",
-  "CANCELLED",
-]);
 
 /**
  * Reads the token counts out of one conversation response.
@@ -295,6 +240,8 @@ export class MistralReviewProvider implements ReviewProvider {
   readonly name = MISTRAL_PROVIDER_NAME;
   readonly model: string;
   readonly effort: ReviewEffortLevel | null;
+  /** A conversation is asked and answered, so there is no batch discount. */
+  readonly billing = "standard" as const;
 
   private readonly client: Mistral | null;
 
@@ -324,139 +271,52 @@ export class MistralReviewProvider implements ReviewProvider {
       });
     }
 
-    let batchId = request.resumeBatchId ?? null;
+    request.onProgress?.("Prüfung läuft beim Anbieter");
+
+    // `max` is on our shared scale and not on Mistral's, and a level it does
+    // not know is refused with a 400 before anything is researched. The model
+    // list normally keeps such a level from being saved, but it cannot when the
+    // list could not be fetched.
+    const effort = this.effort === "max" ? "xhigh" : this.effort;
 
     try {
-      if (!batchId) {
-        batchId = await this.submitBatch(client, request);
-        request.onBatchCreated?.(batchId);
-        request.onProgress?.("Prüfung eingereicht, wartet auf den Anbieter");
-      }
+      const answer = await client.beta.conversations.start(
+        {
+          model: this.model,
+          inputs: buildReviewUserMessage(request),
+          instructions: buildReviewSystemPrompt(request.skill, { canFetchPages: false }),
+          tools: [{ type: "web_search" }],
+          // Not stored, because the conversation holds the shop's pages and the
+          // run's reasoning and we have no use for it after the answer.
+          store: false,
+          completionArgs: {
+            maxTokens: MAX_TOKENS,
+            responseFormat: { type: "json_object" },
+            ...(effort ? { reasoningEffort: effort } : {}),
+          },
+        },
+        {
+          timeoutMs: MAX_RUN_WAIT_MS,
+          // A cancelled run stops the request rather than waiting it out, so a
+          // check somebody stopped is not still being billed for.
+          fetchOptions: { signal: request.signal },
+        },
+      );
 
-      const finished = await this.awaitBatch(client, batchId, request);
-      if (finished.kind !== "ended") return finished.outcome;
-
-      const job = finished.job;
-      if (job.status !== "SUCCESS") {
-        return this.outcome("failed", {
-          providerResponseId: batchId,
-          errorCode: `PROVIDER_BATCH_${job.status}`,
-          errorMessage:
-            job.status === "CANCELLED"
-              ? "Die eingereichte Prüfung wurde abgebrochen."
-              : "Die eingereichte Prüfung wurde nicht rechtzeitig bearbeitet.",
-          retryable: job.status === "TIMEOUT_EXCEEDED",
-        });
-      }
-
-      const answer = await this.readBatchEntry(client, job, request.submissionId);
-      if (!answer) {
-        return this.outcome("failed", {
-          providerResponseId: batchId,
-          errorCode: "PROVIDER_BATCH_EMPTY",
-          errorMessage: "Der Anbieter hat kein Ergebnis zu dieser Prüfung zurückgegeben.",
-          retryable: true,
-        });
-      }
-
-      return this.readAnswer(answer, request, batchId);
+      return this.readAnswer(
+        answer as unknown as Record<string, unknown>,
+        request,
+        answer.conversationId,
+      );
     } catch (error) {
       const classified = classifyError(error);
       logger.error({ err: error, submissionId: request.submissionId }, "review provider failed");
       return this.outcome("failed", {
-        providerResponseId: batchId,
         errorCode: classified.code,
         errorMessage: classified.message,
         retryable: classified.retryable,
       });
     }
-  }
-
-  /**
-   * Submits the check as a batch of one conversation.
-   *
-   * @param client - The provider client.
-   * @param request - The run, for the rules and the shop.
-   * @returns The batch identifier.
-   *
-   * @remarks
-   * The request body is passed through to the API as written, so its keys are
-   * the ones the wire format uses rather than the ones the SDK's typed clients
-   * take.
-   */
-  private async submitBatch(client: Mistral, request: ReviewProviderRequest): Promise<string> {
-    const job = await client.batch.jobs.create({
-      endpoint: CONVERSATIONS_ENDPOINT,
-      model: this.model,
-      timeoutHours: BATCH_TIMEOUT_HOURS,
-      requests: [
-        {
-          customId: `review-${request.submissionId}`,
-          body: {
-            inputs: buildReviewUserMessage(request),
-            instructions: buildReviewSystemPrompt(request.skill, { canFetchPages: false }),
-            tools: [{ type: "web_search" }],
-            // Not stored, because the conversation holds the shop's pages and
-            // the run's reasoning and we have no use for it after the answer.
-            store: false,
-            completion_args: {
-              max_tokens: MAX_TOKENS,
-              response_format: { type: "json_object" },
-              ...(this.effort ? { reasoning_effort: this.effort } : {}),
-            },
-          },
-        },
-      ],
-    });
-
-    return job.id;
-  }
-
-  /**
-   * Reads this check's answer out of a finished batch.
-   *
-   * @param client - The provider client, for downloading a result file.
-   * @param job - The finished batch, as the last poll read it.
-   * @param submissionId - Identifies the entry within the batch.
-   * @returns The conversation response, or `null` where the batch holds none
-   * for this check.
-   *
-   * @remarks
-   * An inline batch may carry its results on the job itself, and a batch of any
-   * size may instead leave them in a file to download. Both are read, because
-   * which one arrives is the provider's choice rather than ours.
-   *
-   * The job is passed in rather than fetched again. The poll that ended the
-   * wait already returned it, and asking a second time would be a request per
-   * check for an answer we hold.
-   */
-  private async readBatchEntry(
-    client: Mistral,
-    job: FinishedBatchJob,
-    submissionId: number,
-  ): Promise<Record<string, unknown> | null> {
-    const customId = `review-${submissionId}`;
-
-    const inline = (job.outputs ?? []).find((entry) => readCustomId(entry) === customId);
-    if (inline) return readResponseBody(inline);
-
-    if (!job.outputFile) return null;
-
-    const stream = await client.files.download({ fileId: job.outputFile });
-    const text = await new Response(stream).text();
-
-    for (const line of text.split("\n")) {
-      if (line.trim() === "") continue;
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(line) as unknown;
-      } catch {
-        continue;
-      }
-      if (readCustomId(parsed) === customId) return readResponseBody(parsed);
-    }
-
-    return null;
   }
 
   async repairTexts(texts: TextRepairRequest[]): Promise<TextRepairOutcome> {
@@ -493,84 +353,28 @@ export class MistralReviewProvider implements ReviewProvider {
   }
 
   /**
-   * Waits for a submitted batch to reach a status that will not change again.
-   *
-   * @param client - The provider client.
-   * @param batchId - The batch this check was submitted as.
-   * @param request - The run, for its cancellation signal.
-   * @returns The job as it ended, or the outcome that ends the attempt.
-   *
-   * @remarks
-   * A cancelled run cancels the batch as well, so a check somebody stopped does
-   * not go on being processed and billed.
-   */
-  private async awaitBatch(
-    client: Mistral,
-    batchId: string,
-    request: ReviewProviderRequest,
-  ): Promise<
-    { kind: "ended"; job: FinishedBatchJob } | { kind: "other"; outcome: ReviewProviderOutcome }
-  > {
-    const deadline = Date.now() + MAX_BATCH_WAIT_MS;
-
-    for (;;) {
-      if (request.signal?.aborted) {
-        await client.batch.jobs.cancel({ jobId: batchId }).catch(() => undefined);
-        return {
-          kind: "other",
-          outcome: this.outcome("failed", {
-            providerResponseId: batchId,
-            errorCode: "PROVIDER_ABORTED",
-            errorMessage: "Lauf wurde abgebrochen",
-            retryable: false,
-          }),
-        };
-      }
-
-      const job = await client.batch.jobs.get({ jobId: batchId });
-      if (TERMINAL_BATCH_STATUSES.has(job.status)) return { kind: "ended", job };
-
-      if (Date.now() > deadline) {
-        return {
-          kind: "other",
-          outcome: this.outcome("failed", {
-            providerResponseId: batchId,
-            errorCode: "PROVIDER_BATCH_TIMEOUT",
-            errorMessage:
-              "Der Anbieter hat die Prüfung nicht innerhalb des Zeitfensters bearbeitet.",
-            retryable: true,
-          }),
-        };
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, BATCH_POLL_INTERVAL_MS));
-    }
-  }
-
-  /**
    * Turns a finished conversation into the outcome of one attempt.
    *
-   * @param answer - The conversation response the batch produced.
+   * @param answer - What the conversation returned.
    * @param request - The run, for its cost ceiling.
-   * @param batchId - The batch this came from, kept for correlation.
+   * @param conversationId - The conversation it came from, kept for correlation.
    * @returns The parsed result, or why it could not be used.
    */
   private readAnswer(
     answer: Record<string, unknown>,
     request: ReviewProviderRequest,
-    batchId: string,
+    conversationId: string,
   ): ReviewProviderOutcome {
     const usage = readUsage(answer.usage);
 
-    // Priced as a batch, because that is how it was submitted and therefore how
-    // it is billed. Pricing it at the standard rate would trip the ceiling at
-    // half the spending the operator allowed.
-    const spent = BigInt(calculateReviewCost(usage, this.model, undefined, "batch").totalNano);
+    // Priced at the rate this adapter is billed at, which is the standard one:
+    // a conversation is asked and answered rather than queued.
+    const spent = BigInt(calculateReviewCost(usage, this.model, undefined, this.billing).totalNano);
 
     if (spent > request.costLimitNano) {
       return this.outcome("budget_exceeded", {
         usage,
-        providerResponseId: batchId,
+        providerResponseId: conversationId,
         errorCode: "REVIEW_COST_LIMIT",
         errorMessage: "Der Kostendeckel für diese Prüfung wurde überschritten",
       });
@@ -586,7 +390,7 @@ export class MistralReviewProvider implements ReviewProvider {
       const truncated = (usage.outputTokens ?? 0) >= MAX_TOKENS;
       return this.outcome("invalid_output", {
         usage,
-        providerResponseId: batchId,
+        providerResponseId: conversationId,
         errorCode: truncated ? "PROVIDER_OUTPUT_TRUNCATED" : "PROVIDER_NO_JSON",
         errorMessage: truncated
           ? `Die Antwort wurde bei ${MAX_TOKENS} Token abgeschnitten und blieb unvollständig.`
@@ -603,7 +407,7 @@ export class MistralReviewProvider implements ReviewProvider {
       });
     }
 
-    return this.outcome("result", { raw: parsed, usage, providerResponseId: batchId });
+    return this.outcome("result", { raw: parsed, usage, providerResponseId: conversationId });
   }
 
   private outcome(
@@ -624,50 +428,4 @@ export class MistralReviewProvider implements ReviewProvider {
       retryable: parts.retryable ?? false,
     };
   }
-}
-
-/**
- * Reads the identifier a batch entry was submitted under.
- *
- * @param entry - One entry of a batch result, however it arrived.
- * @returns The identifier, or `null` where the entry names none.
- *
- * @remarks
- * Both spellings are accepted because a downloaded result file is the raw wire
- * format whilst an inline result has passed through the SDK, and the two do not
- * agree on whether keys are converted.
- */
-function readCustomId(entry: unknown): string | null {
-  if (typeof entry !== "object" || entry === null) return null;
-  const record = entry as Record<string, unknown>;
-  const value = record.custom_id ?? record.customId;
-  return typeof value === "string" ? value : null;
-}
-
-/**
- * Unwraps the conversation response out of a batch entry.
- *
- * @param entry - One entry of a batch result.
- * @returns The response body, or `null` where the entry carries none.
- *
- * @remarks
- * A batch entry wraps its answer in a response envelope, and an entry that
- * failed carries an error there instead. The envelope is unwrapped where it is
- * present and the entry is read directly where it is not, so a shape without
- * one still yields its outputs rather than nothing.
- */
-function readResponseBody(entry: unknown): Record<string, unknown> | null {
-  if (typeof entry !== "object" || entry === null) return null;
-  const record = entry as Record<string, unknown>;
-
-  const response = record.response;
-  if (typeof response === "object" && response !== null) {
-    const body = (response as Record<string, unknown>).body;
-    if (typeof body === "object" && body !== null) return body as Record<string, unknown>;
-  }
-
-  const body = record.body;
-  if (typeof body === "object" && body !== null) return body as Record<string, unknown>;
-
-  return record.outputs !== undefined ? record : null;
 }
