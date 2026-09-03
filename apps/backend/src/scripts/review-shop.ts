@@ -29,7 +29,7 @@ import { reviewJobs, submissions } from "../db/schema.js";
 import { logger } from "../lib/logger.js";
 import { formatReviewCost } from "../lib/review-cost.js";
 import { enqueueReviewJob, getReviewJobBySubmission } from "../repositories/review-jobs.js";
-import { AnthropicReviewProvider } from "../services/review/anthropic-provider.js";
+import { createReviewProvider } from "../services/review/factory.js";
 import { loadReviewSettings } from "../services/review/settings.js";
 import { ReviewWorker } from "../services/review/worker.js";
 
@@ -61,14 +61,13 @@ async function main(): Promise<void> {
   }
 
   const settings = await loadReviewSettings();
-  const provider = new AnthropicReviewProvider({
-    model: settings.model,
-    effort: settings.effort,
-  });
-  if (!provider.isConfigured()) fail("ANTHROPIC_API_KEY is not set");
+  const provider = createReviewProvider(settings);
+  if (!provider.isConfigured()) {
+    fail(`No API key is set for the configured provider ${settings.provider}`);
+  }
 
   process.stdout.write(
-    `Prüfe ${parsed.href}\n  Modell ${settings.model}, Effort ${settings.effort}, Modus ${settings.mode}\n\n`,
+    `Prüfe ${parsed.href}\n  Anbieter ${settings.provider}, Modell ${settings.model}, Effort ${settings.effort}, Modus ${settings.mode}\n\n`,
   );
 
   const [submission] = await db

@@ -5,9 +5,9 @@ import { REVIEW_RESULT_SCHEMA_VERSION, reviewResultSchema } from "@lmaa/contract
 import type { ReviewResult } from "@lmaa/contracts";
 import type { ReviewAttemptRecord, ReviewCost, ReviewJobState, ReviewVerdict } from "@lmaa/shared";
 
-import { AnthropicReviewProvider } from "./anthropic-provider.js";
 import { applyReviewResult } from "./apply.js";
 import { MissingAdmissionCriteriaError, loadReviewRunContext } from "./context.js";
+import { createReviewProvider } from "./factory.js";
 import { collectPaymentEvidence } from "./payment-evidence.js";
 import type { ReviewProvider, ReviewProviderOutcome } from "./provider.js";
 import { sendReviewReport } from "./report.js";
@@ -15,7 +15,6 @@ import { loadReviewSettings } from "./settings.js";
 import type { ReviewSettings } from "./settings.js";
 import { loadReviewSkill } from "./skill.js";
 import { applyRepairedTexts, collectRepairableTexts } from "./text-repair.js";
-import { env } from "../../config/env.js";
 import { db } from "../../db/client.js";
 import type { ReviewJobRow } from "../../db/schema.js";
 import { logger } from "../../lib/logger.js";
@@ -186,7 +185,9 @@ export class ReviewWorker {
 
       const provider = this.createProvider(settings);
       if (!provider.isConfigured()) {
-        logger.warn("review worker idle: ANTHROPIC_API_KEY is not set");
+        // Names the provider, because the key that is missing is the one for
+        // whichever provider the settings chose and the other may well be set.
+        logger.warn({ provider: settings.provider }, "review worker idle: no API key is set");
         return;
       }
 
@@ -624,14 +625,7 @@ export class ReviewWorker {
  * switch it on in the dashboard without a deployment.
  */
 export function startReviewWorker(): NodeJS.Timeout {
-  const worker = new ReviewWorker(
-    (settings) =>
-      new AnthropicReviewProvider({
-        model: settings.model,
-        effort: settings.effort,
-        apiKey: env.ANTHROPIC_API_KEY,
-      }),
-  );
+  const worker = new ReviewWorker(createReviewProvider);
 
   const timer = setInterval(() => {
     void worker.tick().catch((error: unknown) => {

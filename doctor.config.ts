@@ -175,7 +175,10 @@ export default {
       // Waiting for a provider batch is a polling loop against a deadline, so
       // each pass depends on the one before it.
       {
-        files: ["src/services/review/anthropic-provider.ts"],
+        files: [
+          "src/services/review/anthropic-provider.ts",
+          "src/services/review/mistral-provider.ts",
+        ],
         rules: ["react-doctor/async-await-in-loop"],
       },
       // Both sites run inside one transaction, which is one connection. Issuing

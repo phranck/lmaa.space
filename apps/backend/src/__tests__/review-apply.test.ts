@@ -122,6 +122,7 @@ function settings(overrides: Record<string, unknown> = {}) {
   return {
     mode: "assist",
     autoApply: [],
+    provider: "anthropic",
     model: "claude-opus-5",
     effort: "high",
     maxAttempts: 3,

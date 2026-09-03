@@ -1,11 +1,17 @@
 import {
   REVIEW_AUTOMATION_MODES,
   REVIEW_EFFORT_LEVELS,
+  REVIEW_PROVIDERS,
   REVIEW_SETTING_DEFAULTS,
   SETTINGS_KEYS,
   SYSTEM_REVIEW_SETTINGS_KEYS,
 } from "@lmaa/shared";
-import type { ReviewAutomationMode, ReviewAutoApplyVerdict, ReviewEffortLevel } from "@lmaa/shared";
+import type {
+  ReviewAutomationMode,
+  ReviewAutoApplyVerdict,
+  ReviewEffortLevel,
+  ReviewProviderName,
+} from "@lmaa/shared";
 
 import { resolveReviewEffort } from "./models.js";
 import { costLimitToNano } from "../../lib/review-cost.js";
@@ -18,6 +24,8 @@ export interface ReviewSettings {
   mode: ReviewAutomationMode;
   /** Verdicts that may be applied without a human. Empty unless somebody enabled one. */
   autoApply: ReviewAutoApplyVerdict[];
+  /** Provider the check runs on, which decides which adapter the worker builds. */
+  provider: ReviewProviderName;
   model: string;
   /** Reasoning effort for the run, or `null` where the model takes none. */
   effort: ReviewEffortLevel | null;
@@ -92,6 +100,8 @@ export async function loadReviewSettings(): Promise<ReviewSettings> {
 
   const templateId = readTemplateId(SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID);
 
+  const provider = readEnum(read(SETTINGS_KEYS.REVIEW_PROVIDER), REVIEW_PROVIDERS, "anthropic");
+
   const model =
     read(SETTINGS_KEYS.REVIEW_MODEL).trim() || REVIEW_SETTING_DEFAULTS[SETTINGS_KEYS.REVIEW_MODEL];
 
@@ -99,6 +109,7 @@ export async function loadReviewSettings(): Promise<ReviewSettings> {
   // held against the model it will run on. Without this a level that was valid
   // when it was saved becomes a 400 as soon as the model changes.
   const effort = await resolveReviewEffort(
+    provider,
     model,
     readEnum(read(SETTINGS_KEYS.REVIEW_EFFORT), REVIEW_EFFORT_LEVELS, "high"),
   );
@@ -106,6 +117,7 @@ export async function loadReviewSettings(): Promise<ReviewSettings> {
   return {
     mode: readEnum(read(SETTINGS_KEYS.REVIEW_MODE), REVIEW_AUTOMATION_MODES, "off"),
     autoApply,
+    provider,
     model,
     effort,
     maxAttempts: Math.round(readNumber(read(SETTINGS_KEYS.REVIEW_MAX_ATTEMPTS), 3, 1, 10)),
