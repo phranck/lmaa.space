@@ -108,9 +108,10 @@ beiden redaktionellen Texte samt belastbaren Quellen.
     Sitz außerhalb Europas kläre, wem europäische Adressen gehören.
 
 11. **Ausgabe exakt erzeugen und validieren.**
-    `description` umfasst 600 bis 1200 Zeichen, also vier bis sechs Sätze. Bleibt
-    sie darunter, fehlen Belege aus Schritt 3, und du holst sie nach, statt einen
-    dünnen Text abzuliefern. Jede Liste unter `notes` fasst höchstens acht Einträge.
+    `description` hat drei Absätze und rund 1000 Zeichen, wie unter Description
+    Guidelines beschrieben. Bleibt sie deutlich darunter, fehlen Belege aus
+    Schritt 3, und du holst sie nach, statt einen dünnen Text abzuliefern. Jede
+    Liste unter `notes` fasst höchstens acht Einträge.
     Prüfe Acceptance-JSON mit einem JSON-Parser, bevor du es ausgibst.
     Abschlusskriterium: Genau eines der unten definierten Formate ist vollständig und syntaktisch gültig.
 
@@ -127,29 +128,53 @@ beiden redaktionellen Texte samt belastbaren Quellen.
 
 ## Description Guidelines
 
-Die `description` muss ein **lebendiges, redaktionelles Porträt** sein, das den Shop einzigartig macht. 
+Die `description` ist ein sachliches Porträt in **drei Absätzen**, durch `\n\n`
+getrennt. Zwei von drei Beschreibungen im Bestand sind so gebaut, zusammen rund
+1000 Zeichen und etwa acht Sätze.
 
-### Woraus sie schöpft, so weit es belegt ist:
-- **Personen:** Geschäftsführung, Gründer:innen, Schlüsselpersonen (z. B. "Mag. Verena Brunner-Loss führt den Familienbetrieb")
-- **Geschichte:** Gründungsjahr, Meilensteine, Auszeichnungen (z. B. "dreimal als ausgezeichneter Lehrbetrieb prämiert")
-- **Besonderheiten:** Einzigartige Dienstleistungen, lokale Verwurzelung, spezielle Sortimente (z. B. "spezialisiert auf Schulbuchvertrieb mit persönlicher Betreuung")
-- **Standorte:** Physische Präsenz, Filialen, besondere Räumlichkeiten (z. B. "drei gemütliche Buchhandlungen in Bregenz, Dornbirn und Höchst")
-- **Aktivitäten:** Regelmäßige Veranstaltungen, Kooperationen, Bildungsangebote (z. B. "regelmäßige Buchpräsentationen mit lokalen und internationalen Autor:innen")
+**Absatz 1, rund 330 Zeichen: wer und wo.** Beginnt mit dem fett gesetzten
+Shopnamen als Satzsubjekt, also `**Name** ist ein …`. Sagt, was für ein Geschäft
+es ist, wo es sitzt (Ort und Region), wer es betreibt und seit wann. Der
+Rechtsträger darf hierher, eine Registernummer nur, wenn sonst nichts den
+Betrieb eindeutig benennt.
 
-### Was NICHT in description gehört:
-- Marken- oder Produktlisten
-- Besitzform-Floskeln ("familiengeführt" ohne Kontext)
-- Register-, Steuer- oder Finanzdaten (diese gehören in `notes` oder `legal`)
-- Generische Sätze ohne konkrete Fakten
+**Absatz 2, rund 390 Zeichen: was es gibt.** Das Sortiment, konkret. **Nenne die
+Marken, die der Shop führt, beim Namen**, als Beispiele im Satz, etwa „darunter
+Yamaha, Roland und Line 6". Das ist keine Stilfrage: die Shopsuche durchsucht
+diese Beschreibung, und eine Marke, die hier nicht steht, findet niemand. Nenne
+ausserdem die Warengruppen, für wen der Shop da ist und was ihn von anderen
+unterscheidet.
 
-### Beispiel für eine gute description:
+**Absatz 3, rund 290 Zeichen: wie man bestellt und was sonst noch bleibt.**
+Bestellwege, Versand, Ladengeschäft und Abholung. Danach, was übrig ist und
+zählt: eigene Werkstatt oder Verleih, Beschäftigtenzahl, Auszeichnungen,
+Lizenzen.
+
+### Ton
+
+Dritte Person, Präsenz, nüchtern. Keine Wir-Form, keine Anrede der Lesenden,
+keine Werbesprache. Zahlen, wo sie belegt sind. Personen mit vollem Namen.
+
+### Was nicht hineingehört
+
+- Ein blosser Katalog. Marken gehören in ganze Sätze, nicht in eine Aufzählung ohne Verb.
+- Floskeln ohne Beleg, etwa „familiengeführt" ohne zu sagen von wem.
+- Sätze ohne konkrete Tatsache.
+
+### Beispiel für eine gute description
+
 ```
-Die **Buchhandlung Brunner** wird von Mag. Verena Brunner-Loss geführt und ist als geistiger Nahversorger in Vorarlberg fest verwurzelt. An drei Standorten in Bregenz, Dornbirn und Höchst bieten rund 20 ausgebildete Buchhändlerinnen und Buchhändler ein breites Sortiment von Neuerscheinungen über Klassiker bis zu buchverwandten Geschenkartikeln an. Der Betrieb wurde 2017, 2020 und 2023 als "Ausgezeichneter Lehrbetrieb" prämiert und bildet regelmäßig aus. Mit regelmäßigen Buchpräsentationen und Kooperationen mit lokalen Veranstalterinnen trägt die Buchhandlung aktiv zur lebendigen Literaturszene bei. Besonders engagiert ist sie im Schulbuchvertrieb, wo sie Bildungsinstitutionen von der ersten Bestellung bis zur Direktlieferung begleitet.
+**Musik Grünebaum** ist ein inhabergeführtes Musikfachgeschäft in Schwerte-Villigst im Ruhrgebiet mit Kundschaft aus Dortmund, Hagen, Iserlohn und Unna. Peter Grünebaum hat das Geschäft 1973 gegründet, heute führt sein Sohn Tim Grünebaum das Haus in zweiter Generation. Seit über 50 Jahren steht persönliche Beratung im Mittelpunkt.
+
+Das Sortiment umfasst Gitarren und Bässe, Schlagzeuge, Keyboards und Digitalpianos, Blasinstrumente, Folkloreinstrumente, Recording- und Studio-Equipment, PA-Technik sowie Noten und Zubehör. Der Shop führt ausschließlich Markeninstrumente, darunter Yamaha, Roland, Line 6, Ovation und Sigma Guitars. Neben Verkauf bietet Musik Grünebaum einen kostenlosen Lifetime-Justierservice und einen eigenen Reparaturservice, der auch überregional genutzt wird.
+
+Bestellt werden kann online per Warenkorb und Checkout oder direkt im Ladenlokal an der Letmather Straße. Der Versand erfolgt innerhalb Deutschlands mit DPD, Noten werden versandkostenfrei verschickt.
 ```
 
-### Beispiel für eine mangelhafte description:
+### Beispiel für eine mangelhafte description
+
 ```
-Die **Buchhandlung Brunner** ist eine Buchhandlung in Österreich, die Bücher verkauft.
+Die **Musik Grünebaum** ist ein Musikgeschäft in Deutschland, das Instrumente verkauft.
 ```
 
 ## Output
@@ -211,10 +236,8 @@ Gib genau einen JSON-Codeblock mit diesen Feldern aus:
 }
 ```
 
-`description` ist ein kurzes redaktionelles Porträt mit Personen und Ort.
-Geschichte, Herkunft, Kurse, Workshops und Anekdoten sind erwähnenswert. Keine
-Marken- oder Produktlisten, Besitzform-Floskeln, Register-, Steuer- oder
-Finanzdaten; diese gehören in `notes`. Absätze werden als `\n\n` kodiert.
+`description` folgt dem Aufbau unter Description Guidelines. Absätze werden als
+`\n\n` kodiert.
 Unbekannte Skalare sind `null`, Listen `[]`, Maps `{}`. Jeder Stringwert steht
 auf einer physischen Zeile. Deutsche typografische Anführungszeichen innerhalb
 eines Strings werden als `\u201E` und `\u201C` escaped.
@@ -258,4 +281,4 @@ Konzernzugehörigkeit werden immer belegt. `[REJECT_TOKEN]` bleibt exakt stehen.
 - Aufnahme: JSON-Parsing erfolgreich; jedes Schemafeld vorhanden oder explizit
   leer; Koordinatenkaskade ausgeschöpft; nur kanonische Versand- und
   Paymentwerte.
-- `description` liegt zwischen 600 und 1200 Zeichen und nennt Menschen, Ort und mindestens eine Besonderheit. Jede Liste unter `notes` bleibt unter neun Einträgen.
+- `description` hat drei Absätze, rund 1000 Zeichen, beginnt mit dem fett gesetzten Shopnamen, steht in der dritten Person und nennt die geführten Marken beim Namen. Jede Liste unter `notes` bleibt unter neun Einträgen.
