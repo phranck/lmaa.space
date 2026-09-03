@@ -7,7 +7,14 @@ import type {
 
 import type { ReviewEffortLevel, ReviewUsage } from "@lmaa/shared";
 
-import { buildReviewSystemPrompt, buildReviewUserMessage } from "./prompt.js";
+import {
+  buildRepairTask,
+  buildReviewSystemPrompt,
+  buildReviewUserMessage,
+  extractJsonObject,
+  REPAIR_MAX_TOKENS,
+  REPAIR_SYSTEM_PROMPT,
+} from "./prompt.js";
 import type {
   ReviewProvider,
   ReviewProviderOutcome,
@@ -51,32 +58,6 @@ const MAX_BATCH_TURNS = 4;
  * retried, which resumes the same batch rather than paying for a second one.
  */
 const MAX_BATCH_WAIT_MS = 90 * 60 * 1000;
-
-/**
- * Output ceiling for a repair.
- *
- * @remarks
- * A repair rewrites at most three texts, the longest of which is a rejection of
- * a few hundred words, so this is generous and still a hundredth of a run.
- */
-const REPAIR_MAX_TOKENS = 8_000;
-
-/**
- * What a repair is told.
- *
- * @remarks
- * Deliberately narrow. The rewriting must not improve, shorten or extend
- * anything, because everything else in the text has already been checked
- * against the rules and against the evidence.
- */
-const REPAIR_SYSTEM_PROMPT = `Du korrigierst deutsche Texte, die gegen eine mechanische Formregel verstoßen.
-
-Regeln:
-- Geviertstriche und Halbgeviertstriche sind verboten. Formuliere die Stelle in vollständige Sätze um, statt den Strich durch ein Komma, einen Doppelpunkt oder eine Klammer zu ersetzen.
-- Gender-Stern und Gender-Doppelpunkt sind verboten. Nimm eine neutrale Form wie „Mitarbeitende" oder eine Paarform wie „Inhaberinnen und Inhaber".
-- Sonst ändert sich nichts: keine neuen Aussagen, keine gestrichenen Aussagen, keine Kürzung, keine Ausschmückung. Markdown, Fußnoten, Absätze und Zeichenketten wie [REJECT_TOKEN] bleiben unverändert.
-
-Antworte ausschließlich mit einem JSON-Objekt, dessen Schlüssel die genannten Feldnamen sind und dessen Werte die korrigierten Texte. Kein Fließtext davor oder danach.`;
 
 /** Provider name persisted with every job this adapter runs. */
 const ANTHROPIC_PROVIDER_NAME = "anthropic";
@@ -156,32 +137,16 @@ function readUsage(message: BetaMessage): ReviewUsage {
  * @returns The parsed object, or `null` when the text is not a JSON object.
  *
  * @remarks
- * Structured outputs make the final text a JSON document, so the plain parse is
- * the expected path. The brace-scanning fallback covers a response that carried
- * a stray sentence alongside it, which is cheaper to tolerate here than to pay
- * for a second full run over.
+ * A response can carry several text blocks, so they are joined before being
+ * read as one document.
  */
 function extractJson(message: BetaMessage): unknown {
   const text = message.content
     .filter((block): block is Extract<typeof block, { type: "text" }> => block.type === "text")
     .map((block) => block.text)
-    .join("")
-    .trim();
+    .join("");
 
-  if (!text) return null;
-
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start === -1 || end <= start) return null;
-    try {
-      return JSON.parse(text.slice(start, end + 1)) as unknown;
-    } catch {
-      return null;
-    }
-  }
+  return extractJsonObject(text);
 }
 
 /**
@@ -283,9 +248,8 @@ export function classifyError(error: unknown): {
  * @remarks
  * Research runs on the provider's own web search and page fetching, so no
  * request originates from our network and the model cannot reach anything of
- * ours. The single tool this adapter executes takes address fields and builds
- * the geocoding request itself, which leaves the destination out of the model's
- * hands.
+ * ours. This adapter executes no tool of its own, and the run is given none, so
+ * nothing the model produces decides what we call.
  */
 export class AnthropicReviewProvider implements ReviewProvider {
   readonly name = ANTHROPIC_PROVIDER_NAME;
@@ -446,7 +410,7 @@ export class AnthropicReviewProvider implements ReviewProvider {
             system: [
               {
                 type: "text",
-                text: buildReviewSystemPrompt(request.skill),
+                text: buildReviewSystemPrompt(request.skill, { canFetchPages: true }),
                 // Held for an hour rather than the default five minutes, so a
                 // batch that waits in the queue, its continuations and the
                 // checks that follow read the rules back instead of writing
@@ -492,12 +456,7 @@ export class AnthropicReviewProvider implements ReviewProvider {
     const client = this.client;
     if (!client || texts.length === 0) return { texts: new Map(), usage: {} };
 
-    const task = texts
-      .map(
-        (entry, index) =>
-          `${index + 1}. Feld \`${entry.path}\`\nProblem: ${entry.problem}\nText: ${entry.value}`,
-      )
-      .join("\n\n");
+    const task = buildRepairTask(texts);
 
     try {
       const message = await client.messages.create({
