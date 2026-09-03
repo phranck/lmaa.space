@@ -52,32 +52,73 @@ export interface ReviewRateCard {
   displayRateNano: bigint;
 }
 
-/** One provider-hosted web search, at 10 USD per thousand. */
-const PER_WEB_SEARCH_NANO = 10_000_000n;
+/** One Anthropic-hosted web search, at 10 USD per thousand. */
+const ANTHROPIC_PER_WEB_SEARCH_NANO = 10_000_000n;
+
+/** One Mistral-hosted web search, at 30 USD per thousand. */
+const MISTRAL_PER_WEB_SEARCH_NANO = 30_000_000n;
+
+/**
+ * The rules that turn a provider's two published rates into a full price row.
+ *
+ * @remarks
+ * Both providers discount a repeated input token to a tenth, so that one is
+ * derived rather than configured. The other two differ, and each is a figure a
+ * provider publishes for itself.
+ */
+interface ReviewPriceDerivation {
+  /**
+   * What writing a token into the cache costs, as a multiple of the input rate
+   * in hundredths.
+   *
+   * @remarks
+   * Anthropic charges a quarter more than the input rate. Mistral publishes the
+   * discount for reading and no surcharge for writing, so its multiple is one.
+   */
+  cacheWritePercent: bigint;
+  /** Price of one provider-hosted web search, in nano-units. */
+  perWebSearch: bigint;
+}
 
 /**
  * Builds one model's prices from its published input and output rates.
  *
  * @param inputPerMillionUsd - Price of one million input tokens, in USD.
  * @param outputPerMillionUsd - Price of one million output tokens, in USD.
+ * @param derivation - The provider's rules for the rates it does not publish
+ * per model.
  * @returns The four token rates and the search rate.
  *
  * @remarks
- * Cache reads are a tenth of the input rate and cache writes one and a quarter
- * times it, for every model. Deriving them means a new model needs its two
- * published figures and nothing else, and the two derived ones cannot be
- * mistyped.
+ * Deriving the cache rates means a new model needs its two published figures
+ * and nothing else, and the two derived ones cannot be mistyped.
  */
-function pricesFor(inputPerMillionUsd: number, outputPerMillionUsd: number): ReviewRateCardPrices {
+function pricesFor(
+  inputPerMillionUsd: number,
+  outputPerMillionUsd: number,
+  derivation: ReviewPriceDerivation,
+): ReviewRateCardPrices {
   const input = BigInt(Math.round(inputPerMillionUsd * 1_000_000_000));
   return {
     inputPerMillion: input,
-    cacheWritePerMillion: (input * 125n) / 100n,
+    cacheWritePerMillion: (input * derivation.cacheWritePercent) / 100n,
     cacheReadPerMillion: input / 10n,
     outputPerMillion: BigInt(Math.round(outputPerMillionUsd * 1_000_000_000)),
-    perWebSearch: PER_WEB_SEARCH_NANO,
+    perWebSearch: derivation.perWebSearch,
   };
 }
+
+/** Anthropic charges a quarter more for a cache write than for fresh input. */
+const ANTHROPIC_DERIVATION: ReviewPriceDerivation = {
+  cacheWritePercent: 125n,
+  perWebSearch: ANTHROPIC_PER_WEB_SEARCH_NANO,
+};
+
+/** Mistral publishes no surcharge for a cache write, so it is priced as input. */
+const MISTRAL_DERIVATION: ReviewPriceDerivation = {
+  cacheWritePercent: 100n,
+  perWebSearch: MISTRAL_PER_WEB_SEARCH_NANO,
+};
 
 /**
  * Prices published by Anthropic, as of 2026-08-15.
@@ -104,21 +145,94 @@ const REVIEW_RATE_CARD_V1: ReviewRateCard = {
   displayCurrency: "EUR",
   displayRateNano: 865_000_000n,
   prices: {
-    "claude-fable-5": pricesFor(10, 50),
-    "claude-opus-5": pricesFor(5, 25),
-    "claude-opus-4-8": pricesFor(5, 25),
-    "claude-opus-4-7": pricesFor(5, 25),
-    "claude-opus-4-6": pricesFor(5, 25),
-    "claude-sonnet-5": pricesFor(3, 15),
-    "claude-sonnet-4-6": pricesFor(3, 15),
-    "claude-haiku-4-5": pricesFor(1, 5),
+    "claude-fable-5": pricesFor(10, 50, ANTHROPIC_DERIVATION),
+    "claude-opus-5": pricesFor(5, 25, ANTHROPIC_DERIVATION),
+    "claude-opus-4-8": pricesFor(5, 25, ANTHROPIC_DERIVATION),
+    "claude-opus-4-7": pricesFor(5, 25, ANTHROPIC_DERIVATION),
+    "claude-opus-4-6": pricesFor(5, 25, ANTHROPIC_DERIVATION),
+    "claude-sonnet-5": pricesFor(3, 15, ANTHROPIC_DERIVATION),
+    "claude-sonnet-4-6": pricesFor(3, 15, ANTHROPIC_DERIVATION),
+    "claude-haiku-4-5": pricesFor(1, 5, ANTHROPIC_DERIVATION),
   },
 };
 
 /**
- * Whether the current rate card can price a model.
+ * Prices published by Mistral, as of 2026-09-03.
  *
- * @param model - Model identifier as the provider names it.
+ * @remarks
+ * Both models are listed under their dated identifier and under the alias that
+ * points at it, because either string may be what the account's model list
+ * returns and a model this card cannot price is left out of the settings
+ * entirely.
+ *
+ * The cache rates are carried for completeness and never apply in practice.
+ * Mistral's conversation usage reports a prompt token count and nothing that
+ * separates a cached token from a fresh one, so every prompt token is priced at
+ * the full input rate. That is the honest reading of what a run reports, and it
+ * is the more expensive of the two figures PAP-LMAA-010 gives.
+ *
+ * The conversion rate is the one the Anthropic card pins. Both cards bill in
+ * USD and are shown in EUR, and a rate that differed by a few weeks would make
+ * two providers' amounts incomparable for no gain.
+ */
+const MISTRAL_RATE_CARD_V1: ReviewRateCard = {
+  version: "mistral-2026-09-03",
+  currency: "USD",
+  effectiveFrom: "2026-09-03",
+  displayCurrency: "EUR",
+  displayRateNano: 865_000_000n,
+  prices: {
+    "mistral-large-2512": pricesFor(0.5, 1.5, MISTRAL_DERIVATION),
+    "mistral-large-latest": pricesFor(0.5, 1.5, MISTRAL_DERIVATION),
+    "mistral-medium-2604": pricesFor(1.5, 7.5, MISTRAL_DERIVATION),
+    "mistral-medium-latest": pricesFor(1.5, 7.5, MISTRAL_DERIVATION),
+  },
+};
+
+/**
+ * The cards new checks are costed against, one per provider.
+ *
+ * @remarks
+ * A provider publishes its own prices and its own rules for deriving the rates
+ * it does not publish, so each gets a card and each card is versioned on its
+ * own. A price change at one provider therefore leaves the other's amounts
+ * alone.
+ */
+const CURRENT_REVIEW_RATE_CARDS: readonly ReviewRateCard[] = [
+  REVIEW_RATE_CARD_V1,
+  MISTRAL_RATE_CARD_V1,
+];
+
+/**
+ * The card used where no model is in hand.
+ *
+ * @remarks
+ * Only its currency and its conversion rate are read this way, and every
+ * current card agrees on both. Anything that prices actual usage goes through
+ * {@link reviewRateCardFor} instead, because that answer depends on the model.
+ */
+export const DEFAULT_REVIEW_RATE_CARD = REVIEW_RATE_CARD_V1;
+
+/**
+ * Finds the current card that prices a model.
+ *
+ * @param model - Model identifier as its provider names it.
+ * @returns The card holding its prices, or `undefined` when none does.
+ *
+ * @remarks
+ * Selected by model rather than by provider, because a model identifier belongs
+ * to exactly one provider and every caller already holds one. Passing the
+ * provider as well would be a second way of saying the same thing, and the two
+ * could disagree.
+ */
+function reviewRateCardFor(model: string): ReviewRateCard | undefined {
+  return CURRENT_REVIEW_RATE_CARDS.find((card) => card.prices[model] !== undefined);
+}
+
+/**
+ * Whether any current rate card can price a model.
+ *
+ * @param model - Model identifier as its provider names it.
  * @returns `true` when prices exist for it.
  *
  * @remarks
@@ -127,13 +241,8 @@ const REVIEW_RATE_CARD_V1: ReviewRateCard = {
  * ceiling.
  */
 export function hasReviewPrices(model: string): boolean {
-  return CURRENT_REVIEW_RATE_CARD.prices[model] !== undefined;
+  return reviewRateCardFor(model) !== undefined;
 }
-
-/**
- * The rate card new checks are costed against.
- */
-export const CURRENT_REVIEW_RATE_CARD = REVIEW_RATE_CARD_V1;
 
 /**
  * Every rate card that has ever priced a check, by version.
@@ -146,6 +255,7 @@ export const CURRENT_REVIEW_RATE_CARD = REVIEW_RATE_CARD_V1;
  */
 const REVIEW_RATE_CARDS: Readonly<Record<string, ReviewRateCard>> = {
   [REVIEW_RATE_CARD_V1.version]: REVIEW_RATE_CARD_V1,
+  [MISTRAL_RATE_CARD_V1.version]: MISTRAL_RATE_CARD_V1,
 };
 
 /**
@@ -204,7 +314,8 @@ export type ReviewBilling = "standard" | "batch";
  *
  * @param usage - Token counts and tool calls the provider reported.
  * @param model - Model the attempt ran on, used to select the prices.
- * @param rateCard - Rate card to price against; defaults to the current one.
+ * @param rateCard - Rate card to price against; defaults to the current card
+ * of whichever provider publishes the model.
  * @returns The amount, the rate card that produced it, and whether it is complete.
  *
  * @remarks
@@ -219,7 +330,7 @@ export type ReviewBilling = "standard" | "batch";
 export function calculateReviewCost(
   usage: ReviewUsage,
   model: string,
-  rateCard: ReviewRateCard = CURRENT_REVIEW_RATE_CARD,
+  rateCard: ReviewRateCard = reviewRateCardFor(model) ?? DEFAULT_REVIEW_RATE_CARD,
   billing: ReviewBilling = "standard",
 ): ReviewCost {
   const prices = rateCard.prices[model];
@@ -303,8 +414,8 @@ export function sumReviewCosts(costs: readonly ReviewCost[]): ReviewCost {
   if (costs.length === 0) {
     return {
       totalNano: "0",
-      currency: CURRENT_REVIEW_RATE_CARD.currency,
-      rateCardVersion: CURRENT_REVIEW_RATE_CARD.version,
+      currency: DEFAULT_REVIEW_RATE_CARD.currency,
+      rateCardVersion: DEFAULT_REVIEW_RATE_CARD.version,
       complete: true,
       missingDimensions: [],
     };
@@ -364,12 +475,13 @@ export function formatReviewCost(cost: ReviewCost): string {
  * @remarks
  * A ceiling is entered in the currency the operator thinks in and compared
  * against amounts in the currency the provider bills, so it is converted once,
- * here. The current card's rate is the right one because a ceiling looks
- * forward: it bounds checks that will be priced by exactly that card.
+ * here. A ceiling looks forward, so it is converted at a current rate rather
+ * than at whichever one an old amount was pinned to. Which current card that
+ * comes from does not matter, because they agree on the currency and the rate.
  */
 export function costLimitToNano(
   units: number,
-  rateCard: ReviewRateCard = CURRENT_REVIEW_RATE_CARD,
+  rateCard: ReviewRateCard = DEFAULT_REVIEW_RATE_CARD,
 ): bigint {
   const displayNano = BigInt(Math.round(units * Number(NANO_PER_UNIT)));
   return (displayNano * NANO_PER_UNIT) / rateCard.displayRateNano;

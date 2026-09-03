@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  CURRENT_REVIEW_RATE_CARD,
+  DEFAULT_REVIEW_RATE_CARD,
   NANO_PER_UNIT,
   calculateReviewCost,
   costLimitToNano,
   formatReviewCost,
+  hasReviewPrices,
   sumReviewCosts,
   sumReviewUsage,
   toReviewDisplayAmount,
@@ -65,7 +66,7 @@ describe("calculateReviewCost", () => {
     const first = calculateReviewCost(usage, MODEL);
     const second = calculateReviewCost(usage, MODEL);
     expect(first.totalNano).toBe(second.totalNano);
-    expect(first.rateCardVersion).toBe(CURRENT_REVIEW_RATE_CARD.version);
+    expect(first.rateCardVersion).toBe(DEFAULT_REVIEW_RATE_CARD.version);
   });
 
   it("marks a missing dimension incomplete instead of treating it as zero", () => {
@@ -192,7 +193,7 @@ describe("costLimitToNano", () => {
     const backToEuros = toReviewDisplayAmount({
       totalNano: twoEuros.toString(),
       currency: "USD",
-      rateCardVersion: CURRENT_REVIEW_RATE_CARD.version,
+      rateCardVersion: DEFAULT_REVIEW_RATE_CARD.version,
       complete: true,
       missingDimensions: [],
     });
@@ -212,5 +213,87 @@ describe("batch billing", () => {
 
     expect(BigInt(standard.totalNano)).toBe(5_000_000_000n);
     expect(BigInt(batched.totalNano)).toBe(BigInt(standard.totalNano) / 2n);
+  });
+});
+
+describe("a second provider's rate card", () => {
+  const MISTRAL_MODEL = "mistral-large-2512";
+
+  it("prices a model against the card of the provider that publishes it", () => {
+    const cost = calculateReviewCost({ inputTokens: 1_000_000, outputTokens: 0 }, MISTRAL_MODEL);
+
+    // Half a dollar per million, against five for the Anthropic model above.
+    expect(cost.totalNano).toBe((NANO_PER_UNIT / 2n).toString());
+    expect(cost.rateCardVersion).toBe("mistral-2026-09-03");
+    expect(cost.complete).toBe(true);
+  });
+
+  it("charges no surcharge for a cache write, unlike the other card", () => {
+    const anthropic = calculateReviewCost({ cacheWriteTokens: 1_000_000 }, MODEL);
+    const mistral = calculateReviewCost({ cacheWriteTokens: 1_000_000 }, MISTRAL_MODEL);
+
+    const anthropicInput = calculateReviewCost({ inputTokens: 1_000_000 }, MODEL);
+    const mistralInput = calculateReviewCost({ inputTokens: 1_000_000 }, MISTRAL_MODEL);
+
+    // Anthropic publishes a quarter more for a write. Mistral publishes the
+    // discount for reading and no surcharge for writing, so a write costs what
+    // fresh input costs.
+    expect(BigInt(anthropic.totalNano)).toBe((BigInt(anthropicInput.totalNano) * 125n) / 100n);
+    expect(BigInt(mistral.totalNano)).toBe(BigInt(mistralInput.totalNano));
+  });
+
+  it("prices a search at the rate its own provider charges", () => {
+    const anthropic = calculateReviewCost({ webSearchCalls: 1000 }, MODEL);
+    const mistral = calculateReviewCost({ webSearchCalls: 1000 }, MISTRAL_MODEL);
+
+    // Ten dollars per thousand against thirty. At four searches a check this is
+    // the largest single item of a Mistral run.
+    expect(anthropic.totalNano).toBe((10n * NANO_PER_UNIT).toString());
+    expect(mistral.totalNano).toBe((30n * NANO_PER_UNIT).toString());
+  });
+
+  it("prices a run that reports no cached tokens as complete", () => {
+    // Mistral reports a prompt token count and nothing that separates a cached
+    // token from a fresh one. The absent cache figures are not a gap in what
+    // was billed, so the amount is final rather than marked incomplete.
+    const cost = calculateReviewCost(
+      { inputTokens: 100_000, outputTokens: 20_000, webSearchCalls: 4 },
+      MISTRAL_MODEL,
+    );
+
+    expect(cost.complete).toBe(true);
+    expect(cost.missingDimensions).toEqual([]);
+  });
+
+  it("halves a batched amount on either card", () => {
+    const usage = { inputTokens: 1_000_000, outputTokens: 0 };
+    const standard = calculateReviewCost(usage, MISTRAL_MODEL);
+    const batched = calculateReviewCost(usage, MISTRAL_MODEL, undefined, "batch");
+
+    expect(BigInt(batched.totalNano)).toBe(BigInt(standard.totalNano) / 2n);
+  });
+
+  it("converts an amount with the rate its own card pinned", () => {
+    const cost = calculateReviewCost({ inputTokens: 1_000_000, outputTokens: 0 }, MISTRAL_MODEL);
+    const shown = toReviewDisplayAmount(cost);
+
+    expect(shown.currency).toBe("EUR");
+    expect(shown.totalNano).toBe(((NANO_PER_UNIT / 2n) * 865_000_000n / NANO_PER_UNIT).toString());
+  });
+});
+
+describe("hasReviewPrices", () => {
+  it("covers the models of both providers", () => {
+    expect(hasReviewPrices("claude-opus-5")).toBe(true);
+    expect(hasReviewPrices("mistral-large-2512")).toBe(true);
+    expect(hasReviewPrices("mistral-medium-2604")).toBe(true);
+  });
+
+  it("rejects a model no card prices", () => {
+    // Such a model would run, cost money, and be recorded at zero, which would
+    // also let it pass the daily ceiling untouched. It is left out of the
+    // settings instead.
+    expect(hasReviewPrices("mistral-large-3")).toBe(false);
+    expect(hasReviewPrices("made-up")).toBe(false);
   });
 });

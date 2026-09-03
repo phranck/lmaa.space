@@ -1,12 +1,13 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
+import { REVIEW_PROVIDERS } from "@lmaa/shared";
 import type { ReviewCost } from "@lmaa/shared";
 
 import { db } from "../../db/client.js";
 import { reviewJobs } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
-import { CURRENT_REVIEW_RATE_CARD, toReviewDisplayAmount } from "../../lib/review-cost.js";
+import { DEFAULT_REVIEW_RATE_CARD, toReviewDisplayAmount } from "../../lib/review-cost.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { getSubmissionStatus } from "../../repositories/admin-submissions.js";
@@ -47,8 +48,15 @@ reviewJobRoutes.get("/review-jobs", async (c) => {
 });
 
 // GET /api/admin/review/models — models the automation can be configured to use
+//
+// The provider is a query parameter rather than read from the settings, because
+// the settings page asks about a provider the operator is considering and has
+// not saved yet. An unknown name falls back to the default rather than failing,
+// so a stale dashboard sees a list instead of an error.
 reviewJobRoutes.get("/review/models", async (c) => {
-  return ok(c, await listReviewModels());
+  const requested = c.req.query("provider");
+  const provider = REVIEW_PROVIDERS.find((name) => name === requested) ?? "anthropic";
+  return ok(c, await listReviewModels(provider));
 });
 
 // GET /api/admin/review-jobs/spend — what the automation has cost in total
@@ -58,7 +66,7 @@ reviewJobRoutes.get("/review-jobs/spend", async (c) => {
     const cost: ReviewCost = {
       totalNano: totalNano.toString(),
       currency: totals.currency,
-      rateCardVersion: CURRENT_REVIEW_RATE_CARD.version,
+      rateCardVersion: DEFAULT_REVIEW_RATE_CARD.version,
       complete: totals.complete,
       missingDimensions: [],
     };
