@@ -169,6 +169,39 @@ function readMessageText(outputs: unknown): string {
 }
 
 /**
+ * How much of an unusable answer is kept.
+ *
+ * @remarks
+ * Enough to see the shape of what came back and to read a stray sentence in
+ * front of it, and short enough that a report email stays a report. An answer
+ * runs to tens of kilobytes.
+ */
+const MAX_RAW_ANSWER_CHARS = 4_000;
+
+/**
+ * Describes what a conversation returned, for an answer that carried no text.
+ *
+ * @param outputs - The entries the conversation produced.
+ * @returns The entry types in order, or a note that there were none.
+ *
+ * @remarks
+ * An empty answer text is either a conversation that produced only tool
+ * executions or an envelope this adapter reads wrongly. The entry types tell
+ * the two apart, and nothing else in the record does.
+ */
+function describeOutputs(outputs: unknown): string {
+  if (!Array.isArray(outputs)) return `keine Ausgaben, sondern ${typeof outputs}`;
+  if (outputs.length === 0) return "keine Ausgaben";
+
+  const types = outputs.map((entry) =>
+    typeof entry === "object" && entry !== null
+      ? String((entry as Record<string, unknown>).type ?? "ohne Typ")
+      : typeof entry,
+  );
+  return `kein Text in ${outputs.length} Ausgaben: ${types.join(", ")}`;
+}
+
+/**
  * Turns a thrown error into a stable code and a message safe to persist.
  *
  * @param error - Whatever the SDK or the runtime threw.
@@ -543,13 +576,19 @@ export class MistralReviewProvider implements ReviewProvider {
       });
     }
 
-    const parsed = extractJsonObject(readMessageText(answer.outputs));
+    const text = readMessageText(answer.outputs);
+    const parsed = extractJsonObject(text);
     if (!parsed) {
       return this.outcome("invalid_output", {
         usage,
         providerResponseId: batchId,
         errorCode: "PROVIDER_NO_JSON",
         errorMessage: "Die Antwort enthielt kein auswertbares JSON-Objekt",
+        // Kept, because a reply without usable JSON leaves no parsed result
+        // behind and the error code alone says nothing about what came back.
+        // An empty text is itself the finding, so the outputs are described
+        // instead.
+        rawAnswer: (text.trim() || describeOutputs(answer.outputs)).slice(0, MAX_RAW_ANSWER_CHARS),
         retryable: true,
       });
     }
@@ -571,6 +610,7 @@ export class MistralReviewProvider implements ReviewProvider {
       stopReason: parts.stopReason ?? null,
       errorCode: parts.errorCode ?? null,
       errorMessage: parts.errorMessage ?? null,
+      rawAnswer: parts.rawAnswer ?? null,
       retryable: parts.retryable ?? false,
     };
   }

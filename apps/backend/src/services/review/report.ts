@@ -63,9 +63,30 @@ function renderAttempts(attempts: readonly ReviewAttemptRecord[]): string {
       const cost = formatReviewCost(attempt.cost);
       const tokens = `in ${formatNumber(attempt.usage.inputTokens)} / out ${formatNumber(attempt.usage.outputTokens)}`;
       const error = attempt.errorCode ? ` [${attempt.errorCode}]` : "";
-      return `Versuch ${attempt.attempt}: ${attempt.outcome}${error}, ${tokens}, ${cost}`;
+      const message = attempt.errorMessage ? `\n  ${attempt.errorMessage}` : "";
+      return `Versuch ${attempt.attempt}: ${attempt.outcome}${error}, ${tokens}, ${cost}${message}`;
     })
     .join("\n");
+}
+
+/**
+ * Renders what the provider answered on the attempts that could not use it.
+ *
+ * @param attempts - Every attempt belonging to the check.
+ * @returns The kept answers, or a note that none was kept.
+ *
+ * @remarks
+ * This is the whole point of keeping them: an answer that carried no usable
+ * JSON leaves no parsed result behind, so the error code is otherwise the only
+ * thing left and it says nothing about what came back.
+ */
+function renderRawAnswers(attempts: readonly ReviewAttemptRecord[]): string {
+  const kept = attempts.filter((attempt) => attempt.rawAnswer);
+  if (kept.length === 0) return "keine unbrauchbare Antwort aufgezeichnet";
+
+  return kept
+    .map((attempt) => `--- Versuch ${attempt.attempt} ---\n${attempt.rawAnswer ?? ""}`)
+    .join("\n\n");
 }
 
 /**
@@ -162,6 +183,8 @@ function buildVariables(
     rateCardVersion: cost.rateCardVersion,
     attemptBreakdown: renderAttempts(job.attempts),
     usageBlock: renderUsageBlock(job),
+    rawAnswers: renderRawAnswers(job.attempts),
+    providerResponseId: job.providerResponseId ?? "-",
     errorCode: job.errorCode ?? "",
     errorId: job.errorId ?? "",
   };

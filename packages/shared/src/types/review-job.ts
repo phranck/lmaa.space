@@ -83,6 +83,27 @@ export interface ReviewAttemptRecord {
   outcome: "succeeded" | "invalid_output" | "refused" | "failed" | "cancelled" | "budget_exceeded";
   /** Stable error code when the attempt did not succeed. */
   errorCode: string | null;
+  /**
+   * Short, already redacted description of the failure.
+   *
+   * @remarks
+   * Absent on an attempt that succeeded, and on records written before this
+   * was carried at all.
+   */
+  errorMessage?: string | null;
+  /**
+   * What the provider answered, when the answer could not be used.
+   *
+   * @remarks
+   * The one failure that needs the answer is the one where nothing else keeps
+   * it: a reply that carried no usable JSON leaves no parsed result behind, so
+   * without this there is nothing to look at but the error code.
+   *
+   * Truncated, because an answer runs to tens of kilobytes and this is read in
+   * an email. What went wrong with an envelope or a stray sentence shows itself
+   * at the start.
+   */
+  rawAnswer?: string | null;
   startedAt: string;
   finishedAt: string;
 }

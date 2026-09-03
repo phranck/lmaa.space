@@ -94,6 +94,15 @@ export interface ReviewProviderOutcome {
   errorCode: string | null;
   /** Short, already redacted description of the failure. */
   errorMessage: string | null;
+  /**
+   * The provider's answer as text, where it could not be turned into a result.
+   *
+   * @remarks
+   * Set on `invalid_output` and `null` everywhere else. A parsed answer is kept
+   * in {@link ReviewProviderOutcome.raw}, and an answer that never arrived has
+   * no text to keep, so this is the one case that would otherwise lose it.
+   */
+  rawAnswer: string | null;
   /** `true` when trying the same attempt again could plausibly succeed. */
   retryable: boolean;
 }
