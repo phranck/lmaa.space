@@ -1442,6 +1442,7 @@ export interface DashboardMessages {
         autoApplyBlocked: string;
         providerLabel: string;
         providerHint: string;
+        notifyTitle: string;
         socialTitle: string;
         socialHint: string;
         socialNoPost: string;
@@ -3206,6 +3207,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           notifyAcceptTemplateLabel: "E-Mail bei automatischer Aufnahme",
           notifyRejectTemplateLabel: "E-Mail bei automatischer Ablehnung",
           autoApplyBlocked: "Nur im Modus Unterstützend verfügbar.",
+          notifyTitle: "E-Mail an die vorschlagende Person",
           socialTitle: "Beitrag bei automatischer Aufnahme",
           socialHint:
             "Je Konto die Vorlage, mit der die Automatik eine Aufnahme ankündigt. Ohne Vorlage wird auf diesem Konto nichts gepostet.",
@@ -4967,6 +4969,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           notifyAcceptTemplateLabel: "Email on an automatic admission",
           notifyRejectTemplateLabel: "Email on an automatic rejection",
           autoApplyBlocked: "Available in Assist mode only.",
+          notifyTitle: "Email to whoever suggested the shop",
           socialTitle: "Post on an automatic admission",
           socialHint:
             "The template each account announces an admission with. Without one, that account posts nothing.",
