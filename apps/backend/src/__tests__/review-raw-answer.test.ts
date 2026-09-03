@@ -1,18 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-/** Jobs the fake provider answers `get` with, oldest first. */
-const jobs: Array<Record<string, unknown>> = [];
+/** Conversations the fake provider answers with, oldest first. */
+const answers: Array<Record<string, unknown>> = [];
 
 vi.mock("@mistralai/mistralai", () => {
   class FakeMistral {
-    batch = {
-      jobs: {
-        create: vi.fn(async () => ({ id: "batch_1" })),
-        get: vi.fn(async () => jobs.shift() ?? jobs[jobs.length - 1]),
-        cancel: vi.fn(),
+    beta = {
+      conversations: {
+        start: vi.fn(async () => {
+          const answer = answers.shift();
+          if (!answer) throw new Error("no answer queued");
+          return answer;
+        }),
       },
     };
-    files = { download: vi.fn() };
     chat = { complete: vi.fn() };
   }
 
@@ -31,10 +32,7 @@ const request = {
 };
 
 function finishedJob(body: Record<string, unknown>) {
-  return {
-    status: "SUCCESS",
-    outputs: [{ custom_id: "review-1", response: { status_code: 200, body } }],
-  };
+  return { conversationId: "conv_1", ...body };
 }
 
 function provider() {
@@ -43,14 +41,14 @@ function provider() {
 
 describe("an answer that could not be used", () => {
   beforeEach(() => {
-    jobs.length = 0;
+    answers.length = 0;
   });
 
   it("is kept, so the failure is more than a code", async () => {
     // This is the failure the whole thing exists for. A reply without usable
     // JSON leaves no parsed result behind, so without the text there is
     // nothing to look at but PROVIDER_NO_JSON.
-    jobs.push(
+    answers.push(
       finishedJob({
         outputs: [{ type: "message.output", content: "Gerne! Hier ist meine Einschätzung: ..." }],
         usage: { promptTokens: 10, completionTokens: 20 },
@@ -65,7 +63,7 @@ describe("an answer that could not be used", () => {
   });
 
   it("is cut to a length a report email can carry", async () => {
-    jobs.push(
+    answers.push(
       finishedJob({
         outputs: [{ type: "message.output", content: "x".repeat(50_000) }],
         usage: { promptTokens: 10, completionTokens: 20 },
@@ -81,7 +79,7 @@ describe("an answer that could not be used", () => {
     // An empty text is either a run that only executed tools or an envelope
     // this adapter reads wrongly, and the entry types are what tell those
     // apart. Recording an empty string would lose exactly that.
-    jobs.push(
+    answers.push(
       finishedJob({
         outputs: [{ type: "tool.execution", name: "web_search" }, { type: "function.call" }],
         usage: { promptTokens: 10, completionTokens: 20 },
@@ -96,7 +94,7 @@ describe("an answer that could not be used", () => {
   });
 
   it("is absent when the answer was usable", async () => {
-    jobs.push(
+    answers.push(
       finishedJob({
         outputs: [{ type: "message.output", content: '{"verdict":"onhold"}' }],
         usage: { promptTokens: 10, completionTokens: 20 },
@@ -112,14 +110,14 @@ describe("an answer that could not be used", () => {
 
 describe("an answer that was cut off", () => {
   beforeEach(() => {
-    jobs.length = 0;
+    answers.length = 0;
   });
 
   it("is not reported as unparseable, because it was not", async () => {
     // The answer that cost this: correct JSON, all eight criteria evidenced,
     // and it stopped before it ended. Recorded as PROVIDER_NO_JSON it sent a
     // reader looking for a malformed answer that was never malformed.
-    jobs.push(
+    answers.push(
       finishedJob({
         outputs: [{ type: "message.output", content: '{"schemaVersion":"2","verdict":"acc' }],
         usage: { promptTokens: 25_000, completionTokens: 64_498 },
@@ -136,7 +134,7 @@ describe("an answer that was cut off", () => {
   it("is not retried, because the next attempt hits the same ceiling", async () => {
     // Three identical retries of one truncated answer cost 0,95 EUR on the job
     // this was found in, and none of them could have produced anything else.
-    jobs.push(
+    answers.push(
       finishedJob({
         outputs: [{ type: "message.output", content: "{" }],
         usage: { promptTokens: 25_000, completionTokens: 64_000 },
@@ -151,7 +149,7 @@ describe("an answer that was cut off", () => {
   it("still reports an answer below the ceiling as unparseable", async () => {
     // Attempts 5 and 6 of that job wrote 9 076 and 7 154 tokens and were also
     // unusable, so the ceiling is not the only way an answer goes wrong.
-    jobs.push(
+    answers.push(
       finishedJob({
         outputs: [{ type: "message.output", content: "Gerne! Hier meine Einschätzung." }],
         usage: { promptTokens: 25_000, completionTokens: 9_076 },

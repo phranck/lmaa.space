@@ -1,30 +1,26 @@
 import { ConnectionError, RequestAbortedError } from "@mistralai/mistralai/models/errors";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+/** What the adapter asked the provider for, so the request can be read back. */
+const started: Array<{ request: Record<string, unknown>; options?: Record<string, unknown> }> = [];
 
-/** Batch jobs the adapter created, so a resumed run can be told from a fresh one. */
-const created: Array<Record<string, unknown>> = [];
-
-/** Jobs the fake provider answers `get` with, oldest first. */
-const jobs: Array<Record<string, unknown>> = [];
-
-const cancelled: string[] = [];
+/** Conversations the fake provider answers with, oldest first. */
+const answers: Array<Record<string, unknown>> = [];
 
 vi.mock("@mistralai/mistralai", () => {
   class FakeMistral {
-    batch = {
-      jobs: {
-        create: vi.fn(async (params: Record<string, unknown>) => {
-          created.push(params);
-          return { id: `batch_${created.length}` };
-        }),
-        get: vi.fn(async () => jobs.shift() ?? jobs[jobs.length - 1]),
-        cancel: vi.fn(async ({ jobId }: { jobId: string }) => {
-          cancelled.push(jobId);
-        }),
+    beta = {
+      conversations: {
+        start: vi.fn(
+          async (request: Record<string, unknown>, options?: Record<string, unknown>) => {
+            started.push({ request, options });
+            const answer = answers.shift();
+            if (!answer) throw new Error("no answer queued");
+            return answer;
+          },
+        ),
       },
     };
-    files = { download: vi.fn() };
     chat = { complete: vi.fn() };
   }
 
@@ -44,71 +40,79 @@ const request = {
   costLimitNano: 10_000_000_000n,
 };
 
-/** A finished batch carrying one answer inline, as an inline batch returns it. */
-function finishedJob(body: Record<string, unknown>) {
-  return {
-    status: "SUCCESS",
-    outputs: [{ custom_id: "review-1", response: { status_code: 200, body } }],
-  };
-}
-
 function conversation(text: string, usage: Record<string, unknown> = {}) {
   return {
+    conversationId: "conv_1",
     outputs: [{ type: "message.output", role: "assistant", content: text }],
     usage: { promptTokens: 100, completionTokens: 200, ...usage },
   };
 }
 
-function provider() {
-  return new MistralReviewProvider({ model: "mistral-large-2512", effort: "high", apiKey: "k" });
+function provider(effort: "high" | "max" | null = "high") {
+  return new MistralReviewProvider({ model: "mistral-large-2512", effort, apiKey: "k" });
 }
 
 describe("the Mistral adapter", () => {
   beforeEach(() => {
-    created.length = 0;
-    jobs.length = 0;
-    cancelled.length = 0;
+    started.length = 0;
+    answers.length = 0;
   });
 
-  it("submits the check against the conversations endpoint", async () => {
-    jobs.push(finishedJob(conversation('{"verdict":"onhold"}')));
+  it("asks once and reads the answer, rather than queueing it", async () => {
+    answers.push(conversation('{"verdict":"onhold"}'));
 
     const outcome = await provider().runReview(request as never);
 
+    expect(started).toHaveLength(1);
     expect(outcome.kind).toBe("result");
-    expect(created).toHaveLength(1);
-    // The hosted search lives on this endpoint and nowhere else, so a check
-    // submitted anywhere else can research nothing.
-    expect(created[0].endpoint).toBe("/v1/conversations");
+    // The conversation identifier is what correlates a run with the provider's
+    // own record of it.
+    expect(outcome.providerResponseId).toBe("conv_1");
+  });
+
+  it("is billed at the standard rate, because nothing was queued", () => {
+    expect(provider().billing).toBe("standard");
   });
 
   it("gives the run a search tool and no page fetcher", async () => {
-    jobs.push(finishedJob(conversation('{"verdict":"onhold"}')));
+    answers.push(conversation('{"verdict":"onhold"}'));
 
     await provider().runReview(request as never);
 
-    const body = (created[0] as { requests: Array<{ body: Record<string, unknown> }> }).requests[0]
-      .body;
+    const body = started[0].request;
     expect(body.tools).toEqual([{ type: "web_search" }]);
     // Naming a fetcher the run does not have makes it plan around a tool it
     // cannot call.
     expect(JSON.stringify(body.instructions)).not.toContain("web_fetch");
   });
 
-  it("resumes a batch a previous attempt submitted instead of paying twice", async () => {
-    jobs.push(finishedJob(conversation('{"verdict":"onhold"}')));
+  it("asks for a level Mistral knows, not the one at the top of our scale", async () => {
+    // `max` is on the shared scale and not on Mistral's, and a level it does
+    // not know is refused with a 400 before anything is researched.
+    answers.push(conversation('{"verdict":"onhold"}'));
 
-    const outcome = await provider().runReview({
-      ...request,
-      resumeBatchId: "batch_from_before",
-    } as never);
+    await provider("max").runReview(request as never);
 
-    expect(created).toHaveLength(0);
-    expect(outcome.providerResponseId).toBe("batch_from_before");
+    const args = started[0].request.completionArgs as { reasoningEffort?: string };
+    expect(args.reasoningEffort).toBe("xhigh");
+  });
+
+  it("gives the run a deadline and the run's own cancellation signal", async () => {
+    answers.push(conversation('{"verdict":"onhold"}'));
+    const controller = new AbortController();
+
+    await provider().runReview({ ...request, signal: controller.signal } as never);
+
+    const options = started[0].options as {
+      timeoutMs?: number;
+      fetchOptions?: { signal?: AbortSignal };
+    };
+    expect(options.timeoutMs).toBeGreaterThan(0);
+    expect(options.fetchOptions?.signal).toBe(controller.signal);
   });
 
   it("reads the search count out of the connectors map", async () => {
-    jobs.push(finishedJob(conversation('{"verdict":"onhold"}', { connectors: { web_search: 4 } })));
+    answers.push(conversation('{"verdict":"onhold"}', { connectors: { web_search: 4 } }));
 
     const outcome = await provider().runReview(request as never);
 
@@ -118,7 +122,7 @@ describe("the Mistral adapter", () => {
   });
 
   it("leaves the cache dimensions absent, because the provider reports none", async () => {
-    jobs.push(finishedJob(conversation('{"verdict":"onhold"}')));
+    answers.push(conversation('{"verdict":"onhold"}'));
 
     const outcome = await provider().runReview(request as never);
 
@@ -129,18 +133,17 @@ describe("the Mistral adapter", () => {
   });
 
   it("joins the text of a message that arrived in chunks", async () => {
-    jobs.push(
-      finishedJob({
-        outputs: [
-          { type: "tool.execution", name: "web_search" },
-          {
-            type: "message.output",
-            content: [{ type: "text", text: '{"verdict":' }, { type: "text", text: '"onhold"}' }],
-          },
-        ],
-        usage: { promptTokens: 1, completionTokens: 1 },
-      }),
-    );
+    answers.push({
+      conversationId: "conv_1",
+      outputs: [
+        { type: "tool.execution", name: "web_search" },
+        {
+          type: "message.output",
+          content: [{ type: "text", text: '{"verdict":' }, { type: "text", text: '"onhold"}' }],
+        },
+      ],
+      usage: { promptTokens: 1, completionTokens: 1 },
+    });
 
     const outcome = await provider().runReview(request as never);
 
@@ -148,27 +151,13 @@ describe("the Mistral adapter", () => {
     expect(outcome.raw).toEqual({ verdict: "onhold" });
   });
 
-  it("reports a failed batch as a failure rather than as an empty answer", async () => {
-    jobs.push({ status: "FAILED", outputs: [] });
-
+  it("reports a refused request as a failure rather than as an empty answer", async () => {
+    // The fake throws when nothing is queued, which is what a provider-side
+    // fault looks like from here.
     const outcome = await provider().runReview(request as never);
 
     expect(outcome.kind).toBe("failed");
-    expect(outcome.errorCode).toBe("PROVIDER_BATCH_FAILED");
-    expect(outcome.retryable).toBe(false);
-  });
-
-  it("stops the batch at the provider when the run is cancelled", async () => {
-    jobs.push({ status: "QUEUED", outputs: [] });
-
-    const outcome = await provider().runReview({
-      ...request,
-      signal: AbortSignal.abort(),
-    } as never);
-
-    expect(outcome.errorCode).toBe("PROVIDER_ABORTED");
-    // A check somebody stopped must not go on being processed and billed.
-    expect(cancelled).toEqual(["batch_1"]);
+    expect(outcome.errorCode).toBe("PROVIDER_UNKNOWN");
   });
 
   it("refuses to run without a key instead of failing at the provider", async () => {

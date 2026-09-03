@@ -1,7 +1,9 @@
 import type { ReviewUsage } from "@lmaa/shared";
 
+
 import type { ReviewRunContext } from "./context.js";
 import type { ReviewSkill } from "./skill.js";
+import type { ReviewBilling } from "../../lib/review-cost.js";
 
 /**
  * Everything one provider run needs.
@@ -122,6 +124,17 @@ export interface ReviewProvider {
   readonly model: string;
   /** Reasoning effort the provider requests, or `null` where the model takes none. */
   readonly effort: string | null;
+  /**
+   * The rate this adapter is billed at.
+   *
+   * @remarks
+   * Named by the adapter rather than assumed by the worker, because the two
+   * adapters submit differently: one queues a batch at half price and the other
+   * asks and waits. Pricing a standard run as a batch would record half of what
+   * was charged, and the daily ceiling would let through twice the spending it
+   * was set to allow.
+   */
+  readonly billing: ReviewBilling;
 
   /**
    * Rewrites texts that broke a mechanical German rule.
