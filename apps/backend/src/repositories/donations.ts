@@ -1,9 +1,32 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, isNotNull, lte, sql } from "drizzle-orm";
 
-import type { DonationBucket } from "@lmaa/contracts";
+import type { DonationBucket, DonationOrigin } from "@lmaa/contracts";
 
 import { db } from "../db/client.js";
 import { type DonationInsert, type DonationRow, donations } from "../db/schema.js";
+
+/**
+ * A payment as anything outside this module sees it.
+ *
+ * `external_ref` is replaced by what it answers. The identifier belongs to the
+ * bank account rather than to the ledger, and nothing above needs it, so it
+ * stops here and cannot reach a response by somebody forgetting to strip it.
+ */
+export interface DonationView extends Omit<DonationRow, "externalRef"> {
+  /** Whether a person entered this payment or the site read it from the bank. */
+  origin: DonationOrigin;
+}
+
+/**
+ * Turns a stored row into what the rest of the backend works with.
+ *
+ * @param row - The row as the database holds it.
+ * @returns The same payment, with the bank's identifier answered rather than
+ *   carried.
+ */
+function toView({ externalRef, ...row }: DonationRow): DonationView {
+  return { ...row, origin: externalRef === null ? "manual" : "bank" };
+}
 
 /** What a window of the ledger adds up to. */
 export interface DonationSum {
@@ -30,17 +53,25 @@ function windowBounds(range: { from?: string; to?: string }) {
 /**
  * Returns every payment, the most recent first.
  *
- * @param range - The days to include. Both ends count, and either may be left
- *   out to leave that side of the window open.
+ * @param range - The days to include, both ends counting and either side able
+ *   to stay open, and optionally one origin. Left out, both origins are listed
+ *   together.
  */
 export async function listDonations(
-  range: { from?: string; to?: string } = {},
-): Promise<DonationRow[]> {
-  const bounds = windowBounds(range);
+  range: { from?: string; to?: string; origin?: DonationOrigin } = {},
+): Promise<DonationView[]> {
+  const bounds = [
+    ...windowBounds(range),
+    // Whether the row carries the bank's identifier is the whole of what the
+    // origin is, so the filter asks the column rather than a second flag.
+    ...(range.origin === "bank" ? [isNotNull(donations.externalRef)] : []),
+    ...(range.origin === "manual" ? [isNull(donations.externalRef)] : []),
+  ];
   const query = db.select().from(donations);
-  return bounds.length > 0
+  const rows = await (bounds.length > 0
     ? query.where(and(...bounds)).orderBy(desc(donations.receivedAt))
-    : query.orderBy(desc(donations.receivedAt));
+    : query.orderBy(desc(donations.receivedAt)));
+  return rows.map(toView);
 }
 
 /**
@@ -135,7 +166,10 @@ export async function listDonationPeriods(
   const bounds = windowBounds(range);
   const query = db.select(selection).from(donations);
   return bounds.length > 0
-    ? query.where(and(...bounds)).groupBy(period).orderBy(period)
+    ? query
+        .where(and(...bounds))
+        .groupBy(period)
+        .orderBy(period)
     : query.groupBy(period).orderBy(period);
 }
 
@@ -161,29 +195,38 @@ export async function listDonationProviders(
   const bounds = windowBounds(range);
   const query = db.select(selection).from(donations);
   return bounds.length > 0
-    ? query.where(and(...bounds)).groupBy(donations.provider).orderBy(desc(cents))
+    ? query
+        .where(and(...bounds))
+        .groupBy(donations.provider)
+        .orderBy(desc(cents))
     : query.groupBy(donations.provider).orderBy(desc(cents));
 }
 
 /** Returns one payment, or `null` when none carries that identifier. */
-export async function getDonation(id: string): Promise<DonationRow | null> {
+export async function getDonation(id: string): Promise<DonationView | null> {
   const [row] = await db.select().from(donations).where(eq(donations.id, id)).limit(1);
-  return row ?? null;
+  return row ? toView(row) : null;
 }
 
-/** Stores a new payment and returns it, including the identifier given. */
-export async function insertDonation(data: DonationInsert): Promise<DonationRow> {
+/**
+ * Stores a new payment and returns it, including the identifier given.
+ *
+ * @throws Whatever the driver raises, including a unique violation when the
+ *   bank's identifier is already in the ledger. That is how a second read of
+ *   the same entry is recognised, so the caller decides what to do about it.
+ */
+export async function insertDonation(data: DonationInsert): Promise<DonationView> {
   const [created] = await db.insert(donations).values(data).returning();
-  return created;
+  return toView(created);
 }
 
 /** Updates one payment and returns it, or `null` when it no longer exists. */
 export async function updateDonation(
   id: string,
   data: Partial<Omit<DonationInsert, "id">>,
-): Promise<DonationRow | null> {
+): Promise<DonationView | null> {
   const [updated] = await db.update(donations).set(data).where(eq(donations.id, id)).returning();
-  return updated ?? null;
+  return updated ? toView(updated) : null;
 }
 
 /** Removes one payment. */

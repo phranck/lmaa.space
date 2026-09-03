@@ -89,6 +89,12 @@ Der Schlüssel hat mehrere Zeilen, das Variablenfeld in Zerops hat eine. Deshalb
 
 Verbunden wird im Dashboard unter Sponsoring → Bankverbindung, und nur vom Owner. Der Ablauf ist der übliche: das Backend holt beim Anbieter eine Adresse zur Bank, die Bank schickt die Person auf `https://dashboard.lmaa.space/bank-connection/callback` zurück, und das Dashboard reicht den Code an das Backend weiter, das ihn einlöst. Diese Rückadresse ist beim Anbieter hinterlegt und lässt sich nicht einseitig im Code ändern. Die Zustimmung läuft ab; erneuert wird sie, indem man denselben Weg noch einmal geht.
 
+Steht die Verbindung, liest ein Hintergrundlauf alle sechs Stunden die Eingänge und trägt ein, was diesem Projekt gehört. Was das ist, entscheidet eine Positivliste und keine Ausschlussregel: entweder trägt der Verwendungszweck eine Referenz, die das Sponsorenformular nach ISO 11649 ausgegeben hat und deren Prüfziffern noch stimmen, oder er nennt den Host der Seite. Alles andere ist auf einem privaten Konto fremdes Leben und verlässt die lesende Funktion, ohne gespeichert, gezählt oder geloggt zu werden. Der Name des Zahlers wird nie übernommen, der Verwendungszweck nie im Klartext abgelegt.
+
+Wie oft gelesen werden darf, steht in Artikel 36 Absatz 5 der Delegierten Verordnung (EU) 2018/389: viermal in 24 Stunden, solange der Kontoinhaber nicht selbst fragt. Der Zähler kommt aus der Tabelle `bank_account_reads` statt aus einem Timer, denn ein Deployment startet einen Timer neu und lässt kurz zwei Container mit je einem laufen. `POST /api/v1/admin/bank-connection/sync` löst einen Lauf von Hand aus und zählt getrennt, weil das der Fall aus Buchstabe a ist.
+
+In der Liste der Spendeneingänge steht je Zeile, woher sie kam, und darüber lässt sich filtern. Dahinter steckt kein zweites Kennzeichen: eine Zeile mit der Kennung, die die Bank ihrem Eintrag gegeben hat, kam über die Bank, eine ohne wurde von Hand eingetragen.
+
 Getrennt wird auf derselben Seite. Das Backend widerruft die Verbindung zuerst bei sich und schliesst danach die Sitzung beim Anbieter, was die Zustimmung bei der Bank mit beendet. Der Widerruf steht auch dann, wenn das Schliessen scheitert, denn das Aufhören mit dem Lesen ist die Entscheidung dieser Seite; die Antwort sagt in dem Fall, dass die Zustimmung bei der Bank noch bis zu ihrem Ablauf steht. Der Zustand der Verbindung steht als Abzeichen am Eintrag in der Seitenleiste, und vierzehn Tage vor Ablauf wechselt es die Farbe.
 
 ## Datenbank

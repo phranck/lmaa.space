@@ -71,6 +71,66 @@ const sessionResponseSchema = z.object({
   access: z.object({ valid_until: z.string().max(64).optional() }).optional(),
 });
 
+/**
+ * What the provider answers when the account's entries are asked for.
+ *
+ * Every field this site does not read is left out of the schema, so nothing it
+ * has no use for is even carried past this point. That matters more than usual
+ * here: the account is a private one, and an entry that turns out not to
+ * concern this project must leave the reading function without a trace.
+ */
+const transactionsResponseSchema = z.object({
+  transactions: z
+    .array(
+      z.object({
+        /** The bank's own name for the entry, and the only stable one it gives. */
+        entry_reference: z.string().min(1).max(200).optional(),
+        transaction_amount: z
+          .object({
+            currency: z.string().max(8),
+            /** A decimal as text, which is how the interface states money. */
+            amount: z.string().max(32),
+          })
+          .optional(),
+        /** `CRDT` for money arriving, `DBCT` for money leaving. */
+        credit_debit_indicator: z.string().max(8).optional(),
+        booking_date: z.string().max(32).optional(),
+        value_date: z.string().max(32).optional(),
+        remittance_information: z.array(z.string().max(500)).max(50).default([]),
+      }),
+    )
+    .default([]),
+  continuation_key: z.string().max(2000).nullish(),
+});
+
+/** One entry of the account, reduced to what deciding about it needs. */
+export interface BankTransaction {
+  /** The bank's own name for the entry. */
+  entryReference: string;
+  /** What moved, in cents, always positive. */
+  amountCents: number;
+  /** The currency it moved in. */
+  currency: string;
+  /** Whether the money arrived rather than left. */
+  isCredit: boolean;
+  /** The day it was booked, as `YYYY-MM-DD`. */
+  bookedOn: string;
+  /**
+   * The remittance text, line by line.
+   *
+   * Never stored and never logged. It is read to decide whether the entry
+   * concerns this project and is dropped with the entry when it does not.
+   */
+  remittanceLines: string[];
+}
+
+/** One page of the account's entries. */
+export interface BankTransactionPage {
+  transactions: BankTransaction[];
+  /** What to ask for to get the next page, or `null` at the end. */
+  continuationKey: string | null;
+}
+
 /** An authorisation that has been started and is waiting for the person. */
 export interface StartedAuthorization {
   /** Where to send the browser. */
@@ -175,7 +235,7 @@ function signRequestToken(): string {
  * loggable.
  */
 async function callEnableBanking(
-  method: "POST" | "DELETE",
+  method: "GET" | "POST" | "DELETE",
   path: string,
   body?: unknown,
 ): Promise<unknown> {
@@ -307,15 +367,15 @@ export async function createSession(code: string): Promise<EnableBankingSession>
 }
 
 /**
- * What a session identifier may consist of before it is put into a path.
+ * What an identifier may consist of before it is put into a path.
  *
- * The identifier comes from this site's own database and originally from the
- * provider, so it is not caller input. The pattern is here because it is about
- * to become part of a URL, and a value that cannot hold a slash or a dot
- * segment cannot leave the path it was meant for whatever else changes around
- * it.
+ * Both the session and the account come from this site's own database and
+ * originally from the provider, so neither is caller input. The pattern is here
+ * because they are about to become part of a URL, and a value that cannot hold
+ * a slash or a dot segment cannot leave the path it was meant for whatever else
+ * changes around it.
  */
-const SESSION_ID_PATTERN = /^[A-Za-z0-9._~-]{1,200}$/;
+const PATH_IDENTIFIER_PATTERN = /^[A-Za-z0-9._~-]{1,200}$/;
 
 /** An identifier made only of dots is a path segment rather than a name. */
 const DOT_SEGMENT_PATTERN = /^\.+$/;
@@ -333,9 +393,103 @@ const DOT_SEGMENT_PATTERN = /^\.+$/;
  * nobody closes stays open until its consent lapses on its own.
  */
 export async function closeSession(sessionId: string): Promise<void> {
-  if (!SESSION_ID_PATTERN.test(sessionId) || DOT_SEGMENT_PATTERN.test(sessionId)) {
+  if (!PATH_IDENTIFIER_PATTERN.test(sessionId) || DOT_SEGMENT_PATTERN.test(sessionId)) {
     throw new HttpError(500, "Refused an unexpected destination", "bank_bad_destination");
   }
 
   await callEnableBanking("DELETE", `/sessions/${encodeURIComponent(sessionId)}`);
+}
+
+/** Money arriving, as the interface names the direction. */
+const CREDIT_INDICATOR = "CRDT";
+
+/** Only entries the bank has actually booked, never ones still pending. */
+const BOOKED_STATUS = "BOOK";
+
+/**
+ * Use the dates that were asked for.
+ *
+ * The alternative, `longest`, looks for the longest period the bank will give,
+ * ignores `date_to`, and costs extra calls at the bank to find out. This run
+ * knows exactly which days it wants.
+ */
+const FETCH_STRATEGY = "default";
+
+/**
+ * Turns money as the interface states it into cents.
+ *
+ * @param amount - A decimal as text, such as `12.34`.
+ * @returns The amount in cents, always positive, or `null` when it is not a
+ *   number. The direction is carried separately, so a sign here would be a
+ *   second answer to a question `credit_debit_indicator` already settles.
+ */
+function toCents(amount: string): number | null {
+  const value = Number(amount);
+  if (!Number.isFinite(value)) return null;
+  return Math.abs(Math.round(value * 100));
+}
+
+/**
+ * Reads one page of the account's entries.
+ *
+ * @param accountUid - The account, as the session named it.
+ * @param range - The days to ask for, both ends counting, as `YYYY-MM-DD`.
+ * @param continuationKey - What the previous page answered, or nothing.
+ * @returns The entries and the key for the next page, if any.
+ * @throws {HttpError} 500 when the account identifier is not one this site
+ *   could have stored, 503 when unconfigured, 502 when the provider fails.
+ *
+ * @remarks
+ * Only booked entries are asked for. That leaves the pending ones out, and it
+ * stops one payment being counted once as pending and once as booked.
+ *
+ * The remittance text cannot be filtered on here, because the regulated
+ * interface behind the provider has no free-text search. The window and the
+ * status are therefore made as narrow as they can be, and what still comes back
+ * is decided about by the caller and dropped where it does not concern this
+ * project.
+ */
+export async function fetchTransactions(
+  accountUid: string,
+  range: { from: string; to: string },
+  continuationKey?: string,
+): Promise<BankTransactionPage> {
+  if (!PATH_IDENTIFIER_PATTERN.test(accountUid) || DOT_SEGMENT_PATTERN.test(accountUid)) {
+    throw new HttpError(500, "Refused an unexpected destination", "bank_bad_destination");
+  }
+
+  const query = new URLSearchParams({
+    date_from: range.from,
+    date_to: range.to,
+    transaction_status: BOOKED_STATUS,
+    strategy: FETCH_STRATEGY,
+  });
+  if (continuationKey) query.set("continuation_key", continuationKey);
+
+  const path = `/accounts/${encodeURIComponent(accountUid)}/transactions?${query.toString()}`;
+  const answer = parseAnswer(
+    transactionsResponseSchema,
+    await callEnableBanking("GET", path),
+    "/accounts/{uid}/transactions",
+  );
+
+  const transactions: BankTransaction[] = [];
+  for (const entry of answer.transactions) {
+    const bookedOn = entry.booking_date ?? entry.value_date;
+    const amountCents = entry.transaction_amount ? toCents(entry.transaction_amount.amount) : null;
+    // An entry the interface did not date, name or price cannot be reconciled
+    // and is not guessed at. It leaves here as though it had not been read.
+    if (!entry.entry_reference || !bookedOn || amountCents === null) continue;
+
+    transactions.push({
+      entryReference: entry.entry_reference,
+      amountCents,
+      currency: entry.transaction_amount?.currency ?? "",
+      isCredit: entry.credit_debit_indicator === CREDIT_INDICATOR,
+      bookedOn: bookedOn.slice(0, 10),
+      remittanceLines: entry.remittance_information,
+    });
+  }
+
+  return { transactions, continuationKey: answer.continuation_key ?? null };
 }
