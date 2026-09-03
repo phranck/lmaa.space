@@ -9,7 +9,42 @@ import type { ReviewRunContext } from "./context.js";
 import type { ReviewSkill } from "./skill.js";
 
 /**
+ * What a run can do, which decides what the rules tell it about its tools.
+ */
+export interface ReviewToolCapabilities {
+  /**
+   * Whether the run can fetch a page whose address it already holds.
+   *
+   * @remarks
+   * Anthropic hosts a page fetcher beside its search; Mistral's conversations
+   * offer search alone and return the page content with the results. Naming a
+   * tool that is not there is worse than naming one fewer, because the run
+   * plans around it and then fails to call it.
+   */
+  canFetchPages: boolean;
+}
+
+/**
+ * Describes the tools a run actually has.
+ *
+ * @param capabilities - What this provider offers.
+ * @returns The tools paragraph of the addendum.
+ */
+function describeTools(capabilities: ReviewToolCapabilities): string {
+  const search = "- `web_search` sucht im Netz.";
+  const fetch =
+    "- `web_fetch` holt eine Seite, deren Adresse bereits im Gespräch steht, also die Shop-Adresse aus der Aufgabe oder eine Adresse aus einem Suchergebnis.";
+
+  return capabilities.canFetchPages
+    ? `${search}\n${fetch}`
+    : "- `web_search` sucht im Netz und liefert die Inhalte der gefundenen Seiten gleich mit. Eine Seite, die du gezielt lesen willst, suchst du also über ihre Adresse.";
+}
+
+/**
  * What the automated run needs on top of the canonical rules.
+ *
+ * @param capabilities - What this provider's run can do.
+ * @returns The addendum text.
  *
  * @remarks
  * The canonical rules were written for a person running the check in a terminal
@@ -18,14 +53,14 @@ import type { ReviewSkill } from "./skill.js";
  * actually has. Everything else about how a shop is judged stays in the
  * canonical rules, so the two modes cannot come apart on the substance.
  */
-const AUTOMATION_ADDENDUM = `
+function buildAutomationAddendum(capabilities: ReviewToolCapabilities): string {
+  return `
 <automation_context>
 Dieser Lauf ist automatisiert. Es gibt keine Person, die zwischendurch antwortet, und keine Shell. Die Regeln oben gelten unverändert für die inhaltliche Prüfung. Nur die Ausgabe und die Werkzeuge sind andere, wie hier beschrieben.
 
 **Werkzeuge**
 
-- \`web_search\` sucht im Netz.
-- \`web_fetch\` holt eine Seite, deren Adresse bereits im Gespräch steht, also die Shop-Adresse aus der Aufgabe oder eine Adresse aus einem Suchergebnis.
+${describeTools(capabilities)}
 
 Weiter gibt es keine. Zwei Dinge erledigt das System für dich, und beide brauchen dich nicht:
 
@@ -76,20 +111,99 @@ ${JSON.stringify(reviewResultJsonSchema)}
 Für \`description\`, \`comment\` und \`longText\` gelten die Sprachregeln oben. Zusätzlich mechanisch geprüft und deshalb hier genannt: keine Geviert- oder Halbgeviertstriche, und keine Gender-Stern- oder Gender-Doppelpunkt-Formen.
 </automation_context>
 `.trim();
+}
 
 /**
  * Builds the system prompt for one review run.
  *
  * @param skill - The canonical rules and their version.
+ * @param capabilities - What this provider's run can do.
  * @returns The rules followed by the automation addendum.
  *
  * @remarks
  * The canonical rules come first and the addendum after, so the stable part of
  * the prompt sits at the front where the provider's cache can hold it. Both
- * parts are identical across runs; only the user message changes.
+ * parts are identical across runs of one provider; only the user message
+ * changes.
  */
-export function buildReviewSystemPrompt(skill: ReviewSkill): string {
-  return `${skill.text}\n\n${AUTOMATION_ADDENDUM}`;
+export function buildReviewSystemPrompt(
+  skill: ReviewSkill,
+  capabilities: ReviewToolCapabilities,
+): string {
+  return `${skill.text}\n\n${buildAutomationAddendum(capabilities)}`;
+}
+
+/**
+ * Output ceiling for a repair.
+ *
+ * @remarks
+ * A repair rewrites at most three texts, the longest of which is a rejection of
+ * a few hundred words, so this is generous and still a hundredth of a run.
+ */
+export const REPAIR_MAX_TOKENS = 8_000;
+
+/**
+ * What a repair is told.
+ *
+ * @remarks
+ * Deliberately narrow. The rewriting must not improve, shorten or extend
+ * anything, because everything else in the text has already been checked
+ * against the rules and against the evidence.
+ */
+export const REPAIR_SYSTEM_PROMPT = `Du korrigierst deutsche Texte, die gegen eine mechanische Formregel verstoßen.
+
+Regeln:
+- Geviertstriche und Halbgeviertstriche sind verboten. Formuliere die Stelle in vollständige Sätze um, statt den Strich durch ein Komma, einen Doppelpunkt oder eine Klammer zu ersetzen.
+- Gender-Stern und Gender-Doppelpunkt sind verboten. Nimm eine neutrale Form wie „Mitarbeitende" oder eine Paarform wie „Inhaberinnen und Inhaber".
+- Sonst ändert sich nichts: keine neuen Aussagen, keine gestrichenen Aussagen, keine Kürzung, keine Ausschmückung. Markdown, Fußnoten, Absätze und Zeichenketten wie [REJECT_TOKEN] bleiben unverändert.
+
+Antworte ausschließlich mit einem JSON-Objekt, dessen Schlüssel die genannten Feldnamen sind und dessen Werte die korrigierten Texte. Kein Fließtext davor oder danach.`;
+
+/**
+ * Lists the texts a repair has to rewrite, with the rule each one broke.
+ *
+ * @param texts - The offending texts, each with its path and its problem.
+ * @returns The task text for the repair call.
+ */
+export function buildRepairTask(
+  texts: readonly { path: string; value: string; problem: string }[],
+): string {
+  return texts
+    .map(
+      (entry, index) =>
+        `${index + 1}. Feld \`${entry.path}\`\nProblem: ${entry.problem}\nText: ${entry.value}`,
+    )
+    .join("\n\n");
+}
+
+/**
+ * Extracts a JSON object from a model's answer.
+ *
+ * @param text - The answer text, which should be a JSON document on its own.
+ * @returns The parsed object, or `null` when the text holds none.
+ *
+ * @remarks
+ * Both providers are asked for JSON and nothing else, so the plain parse is the
+ * expected path. The brace-scanning fallback covers an answer that carried a
+ * stray sentence alongside it, which is cheaper to tolerate here than to pay
+ * for a second full run over.
+ */
+export function extractJsonObject(text: string): unknown {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  try {
+    return JSON.parse(trimmed) as unknown;
+  } catch {
+    const start = trimmed.indexOf("{");
+    const end = trimmed.lastIndexOf("}");
+    if (start === -1 || end <= start) return null;
+    try {
+      return JSON.parse(trimmed.slice(start, end + 1)) as unknown;
+    } catch {
+      return null;
+    }
+  }
 }
 
 /**

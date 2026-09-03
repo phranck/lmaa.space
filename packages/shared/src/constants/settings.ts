@@ -9,11 +9,13 @@ export const SETTINGS_KEYS = {
   // ── Automated shop review ────────────────────────────────────────────────
   // Everything the automated review needs at runtime lives here rather than in
   // the environment, so a change takes effect on the next worker tick instead
-  // of on the next deployment. The provider key is the one exception: it is a
+  // of on the next deployment. Which provider runs is a setting here too; the
+  // key that authenticates against it is the one exception, because it is a
   // secret and stays in the environment.
   REVIEW_MODE: "review.mode",
   REVIEW_AUTO_APPLY_ACCEPT: "review.autoApplyAccept",
   REVIEW_AUTO_APPLY_REJECT: "review.autoApplyReject",
+  REVIEW_PROVIDER: "review.provider",
   REVIEW_MODEL: "review.model",
   REVIEW_EFFORT: "review.effort",
   REVIEW_MAX_ATTEMPTS: "review.maxAttempts",
@@ -44,6 +46,7 @@ export const SYSTEM_REVIEW_SETTINGS_KEYS = [
   SETTINGS_KEYS.REVIEW_MODE,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT,
+  SETTINGS_KEYS.REVIEW_PROVIDER,
   SETTINGS_KEYS.REVIEW_MODEL,
   SETTINGS_KEYS.REVIEW_EFFORT,
   SETTINGS_KEYS.REVIEW_MAX_ATTEMPTS,
@@ -76,6 +79,7 @@ export const REVIEW_SETTING_DEFAULTS = {
   [SETTINGS_KEYS.REVIEW_MODE]: "off",
   [SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT]: "false",
   [SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT]: "false",
+  [SETTINGS_KEYS.REVIEW_PROVIDER]: "anthropic",
   [SETTINGS_KEYS.REVIEW_MODEL]: "claude-opus-5",
   [SETTINGS_KEYS.REVIEW_EFFORT]: "high",
   [SETTINGS_KEYS.REVIEW_MAX_ATTEMPTS]: "3",
@@ -90,6 +94,19 @@ export const REVIEW_SETTING_DEFAULTS = {
   [SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID]: "",
   [SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID]: "",
 } as const;
+
+/**
+ * Providers the automated review can run a check on.
+ *
+ * @remarks
+ * A provider is named here rather than derived from the chosen model, because
+ * the model list has to be fetched from somebody before there is a model to
+ * derive anything from.
+ */
+export const REVIEW_PROVIDERS = ["anthropic", "mistral"] as const;
+
+/** Union of the providers a check may run on. */
+export type ReviewProviderName = (typeof REVIEW_PROVIDERS)[number];
 
 /**
  * Reasoning effort levels the review may be configured with.

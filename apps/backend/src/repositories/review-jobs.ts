@@ -35,7 +35,7 @@ import type {
 import { db } from "../db/client.js";
 import { reviewEvents, reviewJobs, reviewSpend, shops, submissions } from "../db/schema.js";
 import type { ReviewEventRow, ReviewJobRow } from "../db/schema.js";
-import { CURRENT_REVIEW_RATE_CARD } from "../lib/review-cost.js";
+import { DEFAULT_REVIEW_RATE_CARD } from "../lib/review-cost.js";
 
 /** Any transaction or the plain connection, so callers can join an existing one. */
 type Executor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -600,7 +600,7 @@ export async function readReviewSpendTotals(): Promise<{
   return {
     totalNano: row?.total ? BigInt(row.total) : 0n,
     todayNano: await sumReviewCostForDay(),
-    currency: row?.currency ?? CURRENT_REVIEW_RATE_CARD.currency,
+    currency: row?.currency ?? DEFAULT_REVIEW_RATE_CARD.currency,
     complete: (row?.incomplete ?? 0) === 0,
   };
 }

@@ -28,6 +28,7 @@
     "@hono/zod-validator": "^0.4.3",
     "@lmaa/contracts": "0.1.0",
     "@lmaa/shared": "0.1.0",
+    "@mistralai/mistralai": "2.6.4",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.45.2",
     "fflate": "^0.8.2",
