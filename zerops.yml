@@ -5,7 +5,23 @@ zerops:
     build:
       base: nodejs@22
       buildCommands:
-        - npm ci --cache .npm
+        # `npm ci` reinstalls 1360 packages on every build. Measured on one
+        # deployment: 4m19s of 11m33s, whilst the build itself took 1m02s. The
+        # `.npm` cache spares the download and not the unpacking, so the
+        # installed tree is cached too and the install is skipped whilst the
+        # lockfile is unchanged.
+        #
+        # The hash is what makes that safe. Any change to package-lock.json
+        # falls through to a full install, and so does a missing or incomplete
+        # cache, which leaves the worst case exactly as slow as today.
+        - |
+          LOCK_HASH="$(sha256sum package-lock.json | cut -d' ' -f1)"
+          if [ -d node_modules ] && [ "$(cat .npm-lock-hash 2>/dev/null)" = "$LOCK_HASH" ]; then
+            echo "dependencies unchanged, skipping npm ci"
+          else
+            npm ci --cache .npm
+            printf '%s' "$LOCK_HASH" > .npm-lock-hash
+          fi
         - npm run build -w @lmaa/shared
         - npm run build -w @lmaa/backend
         - npm run docs:build -w @lmaa/backend
@@ -25,7 +41,14 @@ zerops:
         # correctly external, it resolves these itself at runtime.
         - node_modules/detect-libc
         - node_modules/semver
-      cache: .npm
+      cache:
+        - .npm
+        - .npm-lock-hash
+        - node_modules
+        - apps/backend/node_modules
+        - apps/dashboard/node_modules
+        - apps/frontend/node_modules
+        - packages/shared/node_modules
     run:
       base: nodejs@22
       ports:
@@ -102,6 +125,10 @@ zerops:
         # `es-module-lexer` from there at runtime.
         - apps/frontend/node_modules
         - package.json
+      # Only the download cache here. The second install below replaces both
+      # the root and the workspace trees with production-only ones, and a later
+      # build restoring those would find no development packages and fail. What it
+      # would take instead is worked out in issue #317.
       cache: .npm
     run:
       base: nodejs@22
@@ -125,13 +152,36 @@ zerops:
     build:
       base: nodejs@22
       buildCommands:
-        - npm ci --cache .npm
+        # `npm ci` reinstalls 1360 packages on every build. Measured on one
+        # deployment: 4m19s of 11m33s, whilst the build itself took 1m02s. The
+        # `.npm` cache spares the download and not the unpacking, so the
+        # installed tree is cached too and the install is skipped whilst the
+        # lockfile is unchanged.
+        #
+        # The hash is what makes that safe. Any change to package-lock.json
+        # falls through to a full install, and so does a missing or incomplete
+        # cache, which leaves the worst case exactly as slow as today.
+        - |
+          LOCK_HASH="$(sha256sum package-lock.json | cut -d' ' -f1)"
+          if [ -d node_modules ] && [ "$(cat .npm-lock-hash 2>/dev/null)" = "$LOCK_HASH" ]; then
+            echo "dependencies unchanged, skipping npm ci"
+          else
+            npm ci --cache .npm
+            printf '%s' "$LOCK_HASH" > .npm-lock-hash
+          fi
         - npm run build -w @lmaa/shared
         - npm run build -w @lmaa/dashboard
       deployFiles:
         - apps/dashboard/dist
         - apps/dashboard/nginx.tmpl
-      cache: .npm
+      cache:
+        - .npm
+        - .npm-lock-hash
+        - node_modules
+        - apps/backend/node_modules
+        - apps/dashboard/node_modules
+        - apps/frontend/node_modules
+        - packages/shared/node_modules
     run:
       base: nginx@1.22
       ports:
