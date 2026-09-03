@@ -312,16 +312,24 @@ button {
 }
 
 /* Dashboard grid layout */
+/*
+ * The content column is `minmax(0, 1fr)` and not `1fr`, because a bare `1fr`
+ * means `minmax(auto, 1fr)`, whose minimum is the min-content width of whatever
+ * is in it. A page holding a wide table, a long unbreakable line or a row of
+ * text inputs then widens the track instead of scrolling inside it, and the
+ * whole layout is pushed off the right of the window. The `overflow: hidden`
+ * below does not catch that, because the track grew rather than overflowed.
+ */
 .dashboard-grid {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  grid-template-columns: var(--sidebar-w, 14rem) 1fr;
+  grid-template-columns: var(--sidebar-w, 14rem) minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
 }
 @media (max-width: 767px) {
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
