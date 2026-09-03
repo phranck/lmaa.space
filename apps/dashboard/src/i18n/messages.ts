@@ -1230,8 +1230,6 @@ export interface DashboardMessages {
       purposeDonationLabel: string;
       purposeSponsorLabel: string;
       purposePaypalLabel: string;
-      /** Says why the PayPal note is shorter than the transfer's purpose. */
-      purposePaypalHint: string;
       variableLabel: string;
       costsVariables: string;
       costsHint: string;
@@ -2960,7 +2958,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         purposeDonationLabel: "Verwendungszweck einer Spende",
         purposeSponsorLabel: "Verwendungszweck einer Sponsorschaft",
         purposePaypalLabel: "Notiz bei PayPal",
-        purposePaypalHint: "Kurz halten, das tippt jemand am Telefon.",
         variableLabel: "Als Variable:",
         costsVariables: "Als Variablen im Text: {annualCost} und {monthlyCost}",
         costsHint: "Summe im Jahr",
@@ -4720,7 +4717,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         purposeDonationLabel: "Remittance text for a donation",
         purposeSponsorLabel: "Remittance text for a sponsorship",
         purposePaypalLabel: "Note on PayPal",
-        purposePaypalHint: "Keep it short, somebody types this on a phone.",
         variableLabel: "As a variable:",
         costsVariables: "As variables in a text: {annualCost} and {monthlyCost}",
         costsHint: "Total per year",

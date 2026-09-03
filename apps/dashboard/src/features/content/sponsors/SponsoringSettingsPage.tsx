@@ -330,7 +330,7 @@ export function SponsoringSettingsPage() {
                   />
                   <DashboardInput
                     label={text.purposePaypalLabel}
-                    hint={<VariableHint name="purposePaypal" before={text.purposePaypalHint} />}
+                    hint={<VariableHint name="purposePaypal" />}
                     maxLength={MAX_REMITTANCE_UNSTRUCTURED}
                     value={current.purposePaypal}
                     onChange={(event) =>
