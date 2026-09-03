@@ -109,3 +109,58 @@ describe("an answer that could not be used", () => {
     expect(outcome.rawAnswer).toBeNull();
   });
 });
+
+describe("an answer that was cut off", () => {
+  beforeEach(() => {
+    jobs.length = 0;
+  });
+
+  it("is not reported as unparseable, because it was not", async () => {
+    // The answer that cost this: correct JSON, all eight criteria evidenced,
+    // and it stopped before it ended. Recorded as PROVIDER_NO_JSON it sent a
+    // reader looking for a malformed answer that was never malformed.
+    jobs.push(
+      finishedJob({
+        outputs: [{ type: "message.output", content: '{"schemaVersion":"2","verdict":"acc' }],
+        usage: { promptTokens: 25_000, completionTokens: 64_498 },
+      }),
+    );
+
+    const outcome = await provider().runReview(request as never);
+
+    expect(outcome.kind).toBe("invalid_output");
+    expect(outcome.errorCode).toBe("PROVIDER_OUTPUT_TRUNCATED");
+    expect(outcome.errorMessage).toContain("abgeschnitten");
+  });
+
+  it("is not retried, because the next attempt hits the same ceiling", async () => {
+    // Three identical retries of one truncated answer cost 0,95 EUR on the job
+    // this was found in, and none of them could have produced anything else.
+    jobs.push(
+      finishedJob({
+        outputs: [{ type: "message.output", content: "{" }],
+        usage: { promptTokens: 25_000, completionTokens: 64_000 },
+      }),
+    );
+
+    const outcome = await provider().runReview(request as never);
+
+    expect(outcome.retryable).toBe(false);
+  });
+
+  it("still reports an answer below the ceiling as unparseable", async () => {
+    // Attempts 5 and 6 of that job wrote 9 076 and 7 154 tokens and were also
+    // unusable, so the ceiling is not the only way an answer goes wrong.
+    jobs.push(
+      finishedJob({
+        outputs: [{ type: "message.output", content: "Gerne! Hier meine Einschätzung." }],
+        usage: { promptTokens: 25_000, completionTokens: 9_076 },
+      }),
+    );
+
+    const outcome = await provider().runReview(request as never);
+
+    expect(outcome.errorCode).toBe("PROVIDER_NO_JSON");
+    expect(outcome.retryable).toBe(true);
+  });
+});
