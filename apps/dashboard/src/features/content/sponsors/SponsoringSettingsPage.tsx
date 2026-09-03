@@ -1,4 +1,11 @@
-import { BankIcon, CoinsIcon, MedalIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import {
+  BankIcon,
+  CoinsIcon,
+  MedalIcon,
+  NoteIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 
 import { SPONSORING_DEFAULTS, type RunningCostItem, type SponsoringConfig } from "@lmaa/contracts";
@@ -257,67 +264,83 @@ export function SponsoringSettingsPage() {
             </DashboardSection>
           </div>
 
-          <DashboardSection className="md:col-span-4">
-            <DashboardSection.Header
-              icon={<BankIcon weight="duotone" className="size-4" />}
-              title={text.payeeTitle}
-              subtitle={text.payeeHint}
-            />
-            <DashboardSection.Body>
-              <div className="grid gap-4 md:grid-cols-2">
-                <DashboardInput
-                  label={text.payeeNameLabel}
-                  hint={<VariableHint name="payeeName" />}
-                  value={current.payeeName}
-                  onChange={(event) => updateConfig({ ...current, payeeName: event.target.value })}
-                />
-                <DashboardInput
-                  label={text.payeeIbanLabel}
-                  hint={<VariableHint name="payeeIban" />}
-                  value={current.payeeIban}
-                  onChange={(event) => updateConfig({ ...current, payeeIban: event.target.value })}
-                />
-                <DashboardInput
-                  label={text.payeeBicLabel}
-                  hint={<VariableHint name="payeeBic" before={text.payeeBicHint} />}
-                  value={current.payeeBic}
-                  onChange={(event) => updateConfig({ ...current, payeeBic: event.target.value })}
-                />
-              </div>
+          <div className="grid gap-4 md:col-span-4">
+            <DashboardSection>
+              <DashboardSection.Header
+                icon={<BankIcon weight="duotone" className="size-4" />}
+                title={text.payeeTitle}
+                subtitle={text.payeeHint}
+              />
+              <DashboardSection.Body>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <DashboardInput
+                    label={text.payeeNameLabel}
+                    hint={<VariableHint name="payeeName" />}
+                    value={current.payeeName}
+                    onChange={(event) =>
+                      updateConfig({ ...current, payeeName: event.target.value })
+                    }
+                  />
+                  <DashboardInput
+                    label={text.payeeIbanLabel}
+                    hint={<VariableHint name="payeeIban" />}
+                    value={current.payeeIban}
+                    onChange={(event) =>
+                      updateConfig({ ...current, payeeIban: event.target.value })
+                    }
+                  />
+                  <DashboardInput
+                    label={text.payeeBicLabel}
+                    hint={<VariableHint name="payeeBic" before={text.payeeBicHint} />}
+                    value={current.payeeBic}
+                    onChange={(event) => updateConfig({ ...current, payeeBic: event.target.value })}
+                  />
+                </div>
+              </DashboardSection.Body>
+            </DashboardSection>
 
-              {/* Beneath the account, because these are the words that travel
-                  with a payment to it rather than a property of the payee. */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <DashboardInput
-                  label={text.purposeDonationLabel}
-                  hint={<VariableHint name="purposeDonation" />}
-                  maxLength={MAX_REMITTANCE_UNSTRUCTURED}
-                  value={current.purposeDonation}
-                  onChange={(event) =>
-                    updateConfig({ ...current, purposeDonation: event.target.value })
-                  }
-                />
-                <DashboardInput
-                  label={text.purposeSponsorLabel}
-                  hint={<VariableHint name="purposeSponsor" />}
-                  maxLength={MAX_REMITTANCE_UNSTRUCTURED}
-                  value={current.purposeSponsor}
-                  onChange={(event) =>
-                    updateConfig({ ...current, purposeSponsor: event.target.value })
-                  }
-                />
-                <DashboardInput
-                  label={text.purposePaypalLabel}
-                  hint={<VariableHint name="purposePaypal" before={text.purposePaypalHint} />}
-                  maxLength={MAX_REMITTANCE_UNSTRUCTURED}
-                  value={current.purposePaypal}
-                  onChange={(event) =>
-                    updateConfig({ ...current, purposePaypal: event.target.value })
-                  }
-                />
-              </div>
-            </DashboardSection.Body>
-          </DashboardSection>
+            {/* Its own card, because it answers a different question from the
+                account above it: not where the money goes, but what is written
+                on it so this project can recognise it again. */}
+            <DashboardSection>
+              <DashboardSection.Header
+                icon={<NoteIcon weight="duotone" className="size-4" />}
+                title={text.purposesTitle}
+                subtitle={text.purposesHint}
+              />
+              <DashboardSection.Body>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <DashboardInput
+                    label={text.purposeDonationLabel}
+                    hint={<VariableHint name="purposeDonation" />}
+                    maxLength={MAX_REMITTANCE_UNSTRUCTURED}
+                    value={current.purposeDonation}
+                    onChange={(event) =>
+                      updateConfig({ ...current, purposeDonation: event.target.value })
+                    }
+                  />
+                  <DashboardInput
+                    label={text.purposeSponsorLabel}
+                    hint={<VariableHint name="purposeSponsor" />}
+                    maxLength={MAX_REMITTANCE_UNSTRUCTURED}
+                    value={current.purposeSponsor}
+                    onChange={(event) =>
+                      updateConfig({ ...current, purposeSponsor: event.target.value })
+                    }
+                  />
+                  <DashboardInput
+                    label={text.purposePaypalLabel}
+                    hint={<VariableHint name="purposePaypal" before={text.purposePaypalHint} />}
+                    maxLength={MAX_REMITTANCE_UNSTRUCTURED}
+                    value={current.purposePaypal}
+                    onChange={(event) =>
+                      updateConfig({ ...current, purposePaypal: event.target.value })
+                    }
+                  />
+                </div>
+              </DashboardSection.Body>
+            </DashboardSection>
+          </div>
         </div>
       </PageBody>
     </PageLayout>
