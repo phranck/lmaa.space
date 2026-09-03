@@ -62,10 +62,13 @@ Dieser Lauf ist automatisiert. Es gibt keine Person, die zwischendurch antwortet
 
 ${describeTools(capabilities)}
 
-Weiter gibt es keine. Zwei Dinge erledigt das System für dich, und beide brauchen dich nicht:
+Weiter gibt es keine. Nennen die Regeln ein anderes Werkzeug, gibt es das hier nicht.
 
-- **Koordinaten.** Schritt 7 der Regeln entfällt. Du lieferst die Anschrift des Hauptsitzes so vollständig wie belegbar; die Koordinaten setzt das System daraus. \`geo\` lässt du weg, statt zu schätzen.
+Drei Dinge erledigt das System für dich, und keines davon brauchst du zu tun:
+
+- **Koordinaten.** Den Schritt, der die Anschrift über Photon geokodiert, lässt du aus. Du lieferst die Anschrift des Hauptsitzes so vollständig wie belegbar; die Koordinaten setzt das System daraus. \`geo\` lässt du weg, statt zu schätzen.
 - **Zahlungsarten.** Sie stehen bereits in der Aufgabe unten, ausgelesen aus dem Quelltext des Shops. Übernimm sie unverändert nach \`paymentMethods\`. Nur wenn die Aufgabe keine nennt und du selbst welche belegen kannst, trägst du deine ein.
+- **Kriterien und Kategorien.** Beide stehen unten in der Aufgabe, im aktuellen Stand. Den Schritt, der sie über das Netz nachlädt, lässt du aus.
 
 **Rechercheaufwand**
 

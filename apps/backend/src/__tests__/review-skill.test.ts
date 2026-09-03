@@ -3,7 +3,11 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { isReviewSkillAvailable, loadReviewSkill } from "../services/review/skill.js";
+import {
+  isReviewSkillAvailable,
+  loadReviewSkill,
+  toAutomationRules,
+} from "../services/review/skill.js";
 
 /** Where the canonical rules live, relative to this test file. */
 const CANONICAL_PATH = path.resolve(
@@ -25,25 +29,23 @@ describe("loadReviewSkill", () => {
 
   it("keeps the rules that decide a verdict", () => {
     const { text } = loadReviewSkill();
-    expect(text).toContain("<company_size_check>");
-    expect(text).toContain("<decision_logic>");
-    expect(text).toContain("<rejection_research>");
-    expect(text).toContain("admissioncriteria");
+    // The eight criteria, the seat rule and the size research are what a
+    // verdict rests on. All three survive the trim.
+    expect(text).toContain("Alle acht Kriterien intern bewerten");
+    expect(text).toContain("Rechtssitz des Unternehmens muss in");
+    expect(text).toContain("Unternehmensgröße aktiv recherchieren");
+    expect(text).toContain("Ablehnung vertiefen");
   });
 
-  it("drops the shell commands that only an interactive run can follow", () => {
-    // The canonical file asks a person to time the run through shell commands.
-    // The automated run has no shell, so sending them would spend a tool call
-    // on discovering they cannot be run. Two later sections still mention the
-    // removed block in passing; the automation addendum in `prompt.ts` says
-    // outright that the runtime and token lines do not apply, which is stabler
-    // than editing prose out of the canonical rules from here.
-    const source = readFileSync(CANONICAL_PATH, "utf8");
-    expect(source).toContain("lmaa_shop_check_transcript");
-
+  it("keeps the payment step and its canonical keys", () => {
+    // Held against the rules themselves rather than against a list here. The
+    // automation once ran against a copy of the rules that had no payment
+    // step, and every result came back without one, which nothing caught.
     const { text } = loadReviewSkill();
-    expect(text).not.toContain("lmaa_shop_check_transcript");
-    expect(text).not.toContain("/tmp/lmaa_shop_check_start.txt");
+    expect(text).toContain("Zahlungsmethoden belegen");
+    for (const key of ["paypal", "credit_card", "sepa", "klarna", "apple_pay"]) {
+      expect(text).toContain(key);
+    }
   });
 
   it("keeps the rules within their size budget", () => {
@@ -58,36 +60,47 @@ describe("loadReviewSkill", () => {
 
   it("drops the sections that decide nothing about a verdict", () => {
     const { text } = loadReviewSkill();
-    for (const section of ["quick_start", "validation", "error_handling", "success_criteria"]) {
-      expect(text).not.toContain(`<${section}>`);
-    }
+    // "When to Use" says when a person reaches for the skill and
+    // "Prerequisites" lists what a person has to look up. Neither applies to a
+    // run the worker starts with the criteria already in the task.
+    expect(text).not.toContain("## When to Use");
+    expect(text).not.toContain("## Prerequisites");
+    // Removing a section must not take the ones around it with it.
+    expect(text).toContain("## Procedure");
+    expect(text).toContain("## Output");
     // The acceptance example is replaced by the schema in the automation
     // addendum, so sending both would describe the same shape twice.
     expect(text).not.toContain('"name": "Shop Name"');
   });
 
+  it("removes a section that sits last in the file", () => {
+    // JavaScript has no end-of-input anchor, so a pattern ending in `$` under
+    // the `m` flag stops at a line break and one ending in `\\Z` matches a
+    // literal Z. Either would leave the last section of a file in place, which
+    // no fixture in this repository would notice.
+    const trimmed = toAutomationRules("## Procedure\n\nbleibt.\n\n## Prerequisites\n\nfliegt raus.\n");
+    expect(trimmed).toContain("bleibt.");
+    expect(trimmed).not.toContain("fliegt raus.");
+  });
+
   it("keeps the content rules the addendum does not restate", () => {
     const { text } = loadReviewSkill();
-    // These live inside the output-format section and decide what a published
-    // German text may say, so that section stays even though the addendum
-    // replaces the shape it describes.
-    expect(text).toContain("inhabergeführt");
+    // These decide what a published German text may say, and the addendum
+    // restates only the two the backend also checks mechanically.
+    expect(text).toContain("Mitarbeitende");
+    expect(text).toContain("Gedankenstriche");
     expect(text).toContain("Langbegründung");
-    // The glyphs rather than the heading above them, because a heading is
-    // wording and these two are the rule.
-    expect(text).toContain("*innen");
-    expect(text).toContain(":innen");
+    expect(text).toContain("Erfinde nichts");
   });
 
   it("sends the European seat as a criterion and shipping reach as data", () => {
     const { text } = loadReviewSkill();
     // The published criteria admit companies registered in Europe. Shipping
     // reach fills `shippingRegions` and gates nothing, because a shop outside
-    // Europe that ships worldwide also sells into Europe. All three fragments
-    // are the rule itself rather than wording around it.
-    expect(text).toContain("seat in Europe");
-    expect(text).toContain("registered in geographic Europe");
-    expect(text).toContain("decides nothing about admission");
+    // Europe that ships worldwide also sells into Europe.
+    expect(text).toContain("Rechtssitz");
+    expect(text).toContain("Versand entscheidet nicht über die Aufnahme");
+    expect(text).toContain("Weltweiter Versand hilft oder schadet der Aufnahme nicht");
   });
 
   it("hashes what is sent rather than the file on disk", () => {

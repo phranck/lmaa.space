@@ -299,8 +299,12 @@ describe("reviewResultJsonSchema", () => {
     // automation once ran against a copy of the rules that had no payment step,
     // and every result came back without one, which nothing caught.
     const rules = loadReviewSkill().text;
-    expect(rules).toContain("paymentMethods");
-    expect(rules).toMatch(/payment methods/i);
+    // The step and its canonical keys, not the field name: the field name
+    // appears only in the acceptance example, which the automation replaces
+    // with the schema below.
+    expect(rules).toContain("Zahlungsmethoden belegen");
+    expect(rules).toContain("paypal");
+    expect(rules).toContain("mastercard");
     expect(JSON.stringify(reviewResultJsonSchema)).toContain("paymentMethods");
   });
 
