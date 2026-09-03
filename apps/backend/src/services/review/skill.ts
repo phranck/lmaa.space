@@ -46,27 +46,20 @@ export interface ReviewSkill {
 let cached: ReviewSkill | null = null;
 
 /**
- * Sections that only apply to a person running the check in a terminal.
+ * Headings whose sections only apply to a person invoking the check.
  *
  * @remarks
- * None of these decide a verdict. `timing_and_tokens` measures the run through
- * shell commands the automated run has no shell for, `quick_start` and
- * `validation` describe how a person passes an argument, and `error_handling`
- * and `success_criteria` describe what to print when something goes wrong.
- * The automation validates the URL before it enqueues anything and reports
- * through the job's audit trail instead.
+ * None of these decide a verdict. "When to Use" says when a person reaches for
+ * the skill, and "Prerequisites" lists the tools and the two addresses a person
+ * needs to look up. The automation is handed the criteria and the categories in
+ * the task itself, and it has a different set of tools, which the addendum in
+ * `prompt.ts` names.
  *
  * Removing them is worth doing rather than tidy: the system prompt is read once
  * per turn of the tool loop, so every token saved is saved about thirty times
  * per check.
  */
-const INTERACTIVE_ONLY_SECTIONS = [
-  "timing_and_tokens",
-  "quick_start",
-  "validation",
-  "error_handling",
-  "success_criteria",
-] as const;
+const INTERACTIVE_ONLY_HEADINGS = ["When to Use", "Prerequisites"] as const;
 
 /**
  * The acceptance example, which the automation replaces with its own schema.
@@ -83,14 +76,35 @@ const ACCEPTANCE_EXAMPLE = /```json\s*\{\s*"name": "Shop Name"[\s\S]*?```\s*/g;
  * One pattern per interactive-only section, built once rather than per call.
  *
  * @remarks
+ * A section runs from its own heading to the next heading of the same level or
+ * to the end of the file, which is how Markdown delimits one without marking
+ * where it stops.
+ *
+ * The end of the file is written as `$(?![\s\S])` because JavaScript has no
+ * end-of-input anchor: under the `m` flag `$` is the end of a line, and `\Z`
+ * is a literal `Z`. Either of those would leave a section in place whenever it
+ * happens to be the last one in the file.
+ *
  * `String.replace` resets a global regex's `lastIndex` when it finishes, so
  * reusing these across calls carries no state between them.
  */
-const INTERACTIVE_ONLY_SECTION_PATTERNS = INTERACTIVE_ONLY_SECTIONS.map(
-  (section) => new RegExp(`<${section}>[\\s\\S]*?</${section}>\\s*`, "g"),
+const INTERACTIVE_ONLY_SECTION_PATTERNS = INTERACTIVE_ONLY_HEADINGS.map(
+  (heading) => new RegExp(`^## ${heading}\\b[\\s\\S]*?(?=^## |$(?![\\s\\S]))`, "gm"),
 );
 
-function toAutomationRules(source: string): string {
+/**
+ * Turns the canonical rules into what the automated run is sent.
+ *
+ * @param source - The rules exactly as the file holds them.
+ * @returns The rules without the sections a person needs and the automation
+ * does not, and without the acceptance example the addendum replaces.
+ *
+ * @remarks
+ * Exported so the removal can be exercised against a fixture. The rules in this
+ * repository never have an interactive section last, so nothing here would
+ * notice a pattern that cannot reach the end of a file.
+ */
+export function toAutomationRules(source: string): string {
   let text = source;
   for (const pattern of INTERACTIVE_ONLY_SECTION_PATTERNS) {
     text = text.replace(pattern, "");
