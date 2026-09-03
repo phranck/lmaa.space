@@ -83,6 +83,11 @@ jobs:
             backend:
               - *shared
               - 'apps/backend/**'
+              # The rules the automated check runs on. `zerops.yml` ships this
+              # file with the backend and the backend reads it at runtime, so a
+              # change to it alone has to deploy or production keeps the old
+              # rules with nothing saying so.
+              - '.claude/skills/lmaa-shop-check/SKILL.md'
             website:
               - *shared
               - 'packages/ui/**'
