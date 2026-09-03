@@ -579,17 +579,27 @@ export class MistralReviewProvider implements ReviewProvider {
     const text = readMessageText(answer.outputs);
     const parsed = extractJsonObject(text);
     if (!parsed) {
+      // A cut-off answer is a different failure from an unusable one, and the
+      // difference decides whether trying again can help. Recognised from the
+      // token count, because a conversation carries no finish reason; only
+      // Mistral's chat completions do.
+      const truncated = (usage.outputTokens ?? 0) >= MAX_TOKENS;
       return this.outcome("invalid_output", {
         usage,
         providerResponseId: batchId,
-        errorCode: "PROVIDER_NO_JSON",
-        errorMessage: "Die Antwort enthielt kein auswertbares JSON-Objekt",
+        errorCode: truncated ? "PROVIDER_OUTPUT_TRUNCATED" : "PROVIDER_NO_JSON",
+        errorMessage: truncated
+          ? `Die Antwort wurde bei ${MAX_TOKENS} Token abgeschnitten und blieb unvollständig.`
+          : "Die Antwort enthielt kein auswertbares JSON-Objekt",
         // Kept, because a reply without usable JSON leaves no parsed result
         // behind and the error code alone says nothing about what came back.
         // An empty text is itself the finding, so the outputs are described
         // instead.
         rawAnswer: (text.trim() || describeOutputs(answer.outputs)).slice(0, MAX_RAW_ANSWER_CHARS),
-        retryable: true,
+        // A truncated answer is not retried. The next attempt would send the
+        // same task against the same ceiling and stop in the same place, and
+        // one such attempt cost 0,46 EUR.
+        retryable: !truncated,
       });
     }
 
