@@ -46,7 +46,9 @@ beiden redaktionellen Texte samt belastbaren Quellen.
    Kontaktseite, Versand, Zahlungsinformationen, FAQ, AGB und Über-uns-Seiten
    frisch und nacheinander. Nutze `web_search` für fehlende Seiten und
    `browser_exec` für dynamische Inhalte oder Payment-Icons im DOM.
-   Notiere höchstens fünf Merkmale, die den Shop von anderen unterscheiden.
+   Notiere dabei, was diesen Shop von anderen unterscheidet: die Menschen
+   dahinter, seine Geschichte, seine Standorte, seine Besonderheiten und was er
+   regelmässig veranstaltet.
    Abschlusskriterium: Jede relevante shopkontrollierte Seite wurde geprüft
    oder ihre Nichterreichbarkeit dokumentiert.
 
@@ -106,9 +108,9 @@ beiden redaktionellen Texte samt belastbaren Quellen.
     Sitz außerhalb Europas kläre, wem europäische Adressen gehören.
 
 11. **Ausgabe exakt erzeugen und validieren.**
-    Die Ausgabe ist ein Urteil, keine Materialsammlung. Was nicht in die unten
-    beschriebenen Felder passt, bleibt weg. `description` fasst höchstens 1200
-    Zeichen, jede Liste unter `notes` höchstens acht Einträge.
+    `description` umfasst 600 bis 1200 Zeichen, also vier bis sechs Sätze. Bleibt
+    sie darunter, fehlen Belege aus Schritt 3, und du holst sie nach, statt einen
+    dünnen Text abzuliefern. Jede Liste unter `notes` fasst höchstens acht Einträge.
     Prüfe Acceptance-JSON mit einem JSON-Parser, bevor du es ausgibst.
     Abschlusskriterium: Genau eines der unten definierten Formate ist vollständig und syntaktisch gültig.
 
@@ -127,7 +129,7 @@ beiden redaktionellen Texte samt belastbaren Quellen.
 
 Die `description` muss ein **lebendiges, redaktionelles Porträt** sein, das den Shop einzigartig macht. 
 
-### Woraus sie schöpft, wo es belegt ist (höchstens drei davon):
+### Woraus sie schöpft, so weit es belegt ist:
 - **Personen:** Geschäftsführung, Gründer:innen, Schlüsselpersonen (z. B. "Mag. Verena Brunner-Loss führt den Familienbetrieb")
 - **Geschichte:** Gründungsjahr, Meilensteine, Auszeichnungen (z. B. "dreimal als ausgezeichneter Lehrbetrieb prämiert")
 - **Besonderheiten:** Einzigartige Dienstleistungen, lokale Verwurzelung, spezielle Sortimente (z. B. "spezialisiert auf Schulbuchvertrieb mit persönlicher Betreuung")
@@ -256,4 +258,4 @@ Konzernzugehörigkeit werden immer belegt. `[REJECT_TOKEN]` bleibt exakt stehen.
 - Aufnahme: JSON-Parsing erfolgreich; jedes Schemafeld vorhanden oder explizit
   leer; Koordinatenkaskade ausgeschöpft; nur kanonische Versand- und
   Paymentwerte.
-- `description` bleibt unter 1200 Zeichen und jede Liste unter `notes` unter neun Einträgen.
+- `description` liegt zwischen 600 und 1200 Zeichen und nennt Menschen, Ort und mindestens eine Besonderheit. Jede Liste unter `notes` bleibt unter neun Einträgen.
