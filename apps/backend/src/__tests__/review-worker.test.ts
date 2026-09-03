@@ -104,6 +104,7 @@ function outcome(overrides: Partial<ReviewProviderOutcome> = {}): ReviewProvider
     stopReason: "end_turn",
     errorCode: null,
     errorMessage: null,
+    rawAnswer: null,
     retryable: false,
     ...overrides,
   };

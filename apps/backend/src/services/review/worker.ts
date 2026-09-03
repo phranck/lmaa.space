@@ -86,6 +86,11 @@ function buildAttemptRecord(
     cost,
     outcome: outcomeKind,
     errorCode: outcome.errorCode,
+    // Only on a failure, so a succeeded attempt does not carry two empty
+    // fields into every stored record.
+    ...(outcomeKind === "succeeded"
+      ? {}
+      : { errorMessage: outcome.errorMessage, rawAnswer: outcome.rawAnswer }),
     startedAt: startedAt.toISOString(),
     finishedAt: new Date().toISOString(),
   };

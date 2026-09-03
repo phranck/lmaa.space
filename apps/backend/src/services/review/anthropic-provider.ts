@@ -131,6 +131,16 @@ function readUsage(message: BetaMessage): ReviewUsage {
 }
 
 /**
+ * How much of an unusable answer is kept.
+ *
+ * @remarks
+ * Enough to see the shape of what came back and to read a stray sentence in
+ * front of it, and short enough that a report email stays a report. An answer
+ * runs to tens of kilobytes.
+ */
+const MAX_RAW_ANSWER_CHARS = 4_000;
+
+/**
  * Extracts the JSON object from a completed response.
  *
  * @param message - The completed provider message.
@@ -141,12 +151,24 @@ function readUsage(message: BetaMessage): ReviewUsage {
  * read as one document.
  */
 function extractJson(message: BetaMessage): unknown {
-  const text = message.content
+  return extractJsonObject(readText(message));
+}
+
+/**
+ * Joins the text blocks of a completed response.
+ *
+ * @param message - The completed provider message.
+ * @returns Every text block in order, which is the answer as one document.
+ *
+ * @remarks
+ * A response carries the reasoning and the tool use as blocks of their own, so
+ * the text blocks are what the answer is.
+ */
+function readText(message: BetaMessage): string {
+  return message.content
     .filter((block): block is Extract<typeof block, { type: "text" }> => block.type === "text")
     .map((block) => block.text)
     .join("");
-
-  return extractJsonObject(text);
 }
 
 /**
@@ -583,6 +605,9 @@ export class AnthropicReviewProvider implements ReviewProvider {
         stopReason: message.stop_reason,
         errorCode: "PROVIDER_NO_JSON",
         errorMessage: "Die Antwort enthielt kein auswertbares JSON-Objekt",
+        // Kept for the same reason as on the other adapter: without it a reply
+        // that carried no usable JSON leaves nothing to look at.
+        rawAnswer: readText(message).slice(0, MAX_RAW_ANSWER_CHARS),
         retryable: true,
       });
     }
@@ -609,6 +634,7 @@ export class AnthropicReviewProvider implements ReviewProvider {
       stopReason: parts.stopReason ?? null,
       errorCode: parts.errorCode ?? null,
       errorMessage: parts.errorMessage ?? null,
+      rawAnswer: parts.rawAnswer ?? null,
       retryable: parts.retryable ?? false,
     };
   }
