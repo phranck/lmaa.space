@@ -187,9 +187,8 @@ export function buildRepairTask(
  *
  * @remarks
  * Both providers are asked for JSON and nothing else, so the plain parse is the
- * expected path. The brace-scanning fallback covers an answer that carried a
- * stray sentence alongside it, which is cheaper to tolerate here than to pay
- * for a second full run over.
+ * expected path. The fallback covers an answer that carried something alongside
+ * it, which is cheaper to tolerate here than to pay for a second full run over.
  */
 export function extractJsonObject(text: string): unknown {
   const trimmed = text.trim();
@@ -198,15 +197,67 @@ export function extractJsonObject(text: string): unknown {
   try {
     return JSON.parse(trimmed) as unknown;
   } catch {
-    const start = trimmed.indexOf("{");
-    const end = trimmed.lastIndexOf("}");
-    if (start === -1 || end <= start) return null;
-    try {
-      return JSON.parse(trimmed.slice(start, end + 1)) as unknown;
-    } catch {
-      return null;
+    return readFirstObject(trimmed);
+  }
+}
+
+/**
+ * Reads the first complete object out of a text that carries more than one.
+ *
+ * @param text - The answer text.
+ * @returns The first balanced object, or `null` when there is none.
+ *
+ * @remarks
+ * A model that finishes its answer and then writes it again is the case this
+ * exists for. The answer then holds one complete verdict followed by a second
+ * one that the token ceiling cut off part way, and taking everything between
+ * the first brace and the last one produces a document that parses as nothing.
+ * One live check spent 1,31 EUR over nine attempts on exactly that, whilst its
+ * first answer had been complete and usable each time.
+ *
+ * Braces inside strings are not counted, and a backslash escapes the character
+ * after it, because a URL or a German quotation mark in a label would otherwise
+ * end the object in the wrong place.
+ */
+function readFirstObject(text: string): unknown {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < text.length; index += 1) {
+    const character = text[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (character === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (character === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+
+    if (character === "{") depth += 1;
+    else if (character === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(text.slice(start, index + 1)) as unknown;
+        } catch {
+          return null;
+        }
+      }
     }
   }
+
+  return null;
 }
 
 /**
