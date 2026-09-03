@@ -124,10 +124,14 @@ export function EmailTemplateListPage() {
       {
         id: "subject",
         header: m.templateSubject,
+        // The subject takes whatever the other columns leave and shortens with
+        // an ellipsis inside it. `max-w-0` with `w-full` is what lets the cell
+        // shrink below its text: without it the subject sets the column's
+        // minimum width, the table grows past the card, and the buttons on the
+        // right are cut off rather than the text.
+        cellClassName: "w-full max-w-0",
         cell: (tpl) => (
-          <span className="text-[var(--ds-text-muted)] truncate max-w-xs">
-            {tpl.subject || "-"}
-          </span>
+          <span className="block truncate text-[var(--ds-text-muted)]">{tpl.subject || "-"}</span>
         ),
       },
       {
