@@ -3,11 +3,13 @@ import { memo, useCallback, useMemo, useState } from "react";
 
 import {
   REVIEW_EFFORT_LEVELS,
+  REVIEW_PROVIDER_LABELS,
+  REVIEW_PROVIDERS,
   REVIEW_SETTING_DEFAULTS,
   resolveEffortLevel,
   SETTINGS_KEYS,
 } from "@lmaa/shared";
-import type { ReviewEffortLevel } from "@lmaa/shared";
+import type { ReviewEffortLevel, ReviewProviderName } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 import { fieldHelpClass, fieldLabelClass } from "@lmaa/ui/field-primitives";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
@@ -27,11 +29,13 @@ import {
   useSaveSystemSetting,
   useSystemSettings,
 } from "./hooks/useSystemSettings.ts";
+import { resolveReviewModelChoice } from "./review-model-choice.ts";
 
 const EDITED_KEYS = [
   SETTINGS_KEYS.REVIEW_MODE,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT,
+  SETTINGS_KEYS.REVIEW_PROVIDER,
   SETTINGS_KEYS.REVIEW_MODEL,
   SETTINGS_KEYS.REVIEW_EFFORT,
   SETTINGS_KEYS.REVIEW_MAX_ATTEMPTS,
@@ -81,7 +85,6 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
 
   const { data: stored } = useSystemSettings();
   const { data: templates, isLoading: templatesLoading } = useEmailTemplates();
-  const { data: models, isLoading: modelsLoading } = useReviewModels();
   const saveSetting = useSaveSystemSetting();
 
   const baseline = useMemo(() => readStored(stored), [stored]);
@@ -96,6 +99,11 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
     setSavedBaseline(baseline);
     setDraft(baseline);
   }
+
+  const selectedProvider = draft[SETTINGS_KEYS.REVIEW_PROVIDER] as ReviewProviderName;
+  // Follows the draft rather than what is saved, so the model list changes with
+  // the field instead of only after the form has been submitted.
+  const { data: models, isLoading: modelsLoading } = useReviewModels(selectedProvider);
 
   const dirty = !isEqual(draft, savedBaseline);
   const assistMode = draft[SETTINGS_KEYS.REVIEW_MODE] === "assist";
@@ -121,14 +129,38 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
     setDraft((current) => ({ ...current, [key]: value }));
   }, []);
 
+  // Clearing the model is what makes the choice below follow the provider. A
+  // model belongs to exactly one provider, so the one that was chosen is stale
+  // the moment the provider changes, and there is nothing yet to replace it
+  // with until the new provider's list arrives.
+  const chooseProvider = useCallback((value: string) => {
+    setDraft((current) => ({
+      ...current,
+      [SETTINGS_KEYS.REVIEW_PROVIDER]: value,
+      [SETTINGS_KEYS.REVIEW_MODEL]: "",
+    }));
+  }, []);
+
+  const providerOptions = useMemo(
+    () => REVIEW_PROVIDERS.map((name) => ({ value: name, label: REVIEW_PROVIDER_LABELS[name] })),
+    [],
+  );
+
+  // Derived rather than written back into the draft, so the field shows what a
+  // run would use without a render deciding what gets saved.
+  const { options: modelOptions, effective: effectiveModel } = useMemo(
+    () => resolveReviewModelChoice(selectedModel, models ?? []),
+    [models, selectedModel],
+  );
+
   // Only the levels the chosen model accepts. A request carrying another one is
   // refused with a 400 before anything is researched, so offering it at all
   // would be offering a run that cannot start. A model that is not in the list
   // keeps every level, because nothing is known about it either way.
   const acceptedEfforts = useMemo(() => {
-    const known = (models ?? []).find((model) => model.id === selectedModel);
+    const known = (models ?? []).find((model) => model.id === effectiveModel);
     return known ? known.efforts : [...REVIEW_EFFORT_LEVELS];
-  }, [models, selectedModel]);
+  }, [models, effectiveModel]);
   const effortOptions = useMemo(
     () => acceptedEfforts.map((level) => ({ value: level, label: level })),
     [acceptedEfforts],
@@ -141,25 +173,17 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
     resolveEffortLevel(acceptedEfforts, draft[SETTINGS_KEYS.REVIEW_EFFORT] as ReviewEffortLevel) ??
     draft[SETTINGS_KEYS.REVIEW_EFFORT];
 
-  // The configured model stays selectable even when the list could not be
-  // fetched, so a provider outage never silently rewrites the setting.
-  const modelOptions = useMemo(() => {
-    const options = (models ?? []).map((model) => ({
-      value: model.id,
-      label: model.displayName,
-    }));
-    if (selectedModel && !options.some((option) => option.value === selectedModel)) {
-      options.unshift({ value: selectedModel, label: selectedModel });
-    }
-    return options;
-  }, [models, selectedModel]);
-
   const save = useCallback(async () => {
     setSaving(true);
     try {
-      // What is saved is what the field shows, so a level the chosen model does
-      // not accept is never written back.
-      const pending = { ...draft, [SETTINGS_KEYS.REVIEW_EFFORT]: effectiveEffort };
+      // What is saved is what the fields show, so a level the chosen model does
+      // not accept is never written back, and neither is the empty model a
+      // provider change leaves behind.
+      const pending = {
+        ...draft,
+        [SETTINGS_KEYS.REVIEW_MODEL]: effectiveModel,
+        [SETTINGS_KEYS.REVIEW_EFFORT]: effectiveEffort,
+      };
       await Promise.all(
         EDITED_KEYS.flatMap((key) =>
           pending[key] === savedBaseline[key]
@@ -174,7 +198,7 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
     } finally {
       setSaving(false);
     }
-  }, [draft, effectiveEffort, savedBaseline, saveSetting, t.saveError]);
+  }, [draft, effectiveEffort, effectiveModel, savedBaseline, saveSetting, t.saveError]);
 
   return (
     <div className="flex max-w-7xl flex-col gap-6">
@@ -209,6 +233,17 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
                 <p className={fieldHelpClass}>{modeHint}</p>
               </div>
 
+              <DashboardCombobox
+                id="review-provider"
+                fullWidth
+                label={t.providerLabel}
+                hint={t.providerHint}
+                disabled={saving}
+                value={selectedProvider}
+                onValueChange={chooseProvider}
+                options={providerOptions}
+              />
+
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <DashboardCombobox
                   id="review-model"
@@ -217,7 +252,7 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
                   label={t.modelLabel}
                   hint={modelsLoading ? t.modelLoading : t.modelHint}
                   disabled={saving || modelsLoading}
-                  value={selectedModel}
+                  value={effectiveModel}
                   onValueChange={(value) => set(SETTINGS_KEYS.REVIEW_MODEL, value)}
                   options={modelOptions}
                 />
@@ -400,7 +435,7 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
         <PageFooter>
           <SaveActionButton
             onClick={() => void save()}
-            disabled={!dirty || saving}
+            disabled={!dirty || saving || effectiveModel === ""}
             busy={saving}
             label={saving ? common.saving : common.save}
           />
