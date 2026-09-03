@@ -198,6 +198,9 @@ export async function applyReviewResult(input: ApplyReviewInput): Promise<Review
       status: "approved",
       adminId: null,
       notificationTemplateId: notificationTemplateId(settings, "accept"),
+      // The same list the manual admission sends, chosen once in the settings
+      // rather than per submission, because nobody opens a dialogue here.
+      templateAssignments: settings.socialTemplates,
     });
 
     if (!outcome.ok) {

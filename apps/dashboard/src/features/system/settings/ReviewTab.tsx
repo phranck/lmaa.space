@@ -1,6 +1,7 @@
 import { CurrencyDollarIcon, EnvelopeIcon, RobotIcon } from "@phosphor-icons/react";
 import { memo, useCallback, useMemo, useState } from "react";
 
+import type { TemplateAssignment } from "@lmaa/contracts";
 import {
   REVIEW_EFFORT_LEVELS,
   REVIEW_PROVIDER_LABELS,
@@ -30,6 +31,7 @@ import {
   useSystemSettings,
 } from "./hooks/useSystemSettings.ts";
 import { resolveReviewModelChoice } from "./review-model-choice.ts";
+import { ReviewSocialTemplates } from "./ReviewSocialTemplates.tsx";
 
 const EDITED_KEYS = [
   SETTINGS_KEYS.REVIEW_MODE,
@@ -45,6 +47,7 @@ const EDITED_KEYS = [
   SETTINGS_KEYS.REVIEW_REPORT_TEMPLATE_ID,
   SETTINGS_KEYS.REVIEW_NOTIFY_ACCEPT_TEMPLATE_ID,
   SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID,
+  SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES,
 ] as const;
 
 /** The settings this tab edits, as the strings they are stored as. */
@@ -101,6 +104,16 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
   }
 
   const selectedProvider = draft[SETTINGS_KEYS.REVIEW_PROVIDER] as ReviewProviderName;
+  // Stored as JSON in one setting, so a malformed value means nothing is posted
+  // rather than a settings page that will not render.
+  const socialTemplates = useMemo<TemplateAssignment[]>(() => {
+    try {
+      const parsed: unknown = JSON.parse(draft[SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES] || "[]");
+      return Array.isArray(parsed) ? (parsed as TemplateAssignment[]) : [];
+    } catch {
+      return [];
+    }
+  }, [draft]);
   // Follows the draft rather than what is saved, so the model list changes with
   // the field instead of only after the form has been submitted.
   const { data: models, isLoading: modelsLoading } = useReviewModels(selectedProvider);
@@ -341,6 +354,19 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
                     set(SETTINGS_KEYS.REVIEW_NOTIFY_REJECT_TEMPLATE_ID, value)
                   }
                   options={templateOptions}
+                />
+
+                {/* Beside the two email templates, because it answers the same
+                    question for the other channel: what an automatic decision
+                    says, and to whom. */}
+                <p className={introClass}>{t.socialHint}</p>
+
+                <ReviewSocialTemplates
+                  assignments={socialTemplates}
+                  onChange={(next) =>
+                    set(SETTINGS_KEYS.REVIEW_SOCIAL_TEMPLATES, JSON.stringify(next))
+                  }
+                  disabled={saving}
                 />
               </DashboardSection.Body>
             </DashboardSection>

@@ -90,15 +90,10 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     });
   }
 
-  // Social posts are dispatched on behalf of the moderator who approved, so an
-  // automated approval publishes nothing. Enabling that is a separate rollout
-  // decision and would need an account to post as.
-  if (
-    input.status === "approved" &&
-    newShop &&
-    input.adminId !== null &&
-    input.templateAssignments?.length
-  ) {
+  // An automated approval posts too, with the templates configured in the
+  // review settings. What decides it is the assignments rather than who
+  // approved, so an approval without any stays quiet either way.
+  if (input.status === "approved" && newShop && input.templateAssignments?.length) {
     const adminId = input.adminId;
     const categoryNames = await getSubmissionCategoryNames(input.id);
     const context: PostContext = {
