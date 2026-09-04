@@ -211,8 +211,18 @@ export interface SiteVariableValues {
   reviewCostAvgCents: number;
 }
 
-/** Four at a time, which is how an IBAN is printed and read back. */
-function groupIban(iban: string): string {
+/**
+ * Four at a time, which is how an IBAN is printed and read back.
+ *
+ * @param iban - The account, as it is stored, without spaces.
+ * @returns The same account in groups of four.
+ *
+ * @remarks
+ * Exported because the dashboard prints one too, and somebody comparing what
+ * they see against their banking app does it character by character. Two ways
+ * of grouping would make that comparison harder than it needs to be.
+ */
+export function groupIban(iban: string): string {
   return iban.replace(/(.{4})/g, "$1 ").trim();
 }
 

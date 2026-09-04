@@ -694,6 +694,13 @@
       "when": 1788516473962,
       "tag": "0098_replace_review_cost_figure",
       "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1788522813239,
+      "tag": "0099_bank_read_failure_reason",
+      "breakpoints": true
     }
   ]
 }

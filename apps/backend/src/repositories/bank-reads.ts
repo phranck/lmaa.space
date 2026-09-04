@@ -73,7 +73,13 @@ export async function getLastBookedThrough(): Promise<string | null> {
 
 /** What a finished run reports about itself. */
 export interface BankReadOutcome {
-  /** The last day it covered, which the next run starts after. */
+  /**
+   * The last day it covered.
+   *
+   * A record of what happened rather than a cursor. A run reaches a fixed
+   * window back from today, so this decides only whether a run has ever
+   * finished, which is what tells a first run from every one after it.
+   */
   bookedThrough: string;
   /** How many entries came back, before anything was decided about them. */
   transactionsRead: number;
@@ -93,6 +99,28 @@ export async function completeBankRead(id: string, outcome: BankReadOutcome): Pr
   await db
     .update(bankAccountReads)
     .set({ succeeded: true, ...outcome })
+    .where(eq(bankAccountReads.id, id));
+}
+
+/**
+ * Records that a claimed read failed, and why.
+ *
+ * @param id - The row `claimBankRead` handed back.
+ * @param reason - Why it failed, in the words the operator is shown.
+ *
+ * @remarks
+ * Written where the run catches the failure rather than left to the row's
+ * defaults. A read that only says `succeeded = false` leaves the operator with
+ * a card that reports a failure and no way to act on it, whilst the reason sits
+ * in a log they cannot reach.
+ *
+ * `bookedThrough` stays null, because a run that did not finish says nothing
+ * about what has been seen.
+ */
+export async function failBankRead(id: string, reason: string): Promise<void> {
+  await db
+    .update(bankAccountReads)
+    .set({ succeeded: false, failureReason: reason })
     .where(eq(bankAccountReads.id, id));
 }
 

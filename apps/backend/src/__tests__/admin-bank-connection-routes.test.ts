@@ -38,7 +38,6 @@ const disconnected = {
   institutionCountry: "",
   consentValidUntil: null,
   connectedAt: null,
-  accountSuffix: "",
   lastReadAt: null,
   lastReadSucceeded: null,
   lastReadImported: 0,
