@@ -28,6 +28,20 @@ export const ANALYTICS_SCRIPT_URL = `${ANALYTICS_CSP_ORIGIN}/script.js`;
 export const ANALYTICS_SCRIPT_INTEGRITY =
   "sha384-FeSgFWhRpNmUWqmtRLZpDSRTuxgovbVqlyM0OaJpq2IanhF2u3xjYziXsyXR9Kg/";
 
+/** Address the session recorder is loaded from. */
+export const RECORDER_SCRIPT_URL = `${ANALYTICS_CSP_ORIGIN}/recorder.js`;
+
+/**
+ * Integrity hash of the session recorder, on the same terms as the tracker above.
+ *
+ * @remarks
+ * The recorder is forty times the size of the tracker and reads far more of the
+ * page, so the case for pinning it is the stronger of the two. It goes stale the
+ * same way, and `scripts/check-analytics-integrity.mjs` checks both.
+ */
+export const RECORDER_SCRIPT_INTEGRITY =
+  "sha384-RFbJB7wXp6wvtb7Yj7euqgFcWmpCYnwbQM8RHA4TiyV8qukjCB/YV9blThgO/M5Z";
+
 /**
  * Rewrites `frame-ancestors` in an existing policy.
  *

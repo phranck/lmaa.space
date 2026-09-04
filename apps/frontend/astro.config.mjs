@@ -121,6 +121,12 @@ export default defineConfig({
         "img-src 'self' data: https:",
         "font-src 'self' data:",
         `connect-src 'self' ${ANALYTICS_CSP_ORIGIN} ${STORAGE_CSP_ORIGIN}`,
+        // The session recorder serialises the page inside a Web Worker it
+        // creates from a blob URL, and falls back to a `data:` URL when that
+        // is refused. Neither `worker-src` nor `child-src` was set, so both
+        // fell through to `default-src 'self'`, the worker was blocked, and
+        // the recorder stopped with nothing else to show for it.
+        "worker-src 'self' blob: data:",
         `media-src 'self' ${STORAGE_CSP_ORIGIN} blob:`,
         "form-action 'self'",
       ],
