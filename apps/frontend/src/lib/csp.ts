@@ -26,7 +26,7 @@ export const ANALYTICS_SCRIPT_URL = `${ANALYTICS_CSP_ORIGIN}/script.js`;
  * looks for.
  */
 export const ANALYTICS_SCRIPT_INTEGRITY =
-  "sha384-BRaUFjOnCmWCc/Fzz6hqywS4clr0LbPdvb9WH1QuIhkfopGfKIhTn5OQBSc3ntfl";
+  "sha384-FeSgFWhRpNmUWqmtRLZpDSRTuxgovbVqlyM0OaJpq2IanhF2u3xjYziXsyXR9Kg/";
 
 /**
  * Rewrites `frame-ancestors` in an existing policy.
