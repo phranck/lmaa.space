@@ -57,7 +57,6 @@ export default {
       // These implementation modules are already behind React.lazy boundaries at their consumers.
       {
         files: [
-          "src/features/analytics/AnalyticsCharts.tsx",
           "src/JsonEditor.tsx",
           "src/MarkdownEditorCore.tsx",
           "src/features/content/donations/charts/IncomeOverTimeChart.tsx",
@@ -254,9 +253,6 @@ export default {
       {
         files: [
           "src/components/ui/EditorPageShell.tsx",
-          "src/features/analytics/AnalyticsSection.tsx",
-          "src/features/analytics/RealtimeCard.tsx",
-          "src/features/analytics/TabbedMetricCard.tsx",
           "src/features/content/donations/DonationsPage.tsx",
           "src/features/content/footer-builder/FooterBuilderPage.tsx",
           "src/features/content/landing-page/HeroBannerTab.tsx",
