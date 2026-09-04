@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../config/env.js", () => ({
   env: { NODE_ENV: "test", LOG_LEVEL: "silent", FRONTEND_URL: "https://lmaa.space" },
@@ -11,6 +11,7 @@ const clientMocks = vi.hoisted(() => ({
 const repositoryMocks = vi.hoisted(() => ({
   claimBankRead: vi.fn(),
   completeBankRead: vi.fn(),
+  failBankRead: vi.fn(),
   getLastBookedThrough: vi.fn(),
   getLiveBankConnection: vi.fn(),
   insertDonation: vi.fn(),
@@ -25,6 +26,7 @@ vi.mock("../services/pending-sponsorships.js", () => pendingMocks);
 vi.mock("../repositories/bank-reads.js", () => ({
   claimBankRead: repositoryMocks.claimBankRead,
   completeBankRead: repositoryMocks.completeBankRead,
+  failBankRead: repositoryMocks.failBankRead,
   getLastBookedThrough: repositoryMocks.getLastBookedThrough,
 }));
 vi.mock("../repositories/bank-connections.js", () => ({
@@ -38,6 +40,7 @@ vi.mock("../services/bank-consent.js", () => ({
   announceConsentStage: vi.fn(),
 }));
 
+import { HttpError } from "../lib/http.js";
 import {
   carriesSiteMarker,
   classifyTransaction,
@@ -159,12 +162,21 @@ describe("a run over the account", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Only the clock, so nothing here waits on a timer that never fires. The
+    // range a run asks for is counted from today, which is what these tests
+    // pin down.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-04T11:46:00.000Z"));
     repositoryMocks.getLiveBankConnection.mockResolvedValue(connection);
     repositoryMocks.claimBankRead.mockResolvedValue({ id: "read-1" });
     repositoryMocks.getLastBookedThrough.mockResolvedValue("2026-08-30");
     repositoryMocks.insertDonation.mockResolvedValue({ id: "d1" });
     pendingMocks.takeOverPendingSponsorshipByReference.mockResolvedValue({ ok: true });
     clientMocks.fetchTransactions.mockResolvedValue({ transactions: [], continuationKey: null });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("does nothing whilst no connection is in force", async () => {
@@ -194,14 +206,89 @@ describe("a run over the account", () => {
     expect(clientMocks.fetchTransactions).not.toHaveBeenCalled();
   });
 
-  it("starts the day after the last finished run", async () => {
+  it("reaches five days back from today, whatever it read last", async () => {
+    // Counted from today rather than from the last recorded day. A day is not
+    // finished because a run looked at it once, and a payment booked in the
+    // afternoon or posted late by the bank falls inside this window.
+    vi.setSystemTime(new Date("2026-09-04T11:46:00.000Z"));
+    repositoryMocks.getLastBookedThrough.mockResolvedValue("2026-08-30");
+
     await runBankIngestion("background");
 
     expect(clientMocks.fetchTransactions).toHaveBeenCalledWith(
       "account-1",
-      expect.objectContaining({ from: "2026-08-31" }),
+      { from: "2026-08-30", to: "2026-09-04" },
       undefined,
     );
+  });
+
+  it("asks for a range the bank can answer when it already read today", async () => {
+    // The bank refuses a range whose start is after its end with a 422, which
+    // is what made every read after the first one of a day fail.
+    vi.setSystemTime(new Date("2026-09-04T11:46:00.000Z"));
+    repositoryMocks.getLastBookedThrough.mockResolvedValue("2026-09-04");
+
+    await runBankIngestion("manual");
+
+    const [, range] = clientMocks.fetchTransactions.mock.calls[0];
+    expect(range.from <= range.to).toBe(true);
+    expect(range).toMatchObject({ from: "2026-08-30", to: "2026-09-04" });
+  });
+
+  it("reaches ninety days back on the very first run", async () => {
+    // Nothing is recorded yet, and the account may already carry months of
+    // payments.
+    vi.setSystemTime(new Date("2026-09-04T11:46:00.000Z"));
+    repositoryMocks.getLastBookedThrough.mockResolvedValue(null);
+
+    await runBankIngestion("background");
+
+    expect(clientMocks.fetchTransactions).toHaveBeenCalledWith(
+      "account-1",
+      { from: "2026-06-06", to: "2026-09-04" },
+      undefined,
+    );
+  });
+
+  it("records why a read failed instead of letting the failure escape", async () => {
+    // Escaping left the claimed read at its defaults, so the card reported a
+    // failure with no reason and the reason lived only in a log the operator
+    // cannot read.
+    clientMocks.fetchTransactions.mockRejectedValue(
+      new HttpError(502, "The bank interface refused the request", "bank_request_refused"),
+    );
+
+    const result = await runBankIngestion("manual");
+
+    expect(result).toEqual({ ran: false, reason: "read_failed", failure: "bank_request_refused" });
+    expect(repositoryMocks.failBankRead).toHaveBeenCalledWith("read-1", "bank_request_refused");
+    expect(repositoryMocks.completeBankRead).not.toHaveBeenCalled();
+  });
+
+  it("names a failure the bank client did not, rather than showing nothing", async () => {
+    clientMocks.fetchTransactions.mockRejectedValue(new Error("something else entirely"));
+
+    const result = await runBankIngestion("manual");
+
+    expect(result).toEqual({ ran: false, reason: "read_failed", failure: "bank_unknown_error" });
+    expect(repositoryMocks.failBankRead).toHaveBeenCalledWith("read-1", "bank_unknown_error");
+  });
+
+  it("reads a payment booked after the run that already covered its day", async () => {
+    // The afternoon payment the old arithmetic lost: the morning run recorded
+    // the day as read, and no later run ever asked for it again.
+    vi.setSystemTime(new Date("2026-09-05T08:00:00.000Z"));
+    repositoryMocks.getLastBookedThrough.mockResolvedValue("2026-09-04");
+    clientMocks.fetchTransactions.mockResolvedValue({
+      transactions: [transaction({ bookedOn: "2026-09-04" })],
+      continuationKey: null,
+    });
+
+    const result = await runBankIngestion("background");
+
+    const [, range] = clientMocks.fetchTransactions.mock.calls[0];
+    expect(range.from <= "2026-09-04").toBe(true);
+    expect(result).toMatchObject({ ran: true, imported: 1 });
   });
 
   it("takes an ordinary donation into the ledger", async () => {

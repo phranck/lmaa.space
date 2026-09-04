@@ -5,11 +5,13 @@ import { fetchTransactions, type BankTransaction } from "./enable-banking-client
 import { takeOverPendingSponsorshipByReference } from "./pending-sponsorships.js";
 import { env } from "../config/env.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
+import { HttpError } from "../lib/http.js";
 import { logger } from "../lib/logger.js";
 import { getLiveBankConnection } from "../repositories/bank-connections.js";
 import {
   claimBankRead,
   completeBankRead,
+  failBankRead,
   getLastBookedThrough,
   type BankReadKind,
 } from "../repositories/bank-reads.js";
@@ -45,6 +47,26 @@ const BACKGROUND_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const FIRST_RUN_LOOKBACK_DAYS = 90;
 
 /**
+ * How far back every run after the first one reaches, in days.
+ *
+ * Counted from today rather than from the last day a run recorded, which is
+ * what makes the window both safe and complete.
+ *
+ * Safe, because a range counted from the last recorded day runs past today as
+ * soon as a run has already succeeded today, and the bank refuses a range whose
+ * start is after its end. That is what made every read after the first one of a
+ * day fail with a 422.
+ *
+ * Complete, because a day is not finished when a run has looked at it once. A
+ * payment booked in the afternoon, or one the bank posts a few days late, falls
+ * inside this window rather than between two runs.
+ *
+ * Reading the same days again costs nothing: `importTransaction` keys on the
+ * entry reference and counts a repeat as skipped.
+ */
+const RECENT_LOOKBACK_DAYS = 5;
+
+/**
  * How many pages one run will walk before it stops.
  *
  * A continuation key that never comes back empty would otherwise make the run
@@ -63,12 +85,34 @@ export type BankIngestionSkip =
   | "not_connected"
   | "consent_expired"
   | "budget_spent"
-  | "not_configured";
+  | "not_configured"
+  /** The bank was asked and the request did not come back usable. */
+  | "read_failed";
 
 /** What a run did, or why it did nothing. */
 export type BankIngestionResult =
   | { ran: true; from: string; to: string; read: number; imported: number; skipped: number }
-  | { ran: false; reason: BankIngestionSkip };
+  | {
+      ran: false;
+      reason: BankIngestionSkip;
+      /**
+       * What went wrong at the bank, as the client's own error code.
+       *
+       * Only on `read_failed`. A code rather than a sentence, so the wording
+       * belongs to whoever shows it and the same failure reads the same in
+       * every language.
+       */
+      failure?: string;
+    };
+
+/**
+ * The code recorded when a read fails for a reason the client does not name.
+ *
+ * Anything that is not an `HttpError` from the bank client: a bug in this
+ * service, a database error whilst importing. It still has to reach the
+ * operator as something rather than as an empty card.
+ */
+const UNKNOWN_FAILURE = "bank_unknown_error";
 
 /** A day as `YYYY-MM-DD`, which is how the ledger and the interface both state one. */
 function toDay(value: Date): string {
@@ -243,10 +287,12 @@ export async function runBankIngestion(kind: BankReadKind): Promise<BankIngestio
   );
   if (!claimed) return { ran: false, reason: "budget_spent" };
 
+  // Both ends counted from today, so the start can never overshoot the end.
+  // The first run reaches further back, because there is nothing recorded yet
+  // and the account may already carry months of payments.
   const lastBookedThrough = await getLastBookedThrough();
-  const from = lastBookedThrough
-    ? toDay(new Date(new Date(lastBookedThrough).getTime() + DAY_MS))
-    : toDay(new Date(now.getTime() - FIRST_RUN_LOOKBACK_DAYS * DAY_MS));
+  const lookbackDays = lastBookedThrough ? RECENT_LOOKBACK_DAYS : FIRST_RUN_LOOKBACK_DAYS;
+  const from = toDay(new Date(now.getTime() - lookbackDays * DAY_MS));
   const to = toDay(now);
 
   const marker = siteMarker();
@@ -255,35 +301,45 @@ export async function runBankIngestion(kind: BankReadKind): Promise<BankIngestio
   let skipped = 0;
   let continuationKey: string | undefined;
 
-  for (let page = 0; page < MAX_PAGES; page++) {
-    const answer = await fetchTransactions(connection.accountUid, { from, to }, continuationKey);
-    read += answer.transactions.length;
+  // The failure is caught rather than left to escape. Escaping it left the
+  // claimed read at its defaults, so the card reported a failure with no reason
+  // and the reason existed only in a log the operator cannot read.
+  try {
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const answer = await fetchTransactions(connection.accountUid, { from, to }, continuationKey);
+      read += answer.transactions.length;
 
-    for (const transaction of answer.transactions) {
-      const classified = classifyTransaction(transaction, marker);
+      for (const transaction of answer.transactions) {
+        const classified = classifyTransaction(transaction, marker);
 
-      // Money leaving is never a donation. One that carries a marker is a
-      // returned payment, which this run does not net off; it says so instead,
-      // so the case is known if it ever happens.
-      if (!transaction.isCredit) {
-        if (classified.kind !== "ignore") {
-          logger.warn(
-            { event: "bank_ingestion.marked_debit", bookedOn: transaction.bookedOn },
-            "a payment leaving the account carried this project's marker",
-          );
+        // Money leaving is never a donation. One that carries a marker is a
+        // returned payment, which this run does not net off; it says so instead,
+        // so the case is known if it ever happens.
+        if (!transaction.isCredit) {
+          if (classified.kind !== "ignore") {
+            logger.warn(
+              { event: "bank_ingestion.marked_debit", bookedOn: transaction.bookedOn },
+              "a payment leaving the account carried this project's marker",
+            );
+          }
+          continue;
         }
-        continue;
+
+        if (classified.kind === "ignore") continue;
+
+        const outcome = await importTransaction(transaction, classified);
+        if (outcome === "imported") imported += 1;
+        else skipped += 1;
       }
 
-      if (classified.kind === "ignore") continue;
-
-      const outcome = await importTransaction(transaction, classified);
-      if (outcome === "imported") imported += 1;
-      else skipped += 1;
+      if (!answer.continuationKey) break;
+      continuationKey = answer.continuationKey;
     }
-
-    if (!answer.continuationKey) break;
-    continuationKey = answer.continuationKey;
+  } catch (error) {
+    const failure = (error instanceof HttpError ? error.code : null) ?? UNKNOWN_FAILURE;
+    await failBankRead(claimed.id, failure);
+    logger.error({ err: error, event: "bank_ingestion.failed", from, to }, "bank read failed");
+    return { ran: false, reason: "read_failed", failure };
   }
 
   await completeBankRead(claimed.id, {
