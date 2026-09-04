@@ -103,6 +103,7 @@ export function DonationEditorCard({ donationId, donations, onClose }: DonationE
   );
   const fields = draft ?? base;
   const isPending = create.isPending || save.isPending || remove.isPending;
+  const saveFailed = create.isError || save.isError;
   const socialMedia = fields?.socialMedia ?? [];
   const favicons = useFavicons(socialMedia);
   const displayName = fullName(fields?.firstName ?? "", fields?.lastName ?? "");
@@ -219,6 +220,13 @@ export function DonationEditorCard({ donationId, donations, onClose }: DonationE
                 value={fields.note}
                 onChange={(event) => update({ note: event.target.value })}
               />
+
+              {/* A refused save left the card open with the typed values still
+                  in it and no word about why, which reads exactly like a save
+                  that quietly did nothing. */}
+              {saveFailed && (
+                <p className="text-sm text-[var(--ds-badge-danger-text)]">{text.saveFailed}</p>
+              )}
             </div>
           )}
         </OverlayCard.Body>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { socialMediaLinksSchema, socialMediaSchema } from "@lmaa/shared";
+import { socialMediaLinksSchema } from "@lmaa/shared";
 
 /**
  * Every payment that arrives, whatever route it took.
@@ -62,7 +62,7 @@ export const donationInputSchema = z.object({
    * Optional and usually absent: a bank transfer carries no such address, and
    * asking for one is only possible where the payment came with a message.
    */
-  socialMedia: socialMediaSchema,
+  socialMedia: socialMediaLinksSchema,
   /**
    * Whether they agreed to be named.
    *

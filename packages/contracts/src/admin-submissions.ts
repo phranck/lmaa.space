@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { socialMediaSchema } from "@lmaa/shared";
+import { socialMediaLinksSchema } from "@lmaa/shared";
 
 import { paymentMethodsSchema, shopCheckNotesSchema, shopJsonSchema } from "./admin-shops";
 import {
@@ -66,7 +66,7 @@ export const submissionEditSchema = z.object({
   ),
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.optional(),
-  socialMedia: socialMediaSchema,
+  socialMedia: socialMediaLinksSchema,
   paymentMethods: paymentMethodsSchema.optional(),
   logoBackgroundColor: logoBackgroundColorSchema,
 });

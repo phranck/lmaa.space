@@ -1279,6 +1279,8 @@ export interface DashboardMessages {
       nameAbsent: string;
       noteLabel: string;
       noteHint: string;
+      /** Shown where a save was refused, so the card does not look like it did nothing. */
+      saveFailed: string;
       sponsorBadge: string;
       monthTotal: string;
       yearTotal: string;
@@ -3019,6 +3021,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         nameAbsent: "Ohne Namen",
         noteLabel: "Notiz",
         noteHint: "Verwendungszweck, Referenz oder was sonst zu diesem Eingang gehört.",
+        saveFailed:
+          "Das Speichern hat nicht geklappt. Prüf die Adressen unter Social Media, dort steckt es meistens.",
         sponsorBadge: "Sponsoring",
         monthTotal: "Letzte 30 Tage",
         yearTotal: "Letzte 365 Tage",
@@ -4792,6 +4796,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         nameAbsent: "No name",
         noteLabel: "Note",
         noteHint: "The reference, the purpose, or whatever else belongs to this payment.",
+        saveFailed:
+          "The save was refused. Check the social media addresses, which is usually where it is.",
         sponsorBadge: "Sponsorship",
         monthTotal: "Last 30 days",
         yearTotal: "Last 365 days",

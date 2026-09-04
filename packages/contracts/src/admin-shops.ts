@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { PAYMENT_METHOD_KEYS, socialMediaSchema } from "@lmaa/shared";
+import { PAYMENT_METHOD_KEYS, socialMediaLinksSchema } from "@lmaa/shared";
 
 import {
   defaultRegionArraySchema,
@@ -54,7 +54,7 @@ export const shopBodySchema = z.object({
   ),
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.optional(),
-  socialMedia: socialMediaSchema,
+  socialMedia: socialMediaLinksSchema,
   paymentMethods: paymentMethodsSchema.default([]),
 });
 
@@ -75,7 +75,7 @@ export const shopUpdateSchema = z.object({
   ),
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.optional(),
-  socialMedia: socialMediaSchema,
+  socialMedia: socialMediaLinksSchema,
   paymentMethods: paymentMethodsSchema.optional(),
   logoBackgroundColor: logoBackgroundColorSchema,
   needsReview: z.boolean().optional(),
