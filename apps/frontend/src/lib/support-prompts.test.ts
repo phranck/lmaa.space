@@ -4,9 +4,9 @@ const apiMocks = vi.hoisted(() => ({ apiGet: vi.fn() }));
 vi.mock("./api", () => apiMocks);
 
 const markdownMocks = vi.hoisted(() => ({
-  renderMarkdown: vi.fn(async (source: string) => `<p>${source}</p>`),
+  renderMarkdownSSR: vi.fn(async (source: string) => `<p>${source}</p>`),
 }));
-vi.mock("./markdown", () => markdownMocks);
+vi.mock("./markdown-ssr", () => markdownMocks);
 
 import { loadSupportPrompts } from "./support-prompts";
 
@@ -44,7 +44,16 @@ describe("loadSupportPrompts", () => {
     const data = await loadSupportPrompts("my-shops");
 
     expect(data.prompts.map((entry) => entry.id)).toEqual(["a", "d"]);
-    expect(markdownMocks.renderMarkdown).toHaveBeenCalledTimes(2);
+    expect(markdownMocks.renderMarkdownSSR).toHaveBeenCalledTimes(2);
+  });
+
+  it("renders through the pipeline that puts the figures in place of their names", async () => {
+    // A prompt quotes what a check costs and what the year costs, the same way
+    // a page does. Rendered through the plain Markdown renderer instead, those
+    // names reach the reader as `{reviewCost}` and `{annualCost}`.
+    await loadSupportPrompts("my-shops");
+
+    expect(markdownMocks.renderMarkdownSSR).toHaveBeenCalledWith("a", { breaks: true });
   });
 
   it("names every live prompt, not only the ones for this slot", async () => {
