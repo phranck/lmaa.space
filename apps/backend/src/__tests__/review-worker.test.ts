@@ -122,6 +122,21 @@ function fakeProvider(result: ReviewProviderOutcome, configured = true): ReviewP
   };
 }
 
+/**
+ * A provider that reports a batch id before it answers.
+ *
+ * @param batchId - What it tells the worker it submitted.
+ * @returns The provider.
+ */
+function submittingProvider(batchId: string): ReviewProvider {
+  const provider = fakeProvider(outcome());
+  provider.runReview = vi.fn(async (request: { onBatchCreated?: (id: string) => void }) => {
+    request.onBatchCreated?.(batchId);
+    return outcome();
+  }) as ReviewProvider["runReview"];
+  return provider;
+}
+
 function settings(overrides: Record<string, unknown> = {}) {
   return {
     autoApply: [],
@@ -166,6 +181,36 @@ beforeEach(() => {
 });
 
 describe("review worker", () => {
+  it("counts an attempt where it had to submit a second batch", async () => {
+    // A batch that could not be resumed is a fresh ask of the provider, so it
+    // counts even though the claim itself no longer does.
+    repository.claimNextReviewJob.mockResolvedValue(
+      jobRow({ attempt: 2, providerResponseId: "msgbatch_old" }),
+    );
+    const worker = new ReviewWorker(() => submittingProvider("msgbatch_new"));
+
+    await worker.tick();
+
+    const submitted = repository.transitionReviewJob.mock.calls.find(
+      (call) => (call[3] as { name: string } | undefined)?.name === "provider.submitted",
+    );
+    expect(submitted?.[2]).toMatchObject({ providerResponseId: "msgbatch_new", attempt: 3 });
+  });
+
+  it("counts nothing where it resumed the batch it already had", async () => {
+    repository.claimNextReviewJob.mockResolvedValue(
+      jobRow({ attempt: 2, providerResponseId: "msgbatch_same" }),
+    );
+    const worker = new ReviewWorker(() => submittingProvider("msgbatch_same"));
+
+    await worker.tick();
+
+    const submitted = repository.transitionReviewJob.mock.calls.find(
+      (call) => (call[3] as { name: string } | undefined)?.name === "provider.submitted",
+    );
+    expect(submitted?.[2]).not.toHaveProperty("attempt");
+  });
+
   it("still finalizes exhausted jobs when the provider has no credential", async () => {
     const worker = new ReviewWorker(() => fakeProvider(outcome(), false));
 
