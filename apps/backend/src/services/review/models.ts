@@ -1,8 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { Mistral } from "@mistralai/mistralai";
 
 import { REVIEW_EFFORT_LEVELS, resolveEffortLevel } from "@lmaa/shared";
-import type { ReviewEffortLevel, ReviewProviderName } from "@lmaa/shared";
+import type { ReviewEffortLevel } from "@lmaa/shared";
 
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
@@ -35,19 +34,7 @@ export interface ReviewModelOption {
  */
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
-const cached = new Map<ReviewProviderName, { options: ReviewModelOption[]; fetchedAt: number }>();
-
-/**
- * Efforts a Mistral model with reasoning accepts.
- *
- * @remarks
- * Mistral's own list is `none`, `minimal`, `low`, `medium`, `high` and `xhigh`.
- * The two below the shared scale have no place to be chosen from, and `max` is
- * on the shared scale without being on Mistral's, so what remains is the
- * overlap. A level outside it is refused with a 400 before anything is
- * researched.
- */
-const MISTRAL_EFFORT_LEVELS: readonly ReviewEffortLevel[] = ["low", "medium", "high", "xhigh"];
+let cached: { options: ReviewModelOption[]; fetchedAt: number } | null = null;
 
 /**
  * Reads a named capability out of an Anthropic model description.
@@ -116,14 +103,9 @@ function readEfforts(model: unknown): ReviewEffortLevel[] {
 /**
  * Lists the models a check can run on, with the efforts each one accepts.
  *
- * @param provider - Provider whose models to list.
  * @returns The available models, or an empty list when none could be fetched.
  *
  * @remarks
- * Held per provider, because switching between them in the settings would
- * otherwise show one provider's models under the other's name until the hour
- * was up.
- *
  * Read from the provider rather than kept as a list in the code, because a
  * hard-coded list is wrong the day a model is released or retired and nobody
  * notices until a run fails. The same holds for the reasoning efforts, which is
@@ -137,32 +119,29 @@ function readEfforts(model: unknown): ReviewEffortLevel[] {
  * call fails. The settings page then falls back to showing the configured value
  * on its own, so a provider outage cannot make the settings uneditable.
  */
-export async function listReviewModels(
-  provider: ReviewProviderName = "anthropic",
-): Promise<ReviewModelOption[]> {
-  const held = cached.get(provider);
-  if (held && Date.now() - held.fetchedAt < CACHE_TTL_MS) return held.options;
+export async function listReviewModels(): Promise<ReviewModelOption[]> {
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) return cached.options;
+
+  const apiKey = env.ANTHROPIC_API_KEY;
+  if (!apiKey) return [];
 
   try {
-    const options =
-      provider === "mistral" ? await listMistralModels() : await listAnthropicModels();
-    cached.set(provider, { options, fetchedAt: Date.now() });
+    const options = await listAnthropicModels(apiKey);
+    cached = { options, fetchedAt: Date.now() };
     return options;
   } catch (error) {
-    logger.warn({ err: error, provider }, "could not list provider models");
-    return held?.options ?? [];
+    logger.warn({ err: error }, "could not list provider models");
+    return cached?.options ?? [];
   }
 }
 
 /**
  * Lists Anthropic's models, asking each one what it can do.
  *
- * @returns The models a check can run on, or an empty list without a key.
+ * @param apiKey - Credential the list is fetched with.
+ * @returns The models a check can run on.
  */
-async function listAnthropicModels(): Promise<ReviewModelOption[]> {
-  const apiKey = env.ANTHROPIC_API_KEY;
-  if (!apiKey) return [];
-
+async function listAnthropicModels(apiKey: string): Promise<ReviewModelOption[]> {
   const client = new Anthropic({ apiKey });
   const listed: Array<{ id: string; displayName: string }> = [];
   for await (const model of client.models.list()) {
@@ -181,82 +160,8 @@ async function listAnthropicModels(): Promise<ReviewModelOption[]> {
 }
 
 /**
- * Lists Mistral's models, asking each one what it can do.
- *
- * @returns The models a check can run on, or an empty list without a key.
- *
- * @remarks
- * One call answers everything, because Mistral describes a model's capabilities
- * in the list itself rather than behind a second request per model.
- *
- * A model that reports no reasoning is kept and offered without an effort,
- * unlike the Anthropic path which drops such a model. The two differ because a
- * check submitted to Anthropic asks for adaptive thinking outright and is
- * refused without it, whilst a Mistral request simply omits the effort.
- *
- * The list holds every alias as an entry of its own, and an alias carries the
- * name of the model it points at. `mistral-large-latest` and
- * `mistral-large-2512` are therefore two entries for one model, so only the
- * canonical one is offered. See {@link isCanonicalMistralModel}.
- */
-async function listMistralModels(): Promise<ReviewModelOption[]> {
-  const apiKey = env.MISTRAL_API_KEY;
-  if (!apiKey) return [];
-
-  const client = new Mistral({ apiKey });
-  const listed = await client.models.list();
-
-  return (listed.data ?? []).flatMap((entry) => {
-    // The SDK's model list is a union that includes a card shape it does not
-    // know, so the fields this needs are read off the raw object rather than
-    // narrowed. A model without an identifier cannot be offered anyway.
-    const model = entry as {
-      id?: unknown;
-      name?: unknown;
-      capabilities?: { completionChat?: boolean; reasoning?: boolean };
-    };
-
-    if (typeof model.id !== "string" || !hasReviewPrices(model.id)) return [];
-    if (model.capabilities?.completionChat === false) return [];
-    if (!isCanonicalMistralModel(model.id, model.name)) return [];
-
-    return [
-      {
-        // Mistral's `name` is the canonical identifier rather than a title, so
-        // there is nothing friendlier than the identifier to show. Anthropic's
-        // `display_name` has no counterpart here.
-        id: model.id,
-        displayName: model.id,
-        efforts: model.capabilities?.reasoning ? [...MISTRAL_EFFORT_LEVELS] : [],
-      },
-    ];
-  });
-}
-
-/**
- * Decides whether a listed Mistral model is the model itself or an alias to it.
- *
- * @param id - The identifier this entry is listed under.
- * @param name - What the entry names as its model.
- * @returns `false` where the entry points at a different model.
- *
- * @remarks
- * Mistral lists an alias as a full entry whose `name` is the identifier it
- * resolves to, so one model appears several times. Offering all of them puts
- * entries in the settings that are labelled identically and differ only in a
- * value nobody can see, which is what this prevents.
- *
- * An entry naming nothing is kept, because an unknown is not a reason to hide a
- * model that the rate card can price.
- */
-export function isCanonicalMistralModel(id: string, name: unknown): boolean {
-  return typeof name !== "string" || name === "" || name === id;
-}
-
-/**
  * Picks an effort the given model accepts.
  *
- * @param provider - Provider the run is configured for.
  * @param model - Model the run is configured for.
  * @param effort - Effort the operator configured.
  * @returns The level the run may use, which is the configured one wherever the
@@ -269,11 +174,10 @@ export function isCanonicalMistralModel(id: string, name: unknown): boolean {
  * different effort.
  */
 export async function resolveReviewEffort(
-  provider: ReviewProviderName,
   model: string,
   effort: ReviewEffortLevel,
 ): Promise<ReviewEffortLevel | null> {
-  const options = await listReviewModels(provider);
+  const options = await listReviewModels();
   const known = options.find((option) => option.id === model);
   return known ? resolveEffortLevel(known.efforts, effort) : effort;
 }

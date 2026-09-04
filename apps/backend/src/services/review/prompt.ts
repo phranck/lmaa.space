@@ -9,41 +9,22 @@ import type { ReviewRunContext } from "./context.js";
 import type { ReviewSkill } from "./skill.js";
 
 /**
- * What a run can do, which decides what the rules tell it about its tools.
- */
-export interface ReviewToolCapabilities {
-  /**
-   * Whether the run can fetch a page whose address it already holds.
-   *
-   * @remarks
-   * Anthropic hosts a page fetcher beside its search; Mistral's conversations
-   * offer search alone and return the page content with the results. Naming a
-   * tool that is not there is worse than naming one fewer, because the run
-   * plans around it and then fails to call it.
-   */
-  canFetchPages: boolean;
-}
-
-/**
- * Describes the tools a run actually has.
+ * The tools a run has, as the rules name them to it.
  *
- * @param capabilities - What this provider offers.
- * @returns The tools paragraph of the addendum.
+ * @remarks
+ * These are the two the adapter attaches to every request. Naming a tool that
+ * is not attached is worse than naming one fewer, because the run plans around
+ * it and then fails to call it, so this paragraph and the `tools` array in
+ * `anthropic-provider.ts` are changed together.
  */
-function describeTools(capabilities: ReviewToolCapabilities): string {
-  const search = "- `web_search` sucht im Netz.";
-  const fetch =
-    "- `web_fetch` holt eine Seite, deren Adresse bereits im Gespräch steht, also die Shop-Adresse aus der Aufgabe oder eine Adresse aus einem Suchergebnis.";
-
-  return capabilities.canFetchPages
-    ? `${search}\n${fetch}`
-    : "- `web_search` sucht im Netz und liefert die Inhalte der gefundenen Seiten gleich mit. Eine Seite, die du gezielt lesen willst, suchst du also über ihre Adresse.";
-}
+const TOOLS_PARAGRAPH = [
+  "- `web_search` sucht im Netz.",
+  "- `web_fetch` holt eine Seite, deren Adresse bereits im Gespräch steht, also die Shop-Adresse aus der Aufgabe oder eine Adresse aus einem Suchergebnis.",
+].join("\n");
 
 /**
  * What the automated run needs on top of the canonical rules.
  *
- * @param capabilities - What this provider's run can do.
  * @returns The addendum text.
  *
  * @remarks
@@ -53,14 +34,14 @@ function describeTools(capabilities: ReviewToolCapabilities): string {
  * actually has. Everything else about how a shop is judged stays in the
  * canonical rules, so the two modes cannot come apart on the substance.
  */
-function buildAutomationAddendum(capabilities: ReviewToolCapabilities): string {
+function buildAutomationAddendum(): string {
   return `
 <automation_context>
 Dieser Lauf ist automatisiert. Es gibt keine Person, die zwischendurch antwortet, und keine Shell. Die Regeln oben gelten unverändert für die inhaltliche Prüfung. Nur die Ausgabe und die Werkzeuge sind andere, wie hier beschrieben.
 
 **Werkzeuge**
 
-${describeTools(capabilities)}
+${TOOLS_PARAGRAPH}
 
 Weiter gibt es keine. Nennen die Regeln ein anderes Werkzeug, gibt es das hier nicht.
 
@@ -120,20 +101,15 @@ Für \`description\`, \`comment\` und \`longText\` gelten die Sprachregeln oben.
  * Builds the system prompt for one review run.
  *
  * @param skill - The canonical rules and their version.
- * @param capabilities - What this provider's run can do.
  * @returns The rules followed by the automation addendum.
  *
  * @remarks
  * The canonical rules come first and the addendum after, so the stable part of
  * the prompt sits at the front where the provider's cache can hold it. Both
- * parts are identical across runs of one provider; only the user message
- * changes.
+ * parts are identical across runs; only the user message changes.
  */
-export function buildReviewSystemPrompt(
-  skill: ReviewSkill,
-  capabilities: ReviewToolCapabilities,
-): string {
-  return `${skill.text}\n\n${buildAutomationAddendum(capabilities)}`;
+export function buildReviewSystemPrompt(skill: ReviewSkill): string {
+  return `${skill.text}\n\n${buildAutomationAddendum()}`;
 }
 
 /**

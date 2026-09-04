@@ -13,19 +13,19 @@ export interface ReviewModelChoice {
    * The model a run would use, which is what a save writes.
    *
    * @remarks
-   * Empty only whilst no model is configured and none has arrived yet, which is
-   * the moment between choosing a provider and its list coming back. Saving is
-   * held off until then, because an empty model leaves the worker without one.
+   * Empty only whilst no model is configured and none has arrived yet. Saving
+   * is held off until then, because an empty model leaves the worker without
+   * one.
    */
   effective: string;
 }
 
 /**
- * Works out what the model field shows for a given provider.
+ * Works out what the model field shows.
  *
- * @param configured - Model held in the form, empty after a provider change.
- * @param available - Models the chosen provider reports, empty whilst the list
- * is loading or when it could not be fetched.
+ * @param configured - Model held in the form, which may be empty.
+ * @param available - Models the provider reports, empty whilst the list is
+ * loading or when it could not be fetched.
  * @returns The options to offer and the model a run would use.
  *
  * @remarks
@@ -33,11 +33,9 @@ export interface ReviewModelChoice {
  * is worked out in one place rather than in the render.
  *
  * A configured model that the list does not hold stays selectable, so an outage
- * at the provider never silently rewrites the setting to something else.
- *
- * After a provider change there is no configured model, because choosing a
- * provider clears it. The first model of the new provider then stands in, since
- * keeping the old one would offer one provider's model under another's name.
+ * at the provider never silently rewrites the setting to something else. Where
+ * nothing is configured at all, the first model on offer stands in, so the
+ * field is never blank whilst a list exists.
  */
 export function resolveReviewModelChoice(
   configured: string,

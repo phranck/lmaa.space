@@ -673,6 +673,13 @@
       "when": 1788396124775,
       "tag": "0095_consent_notice_stage",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1788480790133,
+      "tag": "0096_remove_review_provider_setting",
+      "breakpoints": true
     }
   ]
 }

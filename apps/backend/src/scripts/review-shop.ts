@@ -63,11 +63,11 @@ async function main(): Promise<void> {
   const settings = await loadReviewSettings();
   const provider = createReviewProvider(settings);
   if (!provider.isConfigured()) {
-    fail(`No API key is set for the configured provider ${settings.provider}`);
+    fail(`No API key is set for the provider ${provider.name}`);
   }
 
   process.stdout.write(
-    `Prüfe ${parsed.href}\n  Anbieter ${settings.provider}, Modell ${settings.model}, Effort ${settings.effort}, Modus ${settings.mode}\n\n`,
+    `Prüfe ${parsed.href}\n  Anbieter ${provider.name}, Modell ${settings.model}, Effort ${settings.effort}, Modus ${settings.mode}\n\n`,
   );
 
   const [submission] = await db

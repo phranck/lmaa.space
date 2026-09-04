@@ -9,13 +9,11 @@ import { memo, useCallback, useMemo, useState } from "react";
 import type { TemplateAssignment } from "@lmaa/contracts";
 import {
   REVIEW_EFFORT_LEVELS,
-  REVIEW_PROVIDER_LABELS,
-  REVIEW_PROVIDERS,
   REVIEW_SETTING_DEFAULTS,
   resolveEffortLevel,
   SETTINGS_KEYS,
 } from "@lmaa/shared";
-import type { ReviewEffortLevel, ReviewProviderName } from "@lmaa/shared";
+import type { ReviewEffortLevel } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 import { fieldHelpClass, fieldLabelClass } from "@lmaa/ui/field-primitives";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
@@ -42,7 +40,6 @@ const EDITED_KEYS = [
   SETTINGS_KEYS.REVIEW_MODE,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT,
-  SETTINGS_KEYS.REVIEW_PROVIDER,
   SETTINGS_KEYS.REVIEW_MODEL,
   SETTINGS_KEYS.REVIEW_EFFORT,
   SETTINGS_KEYS.REVIEW_MAX_ATTEMPTS,
@@ -108,7 +105,6 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
     setDraft(baseline);
   }
 
-  const selectedProvider = draft[SETTINGS_KEYS.REVIEW_PROVIDER] as ReviewProviderName;
   // Stored as JSON in one setting, so a malformed value means nothing is posted
   // rather than a settings page that will not render.
   const socialTemplates = useMemo<TemplateAssignment[]>(() => {
@@ -119,9 +115,7 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
       return [];
     }
   }, [draft]);
-  // Follows the draft rather than what is saved, so the model list changes with
-  // the field instead of only after the form has been submitted.
-  const { data: models, isLoading: modelsLoading } = useReviewModels(selectedProvider);
+  const { data: models, isLoading: modelsLoading } = useReviewModels();
 
   const dirty = !isEqual(draft, savedBaseline);
   const assistMode = draft[SETTINGS_KEYS.REVIEW_MODE] === "assist";
@@ -146,23 +140,6 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
   const set = useCallback((key: (typeof EDITED_KEYS)[number], value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
   }, []);
-
-  // Clearing the model is what makes the choice below follow the provider. A
-  // model belongs to exactly one provider, so the one that was chosen is stale
-  // the moment the provider changes, and there is nothing yet to replace it
-  // with until the new provider's list arrives.
-  const chooseProvider = useCallback((value: string) => {
-    setDraft((current) => ({
-      ...current,
-      [SETTINGS_KEYS.REVIEW_PROVIDER]: value,
-      [SETTINGS_KEYS.REVIEW_MODEL]: "",
-    }));
-  }, []);
-
-  const providerOptions = useMemo(
-    () => REVIEW_PROVIDERS.map((name) => ({ value: name, label: REVIEW_PROVIDER_LABELS[name] })),
-    [],
-  );
 
   // Derived rather than written back into the draft, so the field shows what a
   // run would use without a render deciding what gets saved.
@@ -195,8 +172,7 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
     setSaving(true);
     try {
       // What is saved is what the fields show, so a level the chosen model does
-      // not accept is never written back, and neither is the empty model a
-      // provider change leaves behind.
+      // not accept is never written back.
       const pending = {
         ...draft,
         [SETTINGS_KEYS.REVIEW_MODEL]: effectiveModel,
@@ -250,17 +226,6 @@ export const ReviewTab = memo(function ReviewTab({ active }: { active: boolean }
                 />
                 <p className={fieldHelpClass}>{modeHint}</p>
               </div>
-
-              <DashboardCombobox
-                id="review-provider"
-                fullWidth
-                label={t.providerLabel}
-                hint={t.providerHint}
-                disabled={saving}
-                value={selectedProvider}
-                onValueChange={chooseProvider}
-                options={providerOptions}
-              />
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <DashboardCombobox

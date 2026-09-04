@@ -48,12 +48,11 @@ Weitere optionale Runtime-Variablen sind in `src/config/env.ts` definiert und we
 
 ### Automatisierte Shop-Prüfung
 
-Die automatisierte Prüfung eingehender Shop-Vorschläge läuft als Hintergrund-Job im Backend. Aus der Umgebung kommen nur die Provider-Schlüssel. Gebraucht wird der Schlüssel des Anbieters, der in den Einstellungen gewählt ist; der andere darf fehlen.
+Die automatisierte Prüfung eingehender Shop-Vorschläge läuft als Hintergrund-Job im Backend. Aus der Umgebung kommt nur der Provider-Schlüssel.
 
-| Variable            | Pflicht | Bedeutung                                                                                                                     |
-| ------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `ANTHROPIC_API_KEY` | bei Anbieter `anthropic` | Schlüssel für die Claude-API. Fehlt er, bleibt der Worker stehen und das übrige Backend läuft normal weiter. |
-| `MISTRAL_API_KEY`   | bei Anbieter `mistral`   | Schlüssel für die Mistral-API. Fehlt er, gilt dasselbe.                                                       |
+| Variable            | Pflicht | Bedeutung                                                                                                   |
+| ------------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY` | ja      | Schlüssel für die Claude-API. Fehlt er, bleibt der Worker stehen und das übrige Backend läuft normal weiter. |
 
 Alles andere sind Systemeinstellungen und stehen im Dashboard unter Einstellungen im Reiter „Automatische Prüfung". Eine Änderung wirkt beim nächsten Durchlauf des Workers, spätestens nach 30 Sekunden, und braucht kein Deployment.
 
@@ -64,8 +63,7 @@ Alles andere sind Systemeinstellungen und stehen im Dashboard unter Einstellunge
 | Ablehnungen automatisch veröffentlichen | aus             | Wirkt nur im Modus `assist`.                                                                                                                     |
 | E-Mail bei automatischer Aufnahme        | keine           | Template, mit dem die Automatik an die vorschlagende Person schreibt. Ohne Template wird nichts versendet. |
 | E-Mail bei automatischer Ablehnung       | keine           | Wie oben, für eine Ablehnung. Der Link zur öffentlichen Begründung steckt im Template. |
-| Anbieter                                | `anthropic`     | `anthropic` oder `mistral`. Entscheidet, welcher Schlüssel gebraucht wird und welche Modelle zur Auswahl stehen. |
-| Modell                                  | `claude-opus-5` | Zur Auswahl stehen die Modelle, die der Anbieter meldet und die eine Prüfung auch ausführen können. Wird an jeder Prüfung mitgeschrieben. |
+| Modell                                  | `claude-opus-5` | Zur Auswahl stehen die Modelle, die Anthropic meldet und die eine Prüfung auch ausführen können. Wird an jeder Prüfung mitgeschrieben. |
 | Denktiefe                               | `high`          | Angeboten wird, was das gewählte Modell laut Anbieter annimmt. Claude Sonnet 4.6 kennt zum Beispiel kein `xhigh`. |
 | Versuche je Vorschlag                   | `3`             | Danach endet die Prüfung als zurückgestellt.                                                                                                     |
 | Deckel je Prüfung                       | `2` USD         | Bricht den laufenden Versuch ab.                                                                                                                 |
