@@ -1,4 +1,4 @@
-import { markdown } from "@codemirror/lang-markdown";
+import { markdown, markdownKeymap } from "@codemirror/lang-markdown";
 import {
   getIndentUnit,
   HighlightStyle,
@@ -312,6 +312,24 @@ const mdKeymap = Prec.highest(
     },
   ]),
 );
+
+/**
+ * Return continues a list, and Backspace steps back out of one.
+ *
+ * @remarks
+ * Both come from the Markdown package rather than being written here, so a
+ * bullet, a number, a task box and a quote all behave the way they do in every
+ * other Markdown editor. Return on an item that holds nothing but its marker
+ * removes the marker and leaves the list, which is what stops the feature from
+ * becoming a trap.
+ *
+ * Above the default keymap and below {@link mdKeymap}, so it reaches Return
+ * before the plain newline does whilst the four shortcuts above still win. Each
+ * of these commands answers `false` outside a Markdown list, and the default
+ * binding then runs, which is what keeps a shortcode body indenting the way it
+ * did.
+ */
+const markdownStructureKeymap = Prec.high(keymap.of(markdownKeymap));
 
 // --- Whitespace ---
 
@@ -738,6 +756,7 @@ export function MarkdownEditorCore({
       clearIndentOnlyLines,
       ...(lineWrap ? [EditorView.lineWrapping] : []),
       mdKeymap,
+      markdownStructureKeymap,
       ...(onPaste
         ? [
             EditorView.domEventHandlers({

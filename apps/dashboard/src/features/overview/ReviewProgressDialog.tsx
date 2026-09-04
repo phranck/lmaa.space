@@ -1,6 +1,7 @@
 import { CheckCircleIcon, RobotIcon, SpinnerGapIcon, XCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
+import { isActiveReviewJobState } from "@lmaa/shared";
 import type { ReviewJobDetail } from "@lmaa/shared";
 
 import {
@@ -13,8 +14,6 @@ import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useCancelReviewJob, useReviewJob } from "@/features/overview/hooks/useReviewJob.ts";
 import { ReviewField } from "@/features/overview/ReviewField.tsx";
-
-const ACTIVE_STATES = new Set(["queued", "running", "provider_waiting", "applying"]);
 
 /**
  * How often the open dialog asks for the state of the run.
@@ -94,7 +93,7 @@ export function ReviewProgressDialog({
   const cancel = useCancelReviewJob(submissionId);
 
   const detail: ReviewJobDetail | null = job ?? null;
-  const active = detail !== null && ACTIVE_STATES.has(detail.state);
+  const active = detail !== null && isActiveReviewJobState(detail.state);
   // Counted from when the worker took the job, not from when it was queued. A
   // retried job keeps its original creation time, so counting from that would
   // show the age of the suggestion rather than the length of this run.
