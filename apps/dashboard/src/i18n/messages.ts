@@ -1427,11 +1427,7 @@ export interface DashboardMessages {
       review: {
         title: string;
         subtitle: string;
-        modeLabel: string;
-        modeOff: string;
-        modeAssist: string;
-        modeHintOff: string;
-        modeHintAssist: string;
+        applyDelayHint: string;
         autoApplyTitle: string;
         autoApplyHint: string;
         autoApplyAccept: string;
@@ -1439,7 +1435,6 @@ export interface DashboardMessages {
         notifyHint: string;
         notifyAcceptTemplateLabel: string;
         notifyRejectTemplateLabel: string;
-        autoApplyBlocked: string;
         notifyTitle: string;
         socialTitle: string;
         socialHint: string;
@@ -2164,7 +2159,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       review: {
         title: "Automatische Prüfung",
         none: "Für diesen Vorschlag läuft keine automatische Prüfung.",
-        noneHint: "Du kannst eine anstoßen, sobald der Modus nicht mehr auf Aus steht.",
+        noneHint: "Du kannst jederzeit eine anstoßen.",
         stateLabel: "Zustand",
         verdictLabel: "Ergebnis",
         modelLabel: "Geprüft mit",
@@ -3187,24 +3182,18 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         review: {
           title: "Automatische Prüfung von Shop-Vorschlägen",
           subtitle:
-            "Änderungen wirken beim nächsten Durchlauf des Workers, spätestens nach 30 Sekunden.",
-          modeLabel: "Modus",
-          modeOff: "Aus",
-          modeAssist: "Unterstützend",
-          modeHintOff:
-            "Es wird nichts geprüft und nichts abgerechnet. Eingehende Vorschläge reihen sich trotzdem ein, sodass beim Einschalten der Rückstand abgearbeitet wird.",
-          modeHintAssist:
             "Das Rechercheergebnis wird in den Vorschlag geschrieben und er wird auf bereit zur Prüfung gesetzt. Bei einer empfohlenen Ablehnung stehen Kommentar und Langbegründung im Ablehnen-Dialog bereit. Die Entscheidung triffst weiterhin du, sofern du unten nichts anderes freigibst.",
+          applyDelayHint:
+            "Änderungen wirken beim nächsten Durchlauf des Workers, spätestens nach 30 Sekunden.",
           autoApplyTitle: "Ohne Rückfrage anwenden",
           autoApplyHint:
-            "Wirkt nur im Modus Unterstützend. Ohne diese Schalter entscheidest weiterhin du, die Automatik bereitet nur vor.",
+            "Ohne diese Schalter entscheidest weiterhin du, die Automatik bereitet nur vor.",
           autoApplyAccept: "Aufnahmen automatisch freigeben",
           autoApplyReject: "Ablehnungen automatisch veröffentlichen",
           notifyHint:
             "Wird ein Template gewählt, schreibt die Automatik nach ihrer Entscheidung an die Person, die den Shop vorgeschlagen hat. Ohne Template wird nichts versendet.",
           notifyAcceptTemplateLabel: "E-Mail bei automatischer Aufnahme",
           notifyRejectTemplateLabel: "E-Mail bei automatischer Ablehnung",
-          autoApplyBlocked: "Nur im Modus Unterstützend verfügbar.",
           notifyTitle: "E-Mail an die vorschlagende Person",
           socialTitle: "Beitrag bei automatischer Aufnahme",
           socialHint:
@@ -3934,7 +3923,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       review: {
         title: "Automated review",
         none: "No automated review is running for this suggestion.",
-        noneHint: "You can start one as soon as the mode is no longer Off.",
+        noneHint: "You can start one at any time.",
         stateLabel: "State",
         verdictLabel: "Result",
         modelLabel: "Checked with",
@@ -4946,24 +4935,18 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         reviewTab: "Automated review",
         review: {
           title: "Automated review of shop suggestions",
-          subtitle: "Changes take effect on the worker's next run, within thirty seconds.",
-          modeLabel: "Mode",
-          modeOff: "Off",
-          modeAssist: "Assist",
-          modeHintOff:
-            "Nothing is checked and nothing is billed. Incoming suggestions still queue up, so switching it on works through the backlog.",
-          modeHintAssist:
+          subtitle:
             "The research is written into the suggestion and it is marked ready for review. For a recommended rejection, the comment and full reasoning are waiting in the reject dialog. You still decide, unless you allow otherwise below.",
+          applyDelayHint: "Changes take effect on the worker's next run, within thirty seconds.",
           autoApplyTitle: "Apply without asking",
           autoApplyHint:
-            "Only has an effect in Assist mode. Without these switches you still decide, and the automation only prepares.",
+            "Without these switches you still decide, and the automation only prepares.",
           autoApplyAccept: "Publish acceptances automatically",
           autoApplyReject: "Publish rejections automatically",
           notifyHint:
             "Where a template is chosen, the automation writes to whoever suggested the shop once it has decided. Without one, nothing is sent.",
           notifyAcceptTemplateLabel: "Email on an automatic admission",
           notifyRejectTemplateLabel: "Email on an automatic rejection",
-          autoApplyBlocked: "Available in Assist mode only.",
           notifyTitle: "Email to whoever suggested the shop",
           socialTitle: "Post on an automatic admission",
           socialHint:

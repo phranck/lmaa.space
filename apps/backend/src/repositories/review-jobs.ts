@@ -23,7 +23,6 @@ import {
 } from "@lmaa/shared";
 import type {
   ReviewAttemptRecord,
-  ReviewAutomationMode,
   ReviewCost,
   ReviewEvidenceSource,
   ReviewJobState,
@@ -157,7 +156,6 @@ export async function recordReviewEvent(
  *
  * @param owner - Identifier of the claiming worker, for the audit trail.
  * @param leaseMs - How long the claim holds before another worker may take over.
- * @param mode - Automation mode the job runs under, recorded on the job.
  * @returns The claimed job, or `null` when nothing is due.
  *
  * @remarks
@@ -172,7 +170,6 @@ export async function recordReviewEvent(
 export async function claimNextReviewJob(
   owner: string,
   leaseMs: number,
-  mode: ReviewAutomationMode,
 ): Promise<ReviewJobRow | null> {
   return db.transaction(async (tx) => {
     const now = new Date();
@@ -209,7 +206,6 @@ export async function claimNextReviewJob(
         // The row is locked, so reading the counter and writing it back cannot
         // race with a second worker.
         attempt: candidate.attempt + 1,
-        mode,
         leaseOwner: owner,
         leaseExpiresAt: new Date(now.getTime() + leaseMs),
         startedAt: now,

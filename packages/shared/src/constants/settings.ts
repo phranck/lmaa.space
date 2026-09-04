@@ -11,7 +11,6 @@ export const SETTINGS_KEYS = {
   // the environment, so a change takes effect on the next worker tick instead
   // of on the next deployment. The key that authenticates against the provider
   // is the one exception, because it is a secret and stays in the environment.
-  REVIEW_MODE: "review.mode",
   REVIEW_AUTO_APPLY_ACCEPT: "review.autoApplyAccept",
   REVIEW_AUTO_APPLY_REJECT: "review.autoApplyReject",
   REVIEW_MODEL: "review.model",
@@ -42,7 +41,6 @@ export const SYSTEM_REDIRECT_SETTINGS_KEYS = [SETTINGS_KEYS.REDIRECT_URLS] as co
 
 /** Automated shop review settings keys. */
 export const SYSTEM_REVIEW_SETTINGS_KEYS = [
-  SETTINGS_KEYS.REVIEW_MODE,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT,
   SETTINGS_KEYS.REVIEW_MODEL,
@@ -81,11 +79,10 @@ export const REVIEW_DEFAULT_MODEL = "claude-opus-5";
  * @remarks
  * These are the same defaults the dashboard shows on a fresh installation, so
  * the form and the worker cannot disagree about what "not configured yet"
- * means. Automation is off and applies nothing until somebody decides
- * otherwise.
+ * means. A check prepares a submission and applies nothing until somebody
+ * decides otherwise.
  */
 export const REVIEW_SETTING_DEFAULTS = {
-  [SETTINGS_KEYS.REVIEW_MODE]: "off",
   [SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT]: "false",
   [SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT]: "false",
   [SETTINGS_KEYS.REVIEW_MODEL]: REVIEW_DEFAULT_MODEL,

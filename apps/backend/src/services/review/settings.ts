@@ -2,9 +2,8 @@ import { z } from "zod";
 
 import { templateAssignmentSchema } from "@lmaa/contracts";
 import type { TemplateAssignment } from "@lmaa/contracts";
-import type { ReviewAutomationMode, ReviewAutoApplyVerdict, ReviewEffortLevel } from "@lmaa/shared";
+import type { ReviewAutoApplyVerdict, ReviewEffortLevel } from "@lmaa/shared";
 import {
-  REVIEW_AUTOMATION_MODES,
   REVIEW_EFFORT_LEVELS,
   REVIEW_SETTING_DEFAULTS,
   SETTINGS_KEYS,
@@ -19,7 +18,6 @@ import { getSettings } from "../../repositories/app-settings.js";
  * The automated review's runtime configuration.
  */
 export interface ReviewSettings {
-  mode: ReviewAutomationMode;
   /** Verdicts that may be applied without a human. Empty unless somebody enabled one. */
   autoApply: ReviewAutoApplyVerdict[];
   model: string;
@@ -135,7 +133,6 @@ export async function loadReviewSettings(): Promise<ReviewSettings> {
   );
 
   return {
-    mode: readEnum(read(SETTINGS_KEYS.REVIEW_MODE), REVIEW_AUTOMATION_MODES, "off"),
     autoApply,
     model,
     effort,

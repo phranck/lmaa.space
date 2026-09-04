@@ -84,7 +84,6 @@ function jobRow(overrides: Record<string, unknown> = {}) {
     state: "running" as ReviewJobState,
     attempt: 1,
     maxAttempts: 3,
-    mode: "assist" as const,
     synthetic: false,
     attempts: [],
     evidence: [],
@@ -124,7 +123,6 @@ function fakeProvider(result: ReviewProviderOutcome, configured = true): ReviewP
 
 function settings(overrides: Record<string, unknown> = {}) {
   return {
-    mode: "assist",
     autoApply: [],
     model: "claude-opus-5",
     effort: "high",
@@ -167,18 +165,8 @@ beforeEach(() => {
 });
 
 describe("review worker", () => {
-  it("claims no work whilst automation is off", async () => {
-    settingsModule.loadReviewSettings.mockResolvedValue(settings({ mode: "off" }));
-    const worker = new ReviewWorker(() => fakeProvider(outcome()));
-
-    await worker.tick();
-
-    expect(repository.claimNextReviewJob).not.toHaveBeenCalled();
-  });
-
-  it("still finalizes exhausted jobs whilst automation is off", async () => {
-    settingsModule.loadReviewSettings.mockResolvedValue(settings({ mode: "off" }));
-    const worker = new ReviewWorker(() => fakeProvider(outcome()));
+  it("still finalizes exhausted jobs when the provider has no credential", async () => {
+    const worker = new ReviewWorker(() => fakeProvider(outcome(), false));
 
     await worker.tick();
 
@@ -422,7 +410,7 @@ describe("review worker", () => {
       billing: "batch" as const,
       isConfigured: () => true,
       repairTexts: vi.fn(async () => ({ texts: new Map(), usage: {} })),
-    runReview: vi.fn(
+      runReview: vi.fn(
         () =>
           new Promise<ReviewProviderOutcome>((resolve) => {
             release = () => {

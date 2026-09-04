@@ -48,7 +48,6 @@ export function toReviewJob(row: ReviewJobRow): ReviewJob {
     state: row.state,
     attempt: row.attempt,
     maxAttempts: row.maxAttempts,
-    mode: row.mode,
     synthetic: row.synthetic,
     verdict: row.verdict,
     provider: row.provider,

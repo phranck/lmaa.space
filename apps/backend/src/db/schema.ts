@@ -32,7 +32,6 @@ import type {
   MediaKind,
   PaymentMethodKey,
   ReviewAttemptRecord,
-  ReviewAutomationMode,
   ReviewEvidenceSource,
   ReviewJobState,
   ReviewReportState,
@@ -1005,7 +1004,6 @@ export type AdminUserAccountTemplateChoiceInsert =
 const REVIEW_JOB_STATE_SQL = sql`'queued', 'running', 'provider_waiting', 'applying', 'completed', 'failed', 'cancelled'`;
 const REVIEW_JOB_ACTIVE_STATE_SQL = sql`'queued', 'running', 'provider_waiting', 'applying'`;
 const REVIEW_VERDICT_SQL = sql`'accept', 'reject', 'onhold'`;
-const REVIEW_MODE_SQL = sql`'off', 'assist'`;
 const REVIEW_REPORT_STATE_SQL = sql`'pending', 'sending', 'sent', 'failed', 'skipped'`;
 
 /**
@@ -1033,7 +1031,6 @@ export const reviewJobs = pgTable(
     state: text("state").$type<ReviewJobState>().notNull().default("queued"),
     attempt: integer("attempt").notNull().default(0),
     maxAttempts: integer("max_attempts").notNull().default(3),
-    mode: text("mode").$type<ReviewAutomationMode>().notNull().default("off"),
     synthetic: boolean("synthetic").notNull().default(false),
     verdict: text("verdict").$type<ReviewVerdict>(),
     provider: text("provider"),
@@ -1087,7 +1084,6 @@ export const reviewJobs = pgTable(
       "review_jobs_verdict_valid",
       sql`${table.verdict} IS NULL OR ${table.verdict} IN (${REVIEW_VERDICT_SQL})`,
     ),
-    check("review_jobs_mode_valid", sql`${table.mode} IN (${REVIEW_MODE_SQL})`),
     check(
       "review_jobs_report_state_valid",
       sql`${table.reportState} IN (${REVIEW_REPORT_STATE_SQL})`,

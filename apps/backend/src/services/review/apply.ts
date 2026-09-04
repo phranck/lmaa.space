@@ -37,7 +37,7 @@ async function loadCategoryNameToId(): Promise<Map<string, number>> {
 }
 
 function mayApply(settings: ReviewSettings, verdict: ReviewAutoApplyVerdict): boolean {
-  return settings.mode === "assist" && settings.autoApply.includes(verdict);
+  return settings.autoApply.includes(verdict);
 }
 
 /**
@@ -162,10 +162,10 @@ async function resolveGeo(accept: NonNullable<ReviewResult["accept"]>): Promise<
  * same search data as a human decision, and the domain-conflict check applies
  * to both.
  *
- * In `assist` mode the researched data is written and the submission is marked
- * ready for a person, so a moderator opens it with every field already filled
- * in. A verdict is only applied publicly when the operator has enabled that
- * verdict, which is a separate switch from turning automation on.
+ * The researched data is written and the submission is marked ready for a
+ * person, so a moderator opens it with every field already filled in. A verdict
+ * is only applied publicly when the operator has enabled that verdict, which is
+ * what lets a check decide on its own.
  *
  * An `onhold` verdict never changes the submission's status. It marks the
  * submission ready for review so it surfaces in the queue, and the reason stays
@@ -175,10 +175,6 @@ async function resolveGeo(accept: NonNullable<ReviewResult["accept"]>): Promise<
  */
 export async function applyReviewResult(input: ApplyReviewInput): Promise<ReviewApplication> {
   const { submissionId, result, settings } = input;
-
-  if (settings.mode !== "assist") {
-    return { kind: "none", reason: `Modus ${settings.mode} verändert den Vorschlag nicht` };
-  }
 
   if (result.verdict === "onhold") {
     await setReadyForReview(submissionId, true);

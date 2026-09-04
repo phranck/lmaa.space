@@ -165,9 +165,9 @@ export class ReviewWorker {
    * Does one round of work.
    *
    * @remarks
-   * Housekeeping runs regardless of the automation mode, because a job that
-   * exhausted its attempts and a report that has not gone out both need to
-   * finish even after somebody switches automation off.
+   * Housekeeping runs before anything is claimed, because a job that exhausted
+   * its attempts and a report that has not gone out both need to finish even
+   * when no new job is due.
    */
   async tick(): Promise<void> {
     if (this.running || this.stopped) return;
@@ -186,8 +186,6 @@ export class ReviewWorker {
 
       await this.processOneReport(settings);
 
-      if (settings.mode === "off") return;
-
       const provider = this.createProvider(settings);
       if (!provider.isConfigured()) {
         logger.warn({ provider: provider.name }, "review worker idle: no API key is set");
@@ -203,7 +201,7 @@ export class ReviewWorker {
         return;
       }
 
-      const job = await claimNextReviewJob(WORKER_ID, LEASE_MS, settings.mode);
+      const job = await claimNextReviewJob(WORKER_ID, LEASE_MS);
       if (!job) return;
 
       await this.runJob(job, provider, settings);

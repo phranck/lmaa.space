@@ -1,9 +1,4 @@
-import type {
-  ReviewAutomationMode,
-  ReviewJobState,
-  ReviewReportState,
-  ReviewVerdict,
-} from "../constants/review-jobs.js";
+import type { ReviewJobState, ReviewReportState, ReviewVerdict } from "../constants/review-jobs.js";
 
 /**
  * Token counts and tool calls a provider reported for one attempt.
@@ -147,8 +142,6 @@ export interface ReviewJob {
   state: ReviewJobState;
   attempt: number;
   maxAttempts: number;
-  /** Mode the job was claimed under, which decides what it was allowed to change. */
-  mode: ReviewAutomationMode;
   /** `true` for jobs created by tests and fixtures, which never send a report. */
   synthetic: boolean;
   verdict: ReviewVerdict | null;
