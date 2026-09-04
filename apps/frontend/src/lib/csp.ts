@@ -11,6 +11,17 @@ export const ANALYTICS_CSP_ORIGIN = "https://umami.layered.work";
 export const ANALYTICS_SCRIPT_URL = `${ANALYTICS_CSP_ORIGIN}/script.js`;
 
 /**
+ * The site as the analytics instance knows it.
+ *
+ * @remarks
+ * Every script that reports to that instance carries this, and they have to
+ * carry the same one: the recorder asks for its configuration under this id
+ * and posts recordings under it, so a second value would record a site that
+ * has nothing switched on and drop everything on the floor.
+ */
+export const ANALYTICS_WEBSITE_ID = "ebec4dd2-b578-4f10-a416-6503c7fe2da0";
+
+/**
  * Integrity hash of the analytics script, so the browser refuses anything else.
  *
  * @remarks
@@ -26,7 +37,21 @@ export const ANALYTICS_SCRIPT_URL = `${ANALYTICS_CSP_ORIGIN}/script.js`;
  * looks for.
  */
 export const ANALYTICS_SCRIPT_INTEGRITY =
-  "sha384-BRaUFjOnCmWCc/Fzz6hqywS4clr0LbPdvb9WH1QuIhkfopGfKIhTn5OQBSc3ntfl";
+  "sha384-FeSgFWhRpNmUWqmtRLZpDSRTuxgovbVqlyM0OaJpq2IanhF2u3xjYziXsyXR9Kg/";
+
+/** Address the session recorder is loaded from. */
+export const RECORDER_SCRIPT_URL = `${ANALYTICS_CSP_ORIGIN}/recorder.js`;
+
+/**
+ * Integrity hash of the session recorder, on the same terms as the tracker above.
+ *
+ * @remarks
+ * The recorder is forty times the size of the tracker and reads far more of the
+ * page, so the case for pinning it is the stronger of the two. It goes stale the
+ * same way, and `scripts/check-analytics-integrity.mjs` checks both.
+ */
+export const RECORDER_SCRIPT_INTEGRITY =
+  "sha384-RFbJB7wXp6wvtb7Yj7euqgFcWmpCYnwbQM8RHA4TiyV8qukjCB/YV9blThgO/M5Z";
 
 /**
  * Rewrites `frame-ancestors` in an existing policy.
