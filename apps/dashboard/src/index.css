@@ -156,6 +156,18 @@
   --md-code: #ffa657;
   --md-quote: #7ee787;
   --md-punctuation: #8b949e;
+
+  /* Shortcodes, in the same roles the light theme gives them. */
+  --md-shortcode-separator: #6e7681;
+  --md-shortcode-bracket: #8b949e;
+  --md-shortcode-brace: #c9d1d9;
+  --md-shortcode-token: #d2a8ff;
+  --md-shortcode-target: #ffa657;
+  --md-shortcode-attribute: #79c0ff;
+  --md-shortcode-string: #7ee787;
+  --md-shortcode-number: #e3b341;
+  --md-shortcode-variable: #f778ba;
+  --md-shortcode-unknown: #ff7b72;
 }
 
 /* Barlow Condensed — used for headings and titles */

@@ -7,6 +7,11 @@
  * and produces no issue beyond what it cannot read at all. Meaning is applied
  * afterwards, which keeps the scanning small enough to reason about.
  *
+ * Every node records where each of its parts stands, as {@link ShortcodeSpan}.
+ * Reading that back out of the source afterwards would be a second grammar,
+ * and the two would disagree about where a value ends the first time either
+ * one changed.
+ *
  * Two properties of the scan decide what an author may write.
  *
  * It tracks quotes. An attribute value in single or double quotes runs to its
@@ -30,6 +35,40 @@
 
 /** A quoted or bare attribute value, or `true` when the attribute is a flag. */
 export type ShortcodeAttributeValue = string | true;
+
+/**
+ * What one stretch of a node's source is.
+ *
+ * @remarks
+ * Recorded whilst scanning rather than worked out again afterwards, because a
+ * second reading would be a second grammar. An editor that highlights from
+ * these spans and a page that renders from the nodes then cannot disagree about
+ * where a value ends.
+ */
+export type ShortcodeSpanKind =
+  /** The `[[` and `]]` that open and close a node. */
+  | "bracket"
+  /** The `:` before a target and the `=` before a value. */
+  | "separator"
+  /** The token directly after `[[`. */
+  | "token"
+  /** What follows the colon, where a shortcode takes one. */
+  | "target"
+  /** An attribute's name, whether or not a value follows it. */
+  | "attribute-name"
+  /** A value in single or double quotes, including the quotes. */
+  | "value-string"
+  /** A value written without quotes, which is a number or a bare word. */
+  | "value-bare"
+  /** The braces around a body. What stands between them is not a span. */
+  | "body-brace";
+
+/** One stretch of source, as offsets into the whole content. */
+export interface ShortcodeSpan {
+  kind: ShortcodeSpanKind;
+  from: number;
+  to: number;
+}
 
 /** One attribute exactly as written, kept so repeats survive in order. */
 export interface ShortcodeAttribute {
@@ -66,8 +105,27 @@ export interface ShortcodeNode {
    * inside it is still source rather than a node.
    */
   body?: string;
+  /**
+   * Where the body stands in the original content, between its braces.
+   *
+   * @remarks
+   * Given alongside {@link ShortcodeNode.body} because that text is dedented
+   * and its offsets no longer match. Anything wanting to scan the body in
+   * place, such as an editor colouring the shortcodes inside a container,
+   * reads it from here.
+   */
+  bodySource?: { from: number; to: number };
   issues: ShortcodeSyntaxIssue[];
   source: { start: number; end: number; raw: string };
+  /**
+   * Where each part of this node stands, in the order it was read.
+   *
+   * @remarks
+   * This node's own parts only. A child's spans hang off the child, and the
+   * text between a body's braces is deliberately absent: it is Markdown, and
+   * whoever displays it reads it as such.
+   */
+  spans: ShortcodeSpan[];
 }
 
 /**
@@ -118,22 +176,26 @@ function readAttribute(
   content: string,
   cursor: number,
   issues: ShortcodeSyntaxIssue[],
+  spans: ShortcodeSpan[],
 ): { attribute: ShortcodeAttribute; next: number } | null {
   const nameMatch = content.slice(cursor).match(ATTRIBUTE_NAME_PATTERN);
   if (!nameMatch) return null;
 
   const name = nameMatch[0];
   let index = cursor + name.length;
+  spans.push({ kind: "attribute-name", from: cursor, to: index });
 
   // A bare name is a flag, as in `recommended`.
   if (content[index] !== "=") {
     return { attribute: { name, value: true, quoted: "flag" }, next: index };
   }
 
+  spans.push({ kind: "separator", from: index, to: index + 1 });
   index += 1;
   const quote = content[index];
 
   if (quote === '"' || quote === "'") {
+    const quoteStart = index;
     index += 1;
     const valueStart = index;
     while (index < content.length && content[index] !== quote) index += 1;
@@ -144,6 +206,9 @@ function readAttribute(
         message: `Attribute "${name}" has an unterminated quoted value.`,
         offset: cursor,
       });
+      // Spanned to the end anyway, so an editor colours what the author is
+      // still typing rather than leaving it in the surrounding text's colour.
+      spans.push({ kind: "value-string", from: quoteStart, to: content.length });
       return {
         attribute: {
           name,
@@ -155,6 +220,9 @@ function readAttribute(
     }
 
     const value = content.slice(valueStart, index);
+    // The quotes belong to the value: they mark where it starts and ends, and
+    // colouring them apart from what they enclose says nothing extra.
+    spans.push({ kind: "value-string", from: quoteStart, to: index + 1 });
     return {
       attribute: { name, value, quoted: quote === '"' ? "double" : "single" },
       next: index + 1,
@@ -168,6 +236,7 @@ function readAttribute(
     index += 1;
   }
 
+  spans.push({ kind: "value-bare", from: valueStart, to: index });
   return {
     attribute: { name, value: content.slice(valueStart, index), quoted: "bare" },
     next: index,
@@ -280,16 +349,21 @@ function readBody(
  */
 function readNode(content: string, start: number): { node: ShortcodeNode; next: number } | null {
   const issues: ShortcodeSyntaxIssue[] = [];
+  const spans: ShortcodeSpan[] = [];
   let cursor = start + OPEN.length;
 
   const tokenMatch = content.slice(cursor).match(TOKEN_PATTERN);
   if (!tokenMatch) return null;
 
+  spans.push({ kind: "bracket", from: start, to: cursor });
+
   const token = tokenMatch[0];
+  spans.push({ kind: "token", from: cursor, to: cursor + token.length });
   cursor += token.length;
 
   let target: string | undefined;
   if (content[cursor] === ":") {
+    spans.push({ kind: "separator", from: cursor, to: cursor + 1 });
     cursor += 1;
     const targetStart = cursor;
     while (
@@ -300,6 +374,7 @@ function readNode(content: string, start: number): { node: ShortcodeNode; next: 
       cursor += 1;
     }
     target = content.slice(targetStart, cursor) || undefined;
+    if (target) spans.push({ kind: "target", from: targetStart, to: cursor });
   }
 
   const attributes: Record<string, ShortcodeAttributeValue> = {};
@@ -317,6 +392,7 @@ function readNode(content: string, start: number): { node: ShortcodeNode; next: 
     }
 
     if (isAt(content, cursor, CLOSE)) {
+      spans.push({ kind: "bracket", from: cursor, to: cursor + CLOSE.length });
       cursor += CLOSE.length;
       return {
         node: {
@@ -327,6 +403,7 @@ function readNode(content: string, start: number): { node: ShortcodeNode; next: 
           children,
           issues,
           source: { start, end: cursor, raw: content.slice(start, cursor) },
+          spans,
         },
         next: cursor,
       };
@@ -337,12 +414,18 @@ function readNode(content: string, start: number): { node: ShortcodeNode; next: 
     // standing behind the content it describes, which reads as a mistake and
     // is treated as one.
     if (isAt(content, cursor, BODY_OPEN)) {
+      const braceStart = cursor;
       const read = readBody(content, cursor, issues);
       if (!read) return null;
 
-      cursor = read.next;
+      const bodyEnd = read.next;
+      cursor = bodyEnd;
+      spans.push({ kind: "body-brace", from: braceStart, to: braceStart + BODY_OPEN.length });
+      spans.push({ kind: "body-brace", from: bodyEnd - BODY_CLOSE.length, to: bodyEnd });
+
       while (cursor < content.length && isWhitespace(content[cursor])) cursor += 1;
       if (!isAt(content, cursor, CLOSE)) return null;
+      spans.push({ kind: "bracket", from: cursor, to: cursor + CLOSE.length });
       cursor += CLOSE.length;
 
       return {
@@ -353,8 +436,10 @@ function readNode(content: string, start: number): { node: ShortcodeNode; next: 
           rawAttributes,
           children,
           body: read.body,
+          bodySource: { from: braceStart + BODY_OPEN.length, to: bodyEnd - BODY_CLOSE.length },
           issues,
           source: { start, end: cursor, raw: content.slice(start, cursor) },
+          spans,
         },
         next: cursor,
       };
@@ -372,7 +457,7 @@ function readNode(content: string, start: number): { node: ShortcodeNode; next: 
       continue;
     }
 
-    const read = readAttribute(content, cursor, issues);
+    const read = readAttribute(content, cursor, issues, spans);
     if (!read) {
       issues.push({
         code: "invalid-attribute",

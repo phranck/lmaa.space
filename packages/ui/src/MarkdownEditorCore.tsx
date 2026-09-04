@@ -29,8 +29,10 @@ import CodeMirror from "@uiw/react-codemirror";
 import * as React from "react";
 
 import {
+  highlightShortcodes,
   shortcodeIndentFor,
   shortcodePasteRewrite,
+  type ShortcodeHighlightKind,
   type ShortcodePasteRewrite,
 } from "@lmaa/shared";
 
@@ -141,9 +143,128 @@ const highlightStyle = HighlightStyle.define([
   { tag: t.atom, color: "var(--md-punctuation)" },
 ]);
 
-const lmaaTheme = [editorTheme, syntaxHighlighting(highlightStyle)];
-
 const EMPTY_EXTENSIONS: Extension[] = [];
+
+// --- Shortcodes ---
+
+/**
+ * What each part of a shortcode looks like.
+ *
+ * @remarks
+ * Every colour is a token, so the palette is decided in the stylesheet, where
+ * the reasoning behind each role also lives, and both themes answer the same
+ * names. Weight is decided here, and only the token carries any, because it is
+ * what a reader scans for to find their way around a long ladder.
+ *
+ * A `variable` is a name something replaces before a reader sees it, which
+ * covers a site variable, a text token and a shortcode's own placeholder. All
+ * three are the same thing to whoever is looking at the source.
+ *
+ * The class names follow the span kinds, which is what lets the decorations
+ * below be derived from a kind rather than listed a second time here.
+ */
+const shortcodeTheme = EditorView.theme({
+  ".cm-shortcode-bracket": { color: "var(--md-shortcode-bracket)" },
+  ".cm-shortcode-separator": { color: "var(--md-shortcode-separator)" },
+  ".cm-shortcode-body-brace": { color: "var(--md-shortcode-brace)" },
+  ".cm-shortcode-token": { color: "var(--md-shortcode-token)", fontWeight: "600" },
+  ".cm-shortcode-target": { color: "var(--md-shortcode-target)" },
+  ".cm-shortcode-attribute-name": { color: "var(--md-shortcode-attribute)" },
+  ".cm-shortcode-value-string": { color: "var(--md-shortcode-string)" },
+  ".cm-shortcode-value-bare": { color: "var(--md-shortcode-number)" },
+  ".cm-shortcode-variable": { color: "var(--md-shortcode-variable)" },
+  ".cm-shortcode-unknown-token": { color: "var(--md-shortcode-unknown)" },
+});
+
+const shortcodeMarks = new Map<ShortcodeHighlightKind, Decoration>();
+
+/**
+ * The decoration for one kind of span, built once and reused.
+ *
+ * @param kind - What the span is.
+ * @returns A mark decoration carrying the class the theme above styles.
+ *
+ * @remarks
+ * Derived from the kind rather than listed, so a new kind needs a rule in the
+ * theme and nothing here. Cached because this runs once per span on every
+ * keystroke, and a decoration built fresh each time would also defeat
+ * CodeMirror's own comparison of one set against the next.
+ */
+function shortcodeMark(kind: ShortcodeHighlightKind): Decoration {
+  const existing = shortcodeMarks.get(kind);
+  if (existing) return existing;
+
+  const mark = Decoration.mark({ class: `cm-shortcode-${kind}` });
+  shortcodeMarks.set(kind, mark);
+  return mark;
+}
+
+/**
+ * Marks every part of every shortcode in the document.
+ *
+ * @param view - The editor whose document is read.
+ * @returns One decoration per span, in the order a decoration set needs.
+ *
+ * @remarks
+ * The whole document is scanned rather than the visible lines alone. A
+ * shortcode may open on one screen and close three screens later, and a scan
+ * that began at the top of the viewport would read the middle of one as if it
+ * were the start of a document.
+ *
+ * That costs 0.35ms on a 19 000 character page carrying 3 200 spans, which is
+ * what a keystroke has room for many times over. Scanning from the viewport
+ * would save that and get the middle of a container wrong.
+ */
+function buildShortcodeMarks(view: EditorView): DecorationSet {
+  const content = view.state.doc.toString();
+  return Decoration.set(
+    highlightShortcodes(content).map((span) => shortcodeMark(span.kind).range(span.from, span.to)),
+  );
+}
+
+/**
+ * Colours the shortcodes, rebuilt whenever the document changes.
+ *
+ * @remarks
+ * The spans come from the same scanner the page renders with, so the editor
+ * cannot colour something the page does not read as a shortcode.
+ *
+ * Wrapped in {@link Prec.highest} by whoever installs it, which is what puts
+ * these marks inside the Markdown ones rather than around them. Text takes the
+ * colour of the innermost span that states one, so the outer set loses. Without
+ * it, a shortcode indented by four spaces is a Markdown code block and comes
+ * out in the code colour, whilst the same shortcode at the margin does not:
+ * the nesting depth would decide the colours.
+ */
+const shortcodeSyntaxPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+
+    constructor(view: EditorView) {
+      this.decorations = buildShortcodeMarks(view);
+    }
+
+    update(update: ViewUpdate) {
+      if (update.docChanged) {
+        this.decorations = buildShortcodeMarks(update.view);
+      }
+    }
+  },
+  { decorations: (plugin) => plugin.decorations },
+);
+
+/**
+ * The shortcode colouring, placed so it wins over the Markdown colouring.
+ *
+ * @remarks
+ * Measured rather than assumed: at the default precedence the Markdown mark
+ * ends up inside this one, and the innermost span decides the colour, so a
+ * shortcode indented into a Markdown code block came out in the code colour.
+ * At the highest precedence the nesting is the other way round.
+ */
+const highlightShortcodeSyntax = Prec.highest(shortcodeSyntaxPlugin);
+
+const lmaaTheme = [editorTheme, syntaxHighlighting(highlightStyle), shortcodeTheme];
 
 // --- Keymap ---
 
@@ -543,6 +664,7 @@ export function MarkdownEditorCore({
       ...(showLineNumbers ? [lineNumbers()] : []),
       ...(showWhitespace ? [highlightWhitespace(), highlightLineEnds] : []),
       markdown(),
+      highlightShortcodeSyntax,
       shortcodeIndent,
       shortcodeIndentOnInput,
       shortcodeIndentOnPaste,

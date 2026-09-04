@@ -44,6 +44,8 @@ export * from "./utils/country-name.js";
 export * from "./utils/site-variables.js";
 /** User-friendly token expansion (`U+XXXX`, `{nbhy}`, `&#8209;`) for plain-text fields. */
 export * from "./utils/text-tokens.js";
+/** What each part of a shortcode is, so an editor can colour it. */
+export * from "./utils/markdown-shortcode-highlight.js";
 /** The ISO 11649 creditor reference a transfer carries instead of a sentence. */
 export * from "./utils/creditor-reference.js";
 /** How long a sponsorship stands and how much of it is left. */
