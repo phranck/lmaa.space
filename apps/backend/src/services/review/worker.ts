@@ -305,10 +305,19 @@ export class ReviewWorker {
         // whether or not anybody collected the answer.
         resumeBatchId: job.providerResponseId ?? undefined,
         onBatchCreated: (batchId) => {
+          // Submitting is what an attempt is: the claim itself no longer
+          // counts one, because a worker restart resumes the same batch and
+          // says nothing about the shop. A batch that could not be resumed and
+          // had to be submitted again is a new ask, so it counts here.
+          const resubmitted = job.providerResponseId !== null && job.providerResponseId !== batchId;
+
           void transitionReviewJob(
             job.id,
             "provider_waiting",
-            { providerResponseId: batchId },
+            {
+              providerResponseId: batchId,
+              ...(resubmitted ? { attempt: job.attempt + 1 } : {}),
+            },
             { name: "provider.submitted", detail: batchId },
           ).catch((error: unknown) => {
             logger.warn({ err: error, jobId: job.id }, "could not record the batch id");

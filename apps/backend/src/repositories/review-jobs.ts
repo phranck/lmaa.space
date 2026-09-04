@@ -52,6 +52,16 @@ export interface ReviewJobPatch {
   skillVersion?: string | null;
   schemaVersion?: string | null;
   providerResponseId?: string | null;
+  /**
+   * Sets the attempt counter outright.
+   *
+   * @remarks
+   * Only the worker sets this, and only when it had to submit a second batch
+   * because the first could not be resumed. Claiming a job no longer counts an
+   * attempt, since a restart resumes the same batch; submitting does, because
+   * that is a fresh ask of the provider.
+   */
+  attempt?: number;
   result?: unknown;
   evidence?: ReviewEvidenceSource[];
   usage?: ReviewUsage | null;
@@ -154,6 +164,32 @@ export async function recordReviewEvent(
 }
 
 /**
+ * What the attempt counter reads after a worker has claimed a job.
+ *
+ * @param attempt - What it reads now.
+ * @param providerResponseId - The batch this job already has with the provider,
+ * or `null` where it has none.
+ * @returns The counter after the claim.
+ *
+ * @remarks
+ * A job carrying a batch id is one this claim resumes rather than starts, so it
+ * costs no attempt. The counter exists to stop a check that keeps failing on
+ * its own terms, and a worker restart says nothing about the shop.
+ *
+ * Two containers exist during a deployment, so the new one takes the job over
+ * whilst the old one is still waiting on the provider. A batch runs for up to
+ * ninety minutes and a lease holds twenty, which is why every deployment inside
+ * that window used to spend an attempt: job 38 reached five of five with three
+ * submissions and not one token read.
+ *
+ * A batch that could not be resumed and had to be submitted again does count,
+ * and the worker records that where it submits.
+ */
+export function attemptAfterClaim(attempt: number, providerResponseId: string | null): number {
+  return providerResponseId ? attempt : attempt + 1;
+}
+
+/**
  * Takes the next job that is due, if any.
  *
  * @param owner - Identifier of the claiming worker, for the audit trail.
@@ -180,7 +216,11 @@ export async function claimNextReviewJob(
     // skipped, so two workers cannot take the same job. Everything after this
     // runs against a row this transaction owns.
     const [candidate] = await tx
-      .select({ id: reviewJobs.id, attempt: reviewJobs.attempt })
+      .select({
+        id: reviewJobs.id,
+        attempt: reviewJobs.attempt,
+        providerResponseId: reviewJobs.providerResponseId,
+      })
       .from(reviewJobs)
       .where(
         and(
@@ -207,7 +247,7 @@ export async function claimNextReviewJob(
         state: "running",
         // The row is locked, so reading the counter and writing it back cannot
         // race with a second worker.
-        attempt: candidate.attempt + 1,
+        attempt: attemptAfterClaim(candidate.attempt, candidate.providerResponseId),
         leaseOwner: owner,
         leaseExpiresAt: new Date(now.getTime() + leaseMs),
         startedAt: now,
@@ -387,6 +427,7 @@ function buildUpdate(patch: ReviewJobPatch, to: ReviewJobState): Record<string, 
   if (patch.skillVersion !== undefined) update.skillVersion = patch.skillVersion;
   if (patch.schemaVersion !== undefined) update.schemaVersion = patch.schemaVersion;
   if (patch.providerResponseId !== undefined) update.providerResponseId = patch.providerResponseId;
+  if (patch.attempt !== undefined) update.attempt = patch.attempt;
   if (patch.result !== undefined) update.result = patch.result;
   if (patch.evidence !== undefined) update.evidence = patch.evidence;
   if (patch.usage !== undefined) update.usage = patch.usage;
