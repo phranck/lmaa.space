@@ -396,7 +396,9 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
         id: "name",
         header: t.tableColumnName,
         cell: (row) => (
-          <span className="font-medium text-[var(--ds-text)]">{row.name || t.defaultName}</span>
+          <span className="block truncate font-medium text-[var(--ds-text)]">
+            {row.name || t.defaultName}
+          </span>
         ),
       },
       {
@@ -419,9 +421,7 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
         id: "status",
         header: t.tableColumnStatus,
         cell: (row) => (
-          <Badge
-            colorClass={row.isActive ? BADGE_TONES.success : BADGE_TONES.neutral}
-          >
+          <Badge colorClass={row.isActive ? BADGE_TONES.success : BADGE_TONES.neutral}>
             {row.isActive ? t.active : t.inactive}
           </Badge>
         ),
@@ -429,7 +429,11 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
       {
         id: "actions",
         header: t.tableColumnActions,
-        cellClassName: "text-right",
+        // A width, so the buttons keep their room rather than taking an equal
+        // share of what is left, which is what a fixed layout gives a column
+        // that declares none.
+        className: "w-28",
+        cellClassName: "w-28 text-right",
         cell: (row) => (
           <div className="flex items-center justify-end gap-2">
             <TableActionButton

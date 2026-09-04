@@ -6,15 +6,17 @@ import {
 } from "@lmaa/contracts";
 
 import { apiGet } from "@/lib/api";
-import { renderMarkdown } from "@/lib/markdown";
+import { renderMarkdownSSR } from "@/lib/markdown-ssr";
 
 /**
  * The prompts a page hands to its island.
  *
  * The content is rendered to HTML here, on the server, through the same
- * pipeline as any other page text. The island only decides whether to show it,
- * because that decision needs the reader's own history and that lives in their
- * browser.
+ * pipeline as any other page text. That pipeline is `renderMarkdownSSR` rather
+ * than the plain renderer: a prompt quotes what a check costs and what the year
+ * costs, and only that one resolves those names and the media aliases. The
+ * island only decides whether to show the result, because that decision needs
+ * the reader's own history and that lives in their browser.
  */
 
 /** One prompt, ready to be drawn. */
@@ -91,7 +93,7 @@ export async function loadSupportPrompts(slot: SupportPromptSlot): Promise<Suppo
     for (const prompt of payload.prompts) {
       if (prompt.slot !== slot) continue;
       rendering.push(
-        renderMarkdown(prompt.content, {}, { breaks: true }).then((html) => ({
+        renderMarkdownSSR(prompt.content, { breaks: true }).then((html) => ({
           id: prompt.id,
           name: prompt.name,
           html,

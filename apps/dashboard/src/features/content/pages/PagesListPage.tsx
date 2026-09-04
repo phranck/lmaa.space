@@ -165,8 +165,15 @@ export function PagesListPage() {
       {
         id: "slug",
         header: text.table.slug,
+        // A slug is one token with nothing to break at, so it shortens rather
+        // than running past its column.
         cell: (page) => (
-          <span className="font-mono text-xs text-[var(--ds-text-muted)]">/{page.slug}</span>
+          <span
+            className="block truncate font-mono text-xs text-[var(--ds-text-muted)]"
+            title={page.slug}
+          >
+            /{page.slug}
+          </span>
         ),
       },
       {
@@ -178,7 +185,7 @@ export function PagesListPage() {
         id: "createdBy",
         header: text.table.createdBy,
         cell: (page) => (
-          <span className="text-xs text-[var(--ds-text-muted)]">
+          <span className="block truncate text-xs text-[var(--ds-text-muted)]">
             {page.createdByUsername ?? "—"}
           </span>
         ),

@@ -109,11 +109,14 @@ export function EmailTemplateListPage() {
         header: m.templateName,
         sortKey: (tpl) => tpl.name.toLowerCase(),
         cell: (tpl) => (
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            {/* `min-w-0` on the button as well as on the row: a flex item does
+                not shrink below its own content without it, and a template name
+                in a monospaced face is one token with nothing to break at. */}
             <button
               type="button"
               onClick={() => navigate(`/email-templates/${tpl.id}`)}
-              className="font-medium text-[var(--ds-text)] hover:underline text-left truncate font-mono"
+              className="min-w-0 truncate text-left font-mono font-medium text-[var(--ds-text)] hover:underline"
             >
               {tpl.name}
             </button>

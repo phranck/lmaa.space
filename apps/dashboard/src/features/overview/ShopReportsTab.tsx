@@ -92,7 +92,9 @@ export function ShopReportsTab() {
       {
         id: "reason",
         header: suggestionsMessages.comment,
-        className: "max-w-[34rem]",
+        // No width, so this column takes whatever the fixed columns leave. A
+        // `max-w` here would decide nothing: the table lays out `fixed`, and a
+        // maximum on a cell is not a width.
         cell: (report) => (
           <p className="text-sm text-[var(--ds-text)] whitespace-pre-wrap break-words">
             {report.reason}

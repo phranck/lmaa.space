@@ -25,10 +25,25 @@ export interface DataTableGroup<T> {
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
+/**
+ * The table element every dashboard table is built on.
+ *
+ * @remarks
+ * Laid out `fixed` rather than `auto`. An automatic layout sizes a table by its
+ * contents and reports that width upwards, so one long URL in one row makes the
+ * whole table wider than the page and the last columns end up past the right
+ * edge where nobody scrolls to find them. A fixed layout takes the widths the
+ * columns declare, gives what is left to the columns that declare none, and
+ * lets a cell's own `truncate` do the shortening.
+ *
+ * That means a column's width is a decision rather than an outcome: a column
+ * whose content must stay whole needs a width wide enough for it, and a column
+ * that may be shortened needs `truncate` on what it renders.
+ */
 function Table({ className = "", ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
     <div className="w-full">
-      <table className={`w-full border-collapse text-sm ${className}`} {...props} />
+      <table className={`w-full table-fixed border-collapse text-sm ${className}`} {...props} />
     </div>
   );
 }

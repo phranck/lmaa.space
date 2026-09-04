@@ -81,6 +81,27 @@ export function isActiveReviewJobState(state: ReviewJobState): boolean {
 }
 
 /**
+ * The audit entry a job carries when the automation set the submission's
+ * status itself.
+ *
+ * @remarks
+ * Written by the worker as `result.applied`, and the one thing that tells an
+ * admission the automation granted apart from one a person granted after
+ * reading the check. The submission's status answers neither, because it says
+ * what the submission is rather than who decided it.
+ *
+ * Named here because three places read it: the list query, the submission page,
+ * and the test that holds the worker to writing it.
+ */
+export const REVIEW_APPLIED_EVENT = "result.applied";
+
+/**
+ * The audit entry a job carries when the automation wrote its research into the
+ * submission and left the decision to a person.
+ */
+export const REVIEW_ENRICHED_EVENT = "result.enriched";
+
+/**
  * The three outcomes an automated review can reach.
  *
  * @remarks

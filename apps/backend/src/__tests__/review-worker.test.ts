@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { REVIEW_APPLIED_EVENT, REVIEW_ENRICHED_EVENT } from "@lmaa/shared";
 import type { ReviewJobState } from "@lmaa/shared";
 
 vi.mock("../db/client.js", () => ({ db: {} }));
@@ -250,6 +251,36 @@ describe("review worker", () => {
     expect(transitionsTo()).toEqual(["provider_waiting", "failed"]);
     const patch = repository.transitionReviewJob.mock.calls[1][2] as { verdict: string };
     expect(patch.verdict).toBe("onhold");
+  });
+
+  it("writes the audit entry the list reads to tell an applied verdict apart", async () => {
+    // The list asks whether this entry exists to decide between "Aufnahme
+    // empfohlen" and "Aufgenommen". The worker builds the name from the
+    // application's kind, so nothing but this holds the two together.
+    applyModule.applyReviewResult.mockResolvedValue({ kind: "applied", status: "approved" });
+    repository.claimNextReviewJob.mockResolvedValue(jobRow());
+    const worker = new ReviewWorker(() => fakeProvider(outcome()));
+
+    await worker.tick();
+
+    const events = repository.transitionReviewJob.mock.calls.map(
+      (call) => (call[3] as { name: string } | undefined)?.name,
+    );
+    expect(events).toContain(REVIEW_APPLIED_EVENT);
+  });
+
+  it("writes the enriched entry where it left the decision to a person", async () => {
+    applyModule.applyReviewResult.mockResolvedValue({ kind: "enriched" });
+    repository.claimNextReviewJob.mockResolvedValue(jobRow());
+    const worker = new ReviewWorker(() => fakeProvider(outcome()));
+
+    await worker.tick();
+
+    const events = repository.transitionReviewJob.mock.calls.map(
+      (call) => (call[3] as { name: string } | undefined)?.name,
+    );
+    expect(events).toContain(REVIEW_ENRICHED_EVENT);
+    expect(events).not.toContain(REVIEW_APPLIED_EVENT);
   });
 
   it("ends on hold when the provider refuses, without retrying", async () => {

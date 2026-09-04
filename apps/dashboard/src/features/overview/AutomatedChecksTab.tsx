@@ -199,13 +199,16 @@ export function AutomatedChecksTab() {
             >
               {job.shopName}
             </Link>
+            {/* The address is the longest thing in the row and the one that
+                would otherwise decide the table's width. It shortens, whilst
+                the icon after it stays whole and stays put. */}
             <a
               href={job.shopUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 truncate text-xs text-[var(--color-primary)] hover:underline"
+              className="flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline"
             >
-              {job.shopUrl}
+              <span className="truncate">{job.shopUrl}</span>
               <ArrowSquareUpRightIcon weight="duotone" className="h-3 w-3 shrink-0" />
             </a>
           </div>
@@ -225,10 +228,17 @@ export function AutomatedChecksTab() {
         header: t.columnVerdict,
         className: "w-48",
         sortKey: (job) => job.verdict ?? "",
+        // What a check recommended and what it did are different things to
+        // read: the first is work waiting for somebody, the second is a record.
+        // Where the automation applied the verdict itself, the row says so.
+        // `onhold` is excluded because it is never applied: it is what happens
+        // when nobody decides, so there is nothing to have done.
         cell: (job) =>
           job.verdict ? (
             <Badge colorClass={VERDICT_COLORS[job.verdict]}>
-              {reviewMessages.verdicts[job.verdict]}
+              {job.appliedByAutomation && job.verdict !== "onhold"
+                ? reviewMessages.verdictsApplied[job.verdict]
+                : reviewMessages.verdicts[job.verdict]}
             </Badge>
           ) : (
             <span className="text-sm text-[var(--ds-text-subtle)]">–</span>
@@ -239,8 +249,15 @@ export function AutomatedChecksTab() {
         header: t.columnModel,
         className: "w-44",
         sortKey: (job) => job.model ?? "",
+        // A model identifier is one long token with no space to break at, so it
+        // shortens rather than running past the column.
         cell: (job) => (
-          <span className="text-xs text-[var(--ds-text-subtle)]">{job.model ?? "–"}</span>
+          <span
+            className="block truncate text-xs text-[var(--ds-text-subtle)]"
+            title={job.model ?? undefined}
+          >
+            {job.model ?? "–"}
+          </span>
         ),
       },
       {

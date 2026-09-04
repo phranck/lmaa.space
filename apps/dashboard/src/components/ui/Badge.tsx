@@ -8,9 +8,14 @@ import type { ReactNode } from "react";
  * carrying an icon is otherwise taller than one carrying only a word, and
  * badges sit next to each other in a row where that difference is the first
  * thing a reader sees.
+ *
+ * The label never wraps. A badge is a label rather than a sentence, and a
+ * narrow column would otherwise break "Aufnahme empfohlen" over two lines
+ * inside a pill that is one line tall, so the second line sits outside its own
+ * background. Where the column is too narrow, the column is what gives.
  */
 const badgeShapeClass =
-  "inline-flex h-5 items-center gap-1 rounded-full px-2 text-xs font-medium leading-none";
+  "inline-flex h-5 items-center gap-1 whitespace-nowrap rounded-full px-2 text-xs font-medium leading-none";
 
 /**
  * The colours a status badge can take, named by what each one answers.

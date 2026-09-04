@@ -39,16 +39,20 @@ function DonationTableComponent({ donations, onEdit }: DonationTableProps) {
         header: text.nameLabel,
         sortKey: (donation) => fullName(donation.firstName, donation.lastName),
         cell: (donation) => (
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             {/* A payment the site read for itself carries no name: the payer's
                 name stands in the statement and is deliberately not taken. The
                 cell says so rather than standing empty, which would read as
-                something having gone wrong. */}
+                something having gone wrong.
+
+                The name shortens rather than widening the column, and needs
+                `min-w-0` to do it: a flex item does not shrink below its own
+                content without it, whatever `truncate` says. */}
             <span
               className={
                 fullName(donation.firstName, donation.lastName)
-                  ? "text-sm font-medium text-[var(--ds-text)]"
-                  : "text-sm italic text-[var(--ds-text-hint)]"
+                  ? "min-w-0 truncate text-sm font-medium text-[var(--ds-text)]"
+                  : "min-w-0 truncate text-sm italic text-[var(--ds-text-hint)]"
               }
             >
               {fullName(donation.firstName, donation.lastName) || text.nameAbsent}
@@ -75,7 +79,7 @@ function DonationTableComponent({ donations, onEdit }: DonationTableProps) {
           <SocialMediaIcons
             socialMedia={donation.socialMedia}
             favicons={favicons}
-            className="flex items-center gap-2"
+            className="flex flex-wrap items-center gap-2"
             linkable={false}
           />
         ),
