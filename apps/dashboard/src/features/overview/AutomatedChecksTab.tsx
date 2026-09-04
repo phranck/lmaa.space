@@ -97,6 +97,7 @@ export function AutomatedChecksTab() {
   // deleted is gone from the list and its spending is not.
   const totalUnits = spend ? costUnits(spend.total) : 0;
   const todayUnits = spend ? costUnits(spend.today) : 0;
+  const averageUnits = spend ? costUnits(spend.average) : 0;
   const currency = spend?.total.displayCurrency ?? spend?.total.currency ?? "EUR";
   // The legend appears only where a marked amount does, so an explanation is
   // never offered for something that is not on screen.
@@ -108,33 +109,49 @@ export function AutomatedChecksTab() {
     const format = (units: number) =>
       `${units.toLocaleString(locale, { minimumFractionDigits: 4, maximumFractionDigits: 4 })} ${currency}`;
 
+    // In the column immediately before the amounts rather than further left,
+    // so a label stands beside the figure it names instead of across a gap.
+    const label = (text: string) => (
+      <span className="block truncate text-right text-sm text-[var(--ds-text-muted)]">{text}</span>
+    );
+
     return [
       {
         id: "today",
         cells: {
-          // Right against the amounts, so the label sits beside the figure it
-          // names rather than a column away from it.
-          verdict: (
-            <span className="block text-right text-sm text-[var(--ds-text-muted)]">
-              {t.todayLabel}
-            </span>
-          ),
+          model: label(t.todayLabel),
           cost: <CostAmount amount={format(todayUnits)} incomplete={!spend?.today.complete} />,
         },
       },
       {
         id: "total",
         cells: {
-          verdict: (
-            <span className="block text-right text-sm text-[var(--ds-text-muted)]">
-              {t.totalLabel}
-            </span>
-          ),
+          model: label(t.totalLabel),
           cost: <CostAmount amount={format(totalUnits)} incomplete={!spend?.total.complete} />,
         },
       },
+      {
+        id: "average",
+        cells: {
+          // The count belongs beside the label rather than in a column of its
+          // own, because it is what makes the average readable: a mean over
+          // three checks and one over three hundred are different claims.
+          model: label(`${t.averageLabel} (${spend?.checkCount ?? 0})`),
+          cost: <CostAmount amount={format(averageUnits)} incomplete={!spend?.average.complete} />,
+        },
+      },
     ];
-  }, [currency, locale, spend, t.todayLabel, t.totalLabel, todayUnits, totalUnits]);
+  }, [
+    averageUnits,
+    currency,
+    locale,
+    spend,
+    t.averageLabel,
+    t.todayLabel,
+    t.totalLabel,
+    todayUnits,
+    totalUnits,
+  ]);
 
   const columns = useMemo<ColumnDef<ReviewJobListItem>[]>(
     () => [

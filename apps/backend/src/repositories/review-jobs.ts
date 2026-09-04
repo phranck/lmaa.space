@@ -2,6 +2,7 @@ import {
   and,
   asc,
   count,
+  countDistinct,
   desc,
   eq,
   gte,
@@ -571,23 +572,31 @@ export async function sumReviewCostForDay(day: Date = new Date()): Promise<bigin
 /**
  * What has been spent on automated checks in total.
  *
- * @returns The total in nano-units, the currency it is counted in, whether
- * every amount in it is complete, and how much of it was spent today.
+ * @returns The total in nano-units, how much of it was spent today, how many
+ * distinct checks it covers, the currency it is counted in, and whether every
+ * amount in it is complete.
  *
  * @remarks
  * Includes checks whose suggestion has since been deleted, which is the whole
  * reason the ledger exists. Probe runs are counted too, because they are billed
  * like any other run.
+ *
+ * The count is of distinct jobs rather than of rows. A row is one attempt, so a
+ * check that was retried spent twice whilst still being one check, and dividing
+ * the total by the row count would report what an attempt costs rather than
+ * what a check costs.
  */
 export async function readReviewSpendTotals(): Promise<{
   totalNano: bigint;
   todayNano: bigint;
+  checkCount: number;
   currency: string;
   complete: boolean;
 }> {
   const [row] = await db
     .select({
       total: sum(reviewSpend.costNano),
+      checks: countDistinct(reviewSpend.jobId),
       currency: max(reviewSpend.costCurrency),
       incomplete: count(sql`CASE WHEN ${reviewSpend.costComplete} = false THEN 1 END`),
     })
@@ -596,6 +605,7 @@ export async function readReviewSpendTotals(): Promise<{
   return {
     totalNano: row?.total ? BigInt(row.total) : 0n,
     todayNano: await sumReviewCostForDay(),
+    checkCount: row?.checks ?? 0,
     currency: row?.currency ?? DEFAULT_REVIEW_RATE_CARD.currency,
     complete: (row?.incomplete ?? 0) === 0,
   };

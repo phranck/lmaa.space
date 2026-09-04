@@ -687,6 +687,13 @@
       "when": 1788513709427,
       "tag": "0097_remove_review_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1788516473962,
+      "tag": "0098_replace_review_cost_figure",
+      "breakpoints": true
     }
   ]
 }

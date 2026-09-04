@@ -34,6 +34,33 @@ const AMOUNT_STEP_EUR = 5;
 const AMOUNT_STEP_THRESHOLD_EUR = 5;
 
 /**
+ * The step the average cost of a check is rounded down to, in cents.
+ *
+ * Five, so the figure reads as a figure rather than as the remainder of a
+ * division. The sentence quoting it says "im Schnitt rund", and 0,52 € under
+ * that word claims a precision the average does not have.
+ */
+const REVIEW_COST_STEP_CENTS = 5;
+
+/**
+ * Rounds the average cost of a check to a figure a sentence can carry.
+ *
+ * Rounded **down**, which is the opposite of {@link roundSuggestedAmountEur}
+ * and for the opposite reason. A donation rung has to cover the period it
+ * names, whilst a cost figure must never claim more than what is actually
+ * spent. Below the step the exact cent stands instead, because an average of
+ * three cents stepped down to nothing would read as free rather than as cheap.
+ *
+ * @param cents - The exact average, in cents.
+ * @returns The amount in whole cents, at or below the exact figure.
+ */
+export function roundReviewCostCents(cents: number): number {
+  if (cents <= 0) return 0;
+  const stepped = Math.floor(cents / REVIEW_COST_STEP_CENTS) * REVIEW_COST_STEP_CENTS;
+  return stepped > 0 ? stepped : Math.max(1, Math.floor(cents));
+}
+
+/**
  * Rounds a derived amount to something a person would choose.
  *
  * Rounded **up**, never to the nearest. A rung says it covers a period, and it
@@ -77,6 +104,10 @@ export const SITE_VARIABLES = {
   missingYear: {
     label: "Was bis zu den Jahreskosten noch fehlt, null sobald sie getragen sind",
     example: "60,00 €",
+  },
+  reviewCost: {
+    label: "Was eine automatische Shop-Prüfung im Schnitt kostet, auf fünf Cent abgerundet",
+    example: "0,50 €",
   },
   amountWeek: {
     label: "Betrag für eine Woche, gerundet und ohne Währung, für einen Spendenbetrag",
@@ -169,6 +200,15 @@ export interface SiteVariableValues {
   donatedYearCents: number;
   /** What came in over the last 30 days, in cents. */
   donatedMonthCents: number;
+  /**
+   * What one automated shop check costs on average, in cents.
+   *
+   * The exact figure, so the rounding is decided once here rather than by
+   * whoever fills this in. Zero until a check has been billed, and the name is
+   * then left standing rather than replaced, because a sentence claiming a
+   * check costs nothing is worse than one that visibly lacks its figure.
+   */
+  reviewCostAvgCents: number;
 }
 
 /** Four at a time, which is how an IBAN is printed and read back. */
@@ -215,6 +255,12 @@ export function expandSiteVariables(
         return formatMoney(
           fundingProgress(values.annualCostCents, values.donatedYearCents).missingCents,
         );
+      // Left standing whilst nothing has been billed, so a page never states
+      // that a check is free. Everywhere else it is the rounded average.
+      case "reviewCost":
+        return values.reviewCostAvgCents > 0
+          ? formatMoney(roundReviewCostCents(values.reviewCostAvgCents))
+          : `{${name}}`;
       // The six below render a bare number rather than money, because they are
       // written into a shortcode's `amount=` and read back with parseFloat.
       case "amountWeek":

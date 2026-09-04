@@ -96,6 +96,11 @@ const sponsorServiceMocks = vi.hoisted(() => ({
   sponsorYearStart: vi.fn(() => "2025-08-24"),
 }));
 
+const reviewSpendMocks = vi.hoisted(() => ({
+  readReviewSpendSummary: vi.fn(),
+  averageReviewCostCents: vi.fn(() => 51),
+}));
+
 vi.mock("../services/public.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/public.js")>();
   return { ...actual, ...publicServiceMocks };
@@ -115,6 +120,7 @@ vi.mock("../services/pending-sponsorships.js", () => pendingSponsorshipMocks);
 vi.mock("../repositories/sponsors.js", () => sponsorRepoMocks);
 vi.mock("../repositories/donations.js", () => donationRepoMocks);
 vi.mock("../services/sponsors.js", () => sponsorServiceMocks);
+vi.mock("../services/review/spend-summary.js", () => reviewSpendMocks);
 vi.mock("../middleware/rate-limit.js", () => ({
   rateLimit: vi.fn(() => (_c: unknown, next: () => Promise<void>) => next()),
   resolveClientIp: vi.fn(() => "127.0.0.1"),
@@ -527,6 +533,7 @@ describe("publicRoutes", () => {
         "coveredCents",
         "donatedMonthCents",
         "minAmountCents",
+        "reviewCostAvgCents",
         "sponsors",
       ]);
     });

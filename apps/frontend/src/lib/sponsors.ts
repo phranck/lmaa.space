@@ -14,6 +14,9 @@ export const EMPTY_SPONSORS: SponsorsPayload = {
   coveredCents: 0,
   donatedMonthCents: 0,
   minAmountCents: 0,
+  // Zero rather than a guessed price, which is what makes `{reviewCost}` keep
+  // its name in the text instead of stating that a check costs nothing.
+  reviewCostAvgCents: 0,
 };
 
 /**

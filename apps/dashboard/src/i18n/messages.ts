@@ -473,6 +473,7 @@ export interface DashboardMessages {
       costIncomplete: string;
       totalLabel: string;
       todayLabel: string;
+      averageLabel: string;
       emptyTitle: string;
       emptyHint: string;
     };
@@ -2153,6 +2154,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "Für einen Versuch dieser Prüfung fehlte eine abrechenbare Größe. Der Betrag ist deshalb eine Untergrenze, tatsächlich abgerechnet wurde mindestens so viel.",
         totalLabel: "Gesamt",
         todayLabel: "Heute",
+        averageLabel: "Ø je Prüfung",
         emptyTitle: "Noch keine automatische Prüfung",
         emptyHint: "Sobald die Automatik läuft, erscheint hier jede Prüfung mit ihren Kosten.",
       },
@@ -3917,6 +3919,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "One attempt of this check was missing a billable dimension. The amount is therefore a floor: at least this much was billed.",
         totalLabel: "Total",
         todayLabel: "Today",
+        averageLabel: "Avg per check",
         emptyTitle: "No automated check yet",
         emptyHint: "Once automation runs, every check appears here with what it cost.",
       },

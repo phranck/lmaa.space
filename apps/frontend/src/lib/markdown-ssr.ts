@@ -70,6 +70,7 @@ async function loadSiteVariables(): Promise<SiteVariableValues | null> {
       purposePaypal: payee.purposePaypal,
       donatedYearCents: sponsors.coveredCents,
       donatedMonthCents: sponsors.donatedMonthCents,
+      reviewCostAvgCents: sponsors.reviewCostAvgCents,
     };
     variablesTimestamp = now;
   } catch {
