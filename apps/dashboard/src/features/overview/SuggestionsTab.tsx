@@ -2,7 +2,12 @@ import { FileTextIcon, RobotIcon, SealWarningIcon, TrayIcon } from "@phosphor-ic
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { formatDateTime, type SubmissionStatus } from "@lmaa/shared";
+import {
+  formatDateTime,
+  type ReviewJobState,
+  type ReviewVerdict,
+  type SubmissionStatus,
+} from "@lmaa/shared";
 
 import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -11,9 +16,9 @@ import { StatusBadge } from "@/components/ui/StatusBadge.tsx";
 import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useReviewVerdictBySubmission } from "@/features/overview/hooks/useReviewJob.ts";
+import { useReviewJobBySubmission } from "@/features/overview/hooks/useReviewJob.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
-import { VERDICT_COLORS } from "@/features/overview/verdict-colors.ts";
+import { resolveSuggestionReviewBadge } from "@/features/overview/suggestion-review-badge.ts";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: BADGE_TONES.pending,
@@ -48,7 +53,8 @@ export function SuggestionsTab({
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const statusLabels = useStatusLabels();
-  const reviewBySubmission = useReviewVerdictBySubmission();
+  const reviewBySubmission = useReviewJobBySubmission();
+  const reviewMessages = messages.submissions.review;
   const submissionsMessages = messages.submissions;
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
@@ -62,7 +68,10 @@ export function SuggestionsTab({
         // maximum on a cell is not a width.
         sortKey: (submission) => submission.shopName.toLowerCase(),
         cell: (submission) => {
-          const verdict = reviewBySubmission.get(submission.id)?.verdict ?? null;
+          // What the automation is doing with this row, not only what it
+          // concluded: a check that is queued, running or failing left the row
+          // looking untouched.
+          const review = resolveSuggestionReviewBadge(reviewBySubmission.get(submission.id));
           return (
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -72,12 +81,14 @@ export function SuggestionsTab({
                   label={statusLabels[submission.status]}
                   colorMap={STATUS_COLORS}
                 />
-                {verdict ? (
+                {review ? (
                   <Badge
-                    colorClass={VERDICT_COLORS[verdict]}
+                    colorClass={review.colorClass}
                     icon={<RobotIcon weight="duotone" className="size-3.5" />}
                   >
-                    {messages.submissions.review.verdicts[verdict]}
+                    {review.kind === "verdict"
+                      ? reviewMessages.verdicts[review.key as ReviewVerdict]
+                      : reviewMessages.states[review.key as ReviewJobState]}
                   </Badge>
                 ) : null}
                 {submission.readyForReview && (

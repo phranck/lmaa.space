@@ -1,14 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef } from "react";
 
+import { isActiveReviewJobState } from "@lmaa/shared";
 import type { ReviewCost, ReviewJobDetail, ReviewJobListItem, ReviewJobState } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
 /** How often a running check is polled, in milliseconds. */
 const ACTIVE_POLL_INTERVAL_MS = 10_000;
-
-const ACTIVE_STATES = new Set(["queued", "running", "provider_waiting", "applying"]);
 
 function reviewKey(submissionId: number) {
   return ["submission-review", submissionId] as const;
@@ -33,7 +32,7 @@ export function useReviewJob(submissionId: number, activePollMs: number = ACTIVE
     queryFn: () => api.get<ReviewJobDetail | null>(`/admin/submissions/${submissionId}/review`),
     refetchInterval: (query) => {
       const state = query.state.data?.state;
-      return state && ACTIVE_STATES.has(state) ? activePollMs : false;
+      return state && isActiveReviewJobState(state) ? activePollMs : false;
     },
   });
 }
@@ -115,7 +114,7 @@ export function useReloadSubmissionAfterReview(
   const wasActive = useRef(false);
 
   useEffect(() => {
-    const active = state !== undefined && ACTIVE_STATES.has(state);
+    const active = state !== undefined && isActiveReviewJobState(state);
     if (wasActive.current && !active) {
       void queryClient.invalidateQueries({ queryKey: ["submission", submissionId] });
       void queryClient.invalidateQueries({ queryKey: ["submissions"] });
@@ -138,7 +137,7 @@ export function useReviewJobs() {
     queryKey: ["review-jobs"] as const,
     queryFn: () => api.get<ReviewJobListItem[]>("/admin/review-jobs"),
     refetchInterval: (query) =>
-      query.state.data?.some((job) => ACTIVE_STATES.has(job.state))
+      query.state.data?.some((job) => isActiveReviewJobState(job.state))
         ? ACTIVE_POLL_INTERVAL_MS
         : false,
   });
@@ -169,15 +168,19 @@ export function useReviewSpend() {
 }
 
 /**
- * Maps every submission that has an automated check to its verdict.
+ * Maps every submission that has an automated check to that check.
  *
- * @returns Submission id to verdict, for rows that have one.
+ * @returns Submission id to the whole job, for rows that have one.
  *
  * @remarks
+ * The whole job rather than its verdict, which is what the name says now: a
+ * caller needs the state as well, because a check that is queued, running or
+ * failing has no verdict and still has something to say about the row.
+ *
  * Derived from the same list the overview reads, so a list of suggestions costs
  * one request rather than one per row.
  */
-export function useReviewVerdictBySubmission(): Map<number, ReviewJobListItem> {
+export function useReviewJobBySubmission(): Map<number, ReviewJobListItem> {
   const { data: jobs = [] } = useReviewJobs();
   return useMemo(() => {
     const map = new Map<number, ReviewJobListItem>();

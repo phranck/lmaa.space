@@ -8,6 +8,7 @@ import {
   REVIEW_SETTING_DEFAULTS,
   SETTINGS_KEYS,
   formatDateTime,
+  isActiveReviewJobState,
 } from "@lmaa/shared";
 import type { ReviewCost, ReviewJobDetail } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
@@ -29,8 +30,6 @@ import {
 } from "@/features/overview/ReviewField.tsx";
 import { ReviewProgressDialog } from "@/features/overview/ReviewProgressDialog.tsx";
 import { useSystemSettings } from "@/features/system/settings/hooks/useSystemSettings.ts";
-
-const ACTIVE_STATES = new Set(["queued", "running", "provider_waiting", "applying"]);
 
 /**
  * Events that mean the check wrote its research into the submission.
@@ -161,7 +160,7 @@ export const SubmissionReviewPanel = memo(function SubmissionReviewPanel({
   // as the result carries the texts.
   const applied = detail.events.some((entry) => APPLIED_EVENTS.has(entry.event));
   const hasRejectTexts = readRejectProposal(detail.result) !== null;
-  const active = ACTIVE_STATES.has(detail.state);
+  const active = isActiveReviewJobState(detail.state);
   const terminal = TERMINAL_STATES.has(detail.state);
 
   return (
