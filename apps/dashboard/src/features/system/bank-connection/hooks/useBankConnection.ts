@@ -60,7 +60,18 @@ export function useCompleteBankAuthorization() {
 /** What a run over the account did, or why it did nothing. */
 export type BankSyncResult =
   | { ran: true; from: string; to: string; read: number; imported: number; skipped: number }
-  | { ran: false; reason: string };
+  | {
+      ran: false;
+      reason: string;
+      /**
+       * What went wrong at the bank, where the run got that far.
+       *
+       * The card reads the same code from the stored read rather than from
+       * here, so a failure of the background run shows the same way as one of
+       * the button.
+       */
+      failure?: string;
+    };
 
 /**
  * Reads the account now rather than waiting for the next background run.

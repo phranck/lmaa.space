@@ -2,12 +2,14 @@ import { ArrowsClockwiseIcon, BankIcon, PlugsConnectedIcon } from "@phosphor-ico
 import { type ReactNode, useMemo } from "react";
 import { useNavigate } from "react-router";
 
+import { groupIban } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { Badge } from "@/components/ui/Badge.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { useSponsoringConfig } from "@/features/content/sponsors/hooks/useSponsors.ts";
 
 import { BANK_CONNECTION_STATE_COLORS } from "./bank-connection-colors.ts";
 import { resolveBankConnectionState } from "./bank-connection-state.ts";
@@ -42,6 +44,9 @@ export function BankConnectionCard() {
   const navigate = useNavigate();
 
   const { data: status } = useBankConnection();
+  // The account this connection reads, as its owner knows it. Kept in the
+  // sponsoring settings, because that is where it is entered.
+  const { data: config } = useSponsoringConfig();
   const sync = useSyncBank();
 
   // Built once per locale rather than once per date.
@@ -64,6 +69,13 @@ export function BankConnectionCard() {
           : text.lastReadFailed
       }`
     : text.lastReadNever;
+  // What the bank said, where it said anything. A failure the operator cannot
+  // name is one they cannot act on, and the general sentence covered a lapsed
+  // consent and a refused request alike.
+  const failure =
+    status.lastReadSucceeded === false && status.lastReadFailure
+      ? (text.failures[status.lastReadFailure] ?? text.failures.bank_unknown_error)
+      : null;
 
   return (
     <DashboardSection>
@@ -80,8 +92,13 @@ export function BankConnectionCard() {
               ? `${status.institutionName} (${status.institutionCountry})`
               : text.valueAbsent}
           </CardFact>
+          {/* The account as its owner knows it. The provider's identifier was
+              here before and answered nothing: a random UUID's last four
+              characters are not something anybody recognises. This is the
+              payee account from the sponsoring settings, which is the account
+              this connection reads. */}
           <CardFact label={text.accountLabel}>
-            {status.accountSuffix ? `…${status.accountSuffix}` : text.valueAbsent}
+            {config?.payeeIban ? groupIban(config.payeeIban) : text.valueAbsent}
           </CardFact>
           <CardFact label={text.consentValidUntilLabel}>
             {status.consentValidUntil
@@ -91,8 +108,14 @@ export function BankConnectionCard() {
           <CardFact label={text.lastReadLabel}>{lastRun}</CardFact>
         </div>
 
-        {sync.isError && (
-          <p className="text-sm text-[var(--ds-badge-danger-text)]">{text.syncFailed}</p>
+        {/* What the bank said takes precedence over the general sentence: the
+            general one covers every cause there is and names none of them. */}
+        {failure ? (
+          <p className="text-sm text-[var(--ds-badge-danger-text)]">{failure}</p>
+        ) : (
+          sync.isError && (
+            <p className="text-sm text-[var(--ds-badge-danger-text)]">{text.syncFailed}</p>
+          )
         )}
       </DashboardSection.Body>
 

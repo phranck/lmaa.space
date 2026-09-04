@@ -1,0 +1,1 @@
+ALTER TABLE "bank_account_reads" ADD COLUMN "failure_reason" text;

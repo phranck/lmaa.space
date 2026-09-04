@@ -68,14 +68,6 @@ const CALLBACK_PATH = "/bank-connection/callback";
 const EXPECTED_ACCOUNT_COUNT = 1;
 
 /**
- * How many characters of the account identifier the dashboard is shown.
- *
- * Four, which is what a person recognises their own account by and what a
- * statement prints. Any more would be passing the identifier on in instalments.
- */
-const ACCOUNT_SUFFIX_LENGTH = 4;
-
-/**
  * Turns the stored connection into what the dashboard shows.
  *
  * @param connection - The connection in force, or `null` where there is none.
@@ -92,12 +84,12 @@ function toStatus(
     institutionCountry: connection?.aspspCountry ?? "",
     consentValidUntil: connection?.consentValidUntil?.toISOString() ?? null,
     connectedAt: connection?.createdAt.toISOString() ?? null,
-    // Four characters, which is enough to recognise the account and not enough
-    // to pass on. The identifier itself never leaves the database.
-    accountSuffix: connection ? connection.accountUid.slice(-ACCOUNT_SUFFIX_LENGTH) : "",
     lastReadAt: lastRead?.readAt.toISOString() ?? null,
     lastReadSucceeded: lastRead?.succeeded ?? null,
     lastReadImported: lastRead?.imported ?? 0,
+    // Why it failed, so the card can say something the operator can act on
+    // rather than that it did not work.
+    lastReadFailure: lastRead?.failureReason ?? null,
   };
 }
 

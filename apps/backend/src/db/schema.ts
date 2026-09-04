@@ -1544,11 +1544,20 @@ export const bankAccountReads = pgTable(
     /**
      * The last day this run covered, as `YYYY-MM-DD`.
      *
-     * The next run starts the day after the latest of these. Null whilst a run
-     * is in flight and on one that failed, because a run that did not finish
-     * says nothing about what has been seen.
+     * Null whilst a run is in flight and on one that failed, because a run that
+     * did not finish says nothing about what has been seen. A run reaching a
+     * fixed window back from today rather than forward from here, so this
+     * records what happened rather than deciding what happens next.
      */
     bookedThrough: text("booked_through"),
+    /**
+     * Why this run failed, in the words the operator is shown.
+     *
+     * Null on a run that succeeded and on one still in flight. Without it a
+     * failed read says only that it failed, and the reason lives in a log the
+     * operator has no way of reading.
+     */
+    failureReason: text("failure_reason"),
     /** How many entries came back, before anything was decided about them. */
     transactionsRead: integer("transactions_read").notNull().default(0),
     /** How many became a row in the ledger. */

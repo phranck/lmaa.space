@@ -79,10 +79,10 @@ describe("the bank connection", () => {
         institutionCountry: "",
         consentValidUntil: null,
         connectedAt: null,
-        accountSuffix: "",
         lastReadAt: null,
         lastReadSucceeded: null,
         lastReadImported: 0,
+        lastReadFailure: null,
       });
     });
 

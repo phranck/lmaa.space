@@ -1354,6 +1354,14 @@ export interface DashboardMessages {
       syncNow: string;
       syncing: string;
       syncFailed: string;
+      /**
+       * What the bank said, keyed by the client's own error code.
+       *
+       * A code the dashboard does not know falls back to
+       * `bank_unknown_error`, so a new one from the backend still reaches the
+       * operator as a sentence rather than as nothing.
+       */
+      failures: Record<string, string>;
       institutionLabel: string;
       connectedAtLabel: string;
       consentValidUntilLabel: string;
@@ -3094,6 +3102,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         syncNow: "Jetzt abrufen",
         syncing: "Wird abgerufen …",
         syncFailed: "Der Abruf hat nicht geklappt. Versuch es später noch einmal.",
+        failures: {
+          bank_request_refused:
+            "Die Bank hat die Anfrage abgelehnt. Meist stimmt der abgefragte Zeitraum nicht, oder die Zustimmung deckt ihn nicht ab.",
+          bank_unreachable:
+            "Die Bank war nicht erreichbar. Das geht in der Regel von selbst wieder.",
+          bank_bad_answer: "Die Bank hat geantwortet, aber nicht so, wie es hier erwartet wird.",
+          bank_bad_destination:
+            "Die Anfrage hätte an eine fremde Adresse gehen sollen und wurde deshalb nicht gestellt.",
+          bank_not_configured: "Für die Bankverbindung fehlt der Zugangsschlüssel.",
+          bank_unknown_error: "Beim Abruf ist etwas schiefgegangen, das hier keinen Namen hat.",
+        },
         institutionLabel: "Bank",
         connectedAtLabel: "Verbunden seit",
         consentValidUntilLabel: "Zustimmung gilt bis",
@@ -4855,6 +4874,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         syncNow: "Read now",
         syncing: "Reading …",
         syncFailed: "The read did not work. Try again later.",
+        failures: {
+          bank_request_refused:
+            "The bank refused the request. Usually the range asked for is wrong, or the consent does not cover it.",
+          bank_unreachable: "The bank could not be reached. That usually clears on its own.",
+          bank_bad_answer: "The bank answered, but not in the shape this expects.",
+          bank_bad_destination:
+            "The request would have gone to an address that is not the bank's, so it was not made.",
+          bank_not_configured: "The bank connection has no credential.",
+          bank_unknown_error: "Something went wrong during the read that has no name here.",
+        },
         institutionLabel: "Bank",
         connectedAtLabel: "Connected since",
         consentValidUntilLabel: "Consent lasts until",

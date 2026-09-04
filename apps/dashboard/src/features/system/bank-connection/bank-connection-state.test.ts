@@ -16,10 +16,10 @@ function status(overrides: Partial<BankConnectionStatus> = {}): BankConnectionSt
     institutionCountry: "AT",
     consentValidUntil: new Date(NOW.getTime() + 180 * DAY_MS).toISOString(),
     connectedAt: NOW.toISOString(),
-    accountSuffix: "8f2c",
     lastReadAt: null,
     lastReadSucceeded: null,
     lastReadImported: 0,
+    lastReadFailure: null,
     ...overrides,
   };
 }
