@@ -57,7 +57,9 @@ export function SuggestionsTab({
       {
         id: "shop",
         header: messages.shops.table.shop,
-        className: "max-w-[30rem]",
+        // No width, so this column takes whatever the fixed columns leave. A
+        // `max-w` here would decide nothing: the table lays out `fixed`, and a
+        // maximum on a cell is not a width.
         sortKey: (submission) => submission.shopName.toLowerCase(),
         cell: (submission) => {
           const verdict = reviewBySubmission.get(submission.id)?.verdict ?? null;
@@ -106,10 +108,14 @@ export function SuggestionsTab({
         sortKey: (submission) => new Date(submission.createdAt).getTime(),
         cell: (submission) => (
           <div className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
-            <div>
-              {formatDateTime(submission.createdAt, locale)}
-            </div>
-            {submission.submitterEmail && <div>{submission.submitterEmail}</div>}
+            <div>{formatDateTime(submission.createdAt, locale)}</div>
+            {/* An address is one long token and would otherwise run past the
+                column into the one beside it. */}
+            {submission.submitterEmail && (
+              <div className="truncate" title={submission.submitterEmail}>
+                {submission.submitterEmail}
+              </div>
+            )}
           </div>
         ),
       },

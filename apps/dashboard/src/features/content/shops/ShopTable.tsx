@@ -105,12 +105,14 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         sortKey: (shop) => shop.name.toLowerCase(),
         cell: (shop) => (
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               {shop.visibility === "public" && (
                 <EyeIcon weight="duotone" className="size-3.5 shrink-0 text-emerald-500" />
               )}
+              {/* `min-w-0` alongside the `truncate`: a flex item does not
+                  shrink below its own content without it. */}
               <p
-                className={`font-medium truncate ${
+                className={`min-w-0 truncate font-medium ${
                   shop.visibility === "deleted"
                     ? "text-[var(--ds-text-subtle)] line-through"
                     : shop.visibility === "onhold" || shop.visibility === "rejected"

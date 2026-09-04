@@ -42,11 +42,14 @@ export function SocialMediaPostTemplateListPage() {
         header: m.templateName,
         sortKey: (template) => template.name.toLowerCase(),
         cell: (template) => (
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            {/* `min-w-0` on the button as well as on the row: a flex item does
+                not shrink below its own content without it, and a template name
+                in a monospaced face is one token with nothing to break at. */}
             <button
               type="button"
               onClick={() => navigate(`/social-media-post-templates/${template.id}`)}
-              className="truncate text-left font-mono font-medium text-[var(--ds-text)] hover:underline"
+              className="min-w-0 truncate text-left font-mono font-medium text-[var(--ds-text)] hover:underline"
             >
               {template.name}
             </button>
@@ -58,7 +61,7 @@ export function SocialMediaPostTemplateListPage() {
         id: "platforms",
         header: m.platformsLabel,
         cell: (template) => (
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {template.platforms.map((platform) => (
               <PlatformChip key={platform} platform={platform} />
             ))}
@@ -69,7 +72,7 @@ export function SocialMediaPostTemplateListPage() {
         id: "scopes",
         header: m.scopesLabel,
         cell: (template) => (
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {template.scopes.map((scope) => (
               <Chip key={scope}>{m.scopes[scope]}</Chip>
             ))}

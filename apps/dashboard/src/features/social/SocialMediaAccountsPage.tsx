@@ -79,7 +79,9 @@ export function SocialMediaAccountsPage(): React.ReactElement {
         id: "label",
         header: t.columns.account,
         sortKey: (row) => row.label,
-        cell: (row) => <span className="font-medium text-[var(--ds-text)]">{row.label}</span>,
+        cell: (row) => (
+          <span className="block truncate font-medium text-[var(--ds-text)]">{row.label}</span>
+        ),
       },
       {
         id: "profileUrl",
@@ -138,7 +140,11 @@ export function SocialMediaAccountsPage(): React.ReactElement {
       {
         id: "actions",
         header: "",
-        cellClassName: "text-right",
+        // A width, so the buttons keep their room rather than taking an equal
+        // share of what is left, which is what a fixed layout gives a column
+        // that declares none.
+        className: "w-28",
+        cellClassName: "w-28 text-right",
         cell: (row) => (
           <div className="flex items-center justify-end gap-2">
             <TableActionButton

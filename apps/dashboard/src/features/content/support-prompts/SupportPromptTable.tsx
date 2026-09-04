@@ -41,7 +41,9 @@ function SupportPromptTableComponent({ prompts, today, onEdit }: SupportPromptTa
         header: text.nameLabel,
         sortKey: (prompt) => prompt.name,
         cell: (prompt) => (
-          <span className="text-sm font-medium text-[var(--ds-text)]">{prompt.name}</span>
+          <span className="block truncate text-sm font-medium text-[var(--ds-text)]">
+            {prompt.name}
+          </span>
         ),
       },
       {
@@ -84,9 +86,7 @@ function SupportPromptTableComponent({ prompts, today, onEdit }: SupportPromptTa
           return (
             <Badge
               className="shrink-0"
-              colorClass={
-                state === "live" ? BADGE_TONES.success : BADGE_TONES.neutral
-              }
+              colorClass={state === "live" ? BADGE_TONES.success : BADGE_TONES.neutral}
             >
               {text.states[state]}
             </Badge>

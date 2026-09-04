@@ -369,7 +369,11 @@ export const RedirectUrlsPage = memo(function RedirectUrlsPage() {
         id: "name",
         header: t.tableColumnName,
         sortKey: (row) => row.name,
-        cell: (row) => <span className="font-mono text-xs text-[var(--ds-text)]">{row.name}</span>,
+        cell: (row) => (
+          <span className="block truncate font-mono text-xs text-[var(--ds-text)]" title={row.name}>
+            {row.name}
+          </span>
+        ),
       },
       {
         id: "publicUrl",
@@ -408,9 +412,7 @@ export const RedirectUrlsPage = memo(function RedirectUrlsPage() {
         id: "status",
         header: t.tableColumnStatus,
         cell: (row) => (
-          <Badge
-            colorClass={row.isActive ? BADGE_TONES.success : BADGE_TONES.neutral}
-          >
+          <Badge colorClass={row.isActive ? BADGE_TONES.success : BADGE_TONES.neutral}>
             {row.isActive ? t.active : t.inactive}
           </Badge>
         ),
@@ -418,7 +420,10 @@ export const RedirectUrlsPage = memo(function RedirectUrlsPage() {
       {
         id: "actions",
         header: t.tableColumnActions,
-        cellClassName: "text-right",
+        // A width, so three buttons keep their room rather than taking an equal
+        // share of what is left.
+        className: "w-36",
+        cellClassName: "w-36 text-right",
         cell: (row) => (
           <div className="flex items-center justify-end gap-2">
             <CopyActionButton

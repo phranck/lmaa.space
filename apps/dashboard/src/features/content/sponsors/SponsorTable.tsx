@@ -43,9 +43,14 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
         cell: (sponsor) => {
           const name = fullName(sponsor.firstName, sponsor.lastName);
           return (
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <Avatar name={name} imageUrl={sponsor.imageUrl} size="sm" />
-              <span className="text-sm font-medium text-[var(--ds-text)]">{name}</span>
+              {/* The name shortens rather than widening the column. `min-w-0`
+                  is what lets it: a flex item does not shrink below its own
+                  content without it, whatever `truncate` says. */}
+              <span className="min-w-0 truncate text-sm font-medium text-[var(--ds-text)]">
+                {name}
+              </span>
               {/* Said in the list, because whether somebody is named is the one
                   thing about them that the page does not show. */}
               {!sponsor.published && (
@@ -64,7 +69,7 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
           <SocialMediaIcons
             socialMedia={sponsor.socialMedia}
             favicons={favicons}
-            className="flex items-center gap-2"
+            className="flex flex-wrap items-center gap-2"
             linkable={false}
           />
         ),

@@ -314,8 +314,13 @@ export function FormBuilderListPage() {
       {
         id: "slug",
         header: m.slugLabel,
+        // A slug is one token with nothing to break at, so it shortens rather
+        // than running past its column.
         cell: (form) => (
-          <span className="font-mono text-xs text-[var(--ds-text-muted)]">
+          <span
+            className="block truncate font-mono text-xs text-[var(--ds-text-muted)]"
+            title={form.slug ?? undefined}
+          >
             {form.slug ? `/${form.slug}` : "-"}
           </span>
         ),

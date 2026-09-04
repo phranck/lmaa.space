@@ -56,10 +56,12 @@ function PendingSponsorshipTableComponent({
         header: sponsorText.nameLabel,
         sortKey: (entry) => fullName(entry.firstName, entry.lastName),
         cell: (entry) => (
-          <div className="flex items-center gap-3">
-            {/* A name is one thing and is read as one, so it keeps its line and
-                takes the width it needs. */}
-            <span className="text-sm font-medium text-[var(--ds-text)] whitespace-nowrap">
+          <div className="flex min-w-0 items-center gap-3">
+            {/* A name is one thing and is read as one, so it keeps its line
+                rather than wrapping. Where the column is too narrow for it, it
+                shortens with an ellipsis, because a name running past the
+                column would sit on top of the one beside it. */}
+            <span className="min-w-0 truncate text-sm font-medium text-[var(--ds-text)]">
               {fullName(entry.firstName, entry.lastName)}
             </span>
             {!entry.published && (
@@ -78,7 +80,7 @@ function PendingSponsorshipTableComponent({
           <SocialMediaIcons
             socialMedia={entry.socialMedia}
             favicons={favicons}
-            className="flex items-center gap-2"
+            className="flex flex-wrap items-center gap-2"
             linkable={false}
           />
         ),

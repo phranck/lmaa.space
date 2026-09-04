@@ -35,13 +35,16 @@ export function DeadLinksTab() {
         cell: (report) => (
           <div className="min-w-0">
             <p className="font-medium text-[var(--ds-text)] truncate">{report.shopName}</p>
+            {/* The address shortens and the icon after it stays whole. The
+                `truncate` has to sit on the text rather than on the link:
+                on a flex container it shortens nothing. */}
             <a
               href={report.shopUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline truncate"
+              className="flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline"
             >
-              {report.shopUrl}
+              <span className="truncate">{report.shopUrl}</span>
               <ArrowSquareUpRightIcon weight="duotone" className="w-3 h-3 shrink-0" />
             </a>
           </div>
