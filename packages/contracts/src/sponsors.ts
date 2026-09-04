@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-import {
-  MAX_REMITTANCE_UNSTRUCTURED,
-  socialMediaLinksSchema,
-  socialMediaSchema,
-} from "@lmaa/shared";
+import { MAX_REMITTANCE_UNSTRUCTURED, socialMediaLinksSchema } from "@lmaa/shared";
 
 /**
  * The people who carry the running costs for a year.
@@ -30,7 +26,7 @@ export const sponsorInputSchema = z.object({
    * The same map the shops carry, so a pasted address is recognised and stored
    * canonically rather than as whatever form it was written in.
    */
-  socialMedia: socialMediaSchema,
+  socialMedia: socialMediaLinksSchema,
   /** An address of the picture. Empty means no picture is shown. */
   imageUrl: z.string().trim().max(500).default(""),
   /** Their own sentence about why they did it. Optional, as it should be. */
