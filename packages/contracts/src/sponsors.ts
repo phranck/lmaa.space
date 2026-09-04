@@ -165,6 +165,14 @@ export const sponsorsPayloadSchema = z.object({
   /** What came in over the last 30 days, in cents. */
   donatedMonthCents: z.number().int(),
   minAmountCents: z.number().int(),
+  /**
+   * What one automated shop check costs on average, in cents.
+   *
+   * Travels with the running costs because it is one of them, and the support
+   * page names both in the same sentence. Zero whilst no check has been billed
+   * yet, which the renderer tells apart from a check that is free.
+   */
+  reviewCostAvgCents: z.number().int(),
 });
 
 /**

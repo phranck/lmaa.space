@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   SITE_VARIABLE_NAMES,
   expandSiteVariables,
+  roundReviewCostCents,
   roundSuggestedAmountEur,
   type SiteVariableValues,
 } from "./site-variables.js";
@@ -19,6 +20,7 @@ const values: SiteVariableValues = {
   purposePaypal: "lmaa.space",
   donatedYearCents: 12_000,
   donatedMonthCents: 2_500,
+  reviewCostAvgCents: 51,
 };
 
 /** Money the way the site writes it, standing in for the real formatter. */
@@ -191,5 +193,42 @@ describe("what came in", () => {
   it("counts the full costs as outstanding whilst nothing has come in", () => {
     const nothing = { ...values, donatedYearCents: 0 };
     expect(expandSiteVariables("{missingYear}", nothing, money)).toBe("180,00 €");
+  });
+});
+
+describe("what a check costs", () => {
+  function withAverage(cents: number): string {
+    return expandSiteVariables("{reviewCost}", { ...values, reviewCostAvgCents: cents }, money);
+  }
+
+  it("writes the average as money", () => {
+    expect(expand("Eine Prüfung kostet rund {reviewCost}.")).toBe(
+      "Eine Prüfung kostet rund 0,50 €.",
+    );
+  });
+
+  it("rounds down, so the figure never claims more than was spent", () => {
+    // 0.54 becomes 0.50 rather than 0.55. The sentence quoting it says "rund",
+    // and a cost figure that reads high is the one mistake it must not make.
+    expect(roundReviewCostCents(54)).toBe(50);
+  });
+
+  it("leaves an average that already lands on the step", () => {
+    expect(roundReviewCostCents(50)).toBe(50);
+  });
+
+  it("keeps the exact cent below the step, so a cheap check is not free", () => {
+    // Three cents would step down to nothing, and "0,00 €" reads as free.
+    expect(roundReviewCostCents(3)).toBe(3);
+  });
+
+  it("answers nothing spent with nothing", () => {
+    expect(roundReviewCostCents(0)).toBe(0);
+  });
+
+  it("leaves its name standing whilst no check has been billed", () => {
+    // A page must never state that a check is free. The name in the text says
+    // plainly that the figure is missing.
+    expect(withAverage(0)).toBe("{reviewCost}");
   });
 });

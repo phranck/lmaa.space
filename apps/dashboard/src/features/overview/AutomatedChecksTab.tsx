@@ -23,6 +23,14 @@ import { VERDICT_COLORS } from "@/features/overview/verdict-colors.ts";
 const NANO_PER_UNIT = 1_000_000_000;
 
 /**
+ * Columns the footer note spans, counted from the left.
+ *
+ * Three, which is everything before the summary labels. Any more would take
+ * the column the labels sit in and push them away from their amounts.
+ */
+const FOOTER_LEAD_COLUMNS = 3;
+
+/**
  * Reads an amount as a number of whole currency units.
  *
  * @param cost - The amount, or `null` when nothing has been costed yet.
@@ -97,10 +105,34 @@ export function AutomatedChecksTab() {
   // deleted is gone from the list and its spending is not.
   const totalUnits = spend ? costUnits(spend.total) : 0;
   const todayUnits = spend ? costUnits(spend.today) : 0;
+  const averageUnits = spend ? costUnits(spend.average) : 0;
   const currency = spend?.total.displayCurrency ?? spend?.total.currency ?? "EUR";
   // The legend appears only where a marked amount does, so an explanation is
   // never offered for something that is not on screen.
   const hasIncomplete = jobs.some((job) => job.cost && !job.cost.complete);
+
+  // Beside the totals rather than under the table, because it explains the
+  // marker those amounts carry. Spanning the three columns left of the labels
+  // keeps it clear of them whilst it wraps over the rows' full height.
+  const footerLead = useMemo(
+    () =>
+      hasIncomplete
+        ? {
+            columnCount: FOOTER_LEAD_COLUMNS,
+            node: (
+              <p className="flex items-start gap-1.5 text-xs text-[var(--ds-text-subtle)]">
+                <WarningCircleIcon
+                  weight="duotone"
+                  aria-hidden
+                  className="mt-0.5 size-4 shrink-0 text-amber-400"
+                />
+                {t.costIncomplete}
+              </p>
+            ),
+          }
+        : undefined,
+    [hasIncomplete, t.costIncomplete],
+  );
 
   // Written into the cost column of the table rather than under it, so the
   // totals stand exactly beneath the amounts they add up.
@@ -108,33 +140,49 @@ export function AutomatedChecksTab() {
     const format = (units: number) =>
       `${units.toLocaleString(locale, { minimumFractionDigits: 4, maximumFractionDigits: 4 })} ${currency}`;
 
+    // In the column immediately before the amounts rather than further left,
+    // so a label stands beside the figure it names instead of across a gap.
+    const label = (text: string) => (
+      <span className="block truncate text-right text-sm text-[var(--ds-text-muted)]">{text}</span>
+    );
+
     return [
       {
         id: "today",
         cells: {
-          // Right against the amounts, so the label sits beside the figure it
-          // names rather than a column away from it.
-          verdict: (
-            <span className="block text-right text-sm text-[var(--ds-text-muted)]">
-              {t.todayLabel}
-            </span>
-          ),
+          model: label(t.todayLabel),
           cost: <CostAmount amount={format(todayUnits)} incomplete={!spend?.today.complete} />,
         },
       },
       {
         id: "total",
         cells: {
-          verdict: (
-            <span className="block text-right text-sm text-[var(--ds-text-muted)]">
-              {t.totalLabel}
-            </span>
-          ),
+          model: label(t.totalLabel),
           cost: <CostAmount amount={format(totalUnits)} incomplete={!spend?.total.complete} />,
         },
       },
+      {
+        id: "average",
+        cells: {
+          // The count belongs beside the label rather than in a column of its
+          // own, because it is what makes the average readable: a mean over
+          // three checks and one over three hundred are different claims.
+          model: label(`${t.averageLabel} (${spend?.checkCount ?? 0})`),
+          cost: <CostAmount amount={format(averageUnits)} incomplete={!spend?.average.complete} />,
+        },
+      },
     ];
-  }, [currency, locale, spend, t.todayLabel, t.totalLabel, todayUnits, totalUnits]);
+  }, [
+    averageUnits,
+    currency,
+    locale,
+    spend,
+    t.averageLabel,
+    t.todayLabel,
+    t.totalLabel,
+    todayUnits,
+    totalUnits,
+  ]);
 
   const columns = useMemo<ColumnDef<ReviewJobListItem>[]>(
     () => [
@@ -270,31 +318,18 @@ export function AutomatedChecksTab() {
   }
 
   return (
-    <>
-      {/* Pulled over the scroll container's padding on every side, so the
-          sticky footer can reach the bottom edge rather than stopping short
-          of it. */}
-      <div className="-mx-3 -mt-3 -mb-3">
-        <DataTable
-          columns={columns}
-          data={jobs}
-          getRowKey={(job) => job.id}
-          stickyHeader
-          stickyFooter
-          footerRows={footerRows}
-        />
-      </div>
-
-      {hasIncomplete ? (
-        <p className="mt-3 flex items-center gap-1.5 text-xs text-[var(--ds-text-subtle)]">
-          <WarningCircleIcon
-            weight="duotone"
-            aria-hidden
-            className="size-4 shrink-0 text-amber-400"
-          />
-          {t.costIncomplete}
-        </p>
-      ) : null}
-    </>
+    // Pulled over the scroll container's padding on every side, so the sticky
+    // footer can reach the bottom edge rather than stopping short of it.
+    <div className="-mx-3 -mt-3 -mb-3">
+      <DataTable
+        columns={columns}
+        data={jobs}
+        getRowKey={(job) => job.id}
+        stickyHeader
+        stickyFooter
+        footerRows={footerRows}
+        footerLead={footerLead}
+      />
+    </div>
   );
 }

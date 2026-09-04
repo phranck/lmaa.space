@@ -120,6 +120,17 @@ interface DataTableProps<T> {
    * and stops doing so as soon as a column width changes.
    */
   footerRows?: Array<{ id: string; cells: Record<string, ReactNode> }>;
+  /**
+   * A note filling the left of the footer, beside the rows rather than under
+   * them.
+   *
+   * @remarks
+   * Spans `columnCount` columns and every footer row, so an explanation of the
+   * amounts sits inside the same block as the amounts. `columnCount` counts
+   * from the left, and those columns then carry no cell of their own in any
+   * footer row.
+   */
+  footerLead?: { node: ReactNode; columnCount: number };
   /** Optional controlled sort state. */
   sort?: SortState | null;
   /** Called when the sort state changes. */
@@ -147,6 +158,7 @@ export function DataTable<T>({
   stickyHeader = false,
   stickyFooter = false,
   footerRows,
+  footerLead,
   initialSort = null,
   sort: controlledSort,
   onSortChange,
@@ -298,9 +310,17 @@ export function DataTable<T>({
             stickyFooter ? "sticky -bottom-3 z-10 shadow-[0_-1px_0_var(--ds-border)]" : ""
           }`}
         >
-          {footerRows.map((row) => (
+          {footerRows.map((row, rowIndex) => (
             <tr key={row.id}>
-              {columns.map((col) => (
+              {/* Once, in the first row, spanning the rest. The columns it
+                  covers are then skipped in every row, which is what keeps the
+                  remaining cells under the values they belong to. */}
+              {footerLead && rowIndex === 0 ? (
+                <Td colSpan={footerLead.columnCount} rowSpan={footerRows.length} className="w-1/3">
+                  {footerLead.node}
+                </Td>
+              ) : null}
+              {columns.slice(footerLead?.columnCount ?? 0).map((col) => (
                 <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>
                   {row.cells[col.id] ?? null}
                 </Td>

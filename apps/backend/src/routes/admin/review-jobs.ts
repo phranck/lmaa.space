@@ -1,19 +1,15 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
-import type { ReviewCost } from "@lmaa/shared";
-
 import { db } from "../../db/client.js";
 import { reviewJobs } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
-import { DEFAULT_REVIEW_RATE_CARD, toReviewDisplayAmount } from "../../lib/review-cost.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { getSubmissionStatus } from "../../repositories/admin-submissions.js";
 import {
   cancelReviewJob,
   countReviewJobsByState,
-  readReviewSpendTotals,
   enqueueReviewJob,
   getReviewJob,
   getReviewJobBySubmission,
@@ -27,6 +23,7 @@ import {
   toReviewJobDetail,
   toReviewJobListItem,
 } from "../../services/review/read-model.js";
+import { readReviewSpendSummary } from "../../services/review/spend-summary.js";
 
 /**
  * Admin routes for the automated review of shop submissions.
@@ -51,22 +48,10 @@ reviewJobRoutes.get("/review/models", async (c) => {
   return ok(c, await listReviewModels());
 });
 
-// GET /api/admin/review-jobs/spend — what the automation has cost in total
+// GET /api/admin/review-jobs/spend — what the automation has cost in total,
+// today and per check
 reviewJobRoutes.get("/review-jobs/spend", async (c) => {
-  const totals = await readReviewSpendTotals();
-  const shown = (totalNano: bigint): ReviewCost => {
-    const cost: ReviewCost = {
-      totalNano: totalNano.toString(),
-      currency: totals.currency,
-      rateCardVersion: DEFAULT_REVIEW_RATE_CARD.version,
-      complete: totals.complete,
-      missingDimensions: [],
-    };
-    const display = toReviewDisplayAmount(cost);
-    return { ...cost, displayTotalNano: display.totalNano, displayCurrency: display.currency };
-  };
-
-  return ok(c, { total: shown(totals.totalNano), today: shown(totals.todayNano) });
+  return ok(c, await readReviewSpendSummary());
 });
 
 // GET /api/admin/review-jobs/queue — how much work is outstanding

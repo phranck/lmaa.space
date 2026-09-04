@@ -145,9 +145,10 @@ export function useReviewJobs() {
 }
 
 /**
- * What the automation has cost in total and today.
+ * What the automation has cost in total, today and per check.
  *
- * @returns The query, whose data carries both amounts already converted.
+ * @returns The query, whose data carries all three amounts already converted,
+ * plus how many checks the average is taken over.
  *
  * @remarks
  * Read from the spend ledger rather than added up from the list, because the
@@ -157,7 +158,13 @@ export function useReviewJobs() {
 export function useReviewSpend() {
   return useQuery({
     queryKey: ["review-spend"] as const,
-    queryFn: () => api.get<{ total: ReviewCost; today: ReviewCost }>("/admin/review-jobs/spend"),
+    queryFn: () =>
+      api.get<{
+        total: ReviewCost;
+        today: ReviewCost;
+        average: ReviewCost;
+        checkCount: number;
+      }>("/admin/review-jobs/spend"),
   });
 }
 

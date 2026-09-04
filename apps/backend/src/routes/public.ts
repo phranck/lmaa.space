@@ -70,6 +70,10 @@ import {
   searchFilteredPublicCatalog,
   toggleShopLike,
 } from "../services/public.js";
+import {
+  averageReviewCostCents,
+  readReviewSpendSummary,
+} from "../services/review/spend-summary.js";
 import { listFooterSocialMediaAccounts } from "../services/social-media-accounts.js";
 import { getSocialPreviewImage } from "../services/social-preview-images.js";
 import { getSponsoringConfig, sponsorYearStart } from "../services/sponsors.js";
@@ -291,10 +295,13 @@ publicRoutes.get("/content", publicReadLimit, async (c) => {
 publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
   const today = new Date().toISOString().slice(0, 10);
   const yearStart = sponsorYearStart(today);
-  const [current, config, received] = await Promise.all([
+  // The cost of a check travels with the running costs because it is one of
+  // them, and the support page names both in the same sentence.
+  const [current, config, received, spend] = await Promise.all([
     listCurrentSponsors(yearStart),
     getSponsoringConfig(),
     getDonationTotals(today),
+    readReviewSpendSummary(),
   ]);
 
   const costsTotalCents = config.costs.reduce((sum, item) => sum + item.amountCents, 0);
@@ -327,6 +334,7 @@ publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
     coveredCents,
     donatedMonthCents: received.monthCents,
     minAmountCents: config.minAmountCents,
+    reviewCostAvgCents: averageReviewCostCents(spend),
   };
 
   c.header("Cache-Control", CACHE_EDITABLE);
