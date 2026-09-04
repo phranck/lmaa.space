@@ -10,6 +10,7 @@ import { apiGet } from "@/lib/api";
 import {
   ANALYTICS_SCRIPT_INTEGRITY,
   ANALYTICS_SCRIPT_URL,
+  ANALYTICS_WEBSITE_ID,
   RECORDER_SCRIPT_INTEGRITY,
   RECORDER_SCRIPT_URL,
 } from "@/lib/csp";
@@ -165,7 +166,7 @@ try {
         src={ANALYTICS_SCRIPT_URL}
         integrity={ANALYTICS_SCRIPT_INTEGRITY}
         crossorigin="anonymous"
-        data-website-id="ebec4dd2-b578-4f10-a416-6503c7fe2da0"
+        data-website-id={ANALYTICS_WEBSITE_ID}
         data-performance="true"
       ></script>
     )}
@@ -185,7 +186,7 @@ try {
         src={RECORDER_SCRIPT_URL}
         integrity={RECORDER_SCRIPT_INTEGRITY}
         crossorigin="anonymous"
-        data-website-id="ebec4dd2-b578-4f10-a416-6503c7fe2da0"
+        data-website-id={ANALYTICS_WEBSITE_ID}
       ></script>
     )}
   </head>
