@@ -110,30 +110,12 @@ export const REVIEW_REPORT_STATES = ["pending", "sending", "sent", "failed", "sk
 export type ReviewReportState = (typeof REVIEW_REPORT_STATES)[number];
 
 /**
- * How far the automation may act on the submission it reviewed.
- *
- * @remarks
- * `off` claims no work at all, so queued jobs simply wait. `assist` writes what
- * the check researched into the submission and marks it ready for a human
- * decision, which is what the manual import path does today.
- *
- * Applying a verdict publicly is a separate switch, see
- * {@link REVIEW_AUTO_APPLY_VERDICTS}.
- */
-export const REVIEW_AUTOMATION_MODES = ["off", "assist"] as const;
-
-/**
- * Union of all automation modes.
- */
-export type ReviewAutomationMode = (typeof REVIEW_AUTOMATION_MODES)[number];
-
-/**
  * Verdicts that may be applied without a human, when the operator lists them.
  *
  * @remarks
- * The list is empty by default and only has an effect in `assist` mode. An
- * `onhold` verdict is never in it, because on-hold is what happens when nobody
- * decides.
+ * The list is empty by default, so a check prepares the submission and leaves
+ * the decision to a person. An `onhold` verdict is never in it, because
+ * on-hold is what happens when nobody decides.
  */
 export const REVIEW_AUTO_APPLY_VERDICTS = ["accept", "reject"] as const;
 

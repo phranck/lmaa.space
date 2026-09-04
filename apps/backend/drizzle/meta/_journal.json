@@ -680,6 +680,13 @@
       "when": 1788480790133,
       "tag": "0096_remove_review_provider_setting",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1788513709427,
+      "tag": "0097_remove_review_mode",
+      "breakpoints": true
     }
   ]
 }

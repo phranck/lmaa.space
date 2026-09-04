@@ -25,11 +25,6 @@ const VERDICT_LABELS: Record<string, string> = {
   onhold: "Zurückgestellt",
 };
 
-const MODE_LABELS: Record<string, string> = {
-  off: "abgeschaltet",
-  assist: "unterstützend",
-};
-
 function formatNumber(value: number | undefined): string {
   return (value ?? 0).toLocaleString("de-DE");
 }
@@ -103,7 +98,6 @@ function renderUsageBlock(job: ReviewJobRow): string {
     `submission=${job.submissionId}`,
     `job=${job.id}`,
     `verdict=${job.verdict ?? "-"}`,
-    `mode=${job.mode}`,
     `provider=${job.provider ?? "-"}`,
     `model=${job.model ?? "-"}`,
     `effort=${job.reasoningEffort ?? "-"}`,
@@ -156,7 +150,6 @@ function buildVariables(
     shopName: shop.shopName,
     shopUrl: shop.shopUrl,
     dashboardUrl: `${env.DASHBOARD_URL}/submissions/${job.submissionId}`,
-    mode: MODE_LABELS[job.mode] ?? job.mode,
     state: job.state,
     verdict: job.verdict ?? "-",
     verdictLabel: job.verdict ? (VERDICT_LABELS[job.verdict] ?? job.verdict) : "kein Ergebnis",

@@ -120,7 +120,6 @@ function onholdResult(): ReviewResult {
 
 function settings(overrides: Record<string, unknown> = {}) {
   return {
-    mode: "assist",
     autoApply: [],
     provider: "anthropic",
     model: "claude-opus-5",
@@ -156,31 +155,7 @@ describe("insertRejectionToken", () => {
 });
 
 describe("applyReviewResult", () => {
-  it("changes nothing when the automation is off", async () => {
-    const outcome = await applyReviewResult({
-      submissionId: 42,
-      result: acceptResult(),
-      settings: settings({ mode: "off" }),
-    });
-
-    expect(outcome.kind).toBe("none");
-    expect(submissionRepository.editSubmission).not.toHaveBeenCalled();
-    expect(submissionRepository.setReadyForReview).not.toHaveBeenCalled();
-    expect(moderation.reviewAdminSubmission).not.toHaveBeenCalled();
-  });
-
-  it("changes nothing whilst automation is off", async () => {
-    const outcome = await applyReviewResult({
-      submissionId: 42,
-      result: acceptResult(),
-      settings: settings({ mode: "off" }),
-    });
-
-    expect(outcome.kind).toBe("none");
-    expect(moderation.reviewAdminSubmission).not.toHaveBeenCalled();
-  });
-
-  it("writes the researched data and marks the suggestion ready in assist mode", async () => {
+  it("writes the researched data and marks the suggestion ready for a person", async () => {
     const outcome = await applyReviewResult({
       submissionId: 42,
       result: acceptResult(),

@@ -67,7 +67,7 @@ async function main(): Promise<void> {
   }
 
   process.stdout.write(
-    `Prüfe ${parsed.href}\n  Anbieter ${provider.name}, Modell ${settings.model}, Effort ${settings.effort}, Modus ${settings.mode}\n\n`,
+    `Prüfe ${parsed.href}\n  Anbieter ${provider.name}, Modell ${settings.model}, Effort ${settings.effort}\n\n`,
   );
 
   const [submission] = await db
@@ -91,7 +91,7 @@ async function main(): Promise<void> {
     // script created and removes again.
     const worker = new ReviewWorker(
       () => provider,
-      () => Promise.resolve({ ...settings, mode: "assist", autoApply: [], reportEnabled: false }),
+      () => Promise.resolve({ ...settings, autoApply: [], reportEnabled: false }),
     );
     const startedAt = Date.now();
 
