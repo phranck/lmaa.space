@@ -507,6 +507,16 @@ export interface DashboardMessages {
         reject: string;
         onhold: string;
       };
+      /**
+       * The same verdicts, where the automation applied them itself.
+       *
+       * `onhold` is absent because it is never applied: it is what happens
+       * when nobody decides, so there is nothing to have done.
+       */
+      verdictsApplied: {
+        accept: string;
+        reject: string;
+      };
       progress: {
         title: string;
         elapsedLabel: string;
@@ -2189,6 +2199,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           accept: "Aufnahme empfohlen",
           reject: "Ablehnung empfohlen",
           onhold: "Zurückgestellt",
+        },
+        verdictsApplied: {
+          accept: "Aufgenommen",
+          reject: "Abgelehnt",
         },
         progress: {
           title: "Automatische Prüfung",
@@ -3954,6 +3968,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           accept: "Acceptance recommended",
           reject: "Rejection recommended",
           onhold: "On hold",
+        },
+        verdictsApplied: {
+          accept: "Admitted",
+          reject: "Rejected",
         },
         progress: {
           title: "Automated check",

@@ -189,6 +189,17 @@ export interface ReviewJobListItem extends ReviewJob {
    * an admitted one whose shop predates the reference being stored.
    */
   shopId: number | null;
+  /**
+   * `true` where the automation set the submission's status itself.
+   *
+   * @remarks
+   * What separates a check that recommended an admission from one that granted
+   * it, which is a different thing to read: the first is work waiting for
+   * somebody, the second is a record of what happened. `submissionStatus`
+   * answers neither, because it says what the submission is rather than who
+   * decided it.
+   */
+  appliedByAutomation: boolean;
 }
 
 /**

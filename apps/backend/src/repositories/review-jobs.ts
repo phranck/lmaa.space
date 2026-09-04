@@ -19,6 +19,7 @@ import {
 
 import {
   ACTIVE_REVIEW_JOB_STATES,
+  REVIEW_APPLIED_EVENT,
   TERMINAL_REVIEW_JOB_STATES,
   canTransitionReviewJob,
 } from "@lmaa/shared";
@@ -683,13 +684,22 @@ export async function loadReviewJobMap(
  * Loads the review jobs with the submission each belongs to.
  *
  * @param limit - Largest number of rows to return.
- * @returns The newest jobs first, with the shop name, address, status and the
- * shop the submission was admitted as.
+ * @returns The newest jobs first, with the shop name, address, status, the shop
+ * the submission was admitted as, and whether the automation applied the
+ * verdict itself.
  *
  * @remarks
  * Joined rather than looked up per row, because the overview shows a shop name
  * next to every check and one query per row would grow with the list. The shop
  * is joined on the left, because a submission still under moderation has none.
+ *
+ * Whether the automation acted is read from the audit trail rather than from
+ * the submission's status, because the status says what the submission is and
+ * not who decided it. A `result.applied` entry is written only where the
+ * automation set the status itself, so an admission a person granted after
+ * reading the check does not read as one the automation made. Asked as an
+ * `EXISTS` rather than by loading the events, which the list does not need for
+ * anything else.
  */
 export async function listReviewJobsWithSubmission(limit = 200) {
   return db
@@ -699,6 +709,11 @@ export async function listReviewJobsWithSubmission(limit = 200) {
       shopUrl: submissions.shopUrl,
       submissionStatus: submissions.status,
       shopId: shops.id,
+      appliedByAutomation: sql<boolean>`EXISTS (
+        SELECT 1 FROM ${reviewEvents}
+        WHERE ${reviewEvents.jobId} = ${reviewJobs.id}
+          AND ${reviewEvents.event} = ${REVIEW_APPLIED_EVENT}
+      )`,
     })
     .from(reviewJobs)
     .innerJoin(submissions, eq(submissions.id, reviewJobs.submissionId))

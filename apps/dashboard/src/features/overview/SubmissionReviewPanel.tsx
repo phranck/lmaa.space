@@ -2,7 +2,13 @@ import { CheckCircleIcon, RobotIcon, XCircleIcon } from "@phosphor-icons/react";
 import { memo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { REVIEW_SETTING_DEFAULTS, SETTINGS_KEYS, formatDateTime } from "@lmaa/shared";
+import {
+  REVIEW_APPLIED_EVENT,
+  REVIEW_ENRICHED_EVENT,
+  REVIEW_SETTING_DEFAULTS,
+  SETTINGS_KEYS,
+  formatDateTime,
+} from "@lmaa/shared";
 import type { ReviewCost, ReviewJobDetail } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -35,7 +41,14 @@ const ACTIVE_STATES = new Set(["queued", "running", "provider_waiting", "applyin
  * already exists, reaches a verdict and changes nothing, and a card claiming
  * otherwise sends a moderator looking for fields that were never filled.
  */
-const APPLIED_EVENTS = new Set(["result.enriched", "result.applied"]);
+/**
+ * The entries that mean the check has already changed the submission.
+ *
+ * One where it wrote its research in and left the decision alone, one where it
+ * applied the verdict itself. Named in the shared constants, because the list
+ * query asks the same question of the same entries.
+ */
+const APPLIED_EVENTS = new Set<string>([REVIEW_ENRICHED_EVENT, REVIEW_APPLIED_EVENT]);
 const TERMINAL_STATES = new Set(["completed", "failed", "cancelled"]);
 
 /** Nano-units per whole currency unit, matching the backend's counting. */
@@ -196,11 +209,7 @@ export const SubmissionReviewPanel = memo(function SubmissionReviewPanel({
             <ReviewField label={t.reportLabel} value={detail.reportState} />
             <ReviewField
               label={t.checkedAtLabel}
-              value={
-                detail.finishedAt
-                  ? formatDateTime(detail.finishedAt, locale)
-                  : "–"
-              }
+              value={detail.finishedAt ? formatDateTime(detail.finishedAt, locale) : "–"}
             />
           </div>
 
@@ -235,9 +244,7 @@ export const SubmissionReviewPanel = memo(function SubmissionReviewPanel({
               <ul className="mt-2 flex flex-col gap-1">
                 {detail.events.map((entry) => (
                   <li key={entry.id} className="text-xs text-[var(--ds-text-muted)]">
-                    <span className="font-mono">
-                      {formatDateTime(entry.createdAt, locale)}
-                    </span>{" "}
+                    <span className="font-mono">{formatDateTime(entry.createdAt, locale)}</span>{" "}
                     {entry.event}
                     {entry.detail ? ` — ${entry.detail}` : ""}
                   </li>
