@@ -434,7 +434,7 @@ export class AnthropicReviewProvider implements ReviewProvider {
             system: [
               {
                 type: "text",
-                text: buildReviewSystemPrompt(request.skill, { canFetchPages: true }),
+                text: buildReviewSystemPrompt(request.skill),
                 // Held for an hour rather than the default five minutes, so a
                 // batch that waits in the queue, its continuations and the
                 // checks that follow read the rules back instead of writing
@@ -603,7 +603,7 @@ export class AnthropicReviewProvider implements ReviewProvider {
     if (!parsed) {
       // A cut-off answer is a different failure from an unusable one, and the
       // difference decides whether trying again can help. Anthropic says so
-      // outright, which the other adapter has to infer from a token count.
+      // outright in the stop reason.
       const truncated = message.stop_reason === "max_tokens";
       return this.outcome("invalid_output", {
         usage,
@@ -613,8 +613,8 @@ export class AnthropicReviewProvider implements ReviewProvider {
         errorMessage: truncated
           ? `Die Antwort wurde bei ${MAX_TOKENS} Token abgeschnitten und blieb unvollständig.`
           : "Die Antwort enthielt kein auswertbares JSON-Objekt",
-        // Kept for the same reason as on the other adapter: without it a reply
-        // that carried no usable JSON leaves nothing to look at.
+        // Without it a reply that carried no usable JSON leaves nothing to
+        // look at but the error code.
         rawAnswer: readText(message).slice(0, MAX_RAW_ANSWER_CHARS),
         // A truncated answer is not retried, because the next attempt sends the
         // same task against the same ceiling and stops in the same place.

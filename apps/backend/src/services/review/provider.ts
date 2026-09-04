@@ -1,6 +1,5 @@
 import type { ReviewUsage } from "@lmaa/shared";
 
-
 import type { ReviewRunContext } from "./context.js";
 import type { ReviewSkill } from "./skill.js";
 import type { ReviewBilling } from "../../lib/review-cost.js";
@@ -114,8 +113,8 @@ export interface ReviewProviderOutcome {
  *
  * @remarks
  * The worker owns retries, leases, validation and application. A provider only
- * runs one attempt and reports what came back, which is what keeps a second
- * provider from having to reimplement any of the orchestration.
+ * runs one attempt and reports what came back, so the orchestration is written
+ * once and a test can stand in for the provider without touching any of it.
  */
 export interface ReviewProvider {
   /** Stable provider name persisted with every job, for example `anthropic`. */
@@ -128,11 +127,10 @@ export interface ReviewProvider {
    * The rate this adapter is billed at.
    *
    * @remarks
-   * Named by the adapter rather than assumed by the worker, because the two
-   * adapters submit differently: one queues a batch at half price and the other
-   * asks and waits. Pricing a standard run as a batch would record half of what
-   * was charged, and the daily ceiling would let through twice the spending it
-   * was set to allow.
+   * Named by the adapter rather than assumed by the worker, because it follows
+   * from how the adapter submits a run. A batch is billed at half, so pricing a
+   * standard run as one would record half of what was charged and the daily
+   * ceiling would let through twice the spending it was set to allow.
    */
   readonly billing: ReviewBilling;
 

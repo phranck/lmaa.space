@@ -9,13 +9,11 @@ export const SETTINGS_KEYS = {
   // ── Automated shop review ────────────────────────────────────────────────
   // Everything the automated review needs at runtime lives here rather than in
   // the environment, so a change takes effect on the next worker tick instead
-  // of on the next deployment. Which provider runs is a setting here too; the
-  // key that authenticates against it is the one exception, because it is a
-  // secret and stays in the environment.
+  // of on the next deployment. The key that authenticates against the provider
+  // is the one exception, because it is a secret and stays in the environment.
   REVIEW_MODE: "review.mode",
   REVIEW_AUTO_APPLY_ACCEPT: "review.autoApplyAccept",
   REVIEW_AUTO_APPLY_REJECT: "review.autoApplyReject",
-  REVIEW_PROVIDER: "review.provider",
   REVIEW_MODEL: "review.model",
   REVIEW_EFFORT: "review.effort",
   REVIEW_MAX_ATTEMPTS: "review.maxAttempts",
@@ -47,7 +45,6 @@ export const SYSTEM_REVIEW_SETTINGS_KEYS = [
   SETTINGS_KEYS.REVIEW_MODE,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT,
   SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT,
-  SETTINGS_KEYS.REVIEW_PROVIDER,
   SETTINGS_KEYS.REVIEW_MODEL,
   SETTINGS_KEYS.REVIEW_EFFORT,
   SETTINGS_KEYS.REVIEW_MAX_ATTEMPTS,
@@ -69,53 +66,14 @@ export const SYSTEM_SETTINGS_KEYS = [
 ] as const;
 
 /**
- * Providers the automated review can run a check on.
+ * The model a check runs on until somebody chooses another.
  *
  * @remarks
- * A provider is named here rather than derived from the chosen model, because
- * the model list has to be fetched from somebody before there is a model to
- * derive anything from.
+ * Named rather than written into {@link REVIEW_SETTING_DEFAULTS} directly, so
+ * a test can hold it against the rate card. A default the card cannot price
+ * would be costed at zero and would pass the daily ceiling untouched.
  */
-export const REVIEW_PROVIDERS = ["anthropic", "mistral"] as const;
-
-/** Union of the providers a check may run on. */
-export type ReviewProviderName = (typeof REVIEW_PROVIDERS)[number];
-
-/**
- * How each provider is named on screen.
- *
- * @remarks
- * Beside the list rather than in the locale files, because these are company
- * names and read the same in every language. Keeping them here also means a
- * provider cannot be added to the list without being given a name.
- */
-export const REVIEW_PROVIDER_LABELS: Readonly<Record<ReviewProviderName, string>> = {
-  anthropic: "Anthropic",
-  mistral: "Mistral",
-};
-
-/**
- * The model each provider runs when none has been chosen for it.
- *
- * @remarks
- * A model belongs to exactly one provider, so a provider without a model of its
- * own has nothing to run. This is what a check falls back to when the model it
- * was configured with belongs to the other provider, which is a state the two
- * settings can otherwise reach on their own.
- */
-export const REVIEW_PROVIDER_DEFAULT_MODELS: Readonly<Record<ReviewProviderName, string>> = {
-  anthropic: "claude-opus-5",
-  mistral: "mistral-medium-latest",
-};
-
-/**
- * The provider a check runs on until somebody chooses another.
- *
- * @remarks
- * Named once, because the settings defaults, the settings loader and the route
- * that lists models all need the same answer and three literals would drift.
- */
-export const REVIEW_DEFAULT_PROVIDER: ReviewProviderName = "anthropic";
+export const REVIEW_DEFAULT_MODEL = "claude-opus-5";
 
 /**
  * Values the automated review falls back to when no setting has been saved.
@@ -130,8 +88,7 @@ export const REVIEW_SETTING_DEFAULTS = {
   [SETTINGS_KEYS.REVIEW_MODE]: "off",
   [SETTINGS_KEYS.REVIEW_AUTO_APPLY_ACCEPT]: "false",
   [SETTINGS_KEYS.REVIEW_AUTO_APPLY_REJECT]: "false",
-  [SETTINGS_KEYS.REVIEW_PROVIDER]: REVIEW_DEFAULT_PROVIDER,
-  [SETTINGS_KEYS.REVIEW_MODEL]: REVIEW_PROVIDER_DEFAULT_MODELS[REVIEW_DEFAULT_PROVIDER],
+  [SETTINGS_KEYS.REVIEW_MODEL]: REVIEW_DEFAULT_MODEL,
   [SETTINGS_KEYS.REVIEW_EFFORT]: "high",
   [SETTINGS_KEYS.REVIEW_MAX_ATTEMPTS]: "3",
   [SETTINGS_KEYS.REVIEW_COST_LIMIT_PER_CHECK_EUR]: "2",

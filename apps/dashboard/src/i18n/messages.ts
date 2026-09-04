@@ -1440,8 +1440,6 @@ export interface DashboardMessages {
         notifyAcceptTemplateLabel: string;
         notifyRejectTemplateLabel: string;
         autoApplyBlocked: string;
-        providerLabel: string;
-        providerHint: string;
         notifyTitle: string;
         socialTitle: string;
         socialHint: string;
@@ -3213,9 +3211,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
             "Je Konto die Vorlage, mit der die Automatik eine Aufnahme ankündigt. Ohne Vorlage wird auf diesem Konto nichts gepostet.",
           socialNoPost: "Kein Beitrag",
           socialNoAccounts: "Es ist kein sendebereites Konto eingerichtet.",
-          providerLabel: "Anbieter",
-          providerHint:
-            "Bestimmt, welche Modelle zur Auswahl stehen und welcher Schlüssel in der Umgebung gebraucht wird. Ein Wechsel setzt das Modell zurück, weil ein Modell immer zu genau einem Anbieter gehört.",
           modelLabel: "Modell",
           modelHint:
             "Auswahl aus den Modellen, die der Anbieter derzeit anbietet. Das gewählte Modell wird bei jeder Prüfung mitgeschrieben, damit ein Ergebnis seinem Modell zuzuordnen bleibt, und es bestimmt den Preis je Million Token.",
@@ -4975,9 +4970,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
             "The template each account announces an admission with. Without one, that account posts nothing.",
           socialNoPost: "No post",
           socialNoAccounts: "No account is set up to post.",
-          providerLabel: "Provider",
-          providerHint:
-            "Decides which models are on offer and which key the environment needs. Changing it resets the model, because a model belongs to exactly one provider.",
           modelLabel: "Model",
           modelHint:
             "Chosen from the models the provider currently offers. The choice is recorded with every check, so a result stays tied to the model that produced it, and it sets the price per million tokens.",

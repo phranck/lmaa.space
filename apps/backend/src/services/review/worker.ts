@@ -190,9 +190,7 @@ export class ReviewWorker {
 
       const provider = this.createProvider(settings);
       if (!provider.isConfigured()) {
-        // Names the provider, because the key that is missing is the one for
-        // whichever provider the settings chose and the other may well be set.
-        logger.warn({ provider: settings.provider }, "review worker idle: no API key is set");
+        logger.warn({ provider: provider.name }, "review worker idle: no API key is set");
         return;
       }
 

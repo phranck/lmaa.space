@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
-import { REVIEW_PROVIDERS } from "@lmaa/shared";
 import type { ReviewCost } from "@lmaa/shared";
 
 import { db } from "../../db/client.js";
@@ -48,15 +47,8 @@ reviewJobRoutes.get("/review-jobs", async (c) => {
 });
 
 // GET /api/admin/review/models — models the automation can be configured to use
-//
-// The provider is a query parameter rather than read from the settings, because
-// the settings page asks about a provider the operator is considering and has
-// not saved yet. An unknown name falls back to the default rather than failing,
-// so a stale dashboard sees a list instead of an error.
 reviewJobRoutes.get("/review/models", async (c) => {
-  const requested = c.req.query("provider");
-  const provider = REVIEW_PROVIDERS.find((name) => name === requested) ?? "anthropic";
-  return ok(c, await listReviewModels(provider));
+  return ok(c, await listReviewModels());
 });
 
 // GET /api/admin/review-jobs/spend — what the automation has cost in total

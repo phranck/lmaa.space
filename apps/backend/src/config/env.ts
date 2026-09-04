@@ -67,18 +67,15 @@ export const envSchema = z
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
     RUN_MIGRATIONS_ON_STARTUP: z.enum(["true", "false"]).default("true"),
     // ── Automated shop review ────────────────────────────────────────────────
-    // The provider keys are the only piece of review configuration that lives
-    // in the environment, because they are secrets. Everything else is a system
+    // The provider key is the only piece of review configuration that lives in
+    // the environment, because it is a secret. Everything else is a system
     // setting, so it can be changed in the dashboard and takes effect on the
-    // next worker tick rather than on the next deployment. Which of the two
-    // providers runs is such a setting.
+    // next worker tick rather than on the next deployment.
     //
-    // Both are optional so the site keeps running without them, and a check
-    // needs only the key of the provider it is configured for. The adapter
-    // checks for its own key and reports the run as unconfigured when it is
-    // missing, which keeps an absent credential from taking the website down.
+    // Optional, so the site keeps running without it. The adapter checks for
+    // the key and reports the run as unconfigured when it is missing, which
+    // keeps an absent credential from taking the website down.
     ANTHROPIC_API_KEY: z.string().optional(),
-    MISTRAL_API_KEY: z.string().optional(),
     // ── Enable Banking ───────────────────────────────────────────────────────
     // The site reads its own bank account through Enable Banking, and these two
     // are one credential in two halves: the application the provider knows us

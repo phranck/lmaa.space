@@ -1,4 +1,4 @@
-import type { ReviewCost, ReviewProviderName, ReviewUsage } from "@lmaa/shared";
+import type { ReviewCost, ReviewUsage } from "@lmaa/shared";
 
 /**
  * Nano-units per whole currency unit.
@@ -41,16 +41,6 @@ export interface ReviewRateCardPrices {
  */
 export interface ReviewRateCard {
   version: string;
-  /**
-   * Provider whose published prices this card holds.
-   *
-   * @remarks
-   * A model belongs to exactly one provider, so this is also what says which
-   * provider owns each model the card prices. {@link reviewProviderForModel}
-   * is the lookup, and the settings hold the configured model against the
-   * configured provider with it.
-   */
-  provider: ReviewProviderName;
   /** Currency the provider bills in, which is what the stored amount counts. */
   currency: string;
   /** ISO 8601 date from which these prices and this conversion apply. */
@@ -65,16 +55,14 @@ export interface ReviewRateCard {
 /** One Anthropic-hosted web search, at 10 USD per thousand. */
 const ANTHROPIC_PER_WEB_SEARCH_NANO = 10_000_000n;
 
-/** One Mistral-hosted web search, at 30 USD per thousand. */
-const MISTRAL_PER_WEB_SEARCH_NANO = 30_000_000n;
-
 /**
  * The rules that turn a provider's two published rates into a full price row.
  *
  * @remarks
- * Both providers discount a repeated input token to a tenth, so that one is
- * derived rather than configured. The other two differ, and each is a figure a
- * provider publishes for itself.
+ * A repeated input token is discounted to a tenth, so that rate is derived
+ * rather than configured. The other two are figures a provider publishes for
+ * itself, which is why a card carries its own derivation rather than sharing
+ * one.
  */
 interface ReviewPriceDerivation {
   /**
@@ -82,8 +70,7 @@ interface ReviewPriceDerivation {
    * in hundredths.
    *
    * @remarks
-   * Anthropic charges a quarter more than the input rate. Mistral publishes the
-   * discount for reading and no surcharge for writing, so its multiple is one.
+   * Anthropic charges a quarter more than the input rate.
    */
   cacheWritePercent: bigint;
   /** Price of one provider-hosted web search, in nano-units. */
@@ -124,12 +111,6 @@ const ANTHROPIC_DERIVATION: ReviewPriceDerivation = {
   perWebSearch: ANTHROPIC_PER_WEB_SEARCH_NANO,
 };
 
-/** Mistral publishes no surcharge for a cache write, so it is priced as input. */
-const MISTRAL_DERIVATION: ReviewPriceDerivation = {
-  cacheWritePercent: 100n,
-  perWebSearch: MISTRAL_PER_WEB_SEARCH_NANO,
-};
-
 /**
  * Prices published by Anthropic, as of 2026-08-15.
  *
@@ -148,7 +129,6 @@ const MISTRAL_DERIVATION: ReviewPriceDerivation = {
  */
 const REVIEW_RATE_CARD_V1: ReviewRateCard = {
   version: "anthropic-2026-08-15",
-  provider: "anthropic",
   currency: "USD",
   effectiveFrom: "2026-08-15",
   // 1 USD was 0.865 EUR on 2026-08-15. Pinned rather than fetched, because a
@@ -168,27 +148,29 @@ const REVIEW_RATE_CARD_V1: ReviewRateCard = {
 };
 
 /**
- * Prices published by Mistral, as of 2026-09-03.
+ * Mistral charged no surcharge for a cache write, and 30 USD per thousand
+ * searches.
+ */
+const MISTRAL_DERIVATION: ReviewPriceDerivation = {
+  cacheWritePercent: 100n,
+  perWebSearch: 30_000_000n,
+};
+
+/**
+ * Prices Mistral published on 2026-09-03, kept only to convert what was spent.
  *
  * @remarks
- * Both models are listed under their dated identifier and under the alias that
- * points at it, because either string may be what the account's model list
- * returns and a model this card cannot price is left out of the settings
- * entirely.
+ * Mistral is no longer a provider a check can run on. Checks did run on it
+ * whilst it was, and each of their amounts names this version as the one it was
+ * produced under, so the card stays in {@link REVIEW_RATE_CARDS} and converts
+ * them. It is absent from {@link CURRENT_REVIEW_RATE_CARDS}, so nothing new is
+ * priced against it.
  *
- * The cache rates are carried for completeness and never apply in practice.
- * Mistral's conversation usage reports a prompt token count and nothing that
- * separates a cached token from a fresh one, so every prompt token is priced at
- * the full input rate. That is the honest reading of what a run reports, and it
- * is the more expensive of the two figures PAP-LMAA-010 gives.
- *
- * The conversion rate is the one the Anthropic card pins. Both cards bill in
- * USD and are shown in EUR, and a rate that differed by a few weeks would make
- * two providers' amounts incomparable for no gain.
+ * The cache rates never applied in practice, because Mistral reported a prompt
+ * token count and nothing that separated a cached token from a fresh one.
  */
 const MISTRAL_RATE_CARD_V1: ReviewRateCard = {
   version: "mistral-2026-09-03",
-  provider: "mistral",
   currency: "USD",
   effectiveFrom: "2026-09-03",
   displayCurrency: "EUR",
@@ -202,26 +184,21 @@ const MISTRAL_RATE_CARD_V1: ReviewRateCard = {
 };
 
 /**
- * The cards new checks are costed against, one per provider.
+ * The cards new checks are costed against.
  *
  * @remarks
- * A provider publishes its own prices and its own rules for deriving the rates
- * it does not publish, so each gets a card and each card is versioned on its
- * own. A price change at one provider therefore leaves the other's amounts
- * alone.
+ * A card is versioned on its own, so a price change creates a new one and
+ * leaves every finished amount alone.
  */
-const CURRENT_REVIEW_RATE_CARDS: readonly ReviewRateCard[] = [
-  REVIEW_RATE_CARD_V1,
-  MISTRAL_RATE_CARD_V1,
-];
+const CURRENT_REVIEW_RATE_CARDS: readonly ReviewRateCard[] = [REVIEW_RATE_CARD_V1];
 
 /**
  * The card used where no model is in hand.
  *
  * @remarks
- * Only its currency and its conversion rate are read this way, and every
- * current card agrees on both. Anything that prices actual usage goes through
- * {@link reviewRateCardFor} instead, because that answer depends on the model.
+ * Only its currency and its conversion rate are read this way. Anything that
+ * prices actual usage goes through {@link reviewRateCardFor} instead, because
+ * that answer depends on the model.
  */
 export const DEFAULT_REVIEW_RATE_CARD = REVIEW_RATE_CARD_V1;
 
@@ -232,29 +209,11 @@ export const DEFAULT_REVIEW_RATE_CARD = REVIEW_RATE_CARD_V1;
  * @returns The card holding its prices, or `undefined` when none does.
  *
  * @remarks
- * Selected by model rather than by provider, because a model identifier belongs
- * to exactly one provider and every caller already holds one. Passing the
- * provider as well would be a second way of saying the same thing, and the two
- * could disagree.
+ * A retired model is not found here, which is what keeps it out of the settings
+ * and stops a check being costed at zero on it.
  */
 function reviewRateCardFor(model: string): ReviewRateCard | undefined {
   return CURRENT_REVIEW_RATE_CARDS.find((card) => card.prices[model] !== undefined);
-}
-
-/**
- * Says which provider a model belongs to.
- *
- * @param model - Model identifier as its provider names it.
- * @returns The provider that publishes it, or `undefined` for a model no
- * current card knows.
- *
- * @remarks
- * Read from the rate cards rather than from a table of its own, because they
- * already enumerate every model a check may run on and a second list would
- * disagree with them the first time a model was added to one of the two.
- */
-export function reviewProviderForModel(model: string): ReviewProviderName | undefined {
-  return reviewRateCardFor(model)?.provider;
 }
 
 /**
