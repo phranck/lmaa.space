@@ -23,6 +23,14 @@ import { VERDICT_COLORS } from "@/features/overview/verdict-colors.ts";
 const NANO_PER_UNIT = 1_000_000_000;
 
 /**
+ * Columns the footer note spans, counted from the left.
+ *
+ * Three, which is everything before the summary labels. Any more would take
+ * the column the labels sit in and push them away from their amounts.
+ */
+const FOOTER_LEAD_COLUMNS = 3;
+
+/**
  * Reads an amount as a number of whole currency units.
  *
  * @param cost - The amount, or `null` when nothing has been costed yet.
@@ -102,6 +110,29 @@ export function AutomatedChecksTab() {
   // The legend appears only where a marked amount does, so an explanation is
   // never offered for something that is not on screen.
   const hasIncomplete = jobs.some((job) => job.cost && !job.cost.complete);
+
+  // Beside the totals rather than under the table, because it explains the
+  // marker those amounts carry. Spanning the three columns left of the labels
+  // keeps it clear of them whilst it wraps over the rows' full height.
+  const footerLead = useMemo(
+    () =>
+      hasIncomplete
+        ? {
+            columnCount: FOOTER_LEAD_COLUMNS,
+            node: (
+              <p className="flex items-start gap-1.5 text-xs text-[var(--ds-text-subtle)]">
+                <WarningCircleIcon
+                  weight="duotone"
+                  aria-hidden
+                  className="mt-0.5 size-4 shrink-0 text-amber-400"
+                />
+                {t.costIncomplete}
+              </p>
+            ),
+          }
+        : undefined,
+    [hasIncomplete, t.costIncomplete],
+  );
 
   // Written into the cost column of the table rather than under it, so the
   // totals stand exactly beneath the amounts they add up.
@@ -287,31 +318,18 @@ export function AutomatedChecksTab() {
   }
 
   return (
-    <>
-      {/* Pulled over the scroll container's padding on every side, so the
-          sticky footer can reach the bottom edge rather than stopping short
-          of it. */}
-      <div className="-mx-3 -mt-3 -mb-3">
-        <DataTable
-          columns={columns}
-          data={jobs}
-          getRowKey={(job) => job.id}
-          stickyHeader
-          stickyFooter
-          footerRows={footerRows}
-        />
-      </div>
-
-      {hasIncomplete ? (
-        <p className="mt-3 flex items-center gap-1.5 text-xs text-[var(--ds-text-subtle)]">
-          <WarningCircleIcon
-            weight="duotone"
-            aria-hidden
-            className="size-4 shrink-0 text-amber-400"
-          />
-          {t.costIncomplete}
-        </p>
-      ) : null}
-    </>
+    // Pulled over the scroll container's padding on every side, so the sticky
+    // footer can reach the bottom edge rather than stopping short of it.
+    <div className="-mx-3 -mt-3 -mb-3">
+      <DataTable
+        columns={columns}
+        data={jobs}
+        getRowKey={(job) => job.id}
+        stickyHeader
+        stickyFooter
+        footerRows={footerRows}
+        footerLead={footerLead}
+      />
+    </div>
   );
 }
