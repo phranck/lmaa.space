@@ -42,12 +42,18 @@ export default {
         files: ["src/features/system/SocialPreviewPage.tsx"],
         rules: ["react-doctor/prefer-useReducer"],
       },
-      // The support ladder carries the whole donation interface in one island.
-      // Splitting it and modelling its tab and amount as one machine is tracked
-      // in issue #138, rather than reported as a regression on every scan.
+      // The ladder is the switch and the wiring: the amounts, the routes, the
+      // transfer card and the state machine are each their own module now. What
+      // is left is still long, because it holds the sponsor form and the code
+      // that draws the GiroCode into the card below it. `AmountGrid` is one
+      // grid with one field, and splitting it further would separate a label
+      // from the input it names.
       {
-        files: ["src/components/islands/SupportLadder.tsx"],
-        rules: ["react-doctor/no-giant-component", "react-doctor/prefer-useReducer"],
+        files: [
+          "src/components/islands/SupportLadder.tsx",
+          "src/components/islands/SupportLadderAmounts.tsx",
+        ],
+        rules: ["react-doctor/no-giant-component"],
       },
       // Controlled preference wrappers restore a parent-owned value exactly once.
       {
