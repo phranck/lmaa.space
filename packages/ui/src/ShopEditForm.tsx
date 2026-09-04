@@ -561,14 +561,19 @@ export function ShopEditForm({
             icon={<MarkdownLogoIcon weight="duotone" className="size-4" />}
             title={messages.descriptionLabel}
           />
-          <DashboardSection.Body className="!p-0 min-h-[24rem]">
+          <DashboardSection.Body className="!p-0">
+            {/* No `flex-1` on the editor. The body is a flex column, so that
+                would hand its height to the layout, and the height a drag
+                writes into the element would be discarded on the next pass.
+                The editor keeps the height it is given, which is what makes it
+                draggable and what lets it remember the result. */}
             <MarkdownEditor
               id="sef-description"
               value={value.description}
               onChange={(v) => set("description", v)}
               rows={15}
               resizable
-              className={`!border-0 !rounded-none !rounded-b-xl flex-1 ${errors?.description ? "border-red-400" : ""}`}
+              className={`!border-0 !rounded-none !rounded-b-xl ${errors?.description ? "border-red-400" : ""}`}
             />
             {errors?.description && (
               <FormErrorText className="px-4 pb-3">{errors.description}</FormErrorText>

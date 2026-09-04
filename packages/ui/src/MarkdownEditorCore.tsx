@@ -29,9 +29,12 @@ import CodeMirror from "@uiw/react-codemirror";
 import * as React from "react";
 
 import {
+  editorHeightKey,
   highlightShortcodes,
+  readStoredEditorHeight,
   shortcodeIndentFor,
   shortcodePasteRewrite,
+  shouldStoreEditorHeight,
   type ShortcodeHighlightKind,
   type ShortcodePasteRewrite,
 } from "@lmaa/shared";
@@ -519,6 +522,70 @@ function storeSwitch(key: string, on: boolean): void {
   window.localStorage.setItem(key, on ? "on" : "off");
 }
 
+/**
+ * How long the editor waits after a drag settles before storing its height.
+ *
+ * A drag reports on every frame it moves. Waiting until it has stopped writes
+ * once for a gesture rather than sixty times, and a fifth of a second is short
+ * enough that letting go and navigating away still stores it.
+ */
+const HEIGHT_STORE_DELAY_MS = 200;
+
+/**
+ * Remembers how tall this editor is dragged.
+ *
+ * @param id - The editor's own id, which the height is stored against. An
+ * editor without one remembers nothing.
+ * @param enabled - Whether the editor can be dragged at all. There is nothing
+ * to remember for one that cannot.
+ * @returns The height to start at, or `null` where none is remembered, and the
+ * ref to put on the element that gets dragged.
+ *
+ * @remarks
+ * `resize` changes the element and tells nobody, so the height is observed
+ * rather than reported. The stored value is read once, on the first render, so
+ * a height stored later in the session does not move an editor whilst somebody
+ * is looking at it.
+ */
+function useRememberedHeight(id: string | undefined, enabled: boolean) {
+  const key = enabled ? editorHeightKey(id) : null;
+  const wrapper = React.useRef<HTMLDivElement | null>(null);
+
+  const [initial] = React.useState(() =>
+    key && typeof window !== "undefined"
+      ? readStoredEditorHeight(window.localStorage.getItem(key))
+      : null,
+  );
+
+  React.useEffect(() => {
+    const element = wrapper.current;
+    if (!key || !element || typeof ResizeObserver === "undefined") return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const observer = new ResizeObserver((entries) => {
+      const height = entries[0]?.contentRect.height;
+      if (height === undefined) return;
+
+      // Restarted on every callback, so the write happens once the gesture has
+      // settled rather than once per frame of it.
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (shouldStoreEditorHeight(height, window.localStorage.getItem(key))) {
+          window.localStorage.setItem(key, String(Math.round(height)));
+        }
+      }, HEIGHT_STORE_DELAY_MS);
+    });
+
+    observer.observe(element);
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [key]);
+
+  return { initialHeight: initial, wrapper };
+}
+
 function FooterButton({
   onClick,
   pressed,
@@ -689,7 +756,13 @@ export function MarkdownEditorCore({
     [onPaste, placeholder, extraExtensions, lineWrap, showLineNumbers, showWhitespace],
   );
 
-  const startHeight = resizable ? (height ?? wrapperHeight) : height;
+  const { initialHeight, wrapper } = useRememberedHeight(id, resizable);
+
+  // On an editor that can be dragged, a height dragged before wins over both
+  // the `height` prop and the one derived from `rows`. Those two are where the
+  // editor opens the first time; a remembered height is what somebody chose.
+  // An editor that cannot be dragged keeps whatever the call site states.
+  const startHeight = resizable ? (initialHeight ?? height ?? wrapperHeight) : height;
   const wrapperStyle: React.CSSProperties | undefined = resizable
     ? { height: startHeight, resize: "vertical", overflow: "hidden" }
     : startHeight
@@ -708,6 +781,7 @@ export function MarkdownEditorCore({
   return (
     <div
       id={id}
+      ref={wrapper}
       className={`rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] overflow-hidden focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:outline-none ${isFlexCol ? "flex flex-col" : ""} ${className}`}
       style={wrapperStyle}
     >

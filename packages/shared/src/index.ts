@@ -46,6 +46,8 @@ export * from "./utils/site-variables.js";
 export * from "./utils/text-tokens.js";
 /** What each part of a shortcode is, so an editor can colour it. */
 export * from "./utils/markdown-shortcode-highlight.js";
+/** Remembering how tall somebody dragged a Markdown editor. */
+export * from "./utils/markdown-editor-height.js";
 /** The ISO 11649 creditor reference a transfer carries instead of a sentence. */
 export * from "./utils/creditor-reference.js";
 /** How long a sponsorship stands and how much of it is left. */
