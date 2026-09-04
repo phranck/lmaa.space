@@ -147,7 +147,12 @@ try {
         Left out entirely outside production, rather than kept and silenced.
         A script that is there counts page views whether or not any event
         fires, so development would show up in the figures, and every local
-        page load would fetch it from the analytics host for nothing. */}
+        page load would fetch it from the analytics host for nothing.
+
+        `data-performance` is what makes the tracker observe the web vitals.
+        Without the attribute it registers no PerformanceObserver at all, and
+        the LCP, INP, CLS, FCP and TTFB columns stay empty with nothing on
+        either side saying why. */}
     {import.meta.env.PROD && (
       <script
         is:inline
@@ -156,6 +161,7 @@ try {
         integrity={ANALYTICS_SCRIPT_INTEGRITY}
         crossorigin="anonymous"
         data-website-id="ebec4dd2-b578-4f10-a416-6503c7fe2da0"
+        data-performance="true"
       ></script>
     )}
   </head>
