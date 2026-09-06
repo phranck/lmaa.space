@@ -29,6 +29,7 @@ import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
 import type { DashboardLocale } from "@/i18n/messages.ts";
 import { FRONTEND_URL } from "@/lib/env.ts";
 
+import { ShopColumnId } from "./shop-filter-state.ts";
 import { resolveShopRowDate, shopRowDateSortValue } from "./shop-row-date.ts";
 
 interface ShopTableProps {
@@ -103,7 +104,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
   const columns = useMemo<ColumnDef<AdminShopListItem>[]>(
     () => [
       {
-        id: "name",
+        id: ShopColumnId.Name,
         header: shopsMessages.table.shop,
         sortKey: (shop) => shop.name.toLowerCase(),
         cell: (shop) => (
@@ -157,7 +158,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         ),
       },
       {
-        id: "categories",
+        id: ShopColumnId.Categories,
         header: shopsMessages.table.categories,
         cell: (shop) => {
           const visibleCategories = shop.categories.slice(0, 3);
@@ -175,7 +176,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         },
       },
       {
-        id: "region",
+        id: ShopColumnId.Region,
         header: shopsMessages.table.region,
         className: "w-36",
         sortKey: (shop) => (shop.region ?? []).join(", "),
@@ -199,7 +200,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
           ),
       },
       {
-        id: "date",
+        id: ShopColumnId.Date,
         header: shopsMessages.table.dates.header,
         className: "w-40",
         sortKey: shopRowDateSortValue,
@@ -219,7 +220,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         },
       },
       {
-        id: "likes",
+        id: ShopColumnId.Likes,
         header: shopsMessages.table.likes,
         className: "w-20",
         sortKey: (shop) => shop.likeCount,
@@ -234,7 +235,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
           ),
       },
       {
-        id: "actions",
+        id: ShopColumnId.Actions,
         className: "w-36",
         cell: (shop) => (
           <div className="flex gap-2 justify-end">
