@@ -184,12 +184,19 @@ export interface DashboardMessages {
       permanentDeleteDescription: string;
       deletionInfo: string;
       deletedBy: string;
-      deletedAt: string;
       deletionReason: string;
       noReason: string;
       wasReported: string;
       needsReview: string;
       likes: string;
+      /** The date column, whose label follows the state each row is in. */
+      dates: {
+        header: string;
+        admitted: string;
+        onhold: string;
+        rejected: string;
+        deleted: string;
+      };
     };
     exportLabel: string;
     exportTooltip: string;
@@ -1873,12 +1880,18 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "Der Shop wird dauerhaft aus der Datenbank entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
         deletionInfo: "Löschdetails",
         deletedBy: "Gelöscht von",
-        deletedAt: "Gelöscht am",
         deletionReason: "Begründung",
         noReason: "Kein Grund angegeben",
         wasReported: "Shop wurde gemeldet",
         needsReview: "Review",
         likes: "Likes",
+        dates: {
+          header: "Datum",
+          admitted: "Aufgenommen",
+          onhold: "Zurückgestellt",
+          rejected: "Abgelehnt",
+          deleted: "Gelöscht",
+        },
       },
       exportLabel: "Exportieren",
       exportTooltip: "Shops als JSON exportieren",
@@ -3657,12 +3670,18 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "The shop will be permanently removed from the database. This action cannot be undone.",
         deletionInfo: "Deletion details",
         deletedBy: "Deleted by",
-        deletedAt: "Deleted at",
         deletionReason: "Reason",
         noReason: "No reason provided",
         wasReported: "Shop was reported",
         needsReview: "Review",
         likes: "Likes",
+        dates: {
+          header: "Date",
+          admitted: "Admitted",
+          onhold: "On hold",
+          rejected: "Rejected",
+          deleted: "Deleted",
+        },
       },
       exportLabel: "Export",
       exportTooltip: "Export shops as JSON",

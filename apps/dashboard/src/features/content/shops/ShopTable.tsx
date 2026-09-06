@@ -13,6 +13,7 @@ import { memo, useMemo } from "react";
 
 import {
   REGION_CODES,
+  formatDate,
   formatDateTime,
   type AdminShopListItem,
   type ShopSummary,
@@ -27,6 +28,8 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
 import type { DashboardLocale } from "@/i18n/messages.ts";
 import { FRONTEND_URL } from "@/lib/env.ts";
+
+import { resolveShopRowDate, shopRowDateSortValue } from "./shop-row-date.ts";
 
 interface ShopTableProps {
   shops: AdminShopListItem[];
@@ -194,6 +197,26 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
           ) : (
             <span className="text-sm text-[var(--ds-text-muted)]">–</span>
           ),
+      },
+      {
+        id: "date",
+        header: shopsMessages.table.dates.header,
+        className: "w-40",
+        sortKey: shopRowDateSortValue,
+        cell: (shop) => {
+          const rowDate = resolveShopRowDate(shop);
+          if (!rowDate) return <span className="text-sm text-[var(--ds-text-subtle)]">–</span>;
+          return (
+            <div className="flex flex-col">
+              <span className="text-xs text-[var(--ds-text-muted)]">
+                {shopsMessages.table.dates[rowDate.label]}
+              </span>
+              <span className="text-sm whitespace-nowrap text-[var(--ds-text)]">
+                {formatDate(rowDate.iso, locale)}
+              </span>
+            </div>
+          );
+        },
       },
       {
         id: "likes",
