@@ -76,7 +76,8 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
            s.visibility,
            s.delete_reason as "deleteReason",
            s.deleted_was_reported as "deletedWasReported",
-           s.updated_at as "deletedAt",
+           s.created_at as "createdAt",
+           s.visibility_changed_at as "visibilityChangedAt",
            u.username as "deletedByUsername",
            u.first_name as "deletedByFirstName",
            u.last_name as "deletedByLastName",
@@ -293,6 +294,7 @@ export async function markAdminShopDeleted(
   wasReported: boolean,
 ): Promise<boolean> {
   return db.transaction(async (tx) => {
+    const now = new Date();
     const [updated] = await tx
       .update(shops)
       .set({
@@ -300,7 +302,8 @@ export async function markAdminShopDeleted(
         deletedBy: adminId,
         deleteReason: reason,
         deletedWasReported: wasReported,
-        updatedAt: new Date(),
+        visibilityChangedAt: now,
+        updatedAt: now,
       })
       .where(eq(shops.id, id))
       .returning({ id: shops.id });
@@ -335,6 +338,7 @@ export async function setAdminShopVisibility(
   },
 ): Promise<boolean> {
   const isRejected = visibility === "rejected";
+  const now = new Date();
   const [updated] = await db
     .update(shops)
     .set({
@@ -345,7 +349,8 @@ export async function setAdminShopVisibility(
       rejectionToken: isRejected ? (options?.rejectionToken ?? null) : null,
       rejectionAdminNote: isRejected ? (options?.rejectionAdminNote ?? null) : null,
       rejectionLongText: isRejected ? (options?.rejectionLongText ?? null) : null,
-      updatedAt: new Date(),
+      visibilityChangedAt: now,
+      updatedAt: now,
     })
     .where(eq(shops.id, id))
     .returning({ id: shops.id });

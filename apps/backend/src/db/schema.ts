@@ -90,6 +90,18 @@ export const shops = pgTable(
       .$type<"public" | "onhold" | "deleted" | "rejected">()
       .notNull()
       .default("public"),
+    /**
+     * When the shop reached the state it is in.
+     *
+     * One column for every state, because a shop is in exactly one of them and
+     * `visibility` already says which moment this is. `updated_at` cannot
+     * answer it: an edit made to a rejected shop moves that, and the moment of
+     * the rejection is gone.
+     *
+     * Null where the moment was never recorded, which the reader falls back
+     * from to `created_at`.
+     */
+    visibilityChangedAt: timestamp("visibility_changed_at"),
     deletedBy: integer("deleted_by").references(() => adminUsers.id, { onDelete: "set null" }),
     deleteReason: text("delete_reason"),
     deletedWasReported: boolean("deleted_was_reported").notNull().default(false),

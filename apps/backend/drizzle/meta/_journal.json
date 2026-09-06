@@ -701,6 +701,13 @@
       "when": 1788522813239,
       "tag": "0099_bank_read_failure_reason",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1788724495998,
+      "tag": "0100_shop_visibility_changed_at",
+      "breakpoints": true
     }
   ]
 }

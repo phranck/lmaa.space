@@ -59,7 +59,17 @@ export interface ShopSummary {
   likeCount: number;
   deleteReason?: string | null;
   deletedWasReported?: boolean;
-  deletedAt?: string | null;
+  /** When the row was created, which is when a shop entered the directory. */
+  createdAt?: string;
+  /**
+   * When the shop reached the state `visibility` names.
+   *
+   * Null for a shop that has never left public view, and for the rows that
+   * existed before the moment was recorded at all. Read it as
+   * `visibilityChangedAt ?? createdAt`, so a shop admitted after a rejection
+   * carries its admission rather than the day it was first entered.
+   */
+  visibilityChangedAt?: string | null;
   deletedByUsername?: string | null;
   deletedByFirstName?: string | null;
   deletedByLastName?: string | null;
