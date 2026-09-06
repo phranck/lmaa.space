@@ -16,6 +16,7 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { StatFigure } from "@/components/ui/StatFigure.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { BankConnectionCard } from "@/features/system/bank-connection/BankConnectionCard.tsx";
 
 import { DonationEditorCard } from "./DonationEditorCard.tsx";
 import { DonationTable } from "./DonationTable.tsx";
@@ -121,6 +122,13 @@ export function DonationsPage() {
               </div>
             </DashboardSection.Body>
           </DashboardSection>
+
+          {/* Above the table, because it decides whether the table is current.
+              A payment somebody is missing is looked for here, so the figure
+              saying when the account was last read, and the button that reads
+              it again, have to stand beside the list rather than on the chart
+              page. */}
+          <BankConnectionCard />
 
           {isLoading && (
             <DashboardSection className="overflow-hidden">
