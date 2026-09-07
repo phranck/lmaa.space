@@ -2,7 +2,7 @@ import { HandHeartIcon } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
 
 import type { Sponsor, SponsorInput } from "@lmaa/contracts";
-import { fullName, type SocialMediaLinks } from "@lmaa/shared";
+import { type SocialMediaLinks } from "@lmaa/shared";
 import { SocialMediaEditor } from "@lmaa/ui";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
@@ -42,8 +42,7 @@ import { SponsorPictureEditor } from "./SponsorPictureEditor.tsx";
  */
 function emptySponsor(): SponsorInput {
   return {
-    firstName: "",
-    lastName: "",
+    name: "",
     socialMedia: [],
     imageUrl: "",
     claim: "",
@@ -116,7 +115,7 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
   const isPending = create.isPending || save.isPending || remove.isPending;
   const socialMedia = fields?.socialMedia ?? [];
   const favicons = useFavicons(socialMedia);
-  const displayName = fullName(fields?.firstName ?? "", fields?.lastName ?? "");
+  const displayName = fields?.name ?? "";
 
   function update(patch: Partial<SponsorInput>) {
     setDraft((current) => {
@@ -188,18 +187,11 @@ export function SponsorEditorCard({ sponsorId, onClose }: SponsorEditorCardProps
               />
 
               <div className="flex min-w-0 flex-1 flex-col gap-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <DashboardInput
-                    label={text.firstNameLabel}
-                    value={fields.firstName}
-                    onChange={(event) => update({ firstName: event.target.value })}
-                  />
-                  <DashboardInput
-                    label={text.lastNameLabel}
-                    value={fields.lastName}
-                    onChange={(event) => update({ lastName: event.target.value })}
-                  />
-                </div>
+                <DashboardInput
+                  label={text.nameLabel}
+                  value={fields.name}
+                  onChange={(event) => update({ name: event.target.value })}
+                />
 
                 <DashboardField label={text.socialMediaLabel} hint={text.socialMediaHint}>
                   <SocialMediaEditor

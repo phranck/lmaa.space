@@ -715,6 +715,13 @@
       "when": 1788740963247,
       "tag": "0101_bank_read_filled_count",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1788782696272,
+      "tag": "0102_one_name_field",
+      "breakpoints": true
     }
   ]
 }

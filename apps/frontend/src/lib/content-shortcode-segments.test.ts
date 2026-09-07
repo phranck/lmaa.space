@@ -123,7 +123,7 @@ describe("parseContentShortcodeSegments", () => {
     expect(variants.find((entry) => entry.key === "sponsor")?.sponsorForm).toMatchObject({
       submitLabel: "Los gehts",
       // Everything the page leaves out keeps the wording the component ships.
-      firstNameLabel: "Vorname",
+      nameLabel: "Name",
       claimRemaining: "noch {n} Zeichen",
     });
   });

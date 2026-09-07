@@ -5,7 +5,7 @@ import SponsorCard from "@/components/SponsorCard.astro";
 import { getFavicons } from "@/lib/favicons";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { SponsorsPayload } from "@lmaa/contracts";
-import { daysLeft, formatDate, formatEuroWhole, fullName, fundingProgress } from "@lmaa/shared";
+import { daysLeft, formatDate, formatEuroWhole, fundingProgress } from "@lmaa/shared";
 
 interface Props {
   /**
@@ -113,7 +113,7 @@ const costsLineHtml = await renderMarkdown(
   { breaks: true },
 );
 
-const names = payload.sponsors.map((sponsor) => fullName(sponsor.firstName, sponsor.lastName));
+const names = payload.sponsors.map((sponsor) => sponsor.name);
 
 const dayFormat = new Intl.DateTimeFormat("de-DE", {
   day: "numeric",

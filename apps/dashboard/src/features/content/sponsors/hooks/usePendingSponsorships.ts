@@ -15,8 +15,7 @@ import { api } from "@/lib/api.ts";
 export interface PendingSponsorshipRow {
   id: string;
   reference: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   socialMedia: SocialMediaLinks;
   claim: string;
   /** What they said they would give, in cents, from the ladder above the form. */

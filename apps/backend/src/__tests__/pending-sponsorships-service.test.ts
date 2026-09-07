@@ -46,8 +46,7 @@ import {
 /** A form as the contract hands it over, with anything the test cares about on top. */
 function form(overrides: Partial<Parameters<typeof createPendingSponsorship>[0]> = {}) {
   return {
-    firstName: "Kim",
-    lastName: "Lorenz",
+    name: "Kim Lorenz",
     link: "",
     claim: "",
     amountCents: 4500,
@@ -163,8 +162,7 @@ describe("createPendingSponsorship", () => {
 
     const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
     expect(stored).toMatchObject({
-      firstName: "Kim",
-      lastName: "Lorenz",
+      name: "Kim Lorenz",
       claim: "Weil es sonst niemand macht.",
       published: false,
     });
@@ -298,8 +296,7 @@ describe("takeOverPendingSponsorship", () => {
   const entry = {
     id: "entry-1",
     reference: "RF18SPON26001",
-    firstName: "Kim",
-    lastName: "Lorenz",
+    name: "Kim Lorenz",
     socialMedia: [{ platform: "github", url: "https://github.com/kim" }],
     claim: "Weil es sonst niemand macht.",
     published: false,
@@ -324,8 +321,7 @@ describe("takeOverPendingSponsorship", () => {
 
     expect(result.ok).toBe(true);
     expect(sponsorRepoMocks.insertSponsor).toHaveBeenCalledWith({
-      firstName: "Kim",
-      lastName: "Lorenz",
+      name: "Kim Lorenz",
       socialMedia: [{ platform: "github", url: "https://github.com/kim" }],
       imageUrl: "https://example.test/kim.png",
       claim: "Weil es sonst niemand macht.",
@@ -341,8 +337,7 @@ describe("takeOverPendingSponsorship", () => {
     // of it and the figure on the site cannot count it twice.
     expect(sponsorRepoMocks.insertSponsor.mock.calls[0][0]).not.toHaveProperty("amountCents");
     expect(donationRepoMocks.insertDonation).toHaveBeenCalledWith({
-      firstName: "Kim",
-      lastName: "Lorenz",
+      name: "Kim Lorenz",
       socialMedia: [{ platform: "github", url: "https://github.com/kim" }],
       published: false,
       amountCents: 4500,

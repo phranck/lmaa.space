@@ -500,8 +500,7 @@ describe("publicRoutes", () => {
       sponsorRepoMocks.listCurrentSponsors.mockResolvedValue([
         {
           id: "sponsor-1",
-          firstName: "Kim",
-          lastName: "Lorenz",
+          name: "Kim Lorenz",
           socialMedia: [{ platform: "website", url: "https://kim.example/" }],
           imageUrl: "",
           claim: "",
@@ -542,8 +541,7 @@ describe("publicRoutes", () => {
       sponsorRepoMocks.listCurrentSponsors.mockResolvedValue([
         {
           id: "sponsor-1",
-          firstName: "Kim",
-          lastName: "Lorenz",
+          name: "Kim Lorenz",
           socialMedia: [],
           imageUrl: "",
           claim: "",
@@ -552,8 +550,7 @@ describe("publicRoutes", () => {
         },
         {
           id: "sponsor-2",
-          firstName: "Alex",
-          lastName: "Berg",
+          name: "Alex Berg",
           socialMedia: [],
           imageUrl: "",
           claim: "",
@@ -622,8 +619,7 @@ describe("publicRoutes", () => {
     /** A filled-in form, with anything a single test cares about on top. */
     function body(overrides: Record<string, unknown> = {}) {
       return JSON.stringify({
-        firstName: "Kim",
-        lastName: "Lorenz",
+        name: "Kim Lorenz",
         link: "https://github.com/kim",
         claim: "Weil es sonst niemand macht.",
         amountCents: 4500,
@@ -663,8 +659,7 @@ describe("publicRoutes", () => {
       });
 
       expect(pendingSponsorshipMocks.createPendingSponsorship).toHaveBeenCalledWith({
-        firstName: "Kim",
-        lastName: "Lorenz",
+        name: "Kim Lorenz",
         link: "https://github.com/kim",
         claim: "Weil es sonst niemand macht.",
         amountCents: 4500,

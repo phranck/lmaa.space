@@ -64,7 +64,7 @@ describe("SupportLadder", () => {
     const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);
 
     expect(html).toContain(`aria-label="${SPONSOR_FORM_DEFAULTS.submitLabel}"`);
-    expect(html).toContain(SPONSOR_FORM_DEFAULTS.firstNameLabel);
+    expect(html).toContain(SPONSOR_FORM_DEFAULTS.nameLabel);
     expect(html).toContain(SPONSOR_FORM_DEFAULTS.linkHint);
   });
 
@@ -81,7 +81,7 @@ describe("SupportLadder", () => {
 
     // All three inside the one surface, in the order the errand runs.
     const amount = card.indexOf("Dein Beitrag");
-    const form = card.indexOf(SPONSOR_FORM_DEFAULTS.firstNameLabel);
+    const form = card.indexOf(SPONSOR_FORM_DEFAULTS.nameLabel);
     const notice = card.indexOf("Sponsor wirst du per Überweisung");
     expect(amount).toBeGreaterThan(-1);
     expect(form).toBeGreaterThan(amount);
@@ -92,9 +92,8 @@ describe("SupportLadder", () => {
     const html = render(account(SPONSOR_FORM_DEFAULTS), sponsorInterval);
     const form = html.slice(html.indexOf(`aria-label="${SPONSOR_FORM_DEFAULTS.submitLabel}"`));
 
-    // Four fields, four marks: the given name, the family name, the address and
-    // the sentence.
-    expect(form.match(/text-\[var\(--ds-danger-text\)\]/g)?.length).toBe(4);
+    // Three fields, three marks: the name, the address and the sentence.
+    expect(form.match(/text-\[var\(--ds-danger-text\)\]/g)?.length).toBe(3);
   });
 
   it("offers the floor in the empty field, not a number written into the page", () => {

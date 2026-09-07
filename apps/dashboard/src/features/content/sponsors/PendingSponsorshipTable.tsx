@@ -1,7 +1,7 @@
 import { HandHeartIcon, TrashIcon } from "@phosphor-icons/react";
 import { memo, useMemo } from "react";
 
-import { formatCreditorReference, formatEuroCents, fullName } from "@lmaa/shared";
+import { formatCreditorReference, formatEuroCents } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
 import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
@@ -54,7 +54,7 @@ function PendingSponsorshipTableComponent({
       {
         id: "name",
         header: sponsorText.nameLabel,
-        sortKey: (entry) => fullName(entry.firstName, entry.lastName),
+        sortKey: (entry) => entry.name,
         cell: (entry) => (
           <div className="flex min-w-0 items-center gap-3">
             {/* A name is one thing and is read as one, so it keeps its line
@@ -62,7 +62,7 @@ function PendingSponsorshipTableComponent({
                 shortens with an ellipsis, because a name running past the
                 column would sit on top of the one beside it. */}
             <span className="min-w-0 truncate text-sm font-medium text-[var(--ds-text)]">
-              {fullName(entry.firstName, entry.lastName)}
+              {entry.name}
             </span>
             {!entry.published && (
               <Badge className="shrink-0" colorClass={BADGE_TONES.neutral}>

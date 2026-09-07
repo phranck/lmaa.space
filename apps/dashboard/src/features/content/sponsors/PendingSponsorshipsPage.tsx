@@ -2,7 +2,6 @@ import { HandHeartIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { SPONSORING_DEFAULTS } from "@lmaa/contracts";
-import { fullName } from "@lmaa/shared";
 import { Dialog, dialogHeaderIconClass } from "@lmaa/ui";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -122,7 +121,7 @@ export function PendingSponsorshipsPage() {
       >
         <div className="px-6 py-4 space-y-4">
           <p className="text-sm text-[var(--ds-text-muted)]">
-            {takingOver ? fullName(takingOver.firstName, takingOver.lastName) : ""}
+            {takingOver ? takingOver.name : ""}
           </p>
           <p className="text-sm text-[var(--ds-text-muted)]">{text.takeOverHint}</p>
           <div className="grid gap-4 sm:grid-cols-2">

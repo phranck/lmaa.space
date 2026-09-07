@@ -1269,10 +1269,14 @@ export const sponsors = pgTable(
   "sponsors",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    /** The given name, which the site leads with. */
-    firstName: text("first_name").notNull(),
-    /** The family name, empty for anybody listed under one name only. */
-    lastName: text("last_name").notNull().default(""),
+    /**
+     * The name, as the person gave it.
+     *
+     * One field rather than a given name and a family name, because the form
+     * asks for a name and there is no answer to which part of "Anna von Trapp"
+     * is which that holds for everybody.
+     */
+    name: text("name").notNull(),
     /** Where they can be found, as a platform key against a profile address. */
     socialMedia: jsonb("social_media").$type<SocialMediaLinks>().notNull().default([]),
     /** A picture. Empty means none is shown. */
@@ -1314,8 +1318,8 @@ export const pendingSponsorships = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     /** The reference the transfer carries, without its printed spaces. */
     reference: text("reference").notNull().unique(),
-    firstName: text("first_name").notNull(),
-    lastName: text("last_name").notNull().default(""),
+    /** The name, as the person gave it, in one field as the sponsor's is. */
+    name: text("name").notNull(),
     /**
      * The one address they gave, sorted into the service it belongs to.
      *
@@ -1370,14 +1374,13 @@ export const donations = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     /**
-     * The given name, split as a sponsor's is so both render alike.
+     * Who paid, in one field as a sponsor's name is.
      *
-     * Holds the whole name for a payment read from the bank, because a
-     * statement gives one string and no split.
+     * Empty where nobody is identifiable, which happens: a statement names the
+     * payer only about a third of the time, and refusing to record such a
+     * payment would lose the money from the ledger rather than the name.
      */
-    firstName: text("first_name").notNull(),
-    /** The family name, empty for anybody given under one name only. */
-    lastName: text("last_name").notNull().default(""),
+    name: text("name").notNull().default(""),
     /** Where they can be found. Usually empty: a transfer carries no address. */
     socialMedia: jsonb("social_media").$type<SocialMediaLinks>().notNull().default([]),
     /**

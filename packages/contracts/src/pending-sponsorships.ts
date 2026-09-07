@@ -22,15 +22,13 @@ export const PENDING_SPONSORSHIP_DAYS = 60;
 export const pendingSponsorshipInputSchema = z
   .object({
     /**
-     * The given name, which is the one the site leads with.
+     * The name, as the person gave it.
      *
      * Every field here is asked for. What somebody writes stands beside their
      * name on a page other people read, and an entry with half of it filled in
      * is one the operator has to chase before it can be shown.
      */
-    firstName: z.string().trim().min(1).max(80),
-    /** The family name. */
-    lastName: z.string().trim().min(1).max(80),
+    name: z.string().trim().min(1).max(160),
     /**
      * Where they can be found, as one address of any kind.
      *

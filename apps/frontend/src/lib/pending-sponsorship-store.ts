@@ -19,8 +19,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** What somebody said about themselves, as the form takes it. */
 export interface AnnouncedSponsorship {
-  firstName: string;
-  lastName: string;
+  name: string;
   link: string;
   claim: string;
   published: boolean;
@@ -46,8 +45,7 @@ export interface IssuedSponsorship {
 
 /** An announcement with nothing in it, for an entry stored before this was kept. */
 const NOTHING_ANNOUNCED: AnnouncedSponsorship = {
-  firstName: "",
-  lastName: "",
+  name: "",
   link: "",
   claim: "",
   published: true,
@@ -63,8 +61,7 @@ function parseAnnounced(value: unknown): AnnouncedSponsorship {
   const candidate = value as Partial<AnnouncedSponsorship>;
 
   return {
-    firstName: typeof candidate.firstName === "string" ? candidate.firstName : "",
-    lastName: typeof candidate.lastName === "string" ? candidate.lastName : "",
+    name: typeof candidate.name === "string" ? candidate.name : "",
     link: typeof candidate.link === "string" ? candidate.link : "",
     claim: typeof candidate.claim === "string" ? candidate.claim : "",
     published: candidate.published !== false,

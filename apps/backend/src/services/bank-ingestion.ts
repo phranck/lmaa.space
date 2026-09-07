@@ -299,16 +299,10 @@ async function importTransaction(
     }
 
     await insertDonation({
-      // The name as the statement writes it, in one piece. A statement gives
-      // one string and no split, and guessing where a given name ends turns
-      // "Anna von Trapp" into two wrong halves, so `lastName` stays empty and
-      // everything that shows a payment joins the two anyway. Splitting it by
-      // hand in the editor stays possible.
-      //
-      // Only reached where no reference matched. Where one did, the name comes
-      // from the form its owner filled in, which is the better of the two.
-      firstName: transaction.payerName.slice(0, MAX_PAYER_NAME_LENGTH),
-      lastName: "",
+      // The name as the statement writes it, whole. Only reached where no
+      // reference matched; where one did, the name comes from the form its
+      // owner filled in, which is the better of the two.
+      name: transaction.payerName.slice(0, MAX_PAYER_NAME_LENGTH),
       socialMedia: [],
       published: false,
       amountCents: transaction.amountCents,

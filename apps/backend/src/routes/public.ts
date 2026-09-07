@@ -320,8 +320,7 @@ publicRoutes.get("/sponsors", publicReadLimit, async (c) => {
         ? [
             {
               id: sponsor.id,
-              firstName: sponsor.firstName,
-              lastName: sponsor.lastName,
+              name: sponsor.name,
               socialMedia: sponsor.socialMedia,
               imageUrl: sponsor.imageUrl,
               claim: sponsor.claim,

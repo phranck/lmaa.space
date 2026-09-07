@@ -28,8 +28,7 @@ import { donationRoutes } from "../routes/admin/donations.js";
 /** A payment as the routes hand it back, with everything the contract requires. */
 const sampleDonation = {
   id: "6c4d6a7e-1f2b-4c3d-8e9f-0a1b2c3d4e5f",
-  firstName: "Alex",
-  lastName: "Bauer",
+  name: "Alex Bauer",
   socialMedia: [],
   published: false,
   amountCents: 2_500,
@@ -137,7 +136,7 @@ describe("donation routes", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        firstName: "Alex",
+        name: "Alex",
         amountCents: 2_500,
         receivedAt: "2026-08-20",
         provider: "sepa",
@@ -146,7 +145,7 @@ describe("donation routes", () => {
 
     expect(response.status).toBe(200);
     expect(repositoryMocks.insertDonation).toHaveBeenCalledWith(
-      expect.objectContaining({ published: false, sponsorId: null, lastName: "", note: "" }),
+      expect.objectContaining({ published: false, sponsorId: null, note: "" }),
     );
   });
 
@@ -155,7 +154,7 @@ describe("donation routes", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        firstName: "Alex",
+        name: "Alex",
         amountCents: 2_500,
         receivedAt: "2026-08-20",
         provider: "western-union",
