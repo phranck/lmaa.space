@@ -55,7 +55,6 @@ export * from "./utils/sponsor-year.js";
 /** How far the year's running costs are carried, as one answer for every surface. */
 export * from "./utils/funding-progress.js";
 /** Given name and family name joined into one display name. */
-export * from "./utils/person-name.js";
 /** Logo background color helper for shop avatars. */
 export * from "./utils/logo-background.js";
 

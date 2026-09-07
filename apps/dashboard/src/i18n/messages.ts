@@ -1213,8 +1213,6 @@ export interface DashboardMessages {
       emptyTitle: string;
       emptyHint: string;
       nameLabel: string;
-      firstNameLabel: string;
-      lastNameLabel: string;
       socialMediaLabel: string;
       socialMediaHint: string;
       imageLabel: string;
@@ -1266,8 +1264,6 @@ export interface DashboardMessages {
       emptyTitle: string;
       emptyHint: string;
       nameLabel: string;
-      firstNameLabel: string;
-      lastNameLabel: string;
       socialMediaLabel: string;
       socialMediaHint: string;
       publishedLabel: string;
@@ -2963,8 +2959,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emptyHint:
           "Wer die laufenden Kosten mitträgt, steht ein Jahr lang auf der Unterstützen-Seite.",
         nameLabel: "Name",
-        firstNameLabel: "Vorname",
-        lastNameLabel: "Nachname",
         socialMediaLabel: "Im Netz",
         socialMediaHint:
           "Adresse einfügen. Das Bild dahinter wird geholt, sobald die Adresse steht.",
@@ -3019,8 +3013,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emptyHint:
           "Hier steht jeder Betrag, der eingegangen ist. Aus dieser Liste rechnet sich, was für das laufende Jahr noch fehlt.",
         nameLabel: "Name",
-        firstNameLabel: "Vorname",
-        lastNameLabel: "Nachname",
         socialMediaLabel: "Social Media",
         socialMediaHint: "Optional. Meist leer, denn eine Überweisung bringt keine Adresse mit.",
         publishedLabel: "Darf genannt werden",
@@ -4748,8 +4740,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emptyTitle: "No sponsors yet",
         emptyHint: "Whoever helps carry the running costs stands on the support page for a year.",
         nameLabel: "Name",
-        firstNameLabel: "First name",
-        lastNameLabel: "Last name",
         socialMediaLabel: "Online",
         socialMediaHint: "Paste an address. The picture behind it is fetched once it stands.",
         imageLabel: "Picture",
@@ -4804,8 +4794,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emptyHint:
           "Every payment that arrived stands here. What is still missing for the running year is worked out from this list.",
         nameLabel: "Name",
-        firstNameLabel: "First name",
-        lastNameLabel: "Last name",
         socialMediaLabel: "Social media",
         socialMediaHint: "Optional, and usually empty: a bank transfer carries no address.",
         publishedLabel: "May be named",

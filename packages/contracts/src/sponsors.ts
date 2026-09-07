@@ -13,13 +13,14 @@ import { MAX_REMITTANCE_UNSTRUCTURED, socialMediaLinksSchema } from "@lmaa/share
 
 /** Everything an editor records about one sponsor. */
 export const sponsorInputSchema = z.object({
-  /** The given name, which is the one the site leads with. */
-  firstName: z.string().trim().min(1).max(80),
   /**
-   * The family name, which stays empty for anybody who wants only their first
-   * name or a single-word alias on the page.
+   * The name, as the person gave it.
+   *
+   * One field, so a single-word alias, a full name and anything in between are
+   * all entered the same way, and nobody is asked which part of their own name
+   * is the family one.
    */
-  lastName: z.string().trim().max(80).default(""),
+  name: z.string().trim().min(1).max(160),
   /**
    * Where they can be found, as a platform key against a profile address.
    *
@@ -71,8 +72,7 @@ export const sponsorSchema = sponsorInputSchema.extend({
 /** A sponsor as the site shows them, without the amount. */
 export const publicSponsorSchema = z.object({
   id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
+  name: z.string(),
   socialMedia: socialMediaLinksSchema,
   imageUrl: z.string(),
   claim: z.string(),

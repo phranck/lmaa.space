@@ -158,8 +158,7 @@ export type SupportLadderLabelKey = keyof typeof SUPPORT_LADDER_LABELS;
  * a new word is added in one place.
  */
 export const SPONSOR_FORM_LABELS = {
-  firstNameLabel: { value: "Vorname", label: "Beschriftung des Feldes Vorname" },
-  lastNameLabel: { value: "Nachname", label: "Beschriftung des Feldes Nachname" },
+  nameLabel: { value: "Name", label: "Beschriftung des Feldes Name" },
   linkLabel: { value: "Website oder Profil", label: "Beschriftung des Feldes Adresse" },
   linkPlaceholder: { value: "deine-seite.at", label: "Platzhalter im leeren Adressfeld" },
   linkHint: {
@@ -363,7 +362,7 @@ const SUPPORT_LADDER_SPONSOR_FORM: MarkdownShortcodeDefinition = {
   label: "Sponsoren-Formular",
   description:
     "Das Formular, mit dem jemand seine Angaben hinterlässt und dafür eine Referenz bekommt. Gehört unter die Variante mit key=\"sponsor\". Ohne diesen Knoten erscheint kein Formular.",
-  examples: ['[[sponsorform firstNameLabel="Vorname" submitLabel="Angaben absenden"]]'],
+  examples: ['[[sponsorform nameLabel="Name" submitLabel="Angaben absenden"]]'],
   params: SPONSOR_FORM_LABEL_KEYS.map((name) => {
     // Widened on the way out, because only one of the entries declares a
     // placeholder and reading the property off the literal union otherwise

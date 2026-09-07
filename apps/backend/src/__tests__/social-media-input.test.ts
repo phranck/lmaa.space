@@ -18,8 +18,7 @@ const schemas = [
     name: "a donation",
     parse: (socialMedia: unknown) =>
       donationInputSchema.safeParse({
-        firstName: "Kim",
-        lastName: "Lorenz",
+        name: "Kim Lorenz",
         socialMedia,
         published: false,
         amountCents: 500,
@@ -33,8 +32,7 @@ const schemas = [
     name: "a sponsor",
     parse: (socialMedia: unknown) =>
       sponsorInputSchema.safeParse({
-        firstName: "Kim",
-        lastName: "Lorenz",
+        name: "Kim Lorenz",
         socialMedia,
         claim: "",
         published: false,

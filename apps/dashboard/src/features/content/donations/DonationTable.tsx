@@ -2,7 +2,7 @@ import { FileTextIcon } from "@phosphor-icons/react";
 import { memo, useMemo } from "react";
 
 import { DONATION_PROVIDERS, type Donation } from "@lmaa/contracts";
-import { formatEuroCents, fullName } from "@lmaa/shared";
+import { formatEuroCents } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
 import { BADGE_TONES, Badge } from "@/components/ui/Badge.tsx";
@@ -37,7 +37,7 @@ function DonationTableComponent({ donations, onEdit }: DonationTableProps) {
       {
         id: "name",
         header: text.nameLabel,
-        sortKey: (donation) => fullName(donation.firstName, donation.lastName),
+        sortKey: (donation) => donation.name,
         cell: (donation) => (
           <div className="flex min-w-0 items-center gap-3">
             {/* A payment the site read for itself carries no name: the payer's
@@ -50,12 +50,12 @@ function DonationTableComponent({ donations, onEdit }: DonationTableProps) {
                 content without it, whatever `truncate` says. */}
             <span
               className={
-                fullName(donation.firstName, donation.lastName)
+                donation.name
                   ? "min-w-0 truncate text-sm font-medium text-[var(--ds-text)]"
                   : "min-w-0 truncate text-sm italic text-[var(--ds-text-hint)]"
               }
             >
-              {fullName(donation.firstName, donation.lastName) || text.nameAbsent}
+              {donation.name || text.nameAbsent}
             </span>
             {/* Said in the list, because a payment that paid for a sponsorship
                 is the one row whose amount is also carried by a second page. */}

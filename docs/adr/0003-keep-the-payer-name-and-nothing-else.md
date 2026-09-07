@@ -6,7 +6,7 @@ What ingestion keeps from a payment is the amount, the currency, the booking dat
 
 ## Consequences
 
-The name is stored as the statement writes it, in one field, because a statement gives one string and no split. A donation recorded this way is not published: `published` stays false, and recording who paid is a different thing from naming them on the site.
+The name is stored as the statement writes it, in one field. That is how everybody the site is told about is recorded, whether they were read from a statement or typed their own name into the sponsor form. A name has no reliable division into a given part and a family part, so asking for one produces a wrong answer for a person called Anna von Trapp and for anybody listed under a single word. A donation recorded this way is not published: `published` stays false, and recording who paid is a different thing from naming them on the site.
 
 Where a payment matches a sponsorship, the name comes from the form that person filled in themselves, which is better information given with consent. The statement name applies only where no reference matched.
 

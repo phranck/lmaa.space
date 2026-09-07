@@ -124,8 +124,7 @@ async function toStoredFields(
 
   return success({
     fields: {
-      firstName: input.firstName,
-      lastName: input.lastName,
+      name: input.name,
       socialMedia: sorted ? [sorted] : [],
       claim: input.claim,
       amountCents: input.amountCents,
@@ -358,8 +357,7 @@ async function takeOverPending(
   const imageUrl = await resolveSponsorAvatar(pending.socialMedia);
 
   const sponsor = await insertSponsor({
-    firstName: pending.firstName,
-    lastName: pending.lastName,
+    name: pending.name,
     socialMedia: pending.socialMedia,
     imageUrl: imageUrl ?? "",
     claim: pending.claim,
@@ -375,8 +373,7 @@ async function takeOverPending(
   // agreed to is the sponsor wall, and this flag governs a donor list that
   // does not exist.
   await insertDonation({
-    firstName: pending.firstName,
-    lastName: pending.lastName,
+    name: pending.name,
     socialMedia: pending.socialMedia,
     published: false,
     amountCents: payment.amountCents,

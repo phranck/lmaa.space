@@ -331,8 +331,7 @@ describe("a run over the account", () => {
         externalRef: "sepa:entry-1",
         // The whole name in one field, because the statement gives one string
         // and splitting it would guess where the given name ends.
-        firstName: "Anna von Trapp",
-        lastName: "",
+        name: "Anna von Trapp",
         sponsorId: null,
       }),
     );
@@ -347,7 +346,7 @@ describe("a run over the account", () => {
     await runBankIngestion("background");
 
     expect(repositoryMocks.insertDonation).toHaveBeenCalledWith(
-      expect.objectContaining({ firstName: "", lastName: "" }),
+      expect.objectContaining({ name: "" }),
     );
   });
 
@@ -360,7 +359,7 @@ describe("a run over the account", () => {
     await runBankIngestion("background");
 
     expect(repositoryMocks.insertDonation).toHaveBeenCalledWith(
-      expect.objectContaining({ firstName: "N".repeat(80) }),
+      expect.objectContaining({ name: "N".repeat(80) }),
     );
   });
 

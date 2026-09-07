@@ -225,7 +225,7 @@ export async function insertDonation(data: DonationInsert): Promise<DonationView
  *
  * @param externalRef - The entry as the ledger names it, being the route and
  *   the bank's own reference together.
- * @param firstName - The name as the statement writes it. Ignored when empty,
+ * @param name - The name as the statement writes it. Ignored when empty,
  *   since a run that learned nothing has nothing to write.
  * @returns `true` when a row was completed, `false` when none matched or the
  *   one that did already carried a name.
@@ -239,14 +239,14 @@ export async function insertDonation(data: DonationInsert): Promise<DonationView
  */
 export async function fillDonationPayerName(
   externalRef: string,
-  firstName: string,
+  name: string,
 ): Promise<boolean> {
-  if (!firstName) return false;
+  if (!name) return false;
 
   const filled = await db
     .update(donations)
-    .set({ firstName })
-    .where(and(eq(donations.externalRef, externalRef), eq(donations.firstName, "")))
+    .set({ name })
+    .where(and(eq(donations.externalRef, externalRef), eq(donations.name, "")))
     .returning({ id: donations.id });
   return filled.length > 0;
 }

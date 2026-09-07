@@ -14,8 +14,7 @@ function stored(overrides: Record<string, unknown> = {}): string {
     referenceFormatted: "RF18 SPON 2600 1",
     issuedAt: NOW,
     announced: {
-      firstName: "Kim",
-      lastName: "Lorenz",
+      name: "Kim Lorenz",
       link: "https://github.com/kim",
       claim: "Weil es sonst niemand macht.",
       published: false,
@@ -31,8 +30,7 @@ describe("parseIssuedSponsorship", () => {
       referenceFormatted: "RF18 SPON 2600 1",
       issuedAt: NOW,
       announced: {
-        firstName: "Kim",
-        lastName: "Lorenz",
+        name: "Kim Lorenz",
         link: "https://github.com/kim",
         claim: "Weil es sonst niemand macht.",
         published: false,
@@ -68,8 +66,7 @@ describe("parseIssuedSponsorship", () => {
 
     expect(entry?.reference).toBe("RF18SPON26001");
     expect(entry?.announced).toEqual({
-      firstName: "",
-      lastName: "",
+      name: "",
       link: "",
       claim: "",
       published: true,

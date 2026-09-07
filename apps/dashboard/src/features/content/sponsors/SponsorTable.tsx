@@ -2,7 +2,7 @@ import { FileTextIcon } from "@phosphor-icons/react";
 import { memo, useMemo } from "react";
 
 import type { Sponsor } from "@lmaa/contracts";
-import { daysLeft, formatEuroCents, fullName } from "@lmaa/shared";
+import { daysLeft, formatEuroCents } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 
 import { Avatar } from "@/components/ui/Avatar.tsx";
@@ -39,9 +39,9 @@ function SponsorTableComponent({ sponsors, today, onEdit }: SponsorTableProps) {
       {
         id: "name",
         header: text.nameLabel,
-        sortKey: (sponsor) => fullName(sponsor.firstName, sponsor.lastName),
+        sortKey: (sponsor) => sponsor.name,
         cell: (sponsor) => {
-          const name = fullName(sponsor.firstName, sponsor.lastName);
+          const name = sponsor.name;
           return (
             <div className="flex min-w-0 items-center gap-3">
               <Avatar name={name} imageUrl={sponsor.imageUrl} size="sm" />

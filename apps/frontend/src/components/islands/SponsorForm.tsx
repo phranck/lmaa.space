@@ -41,16 +41,15 @@ interface SponsorFormProps {
   onIssued: (receipt: PendingSponsorshipReceipt, announced: AnnouncedSponsorship) => void;
 }
 
-/** How long a given name or a family name may be, matching the contract. */
-const MAX_NAME = 80;
+/** How long a name may be, matching the contract. */
+const MAX_NAME = 160;
 
 /** How long an address may be, matching the contract. */
 const MAX_LINK = 200;
 
 /** What somebody has typed, and what the form is doing with it. */
 interface FormState {
-  firstName: string;
-  lastName: string;
+  name: string;
   link: string;
   claim: string;
   published: boolean;
@@ -69,8 +68,7 @@ interface FormState {
  */
 function openingForm(announced: AnnouncedSponsorship | undefined): FormState {
   return {
-    firstName: announced?.firstName ?? "",
-    lastName: announced?.lastName ?? "",
+    name: announced?.name ?? "",
     link: announced?.link ?? "",
     claim: announced?.claim ?? "",
     published: announced?.published ?? true,
@@ -82,7 +80,7 @@ function openingForm(announced: AnnouncedSponsorship | undefined): FormState {
 
 /** Everything that happens to the form. */
 type FormAction =
-  | { type: "edit"; field: "firstName" | "lastName" | "claim"; value: string }
+  | { type: "edit"; field: "name" | "claim"; value: string }
   | { type: "editLink"; value: string }
   | { type: "setPublished"; value: boolean }
   | { type: "linkRefused"; message: string }
@@ -170,8 +168,7 @@ export default function SponsorForm({
   // notice above the form is what explains the amount.
   const complete =
     earnsSponsorship &&
-    form.firstName.trim() !== "" &&
-    form.lastName.trim() !== "" &&
+    form.name.trim() !== "" &&
     form.link.trim() !== "" &&
     form.claim.trim() !== "";
 
@@ -198,8 +195,7 @@ export default function SponsorForm({
           method: correcting ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            firstName: form.firstName.trim(),
-            lastName: form.lastName.trim(),
+            name: form.name.trim(),
             link: trimmedLink,
             claim: form.claim.trim(),
             // What stands on the ladder at this moment, which is what the code
@@ -223,8 +219,7 @@ export default function SponsorForm({
       // reference the moment the page above has it.
       const answered = (await response.json()) as { data: PendingSponsorshipReceipt };
       onIssued(answered.data, {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
+        name: form.name.trim(),
         link: trimmedLink,
         claim: form.claim.trim(),
         published: form.published,
@@ -243,41 +238,25 @@ export default function SponsorForm({
       className="grid gap-4"
       aria-label={labels.submitLabel}
     >
-      {/* The three answers a person gives about themselves stand in one row of
-          equal columns, so none of them reads as the important one. They stack
-          on a narrow screen. What is typed into them is set bold, because it is
-          what will stand on the page under their name. */}
-      <div className="grid gap-4 sm:grid-cols-3 [&_input]:font-semibold">
+      {/* The two answers a person gives about themselves stand in one row of
+          equal columns, so neither reads as the important one. They stack on a
+          narrow screen. What is typed into them is set bold, because it is what
+          will stand on the page under their name. */}
+      <div className="grid gap-4 sm:grid-cols-2 [&_input]:font-semibold">
         <label className="block">
           <span className={labelClass}>
-            {labels.firstNameLabel}
+            {labels.nameLabel}
             <Required />
           </span>
           <input
             ref={firstFieldRef}
             className={inputClass}
-            value={form.firstName}
+            value={form.name}
             maxLength={MAX_NAME}
             required
-            autoComplete="given-name"
+            autoComplete="name"
             onChange={(event) =>
-              dispatch({ type: "edit", field: "firstName", value: event.target.value })
-            }
-          />
-        </label>
-        <label className="block">
-          <span className={labelClass}>
-            {labels.lastNameLabel}
-            <Required />
-          </span>
-          <input
-            className={inputClass}
-            value={form.lastName}
-            maxLength={MAX_NAME}
-            required
-            autoComplete="family-name"
-            onChange={(event) =>
-              dispatch({ type: "edit", field: "lastName", value: event.target.value })
+              dispatch({ type: "edit", field: "name", value: event.target.value })
             }
           />
         </label>

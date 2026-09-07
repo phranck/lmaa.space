@@ -8,7 +8,6 @@ import {
   type DonationInput,
   type DonationProvider,
 } from "@lmaa/contracts";
-import { fullName } from "@lmaa/shared";
 import { SocialMediaEditor } from "@lmaa/ui";
 
 import {
@@ -44,8 +43,7 @@ const DEFAULT_PROVIDER: DonationProvider = "sepa";
  */
 function emptyDonation(): DonationInput {
   return {
-    firstName: "",
-    lastName: "",
+    name: "",
     socialMedia: [],
     published: false,
     amountCents: 0,
@@ -106,7 +104,7 @@ export function DonationEditorCard({ donationId, donations, onClose }: DonationE
   const saveFailed = create.isError || save.isError;
   const socialMedia = fields?.socialMedia ?? [];
   const favicons = useFavicons(socialMedia);
-  const displayName = fullName(fields?.firstName ?? "", fields?.lastName ?? "");
+  const displayName = fields?.name ?? "";
 
   const providerOptions = useMemo(
     () => DONATION_PROVIDER_KEYS.map((key) => ({ value: key, label: DONATION_PROVIDERS[key] })),
@@ -156,18 +154,11 @@ export function DonationEditorCard({ donationId, donations, onClose }: DonationE
         <OverlayCard.Body>
           {fields && (
             <div className="flex flex-col gap-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <DashboardInput
-                  label={text.firstNameLabel}
-                  value={fields.firstName}
-                  onChange={(event) => update({ firstName: event.target.value })}
-                />
-                <DashboardInput
-                  label={text.lastNameLabel}
-                  value={fields.lastName}
-                  onChange={(event) => update({ lastName: event.target.value })}
-                />
-              </div>
+              <DashboardInput
+                label={text.nameLabel}
+                value={fields.name}
+                onChange={(event) => update({ name: event.target.value })}
+              />
 
               <DashboardField label={text.socialMediaLabel} hint={text.socialMediaHint}>
                 <SocialMediaEditor
