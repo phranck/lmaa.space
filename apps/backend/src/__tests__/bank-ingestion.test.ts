@@ -1,3 +1,4 @@
+import { DrizzleQueryError } from "drizzle-orm/errors";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../config/env.js", () => ({
@@ -57,6 +58,25 @@ import {
  * from memory, because the check digits are what these tests turn on.
  */
 const ISSUED = "RF35SPON2ABCD3EFGH4";
+
+/**
+ * What the driver throws when the entry is already in the ledger.
+ *
+ * The real wrapper around the real shape. Drizzle does not throw the driver's
+ * error, it throws a `DrizzleQueryError` carrying it as `cause`, so a mock
+ * rejecting with a bare `{ code }` certifies a shape that never reaches the
+ * service.
+ */
+function entryAlreadyStored() {
+  return new DrizzleQueryError(
+    "insert into donations …",
+    [],
+    Object.assign(new Error("duplicate key value violates unique constraint"), {
+      code: "23505",
+      constraint_name: "idx_donations_external_ref",
+    }),
+  );
+}
 
 /** One entry of the account, with everything a decision needs. */
 function transaction(overrides: Record<string, unknown> = {}) {
@@ -402,7 +422,7 @@ describe("a run over the account", () => {
   });
 
   it("counts an entry it has already stored as skipped rather than failing", async () => {
-    repositoryMocks.insertDonation.mockRejectedValue({ code: "23505" });
+    repositoryMocks.insertDonation.mockRejectedValue(entryAlreadyStored());
     clientMocks.fetchTransactions.mockResolvedValue({
       transactions: [transaction()],
       continuationKey: null,
@@ -414,7 +434,7 @@ describe("a run over the account", () => {
   });
 
   it("gives a payment it already holds the name it was stored without", async () => {
-    repositoryMocks.insertDonation.mockRejectedValue({ code: "23505" });
+    repositoryMocks.insertDonation.mockRejectedValue(entryAlreadyStored());
     repositoryMocks.fillDonationPayerName.mockResolvedValue(true);
     clientMocks.fetchTransactions.mockResolvedValue({
       transactions: [transaction()],
@@ -433,7 +453,7 @@ describe("a run over the account", () => {
   });
 
   it("leaves a payment it already holds complete alone", async () => {
-    repositoryMocks.insertDonation.mockRejectedValue({ code: "23505" });
+    repositoryMocks.insertDonation.mockRejectedValue(entryAlreadyStored());
     repositoryMocks.fillDonationPayerName.mockResolvedValue(false);
     clientMocks.fetchTransactions.mockResolvedValue({
       transactions: [transaction()],
