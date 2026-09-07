@@ -1579,7 +1579,15 @@ export const bankAccountReads = pgTable(
     transactionsRead: integer("transactions_read").notNull().default(0),
     /** How many became a row in the ledger. */
     imported: integer("imported").notNull().default(0),
-    /** How many were recognised and already stood in the ledger. */
+    /**
+     * How many already stood in the ledger and were completed from the entry.
+     *
+     * Counted apart from `skipped`, because a run that changed rows and one
+     * that changed nothing look identical otherwise, and the card would report
+     * a repair as having done nothing.
+     */
+    filled: integer("filled").notNull().default(0),
+    /** How many were recognised and already stood in the ledger unchanged. */
     skipped: integer("skipped").notNull().default(0),
   },
   (table) => [

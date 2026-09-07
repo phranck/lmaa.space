@@ -63,6 +63,15 @@ export const bankConnectionStatusSchema = z.object({
   /** How many payments that read took into the ledger. */
   lastReadImported: z.number().int(),
   /**
+   * How many payments that read completed rather than added.
+   *
+   * A read covering days that were read before finds its payments already in
+   * the ledger and fills in what they were stored without. Counted apart from
+   * the ones it added, so a run that repaired rows does not report itself as
+   * having done nothing.
+   */
+  lastReadFilled: z.number().int(),
+  /**
    * Why the last read failed, as the bank client's own error code.
    *
    * `null` where it succeeded and before the first read. A code rather than a
@@ -71,6 +80,29 @@ export const bankConnectionStatusSchema = z.object({
    */
   lastReadFailure: z.string().nullable(),
 });
+
+/**
+ * What a person may ask a read for.
+ *
+ * Only the day it starts at. The end is always today, because a read exists to
+ * bring the ledger up to date and a window ending in the past cannot.
+ */
+export const bankSyncRequestSchema = z
+  .object({
+    /**
+     * The first day to ask the bank for, as `YYYY-MM-DD`.
+     *
+     * Left out, the read takes the days it would take by itself. How far back
+     * any given bank will actually go is its own decision, and a range it
+     * refuses comes back as a refused request rather than as an empty answer.
+     */
+    from: z
+      .string()
+      .trim()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a day as YYYY-MM-DD")
+      .optional(),
+  })
+  .strict();
 
 /** Where to send the browser so the person can identify themselves. */
 export const bankAuthorizationStartSchema = z.object({
@@ -82,5 +114,7 @@ export const bankAuthorizationStartSchema = z.object({
 export type BankConnectionCallback = z.infer<typeof bankConnectionCallbackSchema>;
 /** What the dashboard shows about the connection. */
 export type BankConnectionStatus = z.infer<typeof bankConnectionStatusSchema>;
+/** What a person may ask a read for. */
+export type BankSyncRequest = z.infer<typeof bankSyncRequestSchema>;
 /** Where to send the browser so the person can identify themselves. */
 export type BankAuthorizationStart = z.infer<typeof bankAuthorizationStartSchema>;

@@ -220,6 +220,37 @@ export async function insertDonation(data: DonationInsert): Promise<DonationView
   return toView(created);
 }
 
+/**
+ * Gives a payment the site already holds a name it was read without.
+ *
+ * @param externalRef - The entry as the ledger names it, being the route and
+ *   the bank's own reference together.
+ * @param firstName - The name as the statement writes it. Ignored when empty,
+ *   since a run that learned nothing has nothing to write.
+ * @returns `true` when a row was completed, `false` when none matched or the
+ *   one that did already carried a name.
+ *
+ * @remarks
+ * Only a row whose name is empty is touched, and only that field of it. A name
+ * somebody typed into the editor is better than the statement's, and a run
+ * repeating over days that were already read must not undo that work. The
+ * condition sits in the statement rather than in a read followed by a write, so
+ * two runs overlapping cannot both decide the row was empty.
+ */
+export async function fillDonationPayerName(
+  externalRef: string,
+  firstName: string,
+): Promise<boolean> {
+  if (!firstName) return false;
+
+  const filled = await db
+    .update(donations)
+    .set({ firstName })
+    .where(and(eq(donations.externalRef, externalRef), eq(donations.firstName, "")))
+    .returning({ id: donations.id });
+  return filled.length > 0;
+}
+
 /** Updates one payment and returns it, or `null` when it no longer exists. */
 export async function updateDonation(
   id: string,

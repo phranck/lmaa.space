@@ -15,6 +15,7 @@ const repositoryMocks = vi.hoisted(() => ({
   getLastBookedThrough: vi.fn(),
   getLiveBankConnection: vi.fn(),
   insertDonation: vi.fn(),
+  fillDonationPayerName: vi.fn(),
 }));
 
 const pendingMocks = vi.hoisted(() => ({
@@ -34,6 +35,7 @@ vi.mock("../repositories/bank-connections.js", () => ({
 }));
 vi.mock("../repositories/donations.js", () => ({
   insertDonation: repositoryMocks.insertDonation,
+  fillDonationPayerName: repositoryMocks.fillDonationPayerName,
 }));
 vi.mock("../services/bank-consent.js", () => ({
   announceConsentRefused: vi.fn(),
@@ -172,6 +174,7 @@ describe("a run over the account", () => {
     repositoryMocks.claimBankRead.mockResolvedValue({ id: "read-1" });
     repositoryMocks.getLastBookedThrough.mockResolvedValue("2026-08-30");
     repositoryMocks.insertDonation.mockResolvedValue({ id: "d1" });
+    repositoryMocks.fillDonationPayerName.mockResolvedValue(false);
     pendingMocks.takeOverPendingSponsorshipByReference.mockResolvedValue({ ok: true });
     clientMocks.fetchTransactions.mockResolvedValue({ transactions: [], continuationKey: null });
   });
@@ -407,7 +410,39 @@ describe("a run over the account", () => {
 
     const result = await runBankIngestion("background");
 
-    expect(result).toMatchObject({ imported: 0, skipped: 1 });
+    expect(result).toMatchObject({ imported: 0, filled: 0, skipped: 1 });
+  });
+
+  it("gives a payment it already holds the name it was stored without", async () => {
+    repositoryMocks.insertDonation.mockRejectedValue({ code: "23505" });
+    repositoryMocks.fillDonationPayerName.mockResolvedValue(true);
+    clientMocks.fetchTransactions.mockResolvedValue({
+      transactions: [transaction()],
+      continuationKey: null,
+    });
+
+    const result = await runBankIngestion("background");
+
+    expect(repositoryMocks.fillDonationPayerName).toHaveBeenCalledWith(
+      "sepa:entry-1",
+      "Anna von Trapp",
+    );
+    // Apart from skipped, because a run that repaired rows and one that
+    // changed nothing must not report themselves the same way.
+    expect(result).toMatchObject({ imported: 0, filled: 1, skipped: 0 });
+  });
+
+  it("leaves a payment it already holds complete alone", async () => {
+    repositoryMocks.insertDonation.mockRejectedValue({ code: "23505" });
+    repositoryMocks.fillDonationPayerName.mockResolvedValue(false);
+    clientMocks.fetchTransactions.mockResolvedValue({
+      transactions: [transaction()],
+      continuationKey: null,
+    });
+
+    const result = await runBankIngestion("background");
+
+    expect(result).toMatchObject({ filled: 0, skipped: 1 });
   });
 
   it("walks the pages the bank offers", async () => {
@@ -433,7 +468,37 @@ describe("a run over the account", () => {
 
     expect(repositoryMocks.completeBankRead).toHaveBeenCalledWith(
       "read-1",
-      expect.objectContaining({ transactionsRead: 0, imported: 0, skipped: 0 }),
+      expect.objectContaining({ transactionsRead: 0, imported: 0, filled: 0, skipped: 0 }),
+    );
+  });
+
+  it("asks the bank for the day it was given rather than its own window", async () => {
+    await runBankIngestion("manual", { from: "2026-06-01" });
+
+    expect(clientMocks.fetchTransactions).toHaveBeenCalledWith(
+      "account-1",
+      { from: "2026-06-01", to: "2026-09-04" },
+      undefined,
+    );
+  });
+
+  it("takes its own window where nobody asked for a day", async () => {
+    await runBankIngestion("manual");
+
+    expect(clientMocks.fetchTransactions).toHaveBeenCalledWith(
+      "account-1",
+      { from: "2026-08-30", to: "2026-09-04" },
+      undefined,
+    );
+  });
+
+  it("ignores a day that falls after today, which the bank would refuse", async () => {
+    await runBankIngestion("manual", { from: "2027-01-01" });
+
+    expect(clientMocks.fetchTransactions).toHaveBeenCalledWith(
+      "account-1",
+      { from: "2026-08-30", to: "2026-09-04" },
+      undefined,
     );
   });
 });

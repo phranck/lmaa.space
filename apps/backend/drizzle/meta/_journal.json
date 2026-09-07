@@ -708,6 +708,13 @@
       "when": 1788724495998,
       "tag": "0100_shop_visibility_changed_at",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1788740963247,
+      "tag": "0101_bank_read_filled_count",
+      "breakpoints": true
     }
   ]
 }
