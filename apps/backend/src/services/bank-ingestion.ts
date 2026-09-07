@@ -77,6 +77,15 @@ const MAX_PAGES = 20;
 /** Which route these payments took, as a key of `DONATION_PROVIDERS`. */
 const PROVIDER = "sepa";
 
+/**
+ * How much of a payer's name is kept.
+ *
+ * The same limit `donationInputSchema` puts on the field. A longer name stored
+ * here would be refused the moment somebody opened the payment in the editor
+ * and saved it, so it is cut where it is written rather than where it is read.
+ */
+const MAX_PAYER_NAME_LENGTH = 80;
+
 /** A day in milliseconds. */
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -228,10 +237,15 @@ async function importTransaction(
     }
 
     await insertDonation({
-      // Empty on purpose. The payer's name stands in the statement and is a
-      // third party's data nobody gave for this, so it is not taken. Where a
-      // reference matched, the name came from the form its owner filled in.
-      firstName: "",
+      // The name as the statement writes it, in one piece. A statement gives
+      // one string and no split, and guessing where a given name ends turns
+      // "Anna von Trapp" into two wrong halves, so `lastName` stays empty and
+      // everything that shows a payment joins the two anyway. Splitting it by
+      // hand in the editor stays possible.
+      //
+      // Only reached where no reference matched. Where one did, the name comes
+      // from the form its owner filled in, which is the better of the two.
+      firstName: transaction.payerName.slice(0, MAX_PAYER_NAME_LENGTH),
       lastName: "",
       socialMedia: [],
       published: false,
