@@ -5,7 +5,34 @@ import { parseTableSortFromSearchParams } from "@/lib/table-sort-storage.ts";
 
 export type VisibilityFilter = "all" | ShopVisibility;
 
-export const SHOP_SORTABLE_COLUMNS = new Set(["name", "region", "likes"]);
+/**
+ * Every column of the shop table, named once.
+ *
+ * The table builds its columns from these and the set below is built from them
+ * too, because the two used to be written out separately and drifted: a column
+ * added to the table alone gets a header that reacts to a click and sorts
+ * nothing, since the sort travels through the address bar and the parser
+ * discards a name it does not know.
+ */
+export const ShopColumnId = {
+  Name: "name",
+  Categories: "categories",
+  Region: "region",
+  Date: "date",
+  Likes: "likes",
+  Actions: "actions",
+} as const;
+
+/** One column of the shop table. */
+export type ShopColumnId = (typeof ShopColumnId)[keyof typeof ShopColumnId];
+
+/** The columns a click on the header sorts by. */
+export const SHOP_SORTABLE_COLUMNS = new Set<string>([
+  ShopColumnId.Name,
+  ShopColumnId.Region,
+  ShopColumnId.Date,
+  ShopColumnId.Likes,
+]);
 const DEFAULT_SHOPS_VISIBILITY_FILTER: VisibilityFilter = "public";
 
 const SHOP_VISIBILITY_FILTER_VALUES = new Set<VisibilityFilter>(["all", ...SHOP_VISIBILITIES]);

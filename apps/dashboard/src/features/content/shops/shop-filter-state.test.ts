@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   applyShopsVisibilityFilterSearchParam,
+  parseShopsSort,
   parseShopsVisibilityFilter,
   readStoredShopsVisibilityFilter,
   shopsFilterReducer,
   writeStoredShopsVisibilityFilter,
   INITIAL_FILTER_STATE,
+  SHOP_SORTABLE_COLUMNS,
 } from "./shop-filter-state";
 
 function installLocalStorage() {
@@ -28,6 +30,29 @@ describe("shop filter state", () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
     installLocalStorage();
+  });
+
+  // The sort travels through the address bar, so a column the parser does not
+  // recognise loses its sort on the way back and the header reacts to a click
+  // without sorting anything. Every sortable column is checked rather than the
+  // one that was missing, because the next one added will be missing the same
+  // way.
+  it.each([...SHOP_SORTABLE_COLUMNS])("keeps a sort by %s across the address bar", (column) => {
+    expect(parseShopsSort(new URLSearchParams(`sort=${column}&dir=desc`))).toEqual({
+      id: column,
+      dir: "desc",
+    });
+  });
+
+  it("sorts by the date column", () => {
+    expect(parseShopsSort(new URLSearchParams("sort=date&dir=asc"))).toEqual({
+      id: "date",
+      dir: "asc",
+    });
+  });
+
+  it("discards a column that does not exist", () => {
+    expect(parseShopsSort(new URLSearchParams("sort=nothing&dir=asc"))).toBeNull();
   });
 
   it("parses supported visibility filters", () => {
