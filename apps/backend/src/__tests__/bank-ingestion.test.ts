@@ -65,6 +65,7 @@ function transaction(overrides: Record<string, unknown> = {}) {
     isCredit: true,
     bookedOn: "2026-09-01",
     remittanceLines: ["Spende: lmaa.space"],
+    payerName: "Anna von Trapp",
     ...overrides,
   };
 }
@@ -305,10 +306,38 @@ describe("a run over the account", () => {
         amountCents: 2_500,
         receivedAt: "2026-09-01",
         externalRef: "sepa:entry-1",
-        // The payer's name stands in the statement and is not taken.
-        firstName: "",
+        // The whole name in one field, because the statement gives one string
+        // and splitting it would guess where the given name ends.
+        firstName: "Anna von Trapp",
+        lastName: "",
         sponsorId: null,
       }),
+    );
+  });
+
+  it("records a payment whose statement named nobody without a name", async () => {
+    clientMocks.fetchTransactions.mockResolvedValue({
+      transactions: [transaction({ payerName: "" })],
+      continuationKey: null,
+    });
+
+    await runBankIngestion("background");
+
+    expect(repositoryMocks.insertDonation).toHaveBeenCalledWith(
+      expect.objectContaining({ firstName: "", lastName: "" }),
+    );
+  });
+
+  it("cuts a name at what the editor will accept back", async () => {
+    clientMocks.fetchTransactions.mockResolvedValue({
+      transactions: [transaction({ payerName: "N".repeat(120) })],
+      continuationKey: null,
+    });
+
+    await runBankIngestion("background");
+
+    expect(repositoryMocks.insertDonation).toHaveBeenCalledWith(
+      expect.objectContaining({ firstName: "N".repeat(80) }),
     );
   });
 

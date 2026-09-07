@@ -47,14 +47,21 @@ export const donationInputSchema = z.object({
   /**
    * The given name, split as a sponsor's is so both render alike.
    *
-   * May be empty, and is for every payment the site read from the bank: the
-   * payer's name stands in the statement and is a third party's data nobody
-   * gave for this, so it is not taken. A payment entered by hand may be nameless
-   * too, because sometimes nobody knows who paid, and refusing to record it
-   * would lose the money from the ledger rather than the name.
+   * A payment the site read from the bank carries the payer as the statement
+   * writes them, in one piece and in this field, because a statement gives one
+   * string and no split. Everything that shows a payment joins the two fields,
+   * so an unsplit name renders as it stands and can be split by hand later.
+   *
+   * May be empty. A payment entered by hand may be nameless, because sometimes
+   * nobody knows who paid, and refusing to record it would lose the money from
+   * the ledger rather than the name.
    */
   firstName: z.string().trim().max(80).default(""),
-  /** The family name, empty for anybody given under one name only. */
+  /**
+   * The family name, empty for anybody given under one name only.
+   *
+   * Empty as well for every payment read from the bank, for the reason above.
+   */
   lastName: z.string().trim().max(80).default(""),
   /**
    * Where they can be found, as a platform key against a profile address.

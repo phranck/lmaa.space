@@ -1369,7 +1369,12 @@ export const donations = pgTable(
   "donations",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    /** The given name, split as a sponsor's is so both render alike. */
+    /**
+     * The given name, split as a sponsor's is so both render alike.
+     *
+     * Holds the whole name for a payment read from the bank, because a
+     * statement gives one string and no split.
+     */
     firstName: text("first_name").notNull(),
     /** The family name, empty for anybody given under one name only. */
     lastName: text("last_name").notNull().default(""),

@@ -97,6 +97,13 @@ const transactionsResponseSchema = z.object({
         booking_date: z.string().max(32).optional(),
         value_date: z.string().max(32).optional(),
         remittance_information: z.array(z.string().max(500)).max(50).default([]),
+        /**
+         * Who sent the money, which on an arriving payment is the debtor.
+         *
+         * The name alone. The party also carries a postal address, and that is
+         * left out of the schema so it cannot reach anything downstream.
+         */
+        debtor: z.object({ name: z.string().max(200).optional() }).nullish(),
       }),
     )
     .default([]),
@@ -122,6 +129,15 @@ export interface BankTransaction {
    * concerns this project and is dropped with the entry when it does not.
    */
   remittanceLines: string[];
+  /**
+   * Who sent the money, as the statement writes them.
+   *
+   * Empty where the entry named nobody. Never logged, and kept only for an
+   * entry that turns out to concern this project, so a payment belonging to
+   * somebody's ordinary life leaves the run with its name as with everything
+   * else about it.
+   */
+  payerName: string;
 }
 
 /** One page of the account's entries. */
@@ -488,6 +504,7 @@ export async function fetchTransactions(
       isCredit: entry.credit_debit_indicator === CREDIT_INDICATOR,
       bookedOn: bookedOn.slice(0, 10),
       remittanceLines: entry.remittance_information,
+      payerName: entry.debtor?.name?.trim() ?? "",
     });
   }
 
