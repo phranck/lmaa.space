@@ -85,7 +85,9 @@ export interface BankReadOutcome {
   transactionsRead: number;
   /** How many became a row in the ledger. */
   imported: number;
-  /** How many were recognised and already stood there. */
+  /** How many stood there already and were completed from the entry. */
+  filled: number;
+  /** How many were recognised and already stood there unchanged. */
   skipped: number;
 }
 

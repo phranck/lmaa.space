@@ -87,6 +87,7 @@ function toStatus(
     lastReadAt: lastRead?.readAt.toISOString() ?? null,
     lastReadSucceeded: lastRead?.succeeded ?? null,
     lastReadImported: lastRead?.imported ?? 0,
+    lastReadFilled: lastRead?.filled ?? 0,
     // Why it failed, so the card can say something the operator can act on
     // rather than that it did not work.
     lastReadFailure: lastRead?.failureReason ?? null,

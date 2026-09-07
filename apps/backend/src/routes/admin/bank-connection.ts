@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 
-import { bankConnectionCallbackSchema } from "@lmaa/contracts";
+import { bankConnectionCallbackSchema, bankSyncRequestSchema } from "@lmaa/contracts";
 
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin, requireOwner } from "../../middleware/auth.js";
@@ -103,11 +103,11 @@ actingRoutes.delete("/bank-connection", async (c) => {
 // is the account holder asking for their own information, which Article 36(5)(a)
 // of Commission Delegated Regulation (EU) 2018/389 does not cap, so it draws on
 // a budget of its own and cannot lock the automatic run out.
-actingRoutes.post("/bank-connection/sync", async (c) => {
+actingRoutes.post("/bank-connection/sync", validate("json", bankSyncRequestSchema), async (c) => {
   if (!isEnableBankingConfigured()) {
     return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
   }
-  return ok(c, await runBankIngestion("manual"));
+  return ok(c, await runBankIngestion("manual", { from: c.req.valid("json").from }));
 });
 
 // Mounted last, so every acting route above is behind the owner check.

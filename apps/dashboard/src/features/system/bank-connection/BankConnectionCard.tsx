@@ -1,5 +1,5 @@
 import { ArrowsClockwiseIcon, BankIcon, PlugsConnectedIcon } from "@phosphor-icons/react";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { groupIban } from "@lmaa/shared";
@@ -7,6 +7,8 @@ import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { Badge } from "@/components/ui/Badge.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardField } from "@/components/ui/DashboardControls.tsx";
+import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useSponsoringConfig } from "@/features/content/sponsors/hooks/useSponsors.ts";
@@ -48,6 +50,13 @@ export function BankConnectionCard() {
   // sponsoring settings, because that is where it is entered.
   const { data: config } = useSponsoringConfig();
   const sync = useSyncBank();
+  /**
+   * The day a read is asked to start at, empty for the days it takes by itself.
+   *
+   * Held here rather than in the address bar, because it is the wording of one
+   * question being asked now and not a view of the page worth returning to.
+   */
+  const [syncFrom, setSyncFrom] = useState("");
 
   // Built once per locale rather than once per date.
   const formatDate = useMemo(
@@ -62,12 +71,18 @@ export function BankConnectionCard() {
   if (!status?.configured) return null;
 
   const state = resolveBankConnectionState(status, new Date());
+  // What a successful read did, with the repairs named only where there were
+  // any: a run that added payments and one that completed rows that were
+  // already there are different answers, and "0 ergänzt" on every ordinary
+  // run is a figure nobody needs.
+  const lastRunOutcome = status.lastReadSucceeded
+    ? [
+        `${status.lastReadImported} ${text.lastReadImported}`,
+        ...(status.lastReadFilled > 0 ? [`${status.lastReadFilled} ${text.lastReadFilled}`] : []),
+      ].join(", ")
+    : text.lastReadFailed;
   const lastRun = status.lastReadAt
-    ? `${formatDateTime.format(new Date(status.lastReadAt))} · ${
-        status.lastReadSucceeded
-          ? `${status.lastReadImported} ${text.lastReadImported}`
-          : text.lastReadFailed
-      }`
+    ? `${formatDateTime.format(new Date(status.lastReadAt))} · ${lastRunOutcome}`
     : text.lastReadNever;
   // What the bank said, where it said anything. A failure the operator cannot
   // name is one they cannot act on, and the general sentence covered a lapsed
@@ -122,7 +137,15 @@ export function BankConnectionCard() {
       {/* Owner only. An admin may read the state, and neither button is theirs
           to press: both reach the bank account. */}
       {user?.isOwner && (
-        <DashboardSection.Footer className="flex justify-end gap-2">
+        <DashboardSection.Footer className="flex flex-wrap items-end justify-end gap-2">
+          {/* Away from the buttons on purpose: it is what the read is asked
+              for rather than an action, and the two buttons keep the corner a
+              reader looks in. */}
+          <div className="mr-auto">
+            <DashboardField label={text.syncFromLabel} hint={text.syncFromHint}>
+              <DateTimePicker mode="date" value={syncFrom} onChange={setSyncFrom} />
+            </DashboardField>
+          </div>
           <DashboardButton
             leadingIcon={<PlugsConnectedIcon weight="duotone" className="size-4" />}
             onClick={() => void navigate(BANK_CONNECTION_PATH)}
@@ -133,7 +156,7 @@ export function BankConnectionCard() {
             variant="primary"
             disabled={!status.connected || sync.isPending}
             leadingIcon={<ArrowsClockwiseIcon weight="duotone" className="size-4" />}
-            onClick={() => sync.mutate()}
+            onClick={() => sync.mutate(syncFrom ? { from: syncFrom } : {})}
           >
             {sync.isPending ? text.syncing : text.syncNow}
           </DashboardButton>

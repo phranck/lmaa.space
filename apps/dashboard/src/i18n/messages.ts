@@ -1360,6 +1360,10 @@ export interface DashboardMessages {
       lastReadFailed: string;
       /** Follows a count, as in "3 Zahlungen übernommen". */
       lastReadImported: string;
+      /** What a read that completed rows already in the ledger did to them. */
+      lastReadFilled: string;
+      syncFromLabel: string;
+      syncFromHint: string;
       syncNow: string;
       syncing: string;
       syncFailed: string;
@@ -3116,6 +3120,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         lastReadNever: "Noch nie",
         lastReadFailed: "fehlgeschlagen",
         lastReadImported: "übernommen",
+        lastReadFilled: "ergänzt",
+        syncFromLabel: "Ab welchem Tag",
+        syncFromHint:
+          "Leer lässt den Abruf die Tage nehmen, die er von selbst nimmt. Wie weit die Bank zurückgeht, entscheidet sie selbst.",
         syncNow: "Jetzt abrufen",
         syncing: "Wird abgerufen …",
         syncFailed: "Der Abruf hat nicht geklappt. Versuch es später noch einmal.",
@@ -4896,6 +4904,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         lastReadNever: "Never",
         lastReadFailed: "failed",
         lastReadImported: "taken in",
+        lastReadFilled: "completed",
+        syncFromLabel: "Starting from",
+        syncFromHint:
+          "Left empty, the read takes the days it takes by itself. How far back the bank goes is its own decision.",
         syncNow: "Read now",
         syncing: "Reading …",
         syncFailed: "The read did not work. Try again later.",

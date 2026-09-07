@@ -4,6 +4,7 @@ import type {
   BankAuthorizationStart,
   BankConnectionCallback,
   BankConnectionStatus,
+  BankSyncRequest,
 } from "@lmaa/contracts";
 
 import { api } from "@/lib/api.ts";
@@ -59,7 +60,16 @@ export function useCompleteBankAuthorization() {
 
 /** What a run over the account did, or why it did nothing. */
 export type BankSyncResult =
-  | { ran: true; from: string; to: string; read: number; imported: number; skipped: number }
+  | {
+      ran: true;
+      from: string;
+      to: string;
+      read: number;
+      imported: number;
+      /** How many already stood in the ledger and were completed from the entry. */
+      filled: number;
+      skipped: number;
+    }
   | {
       ran: false;
       reason: string;
@@ -76,8 +86,9 @@ export type BankSyncResult =
 /**
  * Reads the account now rather than waiting for the next background run.
  *
- * @returns The mutation. Its result says what the run found, or why it did
- *   nothing, which is an ordinary answer rather than a failure.
+ * @returns The mutation. It takes the day to start at, or nothing to read the
+ *   days the run would take by itself. Its result says what the run found, or
+ *   why it did nothing, which is an ordinary answer rather than a failure.
  *
  * @remarks
  * Invalidates the ledger as well as the connection, because a run that took
@@ -86,7 +97,8 @@ export type BankSyncResult =
 export function useSyncBank() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api.post<BankSyncResult>("/admin/bank-connection/sync"),
+    mutationFn: (input: BankSyncRequest = {}) =>
+      api.post<BankSyncResult>("/admin/bank-connection/sync", input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: BANK_CONNECTION_KEY });
       void queryClient.invalidateQueries({ queryKey: ["donations"] });

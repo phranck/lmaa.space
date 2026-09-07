@@ -15,7 +15,7 @@ import {
   getLastBookedThrough,
   type BankReadKind,
 } from "../repositories/bank-reads.js";
-import { insertDonation } from "../repositories/donations.js";
+import { fillDonationPayerName, insertDonation } from "../repositories/donations.js";
 
 /**
  * How many background reads Article 36(5) of Commission Delegated Regulation
@@ -100,7 +100,16 @@ export type BankIngestionSkip =
 
 /** What a run did, or why it did nothing. */
 export type BankIngestionResult =
-  | { ran: true; from: string; to: string; read: number; imported: number; skipped: number }
+  | {
+      ran: true;
+      from: string;
+      to: string;
+      read: number;
+      imported: number;
+      /** How many stood in the ledger already and were completed from the entry. */
+      filled: number;
+      skipped: number;
+    }
   | {
       ran: false;
       reason: BankIngestionSkip;
@@ -126,6 +135,32 @@ const UNKNOWN_FAILURE = "bank_unknown_error";
 /** A day as `YYYY-MM-DD`, which is how the ledger and the interface both state one. */
 function toDay(value: Date): string {
   return value.toISOString().slice(0, 10);
+}
+
+/** What one run may be asked for beyond the days it would take by itself. */
+export interface BankIngestionOptions {
+  /**
+   * The first day to ask the bank for, as `YYYY-MM-DD`.
+   *
+   * For a person asking, which is the only caller that passes it. The
+   * background run leaves it out, because reaching further back on a timer
+   * would spend the regulated budget on days that were read long ago.
+   *
+   * Ignored when it falls after today, since a range whose start is after its
+   * end is one the bank refuses.
+   */
+  from?: string;
+}
+
+/**
+ * Where a run starts when nobody asked for a day.
+ *
+ * @param now - The moment the run counts back from.
+ * @param lookbackDays - How far back to reach.
+ * @returns The first day of the window, as `YYYY-MM-DD`.
+ */
+function defaultFrom(now: Date, lookbackDays: number): string {
+  return toDay(new Date(now.getTime() - lookbackDays * DAY_MS));
 }
 
 /**
@@ -215,11 +250,38 @@ export function classifyTransaction(
   return { kind: "ignore" };
 }
 
-/** Takes one recognised payment into the ledger. */
+/** What became of one recognised payment. */
+type ImportOutcome =
+  /** It was not in the ledger and now is. */
+  | "imported"
+  /** It was already there without a name, and now carries one. */
+  | "filled"
+  /** It was already there and the entry had nothing to add. */
+  | "skipped";
+
+/**
+ * Takes one recognised payment into the ledger, or completes what stands there.
+ *
+ * @param transaction - The entry as it came back.
+ * @param classified - What the entry was decided to be.
+ * @returns Whether the payment was written, completed, or already stood
+ *   complete.
+ *
+ * @remarks
+ * The second run over a day is the ordinary case rather than the exception: the
+ * window reaches back further than the interval, and a person may ask for a
+ * range that was read months ago. Such a run therefore completes what stands in
+ * the ledger rather than stopping at the unique index, which is the only way a
+ * payment stored before a field was taken ever gets that field.
+ *
+ * Only a field the stored row lacks is written. Anything a person put there is
+ * better than what a statement carries, and a run repeating over old days must
+ * not undo that.
+ */
 async function importTransaction(
   transaction: BankTransaction,
   classified: { kind: "sponsorship"; reference: string } | { kind: "donation" },
-): Promise<"imported" | "skipped"> {
+): Promise<ImportOutcome> {
   const externalRef = `${PROVIDER}:${transaction.entryReference}`;
   const payment = {
     amountCents: transaction.amountCents,
@@ -259,8 +321,14 @@ async function importTransaction(
     return "imported";
   } catch (error) {
     // The same entry read a second time. This is the ordinary case rather than
-    // a fault, and it is counted rather than swallowed.
-    if (isUniqueViolation(error)) return "skipped";
+    // a fault, so what the entry can still add is added and the rest is left.
+    if (isUniqueViolation(error)) {
+      const filled = await fillDonationPayerName(
+        externalRef,
+        transaction.payerName.slice(0, MAX_PAYER_NAME_LENGTH),
+      );
+      return filled ? "filled" : "skipped";
+    }
     throw error;
   }
 }
@@ -281,7 +349,10 @@ async function importTransaction(
  * account is private and most of what passes through here is somebody's
  * ordinary life.
  */
-export async function runBankIngestion(kind: BankReadKind): Promise<BankIngestionResult> {
+export async function runBankIngestion(
+  kind: BankReadKind,
+  options: BankIngestionOptions = {},
+): Promise<BankIngestionResult> {
   const connection = await getLiveBankConnection();
   if (!connection) return { ran: false, reason: "not_connected" };
 
@@ -306,12 +377,17 @@ export async function runBankIngestion(kind: BankReadKind): Promise<BankIngestio
   // and the account may already carry months of payments.
   const lastBookedThrough = await getLastBookedThrough();
   const lookbackDays = lastBookedThrough ? RECENT_LOOKBACK_DAYS : FIRST_RUN_LOOKBACK_DAYS;
-  const from = toDay(new Date(now.getTime() - lookbackDays * DAY_MS));
   const to = toDay(now);
+  // A day that was asked for wins over the default, in both directions: asking
+  // for more is how history gets read again, and asking for less is a smaller
+  // question the caller is entitled to. It is held at today, because a start
+  // after the end is the range the bank refuses outright.
+  const from = options.from && options.from <= to ? options.from : defaultFrom(now, lookbackDays);
 
   const marker = siteMarker();
   let read = 0;
   let imported = 0;
+  let filled = 0;
   let skipped = 0;
   let continuationKey: string | undefined;
 
@@ -343,6 +419,7 @@ export async function runBankIngestion(kind: BankReadKind): Promise<BankIngestio
 
         const outcome = await importTransaction(transaction, classified);
         if (outcome === "imported") imported += 1;
+        else if (outcome === "filled") filled += 1;
         else skipped += 1;
       }
 
@@ -360,15 +437,16 @@ export async function runBankIngestion(kind: BankReadKind): Promise<BankIngestio
     bookedThrough: to,
     transactionsRead: read,
     imported,
+    filled,
     skipped,
   });
 
   logger.info(
-    { event: "bank_ingestion.finished", kind, from, to, read, imported, skipped },
+    { event: "bank_ingestion.finished", kind, from, to, read, imported, filled, skipped },
     "bank account read",
   );
 
-  return { ran: true, from, to, read, imported, skipped };
+  return { ran: true, from, to, read, imported, filled, skipped };
 }
 
 /**

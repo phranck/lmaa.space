@@ -82,6 +82,7 @@ describe("the bank connection", () => {
         lastReadAt: null,
         lastReadSucceeded: null,
         lastReadImported: 0,
+        lastReadFilled: 0,
         lastReadFailure: null,
       });
     });
