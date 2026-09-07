@@ -1,3 +1,4 @@
+import { DrizzleQueryError } from "drizzle-orm/errors";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { isValidCreditorReference } from "@lmaa/shared";
@@ -56,7 +57,16 @@ function form(overrides: Partial<Parameters<typeof createPendingSponsorship>[0]>
 }
 
 /** A unique violation as the driver raises one for a reference already taken. */
-const referenceTaken = { code: "23505", constraint_name: "pending_sponsorships_reference_unique" };
+// The wrapper Drizzle actually throws. A bare object carrying the code is not
+// what reaches the service, so a mock using one proves nothing about it.
+const referenceTaken = new DrizzleQueryError(
+  "insert into pending_sponsorships …",
+  [],
+  Object.assign(new Error("duplicate key value violates unique constraint"), {
+    code: "23505",
+    constraint_name: "pending_sponsorships_reference_unique",
+  }),
+);
 
 describe("createPendingSponsorship", () => {
   beforeEach(() => {

@@ -1,3 +1,4 @@
+import { DrizzleQueryError } from "drizzle-orm/errors";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const repoMocks = vi.hoisted(() => ({
@@ -31,7 +32,17 @@ describe("setupOwnerAdmin", () => {
   it("returns already_setup when another owner wins the race", async () => {
     repoMocks.getAdminCount.mockResolvedValueOnce(0).mockResolvedValueOnce(1);
     authMocks.hashPassword.mockResolvedValue("hashed-password");
-    repoMocks.createOwnerAdminWithSession.mockRejectedValue({ code: "23505" });
+    repoMocks.createOwnerAdminWithSession.mockRejectedValue(
+      // The wrapper Drizzle actually throws, which carries the driver's error
+      // as `cause` rather than being it.
+      new DrizzleQueryError(
+        "insert into admin_users …",
+        [],
+        Object.assign(new Error("duplicate key value violates unique constraint"), {
+          code: "23505",
+        }),
+      ),
+    );
 
     const result = await setupOwnerAdmin({
       username: "owner",
