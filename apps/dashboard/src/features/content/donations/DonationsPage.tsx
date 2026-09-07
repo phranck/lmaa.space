@@ -61,6 +61,12 @@ export function DonationsPage() {
 
       <PageBody className="overflow-y-auto">
         <div className="grid gap-4">
+          {/* First on the page, because it decides whether everything under it
+              is current. A payment somebody is missing is looked for in this
+              list, so the figure saying when the account was last read, and the
+              button that reads it again, belong at the top of it. */}
+          <BankConnectionCard />
+
           <DashboardSection>
             <DashboardSection.Header
               icon={<HandCoinsIcon weight="duotone" className="size-4" />}
@@ -122,13 +128,6 @@ export function DonationsPage() {
               </div>
             </DashboardSection.Body>
           </DashboardSection>
-
-          {/* Above the table, because it decides whether the table is current.
-              A payment somebody is missing is looked for here, so the figure
-              saying when the account was last read, and the button that reads
-              it again, have to stand beside the list rather than on the chart
-              page. */}
-          <BankConnectionCard />
 
           {isLoading && (
             <DashboardSection className="overflow-hidden">

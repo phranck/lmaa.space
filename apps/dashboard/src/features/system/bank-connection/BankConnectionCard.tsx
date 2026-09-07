@@ -12,6 +12,7 @@ import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useSponsoringConfig } from "@/features/content/sponsors/hooks/useSponsors.ts";
+import { useRememberedFlag } from "@/lib/useRememberedFlag.ts";
 
 import { BANK_CONNECTION_STATE_COLORS } from "./bank-connection-colors.ts";
 import { resolveBankConnectionState } from "./bank-connection-state.ts";
@@ -19,6 +20,14 @@ import { useBankConnection, useSyncBank } from "./hooks/useBankConnection.ts";
 
 /** Where the connection itself is made and renewed. */
 const BANK_CONNECTION_PATH = "/bank-connection";
+
+/**
+ * Where the browser keeps whether this card stands open.
+ *
+ * Versioned, as the other stores here are, so a stored answer to a question
+ * that later changes shape can be left behind rather than misread.
+ */
+const EXPANDED_STORAGE_KEY = "lmaa-bank-connection-card:v1";
 
 /** One labelled figure of the card. */
 function CardFact({ label, children }: { label: string; children: ReactNode }) {
@@ -57,6 +66,11 @@ export function BankConnectionCard() {
    * question being asked now and not a view of the page worth returning to.
    */
   const [syncFrom, setSyncFrom] = useState("");
+  // Closed until somebody opens it. The card answers whether the list beneath
+  // it is current, which is asked occasionally, whilst the list is what the
+  // page is for. Whether it stands open is a decision about this screen rather
+  // than about the data, so it belongs to the browser it was made in.
+  const [expanded, setExpanded] = useRememberedFlag(EXPANDED_STORAGE_KEY, false);
 
   // Built once per locale rather than once per date.
   const formatDate = useMemo(
@@ -93,7 +107,12 @@ export function BankConnectionCard() {
       : null;
 
   return (
-    <DashboardSection>
+    <DashboardSection
+      collapsible
+      collapseButtonLabel={text.cardTitle}
+      expanded={expanded}
+      onExpandedChange={setExpanded}
+    >
       <DashboardSection.Header
         icon={<BankIcon weight="duotone" className="size-4" />}
         title={text.cardTitle}
