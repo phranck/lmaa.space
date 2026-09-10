@@ -4,7 +4,7 @@ import {
   MARKDOWN_SHORTCODE_DEFINITIONS,
   type MarkdownShortcodeDefinition,
   type MarkdownShortcodeParamDefinition,
-} from "./markdown-shortcodes.js";
+} from "./index.js";
 
 /** Anything written as `{name}`, which is the notation all three kinds share. */
 const BRACED_NAME = /\{[a-zA-Z][a-zA-Z0-9]*\}/;

@@ -11,12 +11,14 @@
  * name in braces stands. Both are questions of meaning rather than of shape.
  */
 
-import { MARKDOWN_SHORTCODE_DEFINITIONS } from "../markdown-shortcodes.js";
-import type { MarkdownShortcodeDefinition } from "../markdown-shortcodes.js";
 import { tokenizeShortcodes } from "./markdown-shortcode-tokenizer.js";
 import type { ShortcodeNode, ShortcodeSpanKind } from "./markdown-shortcode-tokenizer.js";
 import { SITE_VARIABLE_NAMES } from "./site-variables.js";
 import { TEXT_TOKEN_NAMES } from "./text-tokens.js";
+import {
+  MARKDOWN_SHORTCODE_DEFINITIONS,
+  type MarkdownShortcodeDefinition,
+} from "../markdown-shortcodes/index.js";
 
 /**
  * What a stretch of source is, for the purpose of colouring it.

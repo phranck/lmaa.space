@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { MARKDOWN_SHORTCODE_TOKENS } from "../markdown-shortcodes.js";
 import { parseMarkdownShortcodes } from "./markdown-shortcode-parser.js";
+import { MARKDOWN_SHORTCODE_TOKENS } from "../markdown-shortcodes/index.js";
 
 describe("parseMarkdownShortcodes", () => {
 

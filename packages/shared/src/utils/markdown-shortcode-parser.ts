@@ -1,9 +1,9 @@
+import { tokenizeShortcodes, type ShortcodeNode } from "./markdown-shortcode-tokenizer.js";
 import {
   MARKDOWN_SHORTCODE_DEFINITIONS,
   type MarkdownShortcodeDefinition,
   type MarkdownShortcodeParamDefinition,
-} from "../markdown-shortcodes.js";
-import { tokenizeShortcodes, type ShortcodeNode } from "./markdown-shortcode-tokenizer.js";
+} from "../markdown-shortcodes/index.js";
 
 export type MarkdownShortcodeAttributeValue = string | true;
 

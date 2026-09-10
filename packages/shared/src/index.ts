@@ -60,7 +60,7 @@ export * from "./utils/logo-background.js";
 
 export * from "./utils/epc-qr.js";
 /** Markdown shortcode registry metadata and parser helpers. */
-export * from "./markdown-shortcodes.js";
+export * from "./markdown-shortcodes/index.js";
 export * from "./utils/markdown-shortcode-indent.js";
 export * from "./utils/markdown-shortcode-parser.js";
 /** Shared footer CSS and style-var helper for frontend and backend preview. */
