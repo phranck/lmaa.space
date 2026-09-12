@@ -1349,7 +1349,6 @@ export interface DashboardMessages {
       disconnectPartial: string;
       /** The same connection, shown beside the figures it keeps current. */
       cardTitle: string;
-      cardHint: string;
       accountLabel: string;
       lastReadLabel: string;
       lastReadNever: string;
@@ -1358,6 +1357,16 @@ export interface DashboardMessages {
       lastReadImported: string;
       /** What a read that completed rows already in the ledger did to them. */
       lastReadFilled: string;
+      /** When the site reads the account by itself the next time. */
+      nextReadLabel: string;
+      /**
+       * What stands there whilst that read is already due.
+       *
+       * Nothing read in the last 24 hours means the next tick of the timer
+       * reads, which comes back as a time that is not in the future. Saying so
+       * beats printing a minute that has passed.
+       */
+      nextReadDue: string;
       syncFromLabel: string;
       syncFromHint: string;
       syncNow: string;
@@ -3105,14 +3114,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         disconnectPartial:
           "Getrennt. Die Zustimmung bei der Bank liess sich nicht schliessen und läuft von selbst ab.",
         cardTitle: "Bankverbindung",
-        cardHint:
-          "Über diese Verbindung führen sich die Zahlen oben von selbst nach. Läuft sie ab, bleiben sie stehen.",
         accountLabel: "Konto",
-        lastReadLabel: "Zuletzt gelesen",
+        lastReadLabel: "Letzte Abfrage",
         lastReadNever: "Noch nie",
         lastReadFailed: "fehlgeschlagen",
         lastReadImported: "übernommen",
         lastReadFilled: "ergänzt",
+        nextReadLabel: "Nächste Abfrage",
+        nextReadDue: "Steht an",
         syncFromLabel: "Ab welchem Tag",
         syncFromHint:
           "Leer lässt den Abruf die Tage nehmen, die er von selbst nimmt. Wie weit die Bank zurückgeht, entscheidet sie selbst.",
@@ -4885,14 +4894,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         disconnectPartial:
           "Disconnected. The consent at the bank could not be closed and will lapse on its own.",
         cardTitle: "Bank connection",
-        cardHint:
-          "The figures above keep themselves current through this connection. Once it lapses, they stand still.",
         accountLabel: "Account",
         lastReadLabel: "Last read",
         lastReadNever: "Never",
         lastReadFailed: "failed",
         lastReadImported: "taken in",
         lastReadFilled: "completed",
+        nextReadLabel: "Next read",
+        nextReadDue: "Due now",
         syncFromLabel: "Starting from",
         syncFromHint:
           "Left empty, the read takes the days it takes by itself. How far back the bank goes is its own decision.",

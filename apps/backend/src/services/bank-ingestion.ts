@@ -1,6 +1,12 @@
 import { normalizeCreditorReference } from "@lmaa/shared";
 
 import { announceConsentRefused, announceConsentStage } from "./bank-consent.js";
+import {
+  BACKGROUND_INTERVAL_MS,
+  BACKGROUND_READS_PER_WINDOW,
+  MANUAL_READS_PER_WINDOW,
+  READ_WINDOW_HOURS,
+} from "./bank-read-schedule.js";
 import { fetchTransactions, type BankTransaction } from "./enable-banking-client.js";
 import { takeOverPendingSponsorshipByReference } from "./pending-sponsorships.js";
 import { env } from "../config/env.js";
@@ -16,32 +22,6 @@ import {
   type BankReadKind,
 } from "../repositories/bank-reads.js";
 import { fillDonationPayerName, insertDonation } from "../repositories/donations.js";
-
-/**
- * How many background reads Article 36(5) of Commission Delegated Regulation
- * (EU) 2018/389 allows whilst the account holder is not asking.
- */
-const BACKGROUND_READS_PER_WINDOW = 4;
-
-/** The window that cap is measured over, sliding rather than per calendar day. */
-const READ_WINDOW_HOURS = 24;
-
-/**
- * How many reads the button may make in the same window.
- *
- * The button falls under Article 36(5)(a), where the account holder asks for
- * the information themselves and no cap applies. The number here is not the
- * regulation, it is a guard against a stuck page pressing it in a loop.
- */
-const MANUAL_READS_PER_WINDOW = 60;
-
-/**
- * How often the background run looks.
- *
- * Six hours meets both readings of the four-per-24-hours cap at once, so the
- * time of day it starts at does not matter.
- */
-const BACKGROUND_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 /** How far back the very first run reaches, in days. */
 const FIRST_RUN_LOOKBACK_DAYS = 90;

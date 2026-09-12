@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import type { BankAuthorizationStart, BankConnectionStatus } from "@lmaa/contracts";
 
+import { nextBackgroundReadAt } from "./bank-read-schedule.js";
 import {
   closeSession,
   createSession,
@@ -71,11 +72,15 @@ const EXPECTED_ACCOUNT_COUNT = 1;
  * Turns the stored connection into what the dashboard shows.
  *
  * @param connection - The connection in force, or `null` where there is none.
+ * @param lastRead - The most recent read, or `null` before the first one.
+ * @param nextRead - When the background run next reaches the bank, or `null`
+ *   where it will not.
  * @returns The status, which carries nothing that could reach the account.
  */
 function toStatus(
   connection: BankConnectionRow | null,
   lastRead: BankAccountReadRow | null = null,
+  nextRead: Date | null = null,
 ): BankConnectionStatus {
   return {
     configured: isEnableBankingConfigured(),
@@ -91,6 +96,7 @@ function toStatus(
     // Why it failed, so the card can say something the operator can act on
     // rather than that it did not work.
     lastReadFailure: lastRead?.failureReason ?? null,
+    nextReadAt: nextRead?.toISOString() ?? null,
   };
 }
 
@@ -98,7 +104,8 @@ function toStatus(
  * What the dashboard shows about the connection.
  *
  * @returns Whether the site is configured, whether a connection is in force,
- *   and when its consent lapses.
+ *   when its consent lapses, and when the account was last read and is read
+ *   next.
  *
  * @remarks
  * Every field comes from this site's own database. Nothing here is fetched from
@@ -107,7 +114,11 @@ function toStatus(
  */
 export async function getBankConnectionStatus(): Promise<BankConnectionStatus> {
   const [connection, lastRead] = await Promise.all([getLiveBankConnection(), getLastBankRead()]);
-  return toStatus(connection, lastRead);
+  // After the connection, because whether a next read exists at all depends on
+  // it, and asking for one whilst nothing is connected reads the wrong table
+  // for an answer that is already settled.
+  const nextRead = await nextBackgroundReadAt(connection, new Date());
+  return toStatus(connection, lastRead, nextRead);
 }
 
 /**

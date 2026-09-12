@@ -21,6 +21,7 @@ function status(overrides: Partial<BankConnectionStatus> = {}): BankConnectionSt
     lastReadImported: 0,
     lastReadFilled: 0,
     lastReadFailure: null,
+    nextReadAt: null,
     ...overrides,
   };
 }

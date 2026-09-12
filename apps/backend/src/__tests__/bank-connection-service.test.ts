@@ -19,7 +19,10 @@ const repositoryMocks = vi.hoisted(() => ({
   takeAuthorizationState: vi.fn(),
 }));
 
-const readMocks = vi.hoisted(() => ({ getLastBankRead: vi.fn() }));
+const readMocks = vi.hoisted(() => ({
+  getLastBankRead: vi.fn(),
+  getReadTimesInWindow: vi.fn(),
+}));
 
 vi.mock("../services/enable-banking-client.js", () => clientMocks);
 vi.mock("../repositories/bank-connections.js", () => repositoryMocks);
@@ -58,6 +61,7 @@ describe("the bank connection", () => {
     clientMocks.isEnableBankingConfigured.mockReturnValue(true);
     clientMocks.closeSession.mockResolvedValue(undefined);
     readMocks.getLastBankRead.mockResolvedValue(null);
+    readMocks.getReadTimesInWindow.mockResolvedValue([]);
     repositoryMocks.insertAuthorizationState.mockImplementation(
       async (state: string, authorizationId: string, expiresAt: Date) => ({
         state,
@@ -84,6 +88,9 @@ describe("the bank connection", () => {
         lastReadImported: 0,
         lastReadFilled: 0,
         lastReadFailure: null,
+        // Nothing connected is nothing that reads, so there is no next read to
+        // name rather than one that is overdue.
+        nextReadAt: null,
       });
     });
 

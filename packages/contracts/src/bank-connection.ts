@@ -79,6 +79,16 @@ export const bankConnectionStatusSchema = z.object({
    * reads the same in every language.
    */
   lastReadFailure: z.string().nullable(),
+
+  /**
+   * When the background run next reaches the bank, or `null` where it will not.
+   *
+   * `null` covers a site with no connection in force and one whose consent has
+   * lapsed. A time that is not in the future means the read is due now, which
+   * is what an empty window looks like: nothing was read in the last 24 hours,
+   * so the next tick of the timer reads.
+   */
+  nextReadAt: z.string().nullable(),
 });
 
 /**
