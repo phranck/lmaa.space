@@ -17,7 +17,7 @@ import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardInput, DashboardNumberInput } from "@/components/ui/DashboardControls.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { PageBody, PageLayout, PageStack } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 import { useSaveSponsoringConfig, useSponsoringConfig } from "./hooks/useSponsors.ts";
@@ -161,14 +161,13 @@ export function SponsoringSettingsPage() {
       <PageBody className="overflow-y-auto">
         {/* The items on the left and the payee on the right, because the list
             is read down whilst the three lines beside it are read across.
-            
-            The `min-w-0` on both columns and on every field is what keeps them
-            inside the page. A grid item is at least as wide as its content, and
-            a text input carries an intrinsic width of about twenty characters
-            whatever `w-full` says, so without it a column widens past its track
-            and takes the card with it. */}
+
+            The `min-w-0` on both columns and on every field is what lets them
+            shrink: a grid item is at least as wide as its content, and a text
+            input carries an intrinsic width of about twenty characters
+            whatever `w-full` says. `PageStack` carries the other half of it. */}
         <div className="grid gap-4 md:grid-cols-7 items-start">
-          <div className="grid gap-4 md:col-span-3 min-w-0">
+          <PageStack className="md:col-span-3 min-w-0">
             <DashboardSection>
               <DashboardSection.Header
                 icon={<CoinsIcon weight="duotone" className="size-4" />}
@@ -192,7 +191,10 @@ export function SponsoringSettingsPage() {
                       <DashboardInput
                         label={index === 0 ? text.costLabelLabel : undefined}
                         value={item.label}
-                        fieldClassName="flex-1"
+                        // `min-w-0` beside the `flex-1`, or the field keeps the
+                        // intrinsic width named above and pushes the amount and
+                        // the delete button out of the card.
+                        fieldClassName="flex-1 min-w-0"
                         onChange={(event) => updateCost(item.id, { label: event.target.value })}
                       />
                       <DashboardNumberInput
@@ -268,9 +270,9 @@ export function SponsoringSettingsPage() {
                 />
               </DashboardSection.Body>
             </DashboardSection>
-          </div>
+          </PageStack>
 
-          <div className="grid gap-4 md:col-span-4 min-w-0">
+          <PageStack className="md:col-span-4 min-w-0">
             <DashboardSection>
               <DashboardSection.Header
                 icon={<BankIcon weight="duotone" className="size-4" />}
@@ -346,7 +348,7 @@ export function SponsoringSettingsPage() {
                 </div>
               </DashboardSection.Body>
             </DashboardSection>
-          </div>
+          </PageStack>
         </div>
       </PageBody>
     </PageLayout>

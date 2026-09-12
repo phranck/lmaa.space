@@ -11,7 +11,7 @@ import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardField } from "@/components/ui/DashboardControls.tsx";
 import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { PageBody, PageLayout, PageStack } from "@/components/ui/PageLayout.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { StatFigure } from "@/components/ui/StatFigure.tsx";
@@ -60,7 +60,7 @@ export function DonationsPage() {
       </PageHeader>
 
       <PageBody className="overflow-y-auto">
-        <div className="grid gap-4">
+        <PageStack>
           {/* First on the page, because it decides whether everything under it
               is current. A payment somebody is missing is looked for in this
               list, so the figure saying when the account was last read, and the
@@ -150,7 +150,7 @@ export function DonationsPage() {
               <DonationTable donations={donations} onEdit={(donation) => setEditing(donation.id)} />
             </DashboardSection>
           )}
-        </div>
+        </PageStack>
       </PageBody>
 
       <DonationEditorCard
