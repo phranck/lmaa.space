@@ -10,7 +10,7 @@ import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardField } from "@/components/ui/DashboardControls.tsx";
 import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { PageBody, PageLayout, PageStack } from "@/components/ui/PageLayout.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { StatFigure } from "@/components/ui/StatFigure.tsx";
@@ -136,7 +136,7 @@ export function DonationChartsPage() {
       <PageHeader title={text.title} />
 
       <PageBody className="overflow-y-auto">
-        <div className="grid gap-4">
+        <PageStack>
           <DashboardSection>
             <DashboardSection.Header
               icon={<ChartLineUpIcon weight="duotone" className="size-4" />}
@@ -291,7 +291,7 @@ export function DonationChartsPage() {
               />
             </DashboardSection.Body>
           </DashboardSection>
-        </div>
+        </PageStack>
       </PageBody>
     </PageLayout>
   );
