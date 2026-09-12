@@ -139,3 +139,28 @@ export async function getLastBankRead(): Promise<BankAccountReadRow | null> {
     .limit(1);
   return row ?? null;
 }
+
+/**
+ * When each read of one kind inside the window happened, newest first.
+ *
+ * @param kind - Which budget the reads draw on.
+ * @param windowHours - How long the window is, counted back from now.
+ * @returns The times, newest first, empty where the window holds none.
+ *
+ * @remarks
+ * The same set `claimBankRead` counts, read rather than claimed. It is what
+ * says when the budget next has room: whilst the window is full, nothing can
+ * be claimed until its oldest read leaves it.
+ */
+export async function getReadTimesInWindow(
+  kind: BankReadKind,
+  windowHours: number,
+): Promise<Date[]> {
+  const since = new Date(Date.now() - windowHours * 60 * 60 * 1000);
+  const rows = await db
+    .select({ readAt: bankAccountReads.readAt })
+    .from(bankAccountReads)
+    .where(and(eq(bankAccountReads.kind, kind), gt(bankAccountReads.readAt, since)))
+    .orderBy(desc(bankAccountReads.readAt));
+  return rows.map((row) => row.readAt);
+}

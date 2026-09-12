@@ -98,6 +98,16 @@ export function BankConnectionCard() {
   const lastRun = status.lastReadAt
     ? `${formatDateTime.format(new Date(status.lastReadAt))} · ${lastRunOutcome}`
     : text.lastReadNever;
+  // A time that is not in the future says the read is due rather than naming a
+  // minute that has passed. The backend answers with the moment itself where
+  // nothing was read in the last 24 hours, and the figure ages further whilst
+  // the card stays open.
+  const nextRunAt = status.nextReadAt ? new Date(status.nextReadAt) : null;
+  const nextRun = nextRunAt
+    ? nextRunAt.getTime() > Date.now()
+      ? formatDateTime.format(nextRunAt)
+      : text.nextReadDue
+    : text.valueAbsent;
   // What the bank said, where it said anything. A failure the operator cannot
   // name is one they cannot act on, and the general sentence covered a lapsed
   // consent and a refused request alike.
@@ -113,11 +123,21 @@ export function BankConnectionCard() {
       expanded={expanded}
       onExpandedChange={setExpanded}
     >
+      {/* The two times stand in the header rather than in the body, because
+          they are what the card is opened to find out and the body is folded
+          away most of the time. */}
       <DashboardSection.Header
         icon={<BankIcon weight="duotone" className="size-4" />}
         title={text.cardTitle}
-        subtitle={text.cardHint}
-        addOn={<Badge colorClass={BANK_CONNECTION_STATE_COLORS[state]}>{text.states[state]}</Badge>}
+        addOn={
+          <>
+            <div className="flex items-start gap-x-8 whitespace-nowrap">
+              <CardFact label={text.lastReadLabel}>{lastRun}</CardFact>
+              <CardFact label={text.nextReadLabel}>{nextRun}</CardFact>
+            </div>
+            <Badge colorClass={BANK_CONNECTION_STATE_COLORS[state]}>{text.states[state]}</Badge>
+          </>
+        }
       />
       <DashboardSection.Body>
         <div className="flex flex-wrap items-start gap-x-10 gap-y-4">
@@ -139,7 +159,6 @@ export function BankConnectionCard() {
               ? formatDate.format(new Date(status.consentValidUntil))
               : text.valueAbsent}
           </CardFact>
-          <CardFact label={text.lastReadLabel}>{lastRun}</CardFact>
         </div>
 
         {/* What the bank said takes precedence over the general sentence: the
