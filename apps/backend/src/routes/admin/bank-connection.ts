@@ -23,6 +23,10 @@ import { isEnableBankingConfigured } from "../../services/enable-banking-client.
  * a bank account and belongs to the owner alone. That check sits on the mount
  * below rather than on each route, so one added there later is covered by
  * having been put there.
+ *
+ * The acting routes are mounted under `/bank-connection` rather than at the
+ * root. Every admin router shares one root, so middleware registered for all
+ * paths at the root would run for every router mounted after this one.
  */
 export const bankConnectionRoutes = new Hono<{ Variables: AuthVariables }>();
 
@@ -60,7 +64,7 @@ actingRoutes.use(
 // boundary's answer to a site holding no credential, and the client refuses to
 // sign without a key regardless, so neither answer depends on the other being
 // remembered.
-actingRoutes.post("/bank-connection/authorize", async (c) => {
+actingRoutes.post("/authorize", async (c) => {
   if (!isEnableBankingConfigured()) {
     return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
   }
@@ -73,7 +77,7 @@ actingRoutes.post("/bank-connection/authorize", async (c) => {
 // the dashboard, because the key that signs the exchange is here and nowhere
 // else.
 actingRoutes.post(
-  "/bank-connection/session",
+  "/session",
   validate("json", bankConnectionCallbackSchema),
   async (c) => {
     if (!isEnableBankingConfigured()) {
@@ -90,7 +94,7 @@ actingRoutes.post(
 // point at a connection other than the one in force. The 503 stands here too,
 // because closing the session at the bank needs the same credential as opening
 // it did.
-actingRoutes.delete("/bank-connection", async (c) => {
+actingRoutes.delete("/", async (c) => {
   if (!isEnableBankingConfigured()) {
     return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
   }
@@ -103,12 +107,13 @@ actingRoutes.delete("/bank-connection", async (c) => {
 // is the account holder asking for their own information, which Article 36(5)(a)
 // of Commission Delegated Regulation (EU) 2018/389 does not cap, so it draws on
 // a budget of its own and cannot lock the automatic run out.
-actingRoutes.post("/bank-connection/sync", validate("json", bankSyncRequestSchema), async (c) => {
+actingRoutes.post("/sync", validate("json", bankSyncRequestSchema), async (c) => {
   if (!isEnableBankingConfigured()) {
     return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
   }
   return ok(c, await runBankIngestion("manual", { from: c.req.valid("json").from }));
 });
 
-// Mounted last, so every acting route above is behind the owner check.
-bankConnectionRoutes.route("/", actingRoutes);
+// Mounted after the status route, so reading the status never meets the owner
+// check.
+bankConnectionRoutes.route("/bank-connection", actingRoutes);

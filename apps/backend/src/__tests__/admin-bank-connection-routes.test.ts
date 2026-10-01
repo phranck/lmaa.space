@@ -86,6 +86,30 @@ describe("bank connection routes", () => {
     expect(requireOwner).toHaveBeenCalled();
   });
 
+  it("keeps the owner check and the size limit off the routes mounted beside it", async () => {
+    // Every admin router is mounted at the same root, so anything these routes
+    // register for all paths reaches every router mounted after them.
+    const app = new Hono();
+    app.route("/", bankConnectionRoutes);
+    app.put("/form-configs/suggestion-form", (c) => c.json({ saved: true }));
+
+    const response = await app.request("/form-configs/suggestion-form", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows: "x".repeat(4096) }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(requireOwner).not.toHaveBeenCalled();
+  });
+
+  it("refuses a body larger than the bank routes take", async () => {
+    const response = await postSession({ code: "x".repeat(4096), state: ISSUED });
+
+    expect(response.status).toBe(413);
+    expect(serviceMocks.completeBankAuthorization).not.toHaveBeenCalled();
+  });
+
   it("hands out the address to send the browser to", async () => {
     const response = await makeApp().request("/bank-connection/authorize", { method: "POST" });
 
