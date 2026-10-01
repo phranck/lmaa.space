@@ -33,8 +33,8 @@ const EXTENDED_CACHE_BETA = "extended-cache-ttl-2025-04-11";
  * How often a submitted batch is asked whether it has finished.
  *
  * @remarks
- * Most batches end well inside an hour. Asking every half minute costs one
- * cheap request and keeps a finished check from sitting around unnoticed.
+ * Asking every ten seconds costs one cheap request and keeps a finished check
+ * from sitting around unnoticed.
  */
 const BATCH_POLL_INTERVAL_MS = 10_000;
 
@@ -50,14 +50,21 @@ const BATCH_POLL_INTERVAL_MS = 10_000;
 const MAX_BATCH_TURNS = 4;
 
 /**
- * How long one attempt waits for its batch.
+ * How long one run waits on the batch it resumed or submitted before handing
+ * the check back as pending.
  *
  * @remarks
- * The provider gives a batch up to 24 hours. Waiting that long would hold a
- * lease and a worker for a day, so an attempt gives up earlier and the job is
- * retried, which resumes the same batch rather than paying for a second one.
+ * The worker runs one check at a time, so this is how long every other check
+ * waits before it can be submitted. Kept short, so each due check reaches the
+ * provider within minutes and they wait in its queue side by side. A batch
+ * that has not ended by then is asked about again later, which costs one
+ * cheap request each round.
+ *
+ * Only the first turn is handed back. A continuation batch carries a
+ * conversation that lives in this run alone, so it is waited out here until the
+ * provider ends it, which it does within a day.
  */
-const MAX_BATCH_WAIT_MS = 90 * 60 * 1000;
+const BATCH_WAIT_WINDOW_MS = 60 * 1000;
 
 /** Provider name persisted with every job this adapter runs. */
 const ANTHROPIC_PROVIDER_NAME = "anthropic";
@@ -200,10 +207,6 @@ export function classifyError(error: unknown): {
   // request as an API error without a status. Left to the branch below, every
   // cancellation we caused ourselves was recorded as the provider having
   // answered with an error, and was retried on top of that.
-  // Checked before the generic API error, because the SDK models a cancelled
-  // request as an API error without a status. Left to the branch below, every
-  // cancellation we caused ourselves was recorded as the provider having
-  // answered with an error, and was retried on top of that.
   if (error instanceof Anthropic.APIUserAbortError || (error as Error)?.name === "AbortError") {
     return { code: "PROVIDER_ABORTED", message: "Lauf wurde abgebrochen", retryable: false };
   }
@@ -317,9 +320,10 @@ export class AnthropicReviewProvider implements ReviewProvider {
     ];
     const usages: ReviewUsage[] = [];
     let batchId = request.resumeBatchId ?? null;
+    let turn = 0;
 
     try {
-      for (let turn = 0; turn < MAX_BATCH_TURNS; turn += 1) {
+      for (; turn < MAX_BATCH_TURNS; turn += 1) {
         if (!batchId) {
           batchId = await this.submitBatch(client, request, messages);
           // Only the first batch is handed up. A worker that restarts resumes
@@ -335,7 +339,7 @@ export class AnthropicReviewProvider implements ReviewProvider {
           );
         }
 
-        const finished = await this.awaitBatch(client, batchId, request);
+        const finished = await this.awaitBatch(client, batchId, request, turn === 0);
         if (finished.kind !== "ended") return finished.outcome;
 
         const entry = await this.readBatchEntry(client, batchId, request.submissionId);
@@ -397,6 +401,14 @@ export class AnthropicReviewProvider implements ReviewProvider {
     } catch (error) {
       const classified = classifyError(error);
       logger.error({ err: error, submissionId: request.submissionId }, "review provider failed");
+
+      // A failed poll or results read says nothing about the batch, which is
+      // still there. Failing the attempt would drop it and pay for a second
+      // one, so the check is handed back to be asked about again.
+      if (batchId && turn === 0 && classified.retryable) {
+        return this.outcome("pending", { providerResponseId: batchId });
+      }
+
       return this.outcome("failed", {
         usage: sumReviewUsage(usages),
         providerResponseId: batchId,
@@ -404,6 +416,17 @@ export class AnthropicReviewProvider implements ReviewProvider {
         errorMessage: classified.message,
         retryable: classified.retryable,
       });
+    }
+  }
+
+  async cancelRun(providerResponseId: string): Promise<void> {
+    if (!this.client) return;
+    try {
+      await this.client.beta.messages.batches.cancel(providerResponseId);
+    } catch (error) {
+      // A batch that already ended refuses to be cancelled, which is the
+      // outcome cancelling was after anyway.
+      logger.warn({ err: error, batchId: providerResponseId }, "review batch cancel failed");
     }
   }
 
@@ -513,7 +536,9 @@ export class AnthropicReviewProvider implements ReviewProvider {
    * @param client - The provider client.
    * @param batchId - The batch this check was submitted as.
    * @param request - The run, for its cancellation signal and its progress.
-   * @returns That the batch ended, or the outcome that ends the attempt.
+   * @param firstTurn - `true` for the batch the job knows by id, which may be
+   * handed back as pending once {@link BATCH_WAIT_WINDOW_MS} has passed.
+   * @returns That the batch ended, or the outcome that ends this run.
    *
    * @remarks
    * A cancelled run cancels the batch as well, so a check somebody stopped does
@@ -523,8 +548,11 @@ export class AnthropicReviewProvider implements ReviewProvider {
     client: Anthropic,
     batchId: string,
     request: ReviewProviderRequest,
+    firstTurn: boolean,
   ): Promise<{ kind: "ended" } | { kind: "other"; outcome: ReviewProviderOutcome }> {
-    const deadline = Date.now() + MAX_BATCH_WAIT_MS;
+    // A continuation has no deadline here because it cannot be handed back,
+    // and the provider ends every batch within a day on its own.
+    const deadline = firstTurn ? Date.now() + BATCH_WAIT_WINDOW_MS : Number.POSITIVE_INFINITY;
 
     for (;;) {
       if (request.signal?.aborted) {
@@ -544,16 +572,7 @@ export class AnthropicReviewProvider implements ReviewProvider {
       if (batch.processing_status === "ended") return { kind: "ended" };
 
       if (Date.now() > deadline) {
-        return {
-          kind: "other",
-          outcome: this.outcome("failed", {
-            providerResponseId: batchId,
-            errorCode: "PROVIDER_BATCH_TIMEOUT",
-            errorMessage:
-              "Der Anbieter hat die Prüfung nicht innerhalb des Zeitfensters bearbeitet.",
-            retryable: true,
-          }),
-        };
+        return { kind: "other", outcome: this.outcome("pending", { providerResponseId: batchId }) };
       }
 
       await new Promise((resolve) => setTimeout(resolve, BATCH_POLL_INTERVAL_MS));

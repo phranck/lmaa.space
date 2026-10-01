@@ -17,12 +17,14 @@ import {
   listReviewJobsWithSubmission,
   retryReviewJob,
 } from "../../repositories/review-jobs.js";
+import { createReviewProvider } from "../../services/review/factory.js";
 import { listReviewModels } from "../../services/review/models.js";
 import {
   toReviewJob,
   toReviewJobDetail,
   toReviewJobListItem,
 } from "../../services/review/read-model.js";
+import { loadReviewSettings } from "../../services/review/settings.js";
 import { readReviewSpendSummary } from "../../services/review/spend-summary.js";
 
 /**
@@ -113,6 +115,14 @@ reviewJobRoutes.post("/review-jobs/:id/cancel", async (c) => {
 
   const job = await cancelReviewJob(jobId);
   if (!job) return fail(c, 409, "Diese Prüfung ist bereits abgeschlossen");
+
+  // A job set aside to wait on its batch has no worker to pass the cancellation
+  // on, so the batch would run on and be billed.
+  if (job.providerResponseId) {
+    const provider = createReviewProvider(await loadReviewSettings());
+    await provider.cancelRun(job.providerResponseId);
+  }
+
   return ok(c, toReviewJob(job));
 });
 

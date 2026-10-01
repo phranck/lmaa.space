@@ -69,9 +69,15 @@ export interface TextRepairOutcome {
  * `result` means the provider returned a parsed JSON object. Whether that
  * object is a usable review is decided afterwards by the contract, not here:
  * the adapter's job ends at "the provider answered with JSON".
+ *
+ * `pending` means the provider holds the work and has not finished it. That is
+ * not a failure: a batch may legitimately wait in the provider's queue for up to
+ * a day. The worker sets the job aside and asks again later under the same
+ * `providerResponseId`, without spending an attempt.
  */
 export type ReviewProviderOutcomeKind =
   | "result"
+  | "pending"
   | "refused"
   | "invalid_output"
   | "budget_exceeded"
@@ -159,4 +165,16 @@ export interface ReviewProvider {
    * @returns What the provider produced, never throwing for a provider-side failure.
    */
   runReview(request: ReviewProviderRequest): Promise<ReviewProviderOutcome>;
+  /**
+   * Stops work the provider is still holding for a check.
+   *
+   * @param providerResponseId - The identifier a run reported, such as a batch id.
+   *
+   * @remarks
+   * A job set aside whilst its batch waits has no worker whose cancellation
+   * signal would reach the provider, so cancelling the job has to say so
+   * itself. Without it the batch runs on and is billed for an answer nobody
+   * reads. Never throws: work that already ended has nothing left to stop.
+   */
+  cancelRun(providerResponseId: string): Promise<void>;
 }

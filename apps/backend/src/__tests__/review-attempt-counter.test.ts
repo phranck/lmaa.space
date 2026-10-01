@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../db/client.js", () => ({ db: {} }));
 
-import { attemptAfterClaim } from "../repositories/review-jobs.js";
+import { attemptAfterClaim, isParkedReviewJob } from "../repositories/review-jobs.js";
 
 describe("what a claim does to the attempt counter", () => {
   it("counts an attempt where the job has no batch yet", () => {
@@ -12,8 +12,8 @@ describe("what a claim does to the attempt counter", () => {
 
   it("counts nothing where the job is resuming a batch", () => {
     // Two containers exist during a deployment, so the new one takes the job
-    // over whilst the old one is still waiting. A batch runs for up to ninety
-    // minutes against a lease of twenty, so this happened on every deployment.
+    // over whilst the old one is still waiting. A batch can wait for hours
+    // against a lease of twenty minutes, so this happens on every deployment.
     expect(attemptAfterClaim(3, "msgbatch_01F7LSRqwyhZQmTQRanfybiT")).toBe(3);
   });
 
@@ -38,5 +38,29 @@ describe("what a claim does to the attempt counter", () => {
     ];
 
     expect(claims.reduce<number>((attempt, batch) => attemptAfterClaim(attempt, batch), 0)).toBe(1);
+  });
+});
+
+describe("a job set aside to wait on its batch", () => {
+  it("is one waiting at the provider with nobody holding it", () => {
+    expect(
+      isParkedReviewJob({ state: "provider_waiting", leaseOwner: null, providerResponseId: "msgbatch_1" }),
+    ).toBe(true);
+  });
+
+  it("is not a job whose worker still names itself, which is a crash to recover", () => {
+    expect(
+      isParkedReviewJob({
+        state: "provider_waiting",
+        leaseOwner: "host:1",
+        providerResponseId: "msgbatch_1",
+      }),
+    ).toBe(false);
+  });
+
+  it("is not a queued job", () => {
+    expect(
+      isParkedReviewJob({ state: "queued", leaseOwner: null, providerResponseId: "msgbatch_1" }),
+    ).toBe(false);
   });
 });
