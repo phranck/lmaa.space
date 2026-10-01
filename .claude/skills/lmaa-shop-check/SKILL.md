@@ -1,7 +1,7 @@
 ---
 name: lmaa-shop-check
 description: Prüft Shops nach den lmaa.space-Aufnahmekriterien.
-version: 0.2.0
+version: 0.3.0
 author: Frank Gregor (phranck), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -77,12 +77,15 @@ beiden redaktionellen Texte samt belastbaren Quellen.
    `<Firmenname> die-deutsche-wirtschaft.de`; ergänze Northdata,
    Bundesanzeiger, LinkedIn-Unternehmensseite, PitchBook, Statista,
    Unternehmens- und Presseseiten. Nenne Bezugsjahr und kennzeichne Schätzungen.
-   Beschäftigtenzahl ist primär: Richtwert etwa 100, klar über 150 bedeutet
-   Ablehnung. Umsatz von etwa 20 Mio. Euro ist nur ein schwächeres
-   Orientierungssignal. Direkt darüber sind Konzernbezug, Filialen,
-   Marktstellung und Selbstdarstellung abzuwägen. Fehlen Zahlen, nutze konkrete
-   Proxys wie Filialzahl, Fläche, Sortiment und Stellenanzeigen; setze nie
-   automatisch "klein" voraus.
+   Beschäftigtenzahl ist primär und maßgeblich, nicht der Umsatz: Richtwert etwa
+   100 Mitarbeitende als Orientierung. Erst ein Betrieb mit mehreren hundert
+   Mitarbeitenden wird als Großunternehmen abgelehnt, unabhängig von
+   Eigentümerstruktur und Tradition. Im Graubereich zwischen rund 100 und
+   mehreren hundert das Gesamtbild abwägen, also Konzernbezug, Filialen,
+   Marktstellung und Selbstdarstellung, und begründet entscheiden. Umsatz ist
+   nur ein schwaches Nebensignal. Fehlen Zahlen, nutze konkrete Proxys wie
+   Filialzahl, Fläche, Sortiment und Stellenanzeigen; setze nie automatisch
+   "klein" voraus.
 
 8. **Alle acht Kriterien intern bewerten.** Nutze `✓`, `✗` oder `~` für:
    eigenständiger Online-Auftritt; Sitz in Europa; kein Großunternehmen; kein
@@ -256,9 +259,12 @@ Gib genau zwei Markdown-Codeblöcke aus, durch eine Leerzeile getrennt:
    `## Ablehnungsgründe`, passenden `###`-Unterabschnitten, `## Schluss` und
    `### Quellen`.
 
-Konkrete Fakten erhalten Quellenverweise `[n]`. Jede Quelle ist eine überprüfbare URL
-im Format `[n] URL — Beschreibung, Stand: $DATUM`. Registerdaten, Sitz und
-Konzernzugehörigkeit werden immer belegt. `[REJECT_TOKEN]` bleibt exakt stehen.
+Konkrete Fakten erhalten Quellenverweise `[n]`. Jede Quelle steht als klickbarer
+Markdown-Link im Format `[n] [Beschreibung](URL), Stand: $DATUM`, wobei die
+Beschreibung den Linktext bildet und die überprüfbare URL das Linkziel ist, etwa
+`[1] [Arbeitgeberprofil mit über 300 Fachkräften](https://example.com/profil), Stand: 2026-05-01`.
+Registerdaten, Sitz und Konzernzugehörigkeit werden immer belegt. `[REJECT_TOKEN]`
+bleibt exakt stehen.
 
 ## Pitfalls
 
