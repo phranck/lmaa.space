@@ -7,6 +7,7 @@ import {
   eq,
   gte,
   inArray,
+  isNotNull,
   isNull,
   lt,
   lte,
@@ -177,10 +178,11 @@ export async function recordReviewEvent(
  * its own terms, and a worker restart says nothing about the shop.
  *
  * Two containers exist during a deployment, so the new one takes the job over
- * whilst the old one is still waiting on the provider. A batch runs for up to
- * ninety minutes and a lease holds twenty, which is why every deployment inside
- * that window used to spend an attempt: job 38 reached five of five with three
- * submissions and not one token read.
+ * whilst the old one is still waiting on the provider. A batch can wait in the
+ * provider's queue for hours and a lease holds twenty minutes, so counting the
+ * claim would spend an attempt on every deployment and every round a waiting
+ * job is picked up again: job 38 reached five of five with three submissions
+ * and not one token read.
  *
  * A batch that could not be resumed and had to be submitted again does count,
  * and the worker records that where it submits.
@@ -202,8 +204,9 @@ export function attemptAfterClaim(attempt: number, providerResponseId: string | 
  * already holds.
  *
  * The same statement recovers a job whose lease has expired, which is what a
- * crashed worker leaves behind. That counts as a fresh attempt, because the
- * previous one may have got arbitrarily far before it died.
+ * crashed worker leaves behind, and picks up a job that was set aside to wait
+ * on its batch once it is due. {@link attemptAfterClaim} decides whether the
+ * claim costs an attempt.
  */
 export async function claimNextReviewJob(
   owner: string,
@@ -218,19 +221,32 @@ export async function claimNextReviewJob(
     const [candidate] = await tx
       .select({
         id: reviewJobs.id,
+        state: reviewJobs.state,
         attempt: reviewJobs.attempt,
+        leaseOwner: reviewJobs.leaseOwner,
         providerResponseId: reviewJobs.providerResponseId,
       })
       .from(reviewJobs)
       .where(
         and(
-          lt(reviewJobs.attempt, reviewJobs.maxAttempts),
+          // A job with a batch in flight resumes it whatever the counter says,
+          // because that batch is the attempt the counter already holds.
+          or(
+            lt(reviewJobs.attempt, reviewJobs.maxAttempts),
+            isNotNull(reviewJobs.providerResponseId),
+          ),
           or(
             and(eq(reviewJobs.state, "queued"), lte(reviewJobs.nextRunAt, now)),
             // A lease that has run out is what a crashed worker leaves behind.
             and(
               inArray(reviewJobs.state, ["running", "provider_waiting", "applying"]),
               lt(reviewJobs.leaseExpiresAt, now),
+            ),
+            // Set aside whilst its batch waits in the provider's queue.
+            and(
+              eq(reviewJobs.state, "provider_waiting"),
+              isNull(reviewJobs.leaseOwner),
+              lte(reviewJobs.nextRunAt, now),
             ),
           ),
         ),
@@ -241,16 +257,20 @@ export async function claimNextReviewJob(
 
     if (!candidate) return null;
 
+    const parked = isParkedReviewJob(candidate);
+
     const [row] = await tx
       .update(reviewJobs)
       .set({
-        state: "running",
+        // A parked job stays where it was, so the overview keeps showing it at
+        // the provider rather than flickering through "running" every round.
+        state: parked ? "provider_waiting" : "running",
         // The row is locked, so reading the counter and writing it back cannot
         // race with a second worker.
         attempt: attemptAfterClaim(candidate.attempt, candidate.providerResponseId),
         leaseOwner: owner,
         leaseExpiresAt: new Date(now.getTime() + leaseMs),
-        startedAt: now,
+        ...(parked ? {} : { startedAt: now }),
         updatedAt: now,
       })
       .where(eq(reviewJobs.id, candidate.id))
@@ -258,6 +278,60 @@ export async function claimNextReviewJob(
 
     return row ?? null;
   });
+}
+
+/**
+ * Tells whether a job was set aside to wait on its batch.
+ *
+ * @param job - State, lease holder and batch of the job.
+ * @returns `true` for a job {@link parkReviewJob} put aside.
+ *
+ * @remarks
+ * Only such a job is waiting with no worker holding it. A job whose worker
+ * crashed still names that worker until its lease is taken over.
+ */
+export function isParkedReviewJob(job: {
+  state: ReviewJobState;
+  leaseOwner: string | null;
+  providerResponseId: string | null;
+}): boolean {
+  return (
+    job.state === "provider_waiting" && job.leaseOwner === null && job.providerResponseId !== null
+  );
+}
+
+/**
+ * Sets a job aside whilst its batch waits in the provider's queue.
+ *
+ * @param jobId - Job to set aside.
+ * @param owner - Worker that holds the claim; a worker that lost it changes nothing.
+ * @param nextRunAt - When a worker should ask about the batch again.
+ * @returns `true` when the job was set aside.
+ *
+ * @remarks
+ * The state, the batch id and the progress line stay as they are, and no audit
+ * entry is written: nothing happened to the check, and a slow day would
+ * otherwise fill its trail with one entry per round. The lease is released so
+ * the worker is free for other checks in the meantime.
+ */
+export async function parkReviewJob(
+  jobId: number,
+  owner: string,
+  nextRunAt: Date,
+): Promise<boolean> {
+  const rows = await db
+    .update(reviewJobs)
+    .set({ leaseOwner: null, leaseExpiresAt: null, nextRunAt, updatedAt: new Date() })
+    .where(
+      and(
+        eq(reviewJobs.id, jobId),
+        eq(reviewJobs.leaseOwner, owner),
+        eq(reviewJobs.state, "provider_waiting"),
+      ),
+    )
+    .returning({ id: reviewJobs.id });
+
+  return rows.length > 0;
 }
 
 /**
@@ -550,6 +624,9 @@ export async function finalizeExhaustedReviewJobs(): Promise<ReviewJobRow[]> {
         and(
           notInArray(reviewJobs.state, ["completed", "failed", "cancelled"]),
           gte(reviewJobs.attempt, reviewJobs.maxAttempts),
+          // A job with a batch in flight is still in its last attempt, and the
+          // claim resumes it rather than this sweep ending it.
+          isNull(reviewJobs.providerResponseId),
           // A job another worker still holds is left alone. Finishing it here
           // would clear that worker's lease, its heartbeat would notice, and
           // the run it is in the middle of would be aborted mid-request. That
@@ -771,7 +848,9 @@ export async function listReviewJobsWithSubmission(limit = 200) {
  *
  * @remarks
  * Cancelling releases the lease, so a worker still holding the job finds out on
- * its next heartbeat and stops instead of writing a result nobody asked for.
+ * its next heartbeat and stops instead of writing a result nobody asked for. A
+ * job set aside to wait has no such worker, so the caller cancels its batch
+ * with the provider through the returned `providerResponseId`.
  */
 export async function cancelReviewJob(jobId: number): Promise<ReviewJobRow | null> {
   return db.transaction(async (tx) => {

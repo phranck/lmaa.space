@@ -1,7 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const created: Array<Record<string, unknown>> = [];
 const answers: Array<Record<string, unknown>> = [];
+/** What polling a batch returns, or the error it throws. */
+const poll: { status: string; error: Error | null } = { status: "ended", error: null };
 
 vi.mock("@anthropic-ai/sdk", () => {
   class FakeAnthropic {
@@ -12,7 +14,10 @@ vi.mock("@anthropic-ai/sdk", () => {
             created.push(params);
             return { id: `msgbatch_${created.length}` };
           }),
-          retrieve: vi.fn(async () => ({ processing_status: "ended" })),
+          retrieve: vi.fn(async () => {
+            if (poll.error) throw poll.error;
+            return { processing_status: poll.status };
+          }),
           results: vi.fn(async () => {
             const message = answers.shift();
             return {
@@ -93,5 +98,46 @@ describe("a paused turn", () => {
 
     expect(outcome.usage.inputTokens).toBe(20);
     expect(outcome.usage.outputTokens).toBe(40);
+  });
+});
+
+describe("a batch the provider has not finished", () => {
+  beforeEach(() => {
+    created.length = 0;
+    answers.length = 0;
+    poll.status = "ended";
+    poll.error = null;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("is handed back as pending once the wait window has passed", async () => {
+    // On 2026-09-29 batches sat in the provider's queue for twelve hours. A
+    // run that gave up on them as failed left them to be answered, billed and
+    // never read.
+    vi.useFakeTimers();
+    poll.status = "in_progress";
+
+    const provider = new AnthropicReviewProvider({ model: "claude-opus-5", effort: "high", apiKey: "k" });
+    const run = provider.runReview({ ...request, resumeBatchId: "msgbatch_slow" } as never);
+    await vi.advanceTimersByTimeAsync(11 * 60 * 1000);
+    const outcome = await run;
+
+    expect(outcome.kind).toBe("pending");
+    expect(outcome.providerResponseId).toBe("msgbatch_slow");
+    expect(created).toHaveLength(0);
+  });
+
+  it("is handed back as pending when asking about it fails", async () => {
+    const Anthropic = (await import("@anthropic-ai/sdk")).default;
+    poll.error = new Anthropic.APIConnectionError({ message: "connection reset" });
+
+    const provider = new AnthropicReviewProvider({ model: "claude-opus-5", effort: "high", apiKey: "k" });
+    const outcome = await provider.runReview({ ...request, resumeBatchId: "msgbatch_slow" } as never);
+
+    expect(outcome.kind).toBe("pending");
+    expect(outcome.providerResponseId).toBe("msgbatch_slow");
   });
 });

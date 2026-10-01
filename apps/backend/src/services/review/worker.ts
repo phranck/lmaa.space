@@ -27,6 +27,7 @@ import {
   finishReviewReport,
   getSubmissionForReview,
   heartbeatReviewJob,
+  parkReviewJob,
   recordReviewProgress,
   recordReviewEvent,
   skipReviewReport,
@@ -46,6 +47,15 @@ const HEARTBEAT_INTERVAL_MS = 60_000;
 
 /** How long a failed report waits before it is tried again. */
 const REPORT_BACKOFF_MS = 10 * 60 * 1000;
+
+/**
+ * How long a job waiting on its batch is set aside before it is asked about again.
+ *
+ * @remarks
+ * Long enough that the checks and reports queued behind it get a turn first,
+ * because the claim takes the job that has been due longest.
+ */
+const PENDING_RECHECK_DELAY_MS = 60 * 1000;
 
 /** Base delay between attempts, doubled per attempt. */
 const RETRY_BASE_DELAY_MS = 2 * 60 * 1000;
@@ -263,24 +273,34 @@ export class ReviewWorker {
     }
 
     const skill = loadReviewSkill();
-    const startedAt = new Date();
+
+    // A job picked up again after being set aside is already at the provider,
+    // and its trail already says so. Its attempt began when it was submitted.
+    const resumingParked = job.state === "provider_waiting";
+    const startedAt = (resumingParked ? job.startedAt : null) ?? new Date();
 
     // Read before the provider is asked, because the names live in the markup
-    // and the provider's page fetch only returns extracted text.
-    const paymentEvidence = await collectPaymentEvidence(submission.shopUrl);
+    // and the provider's page fetch only returns extracted text. Not read again
+    // for a parked job: its task is already submitted, and on a slow day it is
+    // picked up every minute or two, which would fetch the shop's page as often.
+    const paymentEvidence = resumingParked
+      ? { methods: [], labels: [] }
+      : await collectPaymentEvidence(submission.shopUrl);
 
-    await transitionReviewJob(
-      job.id,
-      "provider_waiting",
-      {
-        provider: provider.name,
-        model: provider.model,
-        reasoningEffort: provider.effort,
-        skillVersion: skill.version,
-        schemaVersion: REVIEW_RESULT_SCHEMA_VERSION,
-      },
-      { name: "provider.started", detail: `${provider.name}/${provider.model}` },
-    );
+    if (!resumingParked) {
+      await transitionReviewJob(
+        job.id,
+        "provider_waiting",
+        {
+          provider: provider.name,
+          model: provider.model,
+          reasoningEffort: provider.effort,
+          skillVersion: skill.version,
+          schemaVersion: REVIEW_RESULT_SCHEMA_VERSION,
+        },
+        { name: "provider.started", detail: `${provider.name}/${provider.model}` },
+      );
+    }
 
     const abort = new AbortController();
     const heartbeat = setInterval(() => {
@@ -333,6 +353,13 @@ export class ReviewWorker {
       clearInterval(heartbeat);
     }
 
+    // The provider still holds the batch. Nothing was spent and nothing went
+    // wrong, so no attempt is recorded and none is used.
+    if (outcome.kind === "pending") {
+      await parkReviewJob(job.id, WORKER_ID, new Date(Date.now() + PENDING_RECHECK_DELAY_MS));
+      return;
+    }
+
     // Every check is submitted as a batch, which the provider bills at half.
     const cost = calculateReviewCost(outcome.usage, outcome.model, undefined, provider.billing);
     const attemptRecord = buildAttemptRecord(job, provider, outcome, cost, startedAt);
@@ -363,7 +390,10 @@ export class ReviewWorker {
           appendAttempt: attemptRecord,
           usage: sumReviewUsage([...job.attempts.map((entry) => entry.usage), outcome.usage]),
           cost: aggregateCost(job, attemptRecord),
-          providerResponseId: outcome.providerResponseId,
+          // The attempt record keeps the batch id. On the job it would make the
+          // next attempt reread the batch that just failed instead of asking
+          // the provider again.
+          providerResponseId: null,
           errorCode: outcome.errorCode,
           nextRunAt: new Date(Date.now() + retryDelayMs(job.attempt)),
           releaseLease: true,
@@ -462,7 +492,8 @@ export class ReviewWorker {
               errorCode: issueSignature(issues),
             },
             cost: aggregateCost(job, attempt),
-            providerResponseId: outcome.providerResponseId,
+            // Resuming the batch would read the same answer again.
+            providerResponseId: null,
             errorCode: "REVIEW_RESULT_INVALID",
             nextRunAt: new Date(Date.now() + retryDelayMs(job.attempt)),
             releaseLease: true,

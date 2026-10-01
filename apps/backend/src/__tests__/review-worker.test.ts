@@ -12,6 +12,7 @@ const repository = vi.hoisted(() => ({
   finishReviewReport: vi.fn(),
   getSubmissionForReview: vi.fn(),
   heartbeatReviewJob: vi.fn(),
+  parkReviewJob: vi.fn(),
   recordReviewEvent: vi.fn(),
   skipReviewReport: vi.fn(),
   sumReviewCostForDay: vi.fn(),
@@ -119,6 +120,7 @@ function fakeProvider(result: ReviewProviderOutcome, configured = true): ReviewP
     isConfigured: () => configured,
     repairTexts: vi.fn(async () => ({ texts: new Map(), usage: {} })),
     runReview: vi.fn().mockResolvedValue(result),
+    cancelRun: vi.fn(async () => undefined),
   };
 }
 
@@ -281,6 +283,71 @@ describe("review worker", () => {
     expect(transitionsTo()).toEqual(["provider_waiting", "queued"]);
     const patch = repository.transitionReviewJob.mock.calls[1][2] as { nextRunAt: Date };
     expect(patch.nextRunAt.getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it("sets a job aside whilst the provider still holds its batch", async () => {
+    // A batch may wait in the provider's queue for hours. Treating that as a
+    // failure ended every check on 2026-09-29 whilst its batch went on to be
+    // answered and billed.
+    repository.claimNextReviewJob.mockResolvedValue(
+      jobRow({ attempt: 3, maxAttempts: 3, providerResponseId: "msgbatch_slow" }),
+    );
+    const worker = new ReviewWorker(() =>
+      fakeProvider(outcome({ kind: "pending", raw: null, providerResponseId: "msgbatch_slow" })),
+    );
+
+    await worker.tick();
+
+    expect(repository.parkReviewJob).toHaveBeenCalledOnce();
+    expect(transitionsTo()).toEqual(["provider_waiting"]);
+    const appended = repository.transitionReviewJob.mock.calls.some(
+      (call) => (call[2] as { appendAttempt?: unknown }).appendAttempt,
+    );
+    expect(appended).toBe(false);
+  });
+
+  it("writes nothing to the trail when it picks up a job set aside", async () => {
+    repository.claimNextReviewJob.mockResolvedValue(
+      jobRow({ state: "provider_waiting", providerResponseId: "msgbatch_slow" }),
+    );
+    const provider = fakeProvider(
+      outcome({ kind: "pending", raw: null, providerResponseId: "msgbatch_slow" }),
+    );
+    const worker = new ReviewWorker(() => provider);
+    const shopFetch = vi.fn();
+    vi.stubGlobal("fetch", shopFetch);
+
+    await worker.tick();
+    vi.unstubAllGlobals();
+
+    expect(provider.runReview).toHaveBeenCalledWith(
+      expect.objectContaining({ resumeBatchId: "msgbatch_slow" }),
+    );
+    expect(repository.transitionReviewJob).not.toHaveBeenCalled();
+    // The shop's page is read once per check, not once per round of waiting.
+    expect(shopFetch).not.toHaveBeenCalled();
+  });
+
+  it("drops the batch of a failed attempt, so the next one asks afresh", async () => {
+    repository.claimNextReviewJob.mockResolvedValue(
+      jobRow({ providerResponseId: "msgbatch_expired" }),
+    );
+    const worker = new ReviewWorker(() =>
+      fakeProvider(
+        outcome({
+          kind: "failed",
+          raw: null,
+          retryable: true,
+          providerResponseId: "msgbatch_expired",
+          errorCode: "PROVIDER_BATCH_EXPIRED",
+        }),
+      ),
+    );
+
+    await worker.tick();
+
+    const requeue = repository.transitionReviewJob.mock.calls.find((call) => call[1] === "queued");
+    expect(requeue?.[2]).toMatchObject({ providerResponseId: null });
   });
 
   it("ends on hold when the last attempt fails", async () => {
@@ -486,6 +553,7 @@ describe("review worker", () => {
       billing: "batch" as const,
       isConfigured: () => true,
       repairTexts: vi.fn(async () => ({ texts: new Map(), usage: {} })),
+      cancelRun: vi.fn(async () => undefined),
       runReview: vi.fn(
         () =>
           new Promise<ReviewProviderOutcome>((resolve) => {
