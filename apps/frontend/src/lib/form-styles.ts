@@ -6,9 +6,14 @@
  * value is written in the site's own tokens rather than in colours of its own.
  */
 
-/** One line of input: a text field, a select, or a textarea with its own height. */
+/**
+ * One line of input: a text field, a select, or a textarea with its own height.
+ *
+ * Its height is the one every control in a website form takes, so a dropdown
+ * beside it reads the same token rather than a number of its own.
+ */
 export const inputClass =
-  "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
+  "w-full px-3 h-[var(--ds-control-h-field-large)] border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
 
 /** What a field says when what was typed does not hold up. */
 export const errorClass = "text-[var(--ds-danger-text)] text-xs mt-1";
@@ -18,7 +23,7 @@ export const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.
 
 /** What every button in a form is, before it says whether it is the filled one. */
 export const buttonBaseClass =
-  "flex items-center gap-1.5 h-9 px-3 rounded-control font-medium text-sm transition-colors";
+  "flex items-center gap-1.5 h-[var(--ds-control-h-field-large)] px-3 rounded-control font-medium text-sm transition-colors";
 
 /** The one button that submits, which is the only filled one in a form. */
 export const buttonFilledClass =

@@ -404,7 +404,7 @@ function MultiSelectDropdown({
         )}
       </span>
       <div
-        className={`w-full flex items-stretch rounded-control border text-sm ${
+        className={`w-full min-h-[var(--ds-control-h-field-large)] flex items-stretch rounded-control border text-sm ${
           error ? "border-[var(--ds-danger-border)]" : "border-[var(--ds-border)]"
         } bg-[var(--ds-input-bg)] text-[var(--ds-text)]`}
       >
@@ -413,9 +413,9 @@ function MultiSelectDropdown({
           aria-expanded={open}
           aria-controls={listboxId}
           onClick={() => setOpen((current) => !current)}
-          className="flex min-w-0 flex-1 items-center gap-2 px-3 min-h-10 cursor-pointer text-left"
+          className="flex min-w-0 flex-1 items-center gap-2 px-3 cursor-pointer text-left"
         >
-          <span className="flex flex-wrap gap-1.5 flex-1 py-1.5">
+          <span className="flex flex-wrap gap-1.5 flex-1 py-1">
             {selected.length === 0 ? (
               <span className="text-[var(--ds-text-muted)] text-sm leading-6">
                 {placeholder ?? "—"}
@@ -551,19 +551,24 @@ function RegionMultiSelect({ field, selected, onChange, error }: RegionMultiSele
       fallback={
         <div className="space-y-2">
           <span className={labelClass}>{field.label || "Versand-Regionen"}</span>
-          <div className="h-11 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+          <div className="h-[var(--ds-control-h-field-large)] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
           {error && <p className={errorClass}>{error}</p>}
         </div>
       }
     >
-      <RegionSelect
-        value={selected}
-        onChange={onChange}
-        options={REGION_OPTIONS}
-        messages={messages}
-        error={error}
-        variant="frontend"
-      />
+      {/* The shared trigger takes the compact field height. A website form uses
+          the taller one its text inputs have, so the trigger is pointed at that
+          token here rather than given a height of its own. */}
+      <div className="[--ds-control-h-field:var(--ds-control-h-field-large)]">
+        <RegionSelect
+          value={selected}
+          onChange={onChange}
+          options={REGION_OPTIONS}
+          messages={messages}
+          error={error}
+          labelClassName={labelClass}
+        />
+      </div>
     </Suspense>
   );
 }

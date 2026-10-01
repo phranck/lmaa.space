@@ -36,6 +36,11 @@ export interface RegionSelectProps {
   messages: RegionSelectMessages;
   error?: string;
   buttonClassName?: string;
+  /**
+   * Classes for the label above the trigger. A surface with its own label style
+   * passes it here, so the field reads like the others in the same form.
+   */
+  labelClassName?: string;
   variant?: "dashboard" | "frontend";
 }
 
@@ -49,6 +54,7 @@ export function RegionSelect({
   messages,
   error,
   buttonClassName,
+  labelClassName,
   variant = "dashboard",
 }: RegionSelectProps) {
   const [open, setOpen] = useState(false);
@@ -86,9 +92,10 @@ export function RegionSelect({
         : value.map((code) => options.find((o) => o.code === code)?.flag ?? code).join("  ");
 
   const labelClass =
-    variant === "frontend"
+    labelClassName ??
+    (variant === "frontend"
       ? "block text-sm font-medium text-[var(--ds-text-muted)] mb-1.5"
-      : formLabelClass;
+      : formLabelClass);
 
   return (
     <div>
