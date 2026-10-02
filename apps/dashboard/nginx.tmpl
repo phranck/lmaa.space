@@ -14,13 +14,26 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 
+    # The backend is looked up on every request rather than once at startup. A
+    # literal host in proxy_pass is resolved when nginx starts and never again,
+    # so a backend deployed on its own comes back on a new address and every
+    # request here answers 502 until the dashboard is deployed too.
+    #
+    # nginx does not read /etc/resolv.conf, so the nameserver is named here. It
+    # is the one the container's /etc/resolv.conf lists, the gateway of this
+    # project's network. nginx also ignores the `search zerops` line in that
+    # file, which is why the host is written as backend.zerops. The address
+    # nslookup returns for that name is IPv4, so only A records are asked for.
+    resolver 10.5.228.1 valid=10s ipv6=off;
+    set $backend_origin http://backend.zerops:3000;
+
     location /api/v1/ {
-        proxy_pass http://backend:3000;
+        proxy_pass $backend_origin;
         proxy_request_buffering off;
     }
 
     location /uploads/ {
-        proxy_pass http://backend:3000;
+        proxy_pass $backend_origin;
     }
 
     location / {
