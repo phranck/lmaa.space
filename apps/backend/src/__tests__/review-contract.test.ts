@@ -337,6 +337,27 @@ describe("source lists", () => {
     ]);
   });
 
+  it("accepts sources cited over plain http", () => {
+    // The check on uk-electronic.de was refused three times because the shop's
+    // own pages link each other over http, and the run cited them that way.
+    const parsed = reviewResultSchema.safeParse(
+      acceptResult({
+        companySize: { ...companySize, sources: ["http://www.beispiel.de/impressum.php"] },
+        evidence: [{ ...evidence[0], url: "http://beispiel.de/impressum.php?language=de" }],
+      }),
+    );
+
+    expect(parsed.success).toBe(true);
+  });
+
+  it("keeps the published shop address on https", () => {
+    const parsed = reviewResultSchema.safeParse(
+      acceptResult({ accept: { ...acceptPayload, url: "http://beispiel.de" } }),
+    );
+
+    expect(parsed.success).toBe(false);
+  });
+
   it("still refuses a rejection whose remaining sources fall below the minimum", () => {
     const base = rejectResult();
     const parsed = reviewResultSchema.safeParse({

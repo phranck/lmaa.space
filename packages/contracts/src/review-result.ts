@@ -38,6 +38,22 @@ const publicUrl = z
   .refine((value) => isSafeConfiguredUrl(value), "URL must be a public http(s) address");
 
 /**
+ * An address a check cites as a source.
+ *
+ * @remarks
+ * Plain `http` is allowed here, unlike in {@link publicUrl}. A source is a
+ * record of what the research read, never a link the site publishes, and many
+ * small shops still link their own legal pages over `http`. Refusing one
+ * would throw away a whole paid run over an accurate citation.
+ */
+const citedUrl = z
+  .string()
+  .trim()
+  .url()
+  .max(2000)
+  .refine((value) => /^https?:\/\//i.test(value), "URL must be an http(s) address");
+
+/**
  * Marks an issue as one of the mechanical rules about the surface of a German
  * text, rather than about what the check found.
  *
@@ -136,7 +152,7 @@ export const reviewCriteriaSchema = z
  */
 export const reviewEvidenceSchema = z
   .object({
-    url: publicUrl,
+    url: citedUrl,
     label: z.string().trim().min(1).max(200),
     retrievedAt: z.string().datetime(),
   })
@@ -167,7 +183,7 @@ export const companySizeSchema = z
      * line. What the research concluded stands in `assessment`, and the sources
      * that survive are still checked.
      */
-    sources: z.preprocess(dropNonUrls, z.array(publicUrl).max(10)),
+    sources: z.preprocess(dropNonUrls, z.array(citedUrl).max(10)),
     assessment: z.string().trim().min(1).max(2000),
   })
   .strict()
@@ -376,7 +392,7 @@ export const reviewRejectSchema = z
      * survive, the result is refused, because the minimum is what makes a
      * published rejection defensible.
      */
-    sources: z.preprocess(dropNonUrls, z.array(publicUrl).min(REJECTION_MIN_SOURCES).max(30)),
+    sources: z.preprocess(dropNonUrls, z.array(citedUrl).min(REJECTION_MIN_SOURCES).max(30)),
   })
   .strict()
   .superRefine((value, ctx) => {
