@@ -24,7 +24,7 @@ import { getDonationBreakdown, getDonationTotals } from "../../services/donation
  */
 export const donationRoutes = new Hono<{ Variables: AuthVariables }>();
 
-donationRoutes.use("*", requireAdmin);
+donationRoutes.use("/donations/*", requireAdmin);
 
 const donationIdSchema = z.object({ id: z.string().uuid() });
 

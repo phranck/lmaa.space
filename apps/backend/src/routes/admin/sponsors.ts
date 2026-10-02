@@ -22,7 +22,7 @@ import { getSponsoringConfig, putSponsoringConfig } from "../../services/sponsor
  */
 export const sponsorRoutes = new Hono<{ Variables: AuthVariables }>();
 
-sponsorRoutes.use("*", requireAdmin);
+sponsorRoutes.use("/sponsors/*", requireAdmin);
 
 const sponsorIdSchema = z.object({ id: z.string().uuid() });
 

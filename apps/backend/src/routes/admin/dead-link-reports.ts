@@ -14,7 +14,7 @@ import {
 export const deadLinkReportsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // Report moderation is owner/admin-only; moderators are excluded.
-deadLinkReportsRoutes.use("*", requireAdmin);
+deadLinkReportsRoutes.use("/dead-link-reports/*", requireAdmin);
 
 // GET /api/admin/dead-link-reports
 deadLinkReportsRoutes.get("/dead-link-reports", async (c) => {

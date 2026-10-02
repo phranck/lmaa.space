@@ -37,7 +37,9 @@ import { readReviewSpendSummary } from "../../services/review/spend-summary.js";
  */
 export const reviewJobRoutes = new Hono<{ Variables: AuthVariables }>();
 
-reviewJobRoutes.use("*", requireAdmin);
+reviewJobRoutes.use("/review-jobs/*", requireAdmin);
+reviewJobRoutes.use("/review/*", requireAdmin);
+reviewJobRoutes.use("/submissions/:id/review", requireAdmin);
 
 // GET /api/admin/review-jobs — every automated check, newest first
 reviewJobRoutes.get("/review-jobs", async (c) => {

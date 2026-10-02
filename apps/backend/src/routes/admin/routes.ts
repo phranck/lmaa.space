@@ -38,6 +38,10 @@ import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
  *
  * Auth routes (setup, login) are mounted directly so they remain public.
  * All other routes go through a sub-router with group-level `requireAuth`.
+ *
+ * Every router below is mounted at the same root, so middleware a router
+ * registers with `use("*")` runs for every router mounted after it. A router
+ * therefore scopes its checks to its own paths, as in `use("/stats/*")`.
  */
 export const adminRoutes = new Hono<{ Variables: AuthVariables }>();
 

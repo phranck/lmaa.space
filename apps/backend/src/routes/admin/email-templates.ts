@@ -34,7 +34,7 @@ import { sendMail } from "../../services/email.js";
  */
 export const emailTemplateRoutes = new Hono<{ Variables: AuthVariables }>();
 
-emailTemplateRoutes.use("*", requireAdmin);
+emailTemplateRoutes.use("/email-templates/*", requireAdmin);
 
 // GET /api/admin/email-templates — list all
 emailTemplateRoutes.get("/email-templates", async (c) => {

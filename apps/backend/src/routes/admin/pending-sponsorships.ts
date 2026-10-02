@@ -22,7 +22,7 @@ import { takeOverPendingSponsorship } from "../../services/pending-sponsorships.
  */
 export const pendingSponsorshipRoutes = new Hono<{ Variables: AuthVariables }>();
 
-pendingSponsorshipRoutes.use("*", requireAdmin);
+pendingSponsorshipRoutes.use("/pending-sponsorships/*", requireAdmin);
 
 const entryIdSchema = z.object({ id: z.string().uuid() });
 

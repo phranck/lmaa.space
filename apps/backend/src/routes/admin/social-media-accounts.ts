@@ -15,7 +15,7 @@ import {
 
 export const socialMediaAccountRoutes = new Hono<{ Variables: AuthVariables }>();
 
-socialMediaAccountRoutes.use("*", requireAdmin);
+socialMediaAccountRoutes.use("/social-media-accounts/*", requireAdmin);
 
 socialMediaAccountRoutes.get("/social-media-accounts", async (c) => {
   const accounts = await listSocialMediaAccounts();

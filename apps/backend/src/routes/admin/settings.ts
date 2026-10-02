@@ -21,7 +21,7 @@ const deleteSettingSchema = z.object({
 export const settingsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // App settings are owner/admin-only; moderators must not read or mutate them.
-settingsRoutes.use("*", requireAdmin);
+settingsRoutes.use("/settings/*", requireAdmin);
 
 // POST /api/admin/settings/bulk - get multiple settings at once
 settingsRoutes.post("/settings/bulk", async (c) => {
