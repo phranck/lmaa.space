@@ -14,7 +14,7 @@ const querySchema = z.object({
 
 export const meTemplateChoicesRoutes = new Hono<{ Variables: AuthVariables }>();
 
-meTemplateChoicesRoutes.use("*", requireAdmin);
+meTemplateChoicesRoutes.use("/me/template-choices", requireAdmin);
 
 meTemplateChoicesRoutes.get("/me/template-choices", validate("query", querySchema), async (c) => {
   const adminId = c.get("adminId");

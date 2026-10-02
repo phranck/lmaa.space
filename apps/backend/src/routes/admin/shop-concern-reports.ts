@@ -14,7 +14,7 @@ import {
 export const shopConcernReportsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // Report moderation is owner/admin-only; moderators are excluded.
-shopConcernReportsRoutes.use("*", requireAdmin);
+shopConcernReportsRoutes.use("/shop-concern-reports/*", requireAdmin);
 
 // GET /api/admin/shop-concern-reports
 shopConcernReportsRoutes.get("/shop-concern-reports", async (c) => {

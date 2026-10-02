@@ -9,7 +9,7 @@ import { getAdminStatsRow } from "../../repositories/admin-stats.js";
  */
 export const statsRoutes = new Hono<{ Variables: AuthVariables }>();
 
-statsRoutes.use("*", requireAdmin);
+statsRoutes.use("/stats/*", requireAdmin);
 
 // GET /api/admin/stats
 statsRoutes.get("/stats", async (c) => {

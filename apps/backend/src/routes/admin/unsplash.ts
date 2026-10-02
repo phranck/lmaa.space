@@ -24,7 +24,7 @@ const unsplashDownloadSchema = z.object({
  * Admin Unsplash proxy routes (search + download tracking).
  */
 export const unsplashRoutes = new Hono<{ Variables: AuthVariables }>();
-unsplashRoutes.use("*", requireAdmin);
+unsplashRoutes.use("/unsplash/*", requireAdmin);
 
 // Unsplash proxy: search
 unsplashRoutes.get("/unsplash/search", async (c) => {

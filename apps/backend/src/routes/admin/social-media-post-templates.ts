@@ -25,7 +25,7 @@ const listQuerySchema = z.object({
 
 export const socialMediaPostTemplateRoutes = new Hono<{ Variables: AuthVariables }>();
 
-socialMediaPostTemplateRoutes.use("*", requireAdmin);
+socialMediaPostTemplateRoutes.use("/social-media-post-templates/*", requireAdmin);
 
 socialMediaPostTemplateRoutes.get(
   "/social-media-post-templates",

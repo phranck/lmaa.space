@@ -25,7 +25,7 @@ import {
  */
 export const formConfigRoutes = new Hono<{ Variables: AuthVariables }>();
 
-formConfigRoutes.use("*", requireAdmin);
+formConfigRoutes.use("/form-configs/*", requireAdmin);
 
 // DELETE /api/admin/form-configs/:name — delete a form config
 formConfigRoutes.delete("/form-configs/:name", async (c) => {

@@ -13,7 +13,7 @@ import { createFooterPreviewSession } from "../../services/footer-preview-store.
  */
 export const footerConfigRoutes = new Hono<{ Variables: AuthVariables }>();
 
-footerConfigRoutes.use("*", requireAdmin);
+footerConfigRoutes.use("/footer-config/*", requireAdmin);
 
 // GET /admin/footer-config
 footerConfigRoutes.get("/footer-config", async (c) => {

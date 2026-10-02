@@ -52,7 +52,9 @@ const focalPointSchema = z.object({
 export const heroRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // Homepage hero configuration is owner/admin-only; moderators are excluded.
-heroRoutes.use("*", requireAdmin);
+heroRoutes.use("/hero-rotation/*", requireAdmin);
+heroRoutes.use("/hero-rotation-interval/*", requireAdmin);
+heroRoutes.use("/hero-images/*", requireAdmin);
 
 heroRoutes.get("/hero-rotation", async (c) => {
   try {

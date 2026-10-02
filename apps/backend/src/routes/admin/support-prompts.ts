@@ -23,7 +23,7 @@ import { getSupportPromptLimits, putSupportPromptLimits } from "../../services/s
  */
 export const supportPromptRoutes = new Hono<{ Variables: AuthVariables }>();
 
-supportPromptRoutes.use("*", requireAdmin);
+supportPromptRoutes.use("/support-prompts/*", requireAdmin);
 
 const promptIdSchema = z.object({ id: z.string().uuid() });
 
