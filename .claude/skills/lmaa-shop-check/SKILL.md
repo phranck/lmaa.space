@@ -1,7 +1,7 @@
 ---
 name: lmaa-shop-check
 description: Prüft Shops nach den lmaa.space-Aufnahmekriterien.
-version: 0.3.0
+version: 0.3.1
 author: Frank Gregor (phranck), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -257,14 +257,16 @@ Gib genau zwei Markdown-Codeblöcke aus, durch eine Leerzeile getrennt:
    `https://lmaa.space/rejected/[REJECT_TOKEN]`
 2. `Langbegründung`: 300 bis 500 Wörter mit `## Einleitung`,
    `## Ablehnungsgründe`, passenden `###`-Unterabschnitten, `## Schluss` und
-   `### Quellen`.
+   `## Quellen`.
 
-Konkrete Fakten erhalten Quellenverweise `[n]`. Jede Quelle steht als klickbarer
-Markdown-Link im Format `[n] [Beschreibung](URL), Stand: $DATUM`, wobei die
-Beschreibung den Linktext bildet und die überprüfbare URL das Linkziel ist, etwa
-`[1] [Arbeitgeberprofil mit über 300 Fachkräften](https://example.com/profil), Stand: 2026-05-01`.
-Registerdaten, Sitz und Konzernzugehörigkeit werden immer belegt. `[REJECT_TOKEN]`
-bleibt exakt stehen.
+Konkrete Fakten erhalten echte Markdown-Fußnoten `[^N]`. Das Fußnotenzeichen steht
+direkt hinter dem belegten Wort ohne Leerzeichen davor, etwa `mit Sitz in Bregenz.[^1][^2]`.
+Jede Quelle wird unter der Überschrift `## Quellen` als Fußnote definiert, im Format
+`[^N]: Beschreibung, URL, Stand: $DATUM` mit der überprüfbaren URL im Klartext, etwa
+`[^1]: Arbeitgeberprofil mit über 300 Fachkräften, https://example.com/profil, Stand: 2026-05-01`.
+Die Definitionen folgen unmittelbar auf die Quellenüberschrift, damit der Renderer sie als
+Fußnotenabschnitt erkennt. Registerdaten, Sitz und Konzernzugehörigkeit werden immer belegt.
+`[REJECT_TOKEN]` bleibt exakt stehen.
 
 ## Pitfalls
 
@@ -282,8 +284,8 @@ bleibt exakt stehen.
 
 - Alle acht Kriterien wurden intern mit `✓`, `✗` oder `~` bewertet.
 - Ablehnung: beide Blöcke, intakter Token, 300 bis 500 Wörter und mindestens fünf
-  unterschiedliche überprüfbare URLs; jede harte Tatsachenbehauptung hat einen
-  Quellenverweis.
+  unterschiedliche überprüfbare URLs; jede harte Tatsachenbehauptung hat eine
+  Fußnote `[^N]` mit zugehöriger Definition unter `## Quellen`.
 - Aufnahme: JSON-Parsing erfolgreich; jedes Schemafeld vorhanden oder explizit
   leer; Koordinatenkaskade ausgeschöpft; nur kanonische Versand- und
   Paymentwerte.
