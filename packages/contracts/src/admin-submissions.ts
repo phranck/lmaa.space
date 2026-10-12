@@ -44,6 +44,19 @@ export const reviewSchema = z.object({
 });
 
 /**
+ * Admin payload to edit the long rejection reason of an already rejected submission.
+ *
+ * Separate from `reviewSchema` because it touches a finalized rejection, which the
+ * review flow deliberately refuses. `.strict()` rejects any other field, so this
+ * endpoint can never change a status, a token or anything else by accident.
+ */
+export const rejectionTextEditSchema = z
+  .object({
+    rejectionLongText: z.string().min(1).max(20000),
+  })
+  .strict();
+
+/**
  * Admin edit payload contract for submission updates.
  */
 export const submissionEditSchema = z.object({

@@ -16,6 +16,7 @@ import { useReviewJob } from "@/features/overview/hooks/useReviewJob.ts";
 import {
   useAdminSubmission,
   useDeleteSubmission,
+  useEditRejectionText,
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { readRejectProposal } from "@/features/overview/review-reject-proposal.ts";
@@ -169,6 +170,7 @@ function LoadedSubmissionEditorPage({
   const submissionsMessages = messages.submissions;
   const { data: reviewJob } = useReviewJob(submission.id);
   const reviewMutation = useReviewSubmission();
+  const editRejectionMutation = useEditRejectionText();
   const deleteMutation = useDeleteSubmission();
   const emailTemplatesQuery = useEmailTemplates();
   const emailTemplates = emailTemplatesQuery.data ?? [];
@@ -290,6 +292,22 @@ function LoadedSubmissionEditorPage({
   }
 
   function handleReject() {
+    // Editing a finalized rejection only replaces its public text, through the
+    // dedicated endpoint. The review mutation is refused for an already rejected
+    // submission, so it is used only when a submission is being rejected afresh.
+    if (reviewState.editingRejection) {
+      editRejectionMutation.mutate(
+        { id: submission.id, rejectionLongText: reviewState.rejectionLongText },
+        {
+          onSuccess: () => {
+            dispatchReview({ type: "close" });
+            showReviewSaved();
+          },
+        },
+      );
+      return;
+    }
+
     reviewMutation.mutate(
       {
         id: submission.id,
@@ -302,11 +320,7 @@ function LoadedSubmissionEditorPage({
       {
         onSuccess: () => {
           dispatchReview({ type: "close" });
-          if (reviewState.editingRejection) {
-            showReviewSaved();
-          } else {
-            navigateBack();
-          }
+          navigateBack();
         },
       },
     );
@@ -367,6 +381,7 @@ function LoadedSubmissionEditorPage({
         setShowDeleteDialog={setShowDeleteDialog}
         handleApprove={handleApprove}
         handleReject={handleReject}
+        rejectMutation={reviewState.editingRejection ? editRejectionMutation : reviewMutation}
         navigateBack={navigateBack}
         common={common}
         submissionsMessages={submissionsMessages}
