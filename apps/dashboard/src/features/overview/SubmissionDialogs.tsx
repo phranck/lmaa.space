@@ -31,6 +31,7 @@ import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.
 import type { useShopEditorController } from "@/features/content/shops/hooks/useShopEditorController.ts";
 import type {
   useDeleteSubmission,
+  useEditRejectionText,
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { renderPostPreview } from "@/features/overview/post-preview.ts";
@@ -44,6 +45,9 @@ interface SubmissionDialogsProps {
   reviewState: ReviewState;
   dispatchReview: React.Dispatch<ReviewAction>;
   reviewMutation: ReturnType<typeof useReviewSubmission>;
+  rejectMutation:
+    | ReturnType<typeof useReviewSubmission>
+    | ReturnType<typeof useEditRejectionText>;
   deleteMutation: ReturnType<typeof useDeleteSubmission>;
   emailTemplates: Array<{ id: number; name: string }>;
   templates: SocialMediaPostTemplate[];
@@ -64,6 +68,7 @@ export function SubmissionDialogs({
   reviewState,
   dispatchReview,
   reviewMutation,
+  rejectMutation,
   deleteMutation,
   emailTemplates,
   templates,
@@ -143,9 +148,9 @@ export function SubmissionDialogs({
         }
         rejectionToken={reviewState.rejectionToken}
         onSubmit={handleReject}
-        isPending={reviewMutation.isPending}
-        isError={reviewMutation.isError}
-        errorMessage={reviewMutation.error?.message ?? common.unknownError}
+        isPending={rejectMutation.isPending}
+        isError={rejectMutation.isError}
+        errorMessage={rejectMutation.error?.message ?? common.unknownError}
         submitLabel={
           reviewState.editingRejection ? common.save : submissionsMessages.suggestions.decline
         }

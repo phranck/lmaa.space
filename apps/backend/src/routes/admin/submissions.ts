@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 import {
+  rejectionTextEditSchema,
   reviewSchema,
   submissionEditSchema,
   submissionReviewImportSchema,
@@ -19,6 +20,7 @@ import {
   getAdminSubmissionById,
   listAdminSubmissions,
   setReadyForReview,
+  updateSubmissionRejectionText,
 } from "../../repositories/admin-submissions.js";
 import { deleteAdminSubmission, reviewAdminSubmission } from "../../services/admin-submissions.js";
 
@@ -117,6 +119,25 @@ submissionsRoutes.patch(
 
     if (!submission) {
       return fail(c, 404, "Submission not found");
+    }
+
+    return ok(c, submission);
+  },
+);
+
+// PATCH /api/admin/submissions/:id/rejection – correct the long reason of a finalized rejection
+submissionsRoutes.patch(
+  "/submissions/:id/rejection",
+  requireAdmin,
+  validate("json", rejectionTextEditSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return fail(c, 400, "Invalid id");
+    const { rejectionLongText } = c.req.valid("json");
+
+    const submission = await updateSubmissionRejectionText(id, rejectionLongText);
+    if (!submission) {
+      return fail(c, 404, "Rejected submission not found");
     }
 
     return ok(c, submission);

@@ -75,6 +75,26 @@ export function useReviewSubmission() {
 }
 
 /**
+ * Corrects the long rejection reason of an already rejected submission.
+ *
+ * Posts only the text to the dedicated endpoint, so a finalized rejection can be
+ * edited without re-running the review flow and without touching its token.
+ *
+ * @returns React Query mutation.
+ */
+export function useEditRejectionText() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, rejectionLongText }: { id: number; rejectionLongText: string }) =>
+      api.patch<Submission>(`/admin/submissions/${id}/rejection`, { rejectionLongText }),
+    onSuccess: (_submission, variables) => {
+      qc.invalidateQueries({ queryKey: ["submissions"] });
+      qc.invalidateQueries({ queryKey: ["submission", variables.id] });
+    },
+  });
+}
+
+/**
  * Updates editable fields of a pending submission.
  *
  * @returns React Query mutation.

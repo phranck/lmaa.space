@@ -1,4 +1,4 @@
-import { asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDomain } from "tldts";
 
 import type {
@@ -286,6 +286,32 @@ export async function reviewSubmission(
       ? reviewCurrentSubmission(current)
       : emptyResult;
   });
+}
+
+/**
+ * Replaces the long rejection reason of an already rejected submission.
+ *
+ * Fails closed: the update matches only a submission whose status is already
+ * `rejected`, so a pending or approved submission is never touched and the
+ * caller receives `null`. The rejection token and the status stay as they are,
+ * and none of the review side effects run, because this is a text correction
+ * rather than a moderation decision.
+ *
+ * @param id - Submission id.
+ * @param rejectionLongText - New long reason, rendered on the public rejection page.
+ * @returns The updated submission row, or `null` when no rejected submission matches.
+ */
+export async function updateSubmissionRejectionText(
+  id: number,
+  rejectionLongText: string,
+): Promise<Submission | null> {
+  const [submission] = await db
+    .update(submissions)
+    .set({ rejectionLongText, updatedAt: new Date() })
+    .where(and(eq(submissions.id, id), eq(submissions.status, "rejected")))
+    .returning();
+
+  return submission ?? null;
 }
 
 /**

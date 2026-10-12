@@ -14,6 +14,7 @@ const repoMocks = vi.hoisted(() => ({
   getAdminSubmissionById: vi.fn(),
   listAdminSubmissions: vi.fn(),
   setReadyForReview: vi.fn(),
+  updateSubmissionRejectionText: vi.fn(),
 }));
 
 const serviceMocks = vi.hoisted(() => ({
@@ -244,6 +245,72 @@ describe("submissionsRoutes", () => {
           },
         }),
       );
+    });
+  });
+
+  describe("PATCH /submissions/:id/rejection", () => {
+    it("updates the long reason of a rejected submission", async () => {
+      repoMocks.updateSubmissionRejectionText.mockResolvedValue({
+        id: 5,
+        status: "rejected",
+        rejectionLongText: "New reason",
+      });
+
+      const res = await app.request("/submissions/5/rejection", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rejectionLongText: "New reason" }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(repoMocks.updateSubmissionRejectionText).toHaveBeenCalledWith(5, "New reason");
+      expect(await res.json()).toEqual({
+        data: { id: 5, status: "rejected", rejectionLongText: "New reason" },
+      });
+    });
+
+    it("returns 404 when no rejected submission matches", async () => {
+      repoMocks.updateSubmissionRejectionText.mockResolvedValue(null);
+
+      const res = await app.request("/submissions/5/rejection", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rejectionLongText: "New reason" }),
+      });
+
+      expect(res.status).toBe(404);
+    });
+
+    it("returns 400 for an empty reason", async () => {
+      const res = await app.request("/submissions/5/rejection", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rejectionLongText: "" }),
+      });
+
+      expect(res.status).toBe(400);
+      expect(repoMocks.updateSubmissionRejectionText).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 for an unknown field (strict schema)", async () => {
+      const res = await app.request("/submissions/5/rejection", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rejectionLongText: "New reason", status: "approved" }),
+      });
+
+      expect(res.status).toBe(400);
+      expect(repoMocks.updateSubmissionRejectionText).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 for an invalid id", async () => {
+      const res = await app.request("/submissions/abc/rejection", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rejectionLongText: "New reason" }),
+      });
+
+      expect(res.status).toBe(400);
     });
   });
 
