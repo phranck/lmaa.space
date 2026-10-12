@@ -1,7 +1,7 @@
 ---
 name: lmaa-shop-check
 description: Prüft Shops nach den lmaa.space-Aufnahmekriterien.
-version: 0.3.1
+version: 0.3.2
 author: Frank Gregor (phranck), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -279,6 +279,7 @@ Fußnotenabschnitt erkennt. Registerdaten, Sitz und Konzernzugehörigkeit werden
 - Bei unerreichbarer Kategorien-API bleibt `categories` leer; bei vollständig
   erschöpfter Geokodierung bleiben beide Koordinaten `null`.
 - Social Media Felder sind entweder vollständige URLs oder null.
+- Eine Verbundgruppen-Plattform unter eigener Domain ist kein eigenständiger Online-Auftritt. Läuft der Shop auf dem gemeinsamen Shopsystem einer Verbundgruppe wie VEDES, erkennbar an deren Footer, der gemeinsamen Zahlungsabwicklung und einem einheitlichen URL-Muster, fehlt die Eigenständigkeit trotz eigener Domain. Vergleiche den abgelehnten VEDES-Händler Lumpis unter https://lmaa.space/rejected/524ad2053b0149739c2e0cc0d142f06e.
 
 ## Verification
 
