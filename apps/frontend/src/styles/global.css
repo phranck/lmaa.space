@@ -689,6 +689,37 @@ html .prose {
   stroke-width: 1px;
 }
 
+/* The line between the large parts of a page: under the header, under the
+   hero, over the home page's band and over the footer. It fades out towards
+   both ends in the wordmark's gold, in both themes, and is drawn as a gradient
+   a pixel high because a border cannot fade.
+
+   `lmaa-fade-rule` is a line of its own. `lmaa-fade-rule-top` and
+   `lmaa-fade-rule-bottom` lay it along an edge of a positioned element, so
+   that element keeps its height. */
+.lmaa-fade-rule,
+.lmaa-fade-rule-top::before,
+.lmaa-fade-rule-bottom::after {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ds-accent), transparent);
+}
+
+.lmaa-fade-rule-top::before,
+.lmaa-fade-rule-bottom::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+}
+
+.lmaa-fade-rule-top::before {
+  top: 0;
+}
+
+.lmaa-fade-rule-bottom::after {
+  bottom: 0;
+}
+
 /* In Salon the footer stands on the header's color, so the page is framed by
    one color at the top and at the bottom. The color the dashboard configures
    for the footer holds in Papier. This outweighs the footer's own stylesheet,

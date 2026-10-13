@@ -34,7 +34,7 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
 ---
 
 {config.columns.length > 0 && (
-  <footer class="footer-root" style={footerStyleVars(config.style)}>
+  <footer class="footer-root lmaa-fade-rule-top relative" style={footerStyleVars(config.style)}>
     <div class="footer-inner">
       <div class="footer-grid" style={`--footer-cols:${totalSpan}`}>
         {config.columns.map((col: FooterColumn) => (

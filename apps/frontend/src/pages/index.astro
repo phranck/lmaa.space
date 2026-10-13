@@ -198,7 +198,7 @@ const jsonLd = {
   </section>
 
   <!-- Divider -->
-  <div class="h-px bg-gradient-to-r from-transparent via-[var(--ds-accent)] to-transparent"></div>
+  <div class="lmaa-fade-rule"></div>
 
   <!-- Categories (filterable) -->
   <FilterableCategoryGrid
@@ -209,8 +209,8 @@ const jsonLd = {
     supportPrompts={supportPrompts}
   />
 
-  <!-- CTA -->
-  <section class="bg-[var(--ds-band-bg)] border-y border-[var(--ds-accent-tint-strong)]">
+  <!-- CTA. Its bottom meets the footer, whose line closes it. -->
+  <section class="lmaa-fade-rule-top relative bg-[var(--ds-band-bg)]">
     <div class="max-w-2xl mx-auto px-4 py-16 text-center">
       <h2 class="font-serif text-2xl font-semibold text-[var(--ds-text)] mb-3">
         Vermisst du einen Shop?
