@@ -35,8 +35,9 @@
     "doctor": "react-doctor"
   },
   "devDependencies": {
+    "@astrojs/compiler-rs": "0.5.1",
     "drizzle-kit": "^0.31.10",
-    "oxfmt": "0.72.0",
+    "oxfmt": "0.73.0",
     "oxlint": "1.87.0",
     "oxlint-tsgolint": "7.0.2004",
     "react-doctor": "0.4.0",
