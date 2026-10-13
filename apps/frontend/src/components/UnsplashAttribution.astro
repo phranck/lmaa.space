@@ -20,14 +20,24 @@ const safeProfileUrl = getSafeConfigHref(photographerUrl);
   <p class="relative text-[9px] text-white/70 drop-shadow-sm text-right px-2 py-1.5">
     Photo{" "}
     {safeProfileUrl ? (
-      <a href={`${safeProfileUrl}${UTM}`} target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-white/90">
+      <a
+        href={`${safeProfileUrl}${UTM}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="font-semibold hover:text-white/90"
+      >
         {photographer}
       </a>
     ) : (
       <span class="font-semibold">{photographer}</span>
     )}
     {" @ "}
-    <a href={`https://unsplash.com${UTM}`} target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-white/90">
+    <a
+      href={`https://unsplash.com${UTM}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="font-semibold hover:text-white/90"
+    >
       Unsplash
     </a>
   </p>

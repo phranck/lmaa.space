@@ -33,18 +33,16 @@ const contentSegments = page ? await renderContentSegments(page.content) : [];
 const description = page ? buildContentDescription(page.content) : "";
 ---
 
-{
-  page ? (
-    <BaseLayout title={`${page.title} Preview`} description={description} noindex>
-      <div class:list={[getContentWidthClass(page.contentWidth), "mx-auto px-4 sm:px-6 py-14"]}>
-        <ContentArticle title={page.title} showTitle={page.showTitle} segments={contentSegments} />
-      </div>
-    </BaseLayout>
-  ) : (
-    <BaseLayout title="Preview" noindex>
-      <main class="min-h-screen flex items-center justify-center px-6 py-16 text-center">
-        <p class="text-sm text-stone-500">{errorMessage}</p>
-      </main>
-    </BaseLayout>
-  )
-}
+{page ? (
+  <BaseLayout title={`${page.title} Preview`} description={description} noindex>
+    <div class:list={[getContentWidthClass(page.contentWidth), "mx-auto px-4 sm:px-6 py-14"]}>
+      <ContentArticle title={page.title} showTitle={page.showTitle} segments={contentSegments} />
+    </div>
+  </BaseLayout>
+) : (
+  <BaseLayout title="Preview" noindex>
+    <main class="min-h-screen flex items-center justify-center px-6 py-16 text-center">
+      <p class="text-sm text-stone-500">{errorMessage}</p>
+    </main>
+  </BaseLayout>
+)}
