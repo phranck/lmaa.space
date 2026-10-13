@@ -9,8 +9,6 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check",
     "docs:build": "tsx src/docs/export-openapi.ts && periwinkle build --out docs-dist",
     "db:doctor": "tsx --env-file=.env.local src/db/doctor.ts",
     "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",

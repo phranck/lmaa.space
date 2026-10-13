@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  // Spelled out although they match the defaults, because oxfmt is still on
+  // 0.x and a minor release may change a default.
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": false,
+  "trailingComma": "all",
+  "sortPackageJson": false,
+  // The order every module's imports follow: Node built-ins, packages, the
+  // repository's own workspaces, the `@/` alias, then relative paths, each
+  // group separated by a blank line.
+  "sortImports": {
+    "groups": [
+      "builtin",
+      "external",
+      "lmaa",
+      "internal",
+      ["parent", "sibling", "index"],
+      "unknown",
+    ],
+    "customGroups": [{ "groupName": "lmaa", "elementNamePattern": ["@lmaa/**"] }],
+    "internalPattern": ["@/"],
+    "newlinesBetween": true,
+    "ignoreCase": true,
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/.astro/**",
+    "**/*.d.ts",
+    "**/tsconfig*.json",
+    "**/drizzle/meta/**",
+    // Written by `npm run docs:code`, so a regeneration would undo any
+    // formatting.
+    "docs/reference/code/**",
+    // Third-party markup the tests parse exactly as the site served it.
+    "apps/backend/src/__tests__/fixtures/**",
+  ],
+}

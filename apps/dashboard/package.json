@@ -10,9 +10,7 @@
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
