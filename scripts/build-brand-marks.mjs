@@ -18,7 +18,8 @@
  *
  * The llama's head is the drawing from the Bodoni Moda wordmark, fitted to the
  * stem of the L. It is the one part made of Bézier curves, because it is a
- * drawing rather than geometry.
+ * drawing rather than geometry. The tips of its ears are rounded like every
+ * other corner, with an arc that touches the curves on both sides.
  *
  * Construction runs with y pointing up and the baseline at 0; the SVG output
  * turns it over.
@@ -198,12 +199,23 @@ const TOLERANCE = 1e-6;
 // Joints of the head drawing that turn by less than this many degrees are
 // meant to be smooth and are made so; larger ones are corners on purpose.
 const SMOOTH_LIMIT_DEGREES = 5;
+// The curves of HEAD with these indices end in the tips of the back ear and
+// the front ear. Each tip is rounded with a circle of EAR_TIP_RADIUS, in the
+// units of the head drawing.
+const EAR_TIP_JOINTS = [1, 6];
+const EAR_TIP_RADIUS = 1.5;
+// The search for where a round touches its curves stops once the two centers
+// it compares lie this close, and gives up after this many steps. It measures
+// its slope by moving each place this far along its curves.
+const ROUNDING_TOLERANCE = 1e-12;
+const ROUNDING_STEPS = 50;
+const ROUNDING_NUDGE = 1e-7;
 
 // The icon: a 512 tile with circular corners, and the head on a stub of neck
 // standing the margin away from the tile's edge on its taller side.
 const ICON_TILE = 512;
 const ICON_CORNER = 112.64;
-const ICON_MARGIN = 46;
+const ICON_MARGIN = 32;
 // How far the neck runs on below the throat, as a share of its width, and the
 // radius of the two corners of its straight cut, as a share as well.
 const ICON_NECK_SHARE = 0.6;
@@ -408,17 +420,18 @@ class Outline {
    *
    * @param {(point: [number, number]) => [number, number]} place Maps a construction point.
    * @param {number} scale How lengths scale under `place`.
+   * @param {(value: number) => string} [format] Writes a number into the path data.
    * @returns {string} SVG path data.
    */
-  svg(place, scale) {
+  svg(place, scale, format = formatNumber) {
     const resolved = this.corners();
     this.checkSegments(resolved);
     const point = (value) => {
       const [x, y] = place(value);
-      return `${formatNumber(x)} ${formatNumber(y)}`;
+      return `${format(x)} ${format(y)}`;
     };
     const arc = (radius, end) =>
-      `A${formatNumber(radius * scale)} ${formatNumber(radius * scale)} 0 0 ${SWEEP_CONVEX} ${point(end)}`;
+      `A${format(radius * scale)} ${format(radius * scale)} 0 0 ${SWEEP_CONVEX} ${point(end)}`;
 
     // Start where the outline leaves the first resolved corner and go once
     // round, so the path also closes through that corner.
@@ -459,8 +472,8 @@ class Outline {
  * The drawing joins some of its curves at angles of a degree or so, where the
  * line is plainly meant to run on. Those joints are turned into tangent ones
  * by laying both handles along their mean direction. Joints that turn by more
- * than SMOOTH_LIMIT_DEGREES are corners on purpose: the ear tips, the ear
- * bases and the throat.
+ * than SMOOTH_LIMIT_DEGREES are corners on purpose: the ear tips, which
+ * `roundedHead` rounds off afterwards, the ear bases and the throat.
  *
  * @returns {Array} The curves, each as four points.
  */
@@ -493,6 +506,192 @@ function smoothedHead() {
 }
 
 /**
+ * A point on a cubic Bézier curve.
+ *
+ * @param {Array} curve Start, first handle, second handle and end.
+ * @param {number} along The curve's parameter, 0 at the start and 1 at the end.
+ * @returns {[number, number]}
+ */
+function bezierPoint([start, first, second, end], along) {
+  const rest = 1 - along;
+  return [0, 1].map(
+    (axis) =>
+      rest ** 3 * start[axis] +
+      3 * rest * rest * along * first[axis] +
+      3 * rest * along * along * second[axis] +
+      along ** 3 * end[axis],
+  );
+}
+
+/**
+ * The direction a cubic Bézier curve runs in at a point, as its derivative.
+ *
+ * @param {Array} curve Start, first handle, second handle and end.
+ * @param {number} along The curve's parameter.
+ * @returns {[number, number]} Not of unit length.
+ */
+function bezierDirection([start, first, second, end], along) {
+  const rest = 1 - along;
+  return [0, 1].map(
+    (axis) =>
+      3 * rest * rest * (first[axis] - start[axis]) +
+      6 * rest * along * (second[axis] - first[axis]) +
+      3 * along * along * (end[axis] - second[axis]),
+  );
+}
+
+/**
+ * Splits a cubic Bézier curve in two at a parameter, by de Casteljau's construction.
+ *
+ * @param {Array} curve Start, first handle, second handle and end.
+ * @param {number} along Where to split.
+ * @returns {[Array, Array]} The part before and the part after, each as four points.
+ */
+function splitBezier([start, first, second, end], along) {
+  const mix = (from, to) => [
+    from[0] + (to[0] - from[0]) * along,
+    from[1] + (to[1] - from[1]) * along,
+  ];
+  const startSide = mix(start, first);
+  const handles = mix(first, second);
+  const endSide = mix(second, end);
+  const beforeSplit = mix(startSide, handles);
+  const afterSplit = mix(handles, endSide);
+  const split = mix(beforeSplit, afterSplit);
+  return [
+    [start, startSide, beforeSplit, split],
+    [split, afterSplit, endSide, end],
+  ];
+}
+
+/**
+ * The stretch of a cubic Bézier curve between two parameters, as a curve of its own.
+ *
+ * @param {Array} curve Start, first handle, second handle and end.
+ * @param {number} from Where the stretch begins, below 1.
+ * @param {number} to Where it ends, above `from`.
+ * @returns {Array} Four points.
+ */
+function bezierPart(curve, from, to) {
+  const [, tail] = splitBezier(curve, from);
+  return splitBezier(tail, (to - from) / (1 - from))[0];
+}
+
+/**
+ * Where a circle rounds off a corner of the head drawing, touching the curve
+ * that arrives at the corner and the one that leaves it.
+ *
+ * The circle can reach past the curve on either side into the next one, so a
+ * place on the drawing is a curve's index and a parameter on that curve. The
+ * places are found by Newton's method, starting from where the circle would
+ * touch if both curves ran on straight from the corner.
+ *
+ * @param {Array} curves The head drawing, each curve as four points.
+ * @param {number} joint The index of the curve that ends in the corner.
+ * @param {number} radius The circle's radius. The corner must turn by less
+ *   than half a circle.
+ * @returns {{ arrive: { index: number, along: number }, leave: { index: number, along: number } }}
+ *   Where the outline leaves the curves for the arc, and where it returns to them.
+ */
+function cornerRounding(curves, joint, radius) {
+  // How far the circle reaches back from the corner and on from it, counted
+  // in curves, so that the search can run on past the end of one.
+  const arrivePlace = (reach) => ({
+    index: joint - Math.floor(reach),
+    along: 1 - (reach - Math.floor(reach)),
+  });
+  const leavePlace = (reach) => ({
+    index: joint + 1 + Math.floor(reach),
+    along: reach - Math.floor(reach),
+  });
+  const arriving = bezierDirection(curves[joint], 1);
+  const leaving = bezierDirection(curves[joint + 1], 0);
+  // The circle lies on the side the corner turns towards.
+  const side = Math.sign(arriving[0] * leaving[1] - arriving[1] * leaving[0]);
+  const center = ({ index, along }) => {
+    const curve = curves[index];
+    if (curve === undefined) {
+      throw new Error(`the round at joint ${joint} runs off the drawing`);
+    }
+    const point = bezierPoint(curve, along);
+    const direction = bezierDirection(curve, along);
+    const length = Math.hypot(...direction);
+    return [
+      point[0] - (side * direction[1] * radius) / length,
+      point[1] + (side * direction[0] * radius) / length,
+    ];
+  };
+  const mismatch = ([back, on]) => {
+    const fromArriving = center(arrivePlace(back));
+    const fromLeaving = center(leavePlace(on));
+    return [fromArriving[0] - fromLeaving[0], fromArriving[1] - fromLeaving[1]];
+  };
+
+  const turn = Math.acos(
+    (arriving[0] * leaving[0] + arriving[1] * leaving[1]) /
+      (Math.hypot(...arriving) * Math.hypot(...leaving)),
+  );
+  const straightReach = radius * Math.tan(turn / 2);
+  let reaches = [straightReach / Math.hypot(...arriving), straightReach / Math.hypot(...leaving)];
+  for (let step = 0; step < ROUNDING_STEPS; step++) {
+    const residual = mismatch(reaches);
+    if (Math.hypot(...residual) < ROUNDING_TOLERANCE) {
+      if (reaches[0] <= 0 || reaches[1] <= 0) {
+        throw new Error(`the round at joint ${joint} touches outside the corner`);
+      }
+      return { arrive: arrivePlace(reaches[0]), leave: leavePlace(reaches[1]) };
+    }
+    const columns = [0, 1].map((axis) => {
+      const nudged = [...reaches];
+      nudged[axis] += ROUNDING_NUDGE;
+      const moved = mismatch(nudged);
+      return [(moved[0] - residual[0]) / ROUNDING_NUDGE, (moved[1] - residual[1]) / ROUNDING_NUDGE];
+    });
+    const determinant = columns[0][0] * columns[1][1] - columns[1][0] * columns[0][1];
+    reaches = [
+      reaches[0] - (residual[0] * columns[1][1] - residual[1] * columns[1][0]) / determinant,
+      reaches[1] - (columns[0][0] * residual[1] - columns[0][1] * residual[0]) / determinant,
+    ];
+  }
+  throw new Error(`the round at joint ${joint} does not settle`);
+}
+
+/**
+ * The head drawing with the tips of both ears rounded, in its own coordinates.
+ *
+ * Each tip becomes an arc of EAR_TIP_RADIUS that touches the curves on both
+ * sides, as every other rounded corner of the marks does. The curves are cut
+ * where the arc touches them, and whatever lay between falls away.
+ *
+ * @returns {{ start: [number, number], segments: Array }} Where the drawing
+ *   begins, and its segments as `["C", first, second, end]` and
+ *   `["A", radius, end]`.
+ */
+function roundedHead() {
+  const curves = smoothedHead();
+  const segments = [];
+  const appendCurves = (from, to) => {
+    for (let index = from.index; index <= to.index; index++) {
+      const [, first, second, end] = bezierPart(
+        curves[index],
+        index === from.index ? from.along : 0,
+        index === to.index ? to.along : 1,
+      );
+      segments.push(["C", first, second, end]);
+    }
+  };
+  let from = { index: 0, along: 0 };
+  for (const joint of EAR_TIP_JOINTS) {
+    const { arrive, leave } = cornerRounding(curves, joint, EAR_TIP_RADIUS);
+    appendCurves(from, arrive);
+    segments.push(["A", EAR_TIP_RADIUS, bezierPoint(curves[leave.index], leave.along)]);
+    from = leave;
+  }
+  appendCurves(from, { index: curves.length - 1, along: 1 });
+  return { start: curves[0][0], segments };
+}
+
+/**
  * The head as a piece from the back of the neck to the throat, in construction coordinates.
  *
  * @param {number} stemLeft Where the left edge of the L's stem stands.
@@ -503,16 +702,15 @@ function headPiece(stemLeft, scale) {
     stemLeft + (point[0] - BODONI_NECK[0]) * scale,
     100 - (point[1] - BODONI_CAP_LINE) * scale,
   ];
-  const segments = smoothedHead();
+  const { start, segments } = roundedHead();
   return {
-    start: place(segments[0][0]),
-    segments: segments.map((segment) => [
-      "C",
-      place(segment[1]),
-      place(segment[2]),
-      place(segment[3]),
-    ]),
-    end: place(segments.at(-1)[3]),
+    start: place(start),
+    segments: segments.map((segment) =>
+      segment[0] === "A"
+        ? ["A", segment[1] * scale, place(segment[2])]
+        : ["C", place(segment[1]), place(segment[2]), place(segment[3])],
+    ),
+    end: place(segments.at(-1).at(-1)),
   };
 }
 
@@ -557,9 +755,11 @@ function fontRadii() {
 /**
  * Constructs the wordmark as one closed outline.
  *
+ * @param {(value: number) => string} [format] Writes a number into the path
+ *   data. The default writes three decimals, as the drawing is committed.
  * @returns {string} SVG path data with y pointing down and the baseline at 0.
  */
-export function wordmarkPath() {
+export function wordmarkPath(format = formatNumber) {
   const radii = fontRadii();
   const mOffset = L_FOOT_END - M_LEFT_STEM[1];
   const mCap = (M_RIGHT_STEM[1] - M_RIGHT_STEM[0]) / 2;
@@ -646,7 +846,7 @@ export function wordmarkPath() {
   outline.piece(head.start, head.segments, head.end);
   outline.edge(new Line([L_STEM_LEFT, 0], [0, -1]), radii.lBottomLeft);
 
-  return outline.svg(([x, y]) => [x, -y], 1);
+  return outline.svg(([x, y]) => [x, -y], 1, format);
 }
 
 /**
@@ -659,9 +859,11 @@ export function wordmarkPath() {
  * ICON_MARGIN from the tile's edge on its taller side and is centered on both
  * axes.
  *
+ * @param {(value: number) => string} [format] Writes a number into the path
+ *   data. The default writes three decimals, as the drawing is committed.
  * @returns {{ tile: string, head: string }} SVG path data in a 512 unit square.
  */
-export function iconPaths() {
+export function iconPaths(format = formatNumber) {
   const neckWidth = L_STEM_RIGHT - L_STEM_LEFT;
   const head = headPiece(L_STEM_LEFT, headScale);
   const neckBottom = head.end[1] - neckWidth * ICON_NECK_SHARE;
@@ -682,13 +884,13 @@ export function iconPaths() {
   const offsetY = (ICON_TILE - boundsHeight * unit) / 2;
   const place = ([x, y]) => [offsetX + (x - boundsX) * unit, offsetY + (-y - boundsY) * unit];
 
-  const radius = formatNumber(ICON_CORNER);
-  const far = formatNumber(ICON_TILE - ICON_CORNER);
+  const radius = format(ICON_CORNER);
+  const far = format(ICON_TILE - ICON_CORNER);
   const corner = (x, y) => `A${radius} ${radius} 0 0 1 ${x} ${y}`;
   const tile =
     `M${radius} 0H${far}${corner(ICON_TILE, radius)}V${far}${corner(far, ICON_TILE)}` +
     `H${radius}${corner(0, far)}V${radius}${corner(radius, 0)}Z`;
-  return { tile, head: outline.svg(place, unit) };
+  return { tile, head: outline.svg(place, unit, format) };
 }
 
 const COMMAND = /[MLAHVCZ]|-?\d*\.?\d+(?:e-?\d+)?/g;
@@ -808,15 +1010,9 @@ export function pathBounds(path) {
           ]);
         }
       } else if (segment.kind === "C") {
+        const curve = [segment.start, segment.first, segment.second, segment.end];
         for (let step = 1; step < 64; step++) {
-          const t = step / 64;
-          const u = 1 - t;
-          const along = (axis) =>
-            u ** 3 * segment.start[axis] +
-            3 * u * u * t * segment.first[axis] +
-            3 * u * t * t * segment.second[axis] +
-            t ** 3 * segment.end[axis];
-          points.push([along(0), along(1)]);
+          points.push(bezierPoint(curve, step / 64));
         }
       }
     }

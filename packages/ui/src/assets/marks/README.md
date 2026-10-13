@@ -20,7 +20,7 @@ The head is there a second time as a path of its own with the class `lmaa-icon-h
 npm run brand:marks
 ```
 
-The letters are built from straight edges measured off Google Sans Flex at wght 559, wdth 125, ROND 100 and opsz 144. Every rounded corner is a circular arc that touches both of its edges, so no edge meets an arc at an angle. The llama's head is a drawing, so it is the one part made of Bézier curves.
+The letters are built from straight edges measured off Google Sans Flex at wght 559, wdth 125, ROND 100 and opsz 144. Every rounded corner is a circular arc that touches both of its edges, so no edge meets an arc at an angle. The llama's head is a drawing, so it is the one part made of Bézier curves. The tips of its ears are rounded with circular arcs that touch the curves on both sides.
 
 `scripts/build-brand-marks.test.mjs` fails when a file here differs from what the generator writes, and when an arc meets its neighbor at an angle. Edit the generator, not the files.
 

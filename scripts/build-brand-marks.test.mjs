@@ -10,9 +10,12 @@ import {
   wordmarkPath,
 } from "./build-brand-marks.mjs";
 
-// An arc and the edge beside it may differ by no more than the three decimals
-// the path is written with allow for.
+// The joints are checked on the construction, written at full precision. The
+// committed drawings round to three decimals, and on the wordmark's ear tips,
+// arcs of a radius of 1.5 turning through about 148 degrees, that alone tilts the
+// tangent by up to a tenth of a degree, more than a real kink may.
 const TANGENT_TOLERANCE_DEGREES = 0.01;
+const FULL_PRECISION = String;
 
 /**
  * Lists every joint where an arc meets its neighbor at an angle.
@@ -52,11 +55,11 @@ test("the committed drawings are what the generator writes", async () => {
 });
 
 test("every arc of the wordmark meets its edges without a kink", () => {
-  assert.deepEqual(kinkedArcJoints(wordmarkPath()), []);
+  assert.deepEqual(kinkedArcJoints(wordmarkPath(FULL_PRECISION)), []);
 });
 
 test("every arc of the icon meets its edges without a kink", () => {
-  const { tile, head } = iconPaths();
+  const { tile, head } = iconPaths(FULL_PRECISION);
   assert.deepEqual(kinkedArcJoints(head), []);
   assert.deepEqual(kinkedArcJoints(tile), []);
 });
