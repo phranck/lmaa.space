@@ -1,12 +1,9 @@
 import type * as React from "react";
 
-import { EURO_SYMBOL, formatEuro, formatEuroWhole, groupIban } from "@lmaa/shared";
+import { formatEuro, groupIban } from "@lmaa/shared";
 
 import { NoticeCard } from "@/components/NoticeCard";
-import type {
-  SupportLadderBankAccount,
-  SupportLadderVariant,
-} from "@/lib/content-shortcode-segments";
+import type { SupportLadderVariant } from "@/lib/content-shortcode-segments";
 
 import { RichText } from "./SupportLadderAmounts.tsx";
 import { RouteIcon } from "./SupportLadderRoutes.tsx";
@@ -41,7 +38,6 @@ const REFERENCE_MASK = "XXXX XXXX XXXX XXXX XXXX";
  * separate props would.
  */
 export interface TransferCardProps {
-  bankAccount: SupportLadderBankAccount;
   variant: SupportLadderVariant;
   payee: { name: string; iban: string; bic: string };
   /** The amount the transfer carries, in euro. */
@@ -93,7 +89,6 @@ export interface TransferCardProps {
  * It owns no state: everything it shows is decided by the ladder.
  */
 export function TransferCard({
-  bankAccount,
   variant,
   payee,
   amountEur,

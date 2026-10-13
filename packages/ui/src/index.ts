@@ -83,7 +83,6 @@ export { MenuItemPrimitive, MenuPrimitive } from "./MenuPrimitives.tsx";
 /** Re-exported contracts for menu primitives. */
 export type {
   MenuItemPrimitiveProps,
-  MenuItemPrimitiveSize,
   MenuItemPrimitiveVariant,
   MenuOrigin,
   MenuPrimitiveProps,

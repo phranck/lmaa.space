@@ -11,7 +11,7 @@ import type {
 } from "@lmaa/shared";
 
 import { db } from "../db/client.js";
-import { adminUsers, deadLinkReports, shopCategories, shops } from "../db/schema.js";
+import { deadLinkReports, shopCategories, shops } from "../db/schema.js";
 import type { Shop as DbShop } from "../db/schema.js";
 import type { HeadquartersInput } from "./headquarters.js";
 import { loadShopHeadquartersMap, upsertShopHeadquarters } from "./headquarters.js";
