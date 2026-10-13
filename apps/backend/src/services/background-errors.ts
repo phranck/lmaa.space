@@ -61,7 +61,19 @@ function normalizeBackgroundError(error: unknown): NormalizedBackgroundError {
     return { message: "Unknown background error", details: null };
   }
 
-  return { message: truncateErrorMessage(String(sanitized)), details: null };
+  // What sanitizeValue leaves besides records and strings is an array or a
+  // primitive. An array reads better as JSON than joined by String().
+  if (Array.isArray(sanitized)) {
+    return { message: truncateErrorMessage(stringifyCompact(sanitized)), details: null };
+  }
+  if (
+    typeof sanitized === "number" ||
+    typeof sanitized === "boolean" ||
+    typeof sanitized === "symbol"
+  ) {
+    return { message: truncateErrorMessage(String(sanitized)), details: null };
+  }
+  return { message: "Unknown background error", details: null };
 }
 
 function buildBackgroundErrorContext(
