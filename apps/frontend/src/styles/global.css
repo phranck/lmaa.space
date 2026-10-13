@@ -35,6 +35,153 @@ html {
   --accent-active: var(--ds-accent-active);
   --accent-text: var(--ds-accent-fg);
   --hero-highlight-color: #ffb900;
+
+  /* ── THEMES ─────────────────────────────────────────────────
+     The public site has two themes, drawn from the new wordmark: Papier, the
+     light one, stated here on the root, and Salon, the dark one, under
+     `html.dark` below, which is the class UnoCSS's dark variant reads. Both
+     state the semantic roles of the shared token file for this site alone.
+     The dashboard imports that file without this one and keeps its own dark
+     values, so nothing here reaches it.
+
+     Every text and control pair is held to WCAG AA in both themes by
+     `theme-contrast.test.ts`, which reads this file. */
+  color-scheme: light;
+
+  /* The two colours the themes trade between them: the paper of the light
+     page, which is the type of the dark one, and the ink of the light
+     theme's actions, which is the type on the dark theme's gold ones. */
+  --ds-color-paper: #f4efe6;
+  --ds-color-ink: #0f0f0f;
+
+  /* Papier: surfaces. The page is paper, a card is a step lighter, a raised
+     or inset surface a step darker. */
+  --ds-bg: var(--ds-color-paper);
+  --ds-surface: #fbf8f2;
+  --ds-bg-elevated: #efe8dc;
+  --ds-surface-inset: #ebe4d7;
+  --ds-surface-alt: var(--ds-surface-inset);
+  --ds-border: #e0d7c6;
+  --ds-border-subtle: #e8e0d1;
+  /* Dark enough for a field's edge to reach 3:1 on every surface, which is
+     what a control's boundary needs. */
+  --ds-border-strong: #857a6b;
+
+  /* Papier: type. Warm greys in the hue of the paper. */
+  --ds-text: #1a1814;
+  --ds-text-muted: #5f594f;
+  --ds-text-subtle: #6a6358;
+  --ds-text-placeholder: #776f63;
+  --ds-text-inverse: var(--ds-surface);
+  --ds-control-hover-bg: color-mix(in srgb, var(--ds-text) 6%, transparent);
+
+  /* Papier: the gold is kept for marks and details. Links, chips and the
+     focus ring take the dark step of it, because the gold itself measures
+     about 1.9:1 on paper. Actions are ink with paper type. */
+  --ds-accent-text: var(--ds-color-brand-800);
+  --ds-focus-ring: var(--ds-accent-text);
+  --ds-btn-filled-bg: var(--ds-color-ink);
+  --ds-btn-filled-hover: #2b2722;
+  --ds-btn-filled-fg: var(--ds-color-paper);
+
+  /* Papier: the header carries the page through its blur. */
+  --ds-header-bg: color-mix(in srgb, var(--ds-bg) 92%, transparent);
+
+  /* Papier: the shared token file's red and amber type reach only 4.4:1 on
+     their own washes, so they go a step darker here. */
+  --ds-danger-text: hsl(0 75% 44%);
+  --ds-warning-text: hsl(40 100% 27%);
+
+  /* Roles derived from the ones above, so they follow either theme: the
+     primary action is the theme's action, its outline form and the accent's
+     quiet surfaces take the gold, the neutral button lifts to the raised
+     surface under the pointer, and the outline button for a state takes that
+     state's colours. */
+  --ds-btn-primary-bg: var(--ds-btn-filled-bg);
+  --ds-btn-primary-hover: var(--ds-btn-filled-hover);
+  --ds-btn-primary-fg: var(--ds-btn-filled-fg);
+  --ds-btn-primary-border: color-mix(in srgb, var(--ds-accent) 45%, var(--ds-border));
+  --ds-btn-primary-text: var(--ds-accent-text);
+  --ds-btn-primary-hover-border: var(--ds-accent);
+  --ds-btn-primary-hover-bg: var(--ds-accent-tint);
+  --ds-btn-neutral-hover-bg: var(--ds-bg-elevated);
+  --ds-btn-danger-border: var(--ds-danger-border);
+  --ds-btn-danger-text: var(--ds-danger-text);
+  --ds-btn-danger-hover-bg: var(--ds-danger-bg);
+  --ds-btn-danger-hover-border: var(--ds-danger-text);
+  --ds-btn-success-border: var(--ds-success-border);
+  --ds-btn-success-text: var(--ds-success-text);
+  --ds-btn-success-hover-bg: var(--ds-success-bg);
+  --ds-btn-success-hover-border: var(--ds-success-text);
+  --ds-btn-warning-border: var(--ds-warning-border);
+  --ds-btn-warning-text: var(--ds-warning-text);
+  --ds-btn-warning-hover-bg: var(--ds-warning-bg);
+  --ds-btn-warning-hover-border: var(--ds-warning-text);
+  --ds-accent-subtle: color-mix(in srgb, var(--ds-accent) 16%, var(--ds-surface));
+  --ds-surface-form: color-mix(in srgb, var(--ds-surface) 75%, transparent);
+
+  /* Photographs stand behind type in the page heads of the home, category
+     and shop pages. They are the same in both themes, so their veil and the
+     type on it are too: light type on a dark veil, dark enough that even the
+     quieter line reaches 4.5:1 over a white photograph. */
+  --ds-photo-veil: oklch(14.7% 0.004 49.25 / 0.7);
+  --ds-photo-text: #ffffff;
+  --ds-photo-text-muted: oklch(92.3% 0.003 48.717);
+}
+
+/* Salon: a warm charcoal rather than black. A card stands a step lighter
+   than the page, a raised surface another step, and the header sits a step
+   darker so that it frames the page. Type is paper, the gold carries links,
+   chips, the focus ring and every action, with ink type on it. */
+html.dark {
+  color-scheme: dark;
+
+  --ds-bg: #1e1c19;
+  --ds-surface: #282521;
+  --ds-bg-elevated: #2f2c27;
+  --ds-surface-alt: #24221e;
+  --ds-surface-inset: #191714;
+  --ds-border: #3e3a33;
+  --ds-border-subtle: #34312b;
+  --ds-border-strong: #807a6e;
+
+  --ds-text: var(--ds-color-paper);
+  --ds-text-muted: #c4bdb0;
+  --ds-text-subtle: #9d968a;
+  /* Darker than the subtle grey, because on a dark page a hint recedes
+     downwards. */
+  --ds-text-placeholder: #999286;
+  --ds-text-inverse: var(--ds-bg);
+  --ds-control-hover-bg: color-mix(in srgb, var(--ds-text) 8%, transparent);
+
+  --ds-accent-text: var(--ds-accent);
+  --ds-btn-filled-bg: var(--ds-accent);
+  --ds-btn-filled-hover: var(--ds-color-brand-400);
+  --ds-btn-filled-fg: var(--ds-color-ink);
+
+  --ds-header-bg: color-mix(in srgb, var(--ds-surface-inset) 92%, transparent);
+
+  /* Status colours on a dark ground: a deep wash, a mid border and a light
+     type, each in the hue the light theme uses for the same state. */
+  --ds-success-bg: #1f2e20;
+  --ds-success-border: #3f6b44;
+  --ds-success-text: #7fcf8a;
+  --ds-danger-bg: #3a201d;
+  --ds-danger-border: #7a3a33;
+  --ds-danger-text: #f08a7e;
+  --ds-warning-bg: #352a14;
+  --ds-warning-border: #7a5f26;
+  --ds-warning-text: #e0b55a;
+  --ds-info-bg: #1c2a36;
+  --ds-info-border: #3c6380;
+  --ds-info-text: #84b8e6;
+
+  /* Deeper shadows, because a shadow has to carry against a dark surface. */
+  --ds-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --ds-shadow-sm: 0 2px 10px rgb(0 0 0 / 0.35);
+  --ds-shadow-md: 0 8px 24px rgb(0 0 0 / 0.4);
+  --ds-shadow-lg: 0 10px 18px rgb(0 0 0 / 0.45);
+  --ds-shadow-xl: 0 20px 28px rgb(0 0 0 / 0.5);
 }
 
 *:focus {
