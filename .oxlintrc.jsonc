@@ -1,0 +1,51 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // React and accessibility rules belong to React Doctor, which runs on oxlint
+  // as well and keeps their exceptions in doctor.config.ts. Enabling them here
+  // would report the same findings twice and need every exception twice.
+  "plugins": ["typescript", "unicorn", "oxc", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+  },
+  "rules": {
+    // Asks for a type parameter on every `vi.fn()`, which is a style choice the
+    // tests do not follow.
+    "vitest/require-mock-type-parameters": "off",
+    // Vitest's `expect` takes a message as its second argument
+    // (`@vitest/expect`, `<T>(actual: T, message?: string)`), which this rule
+    // reports as a mistake.
+    "vitest/valid-expect": "off",
+    // The tests assert a result's tag first and then narrow on it to check the
+    // payload, which the rule cannot follow.
+    "vitest/no-conditional-expect": "off",
+    // Every loop it reports copies the collection on purpose before changing
+    // it: `og.ts` deletes search parameters while walking them, and the OpenAPI
+    // schema walk adds to the set it iterates.
+    "unicorn/no-useless-spread": "off",
+  },
+  "overrides": [
+    {
+      // Both match control characters on purpose, to reject or strip them.
+      "files": ["apps/backend/src/lib/email-address.ts", "apps/backend/src/lib/media-storage.ts"],
+      "rules": {
+        "eslint/no-control-regex": "off",
+      },
+    },
+    {
+      // `callEnableBanking` sends a body only when one is given, and no GET
+      // request is ever given one.
+      "files": ["apps/backend/src/services/enable-banking-client.ts"],
+      "rules": {
+        "unicorn/no-invalid-fetch-options": "off",
+      },
+    },
+  ],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/.astro/**",
+    "**/*.d.ts",
+    "**/drizzle/meta/**",
+    // Written by `npm run docs:code`.
+    "docs/reference/code/**",
+  ],
+}

@@ -9,9 +9,7 @@
     "preview": "astro preview",
     "check": "astro-check",
     "test": "vitest run --config vitest.config.ts",
-    "typecheck": "astro check",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "typecheck": "astro check"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.0",
