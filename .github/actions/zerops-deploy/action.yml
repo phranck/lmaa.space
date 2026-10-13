@@ -1,0 +1,46 @@
+name: Deploy to Zerops
+description: >-
+  Installs one pinned zcli release, verified against a SHA-256 kept in this
+  repository, and pushes the checked-out tree to one Zerops service.
+
+# zeropsio/actions downloads whichever zcli release is "latest" when it runs, so
+# a release published before its binaries are uploaded fails the deploy, and the
+# CLI that deploys production changes without a commit here. With the version
+# and the hash pinned, it changes only through a commit.
+#
+# To move to a new zcli release, set both values below from that release's
+# checksums.txt, for the zcli-linux-amd64 entry.
+
+inputs:
+  service-id:
+    description: The Zerops service to push to.
+    required: true
+  access-token:
+    description: The Zerops access token.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install zcli
+      shell: bash
+      env:
+        ZCLI_VERSION: v1.1.3
+        ZCLI_SHA256: 0a1b1f1f61b77d9a76802ce910206477fc0394b9d68f1cc960c87485a96ce652
+      run: |
+        set -euo pipefail
+        binary="$RUNNER_TEMP/zcli"
+        curl -fsSL "https://github.com/zeropsio/zcli/releases/download/${ZCLI_VERSION}/zcli-linux-amd64" -o "$binary"
+        echo "${ZCLI_SHA256}  ${binary}" | sha256sum -c -
+        install -m 0755 "$binary" /usr/local/bin/zcli
+        rm -f "$binary"
+
+    - name: Push to Zerops
+      shell: bash
+      env:
+        ZEROPS_TOKEN: ${{ inputs.access-token }}
+        SERVICE_ID: ${{ inputs.service-id }}
+      run: |
+        set -euo pipefail
+        zcli login "$ZEROPS_TOKEN"
+        zcli push --service-id "$SERVICE_ID"

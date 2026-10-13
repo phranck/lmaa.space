@@ -80,6 +80,7 @@ jobs:
               - '.nvmrc'
               - 'zerops.yml'
               - '.github/workflows/deploy.yml'
+              - '.github/actions/**'
               - 'scripts/**'
               - 'packages/shared/**'
               - 'packages/contracts/**'
@@ -116,7 +117,7 @@ jobs:
           output: apps/backend/public/.well-known
           signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
           signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
-      - uses: zeropsio/actions@79c2d03f7c82ac58d011be746da3332f2f93c680 # v1.0.1
+      - uses: ./.github/actions/zerops-deploy
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: ${{ secrets.ZEROPS_BACKEND_SERVICE_ID }}
@@ -137,7 +138,7 @@ jobs:
           output: apps/frontend/public/.well-known
           signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
           signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
-      - uses: zeropsio/actions@79c2d03f7c82ac58d011be746da3332f2f93c680 # v1.0.1
+      - uses: ./.github/actions/zerops-deploy
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: ${{ secrets.ZEROPS_WEBSITE_SERVICE_ID }}
@@ -158,7 +159,7 @@ jobs:
           output: apps/dashboard/public/.well-known
           signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
           signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
-      - uses: zeropsio/actions@79c2d03f7c82ac58d011be746da3332f2f93c680 # v1.0.1
+      - uses: ./.github/actions/zerops-deploy
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: ${{ secrets.ZEROPS_DASHBOARD_SERVICE_ID }}
