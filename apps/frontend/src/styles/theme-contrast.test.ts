@@ -297,10 +297,10 @@ const pairs: Pair[] = [
   ),
   { foreground: "--ds-text-placeholder", background: "--ds-input-bg", minimum: TEXT },
   { foreground: "--ds-text", background: "--ds-header-bg", minimum: TEXT },
-  { foreground: "--ds-cta-outline-text", background: "--ds-header-bg", minimum: TEXT },
+  { foreground: "--ds-header-control-text", background: "--ds-header-bg", minimum: TEXT },
   {
-    foreground: "--ds-cta-outline-text",
-    background: "--ds-cta-outline-hover-bg",
+    foreground: "--ds-header-control-text",
+    background: "--ds-header-control-hover-bg",
     underlay: "--ds-header-bg",
     minimum: TEXT,
   },
@@ -366,6 +366,22 @@ const pairs: Pair[] = [
   // icon that links home in the header, with its letter on the tile.
   { foreground: "--ds-header-mark", background: "--ds-header-bg", minimum: CONTROL_EDGE },
   { foreground: "--ds-header-mark-letter", background: "--ds-header-mark", minimum: CONTROL_EDGE },
+  // The theme switch's symbols: the ones not chosen on the header, the chosen
+  // one on the mark under it, and in the phone's list on the chosen row.
+  { foreground: "--ds-text-subtle", background: "--ds-header-bg", minimum: CONTROL_EDGE },
+  { foreground: "--ds-header-control-text", background: "--ds-surface", minimum: CONTROL_EDGE },
+  {
+    foreground: "--ds-header-control-text",
+    background: "--ds-accent-tint",
+    underlay: "--ds-surface",
+    minimum: CONTROL_EDGE,
+  },
+  {
+    foreground: "--ds-text",
+    background: "--ds-accent-tint",
+    underlay: "--ds-surface",
+    minimum: TEXT,
+  },
   // The wordmark and the claim's last word stand on the photograph in the
   // wordmark's gold: a graphic and large type, which need the same 3:1.
   {

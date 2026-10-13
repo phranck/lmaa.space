@@ -5,7 +5,7 @@ import node from "@astrojs/node";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
-import { transformSync } from "esbuild";
+import { buildSync, transformSync } from "esbuild";
 import UnoCSS from "unocss/astro";
 
 import { FOOTER_STYLES_CSS } from "@lmaa/shared";
@@ -86,6 +86,46 @@ function devServerCache() {
   };
 }
 
+/**
+ * Puts the visitor's theme on every page before its first paint.
+ *
+ * `src/scripts/theme-init.ts` and what it imports are bundled here into one
+ * classic script, through esbuild, which already minifies the footer's
+ * stylesheet above. Astro writes a `head-inline` script into the head of every
+ * page after the stylesheets, so it runs before anything is painted and can
+ * read the theme's tokens, and it hashes the script into `script-src` itself.
+ * Neither of the layout's own kinds does both: a script Astro processes is a
+ * module, which runs only once the page has been parsed, and an `is:inline`
+ * script gets no hash, so the policy would refuse it.
+ *
+ * The dev server reads the bundle once at start, so a change to one of its
+ * files restarts it, which is what `addWatchFile` does.
+ *
+ * @returns An Astro integration.
+ */
+function themeBeforeFirstPaint() {
+  const { outputFiles, metafile } = buildSync({
+    entryPoints: [resolve("./src/scripts/theme-init.ts")],
+    bundle: true,
+    format: "iife",
+    minify: true,
+    metafile: true,
+    target: "es2020",
+    write: false,
+  });
+  const script = outputFiles[0].text.trim();
+
+  return {
+    name: "lmaa-theme-before-first-paint",
+    hooks: {
+      "astro:config:setup": ({ addWatchFile, injectScript }) => {
+        for (const input of Object.keys(metafile.inputs)) addWatchFile(resolve(input));
+        injectScript("head-inline", script);
+      },
+    },
+  };
+}
+
 export default defineConfig({
   site: "https://lmaa.space",
   output: "server",
@@ -161,6 +201,7 @@ export default defineConfig({
     UnoCSS({ injectReset: false }),
     react(),
     devServerCache(),
+    themeBeforeFirstPaint(),
     obfuscateFirstPartyChunks(),
     sitemap({
       // The sitemap lists the pages meant for readers. `/preview/*` is the

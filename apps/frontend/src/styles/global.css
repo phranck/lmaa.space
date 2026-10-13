@@ -91,15 +91,20 @@ html {
   --ds-btn-filled-fg: var(--ds-color-paper);
 
   /* Papier: the header is paper under its blur, a step darker than the page.
-     Its icon is an ink tile like the actions, with the letter in gold. */
-  --ds-header-bg: color-mix(in srgb, var(--ds-color-paper) 92%, transparent);
+     The browser paints its own bar around the page in the same color, which
+     the head script reads from `--ds-theme-color` into the `theme-color` meta
+     element, so the color is stated here and nowhere else. Its icon is an ink
+     tile like the actions, with the letter in gold. */
+  --ds-theme-color: var(--ds-color-paper);
+  --ds-header-bg: color-mix(in srgb, var(--ds-theme-color) 92%, transparent);
   --ds-header-mark: var(--ds-color-ink);
   --ds-header-mark-letter: var(--ds-accent);
 
-  /* Papier: the outlined call to action in the header is drawn in ink. */
-  --ds-cta-outline-text: var(--ds-text);
-  --ds-cta-outline-border: color-mix(in srgb, var(--ds-text) 35%, transparent);
-  --ds-cta-outline-hover-bg: var(--ds-control-hover-bg);
+  /* Papier: the outlined controls in the header, the support button and the
+     theme switch, are drawn in ink. */
+  --ds-header-control-text: var(--ds-text);
+  --ds-header-control-border: color-mix(in srgb, var(--ds-text) 35%, transparent);
+  --ds-header-control-hover-bg: var(--ds-control-hover-bg);
 
   /* Papier: the shared token file's red and amber type reach only 4.4:1 on
      their own washes, so they go a step darker here. */
@@ -185,13 +190,13 @@ html.dark {
   --ds-btn-filled-hover: var(--ds-color-brand-400);
   --ds-btn-filled-fg: var(--ds-color-ink);
 
-  --ds-header-bg: color-mix(in srgb, var(--ds-surface-inset) 92%, transparent);
+  --ds-theme-color: var(--ds-surface-inset);
   --ds-header-mark: var(--ds-accent);
   --ds-header-mark-letter: var(--ds-surface-inset);
 
-  --ds-cta-outline-text: var(--ds-accent);
-  --ds-cta-outline-border: color-mix(in srgb, var(--ds-accent) 45%, transparent);
-  --ds-cta-outline-hover-bg: var(--ds-accent-tint);
+  --ds-header-control-text: var(--ds-accent);
+  --ds-header-control-border: color-mix(in srgb, var(--ds-accent) 45%, transparent);
+  --ds-header-control-hover-bg: var(--ds-accent-tint);
 
   /* Status colours on a dark ground: a deep wash, a mid border and a light
      type, each in the hue the light theme uses for the same state. */
@@ -727,6 +732,195 @@ html .prose {
   .lmaa-ladder-body {
     transition: none;
   }
+}
+
+/* The theme switch in the header.
+   In the wide header it is three segments in the switch above, as tall as the
+   support button beside it. In the narrow one it is a round button showing
+   the choice made, which opens the three choices as a list.
+
+   Which choice is made is read from `data-theme-choice` on the root rather
+   than from the radio buttons. The head script sets it before the first
+   paint, whilst the radio buttons learn the choice only once the switch's own
+   script has run, so the mark would otherwise slide into place on every page
+   that opens. The chosen option states what it shows differently, and every
+   part of the switch reads that with its resting look as the fallback. */
+:root[data-theme-choice="system"] [data-theme-option="system"],
+:root[data-theme-choice="light"] [data-theme-option="light"],
+:root[data-theme-choice="dark"] [data-theme-option="dark"] {
+  --theme-option-ink: var(--ds-header-control-text);
+  --theme-option-fill: var(--ds-accent-tint);
+  --theme-option-shown: 1;
+}
+
+.lmaa-theme-switch {
+  /* As tall as the support button beside it, which is `h-9`. A segment fills
+     that height inside the inset and the frame's edge and is as wide as it is
+     tall, so the mark travels its own width from one segment to the next. */
+  --theme-switch-height: 2.25rem;
+  --theme-segment-size: calc(
+    var(--theme-switch-height) - 2 * var(--segment-inset) - 2 * var(--card-border-width)
+  );
+  /* The chosen segment's place, in the order of `THEME_CHOICES`. */
+  --theme-choice-index: 0;
+  align-items: center;
+  height: var(--theme-switch-height);
+  margin: 0;
+  border: var(--card-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-pill);
+}
+
+:root[data-theme-choice="light"] .lmaa-theme-switch {
+  --theme-choice-index: 1;
+}
+
+:root[data-theme-choice="dark"] .lmaa-theme-switch {
+  --theme-choice-index: 2;
+}
+
+/* The travel is stated in the segment's size rather than as a percentage of
+   the mark's own width. WebKit rounded that percentage of 32.5 px to 33 px, and
+   the mark drifted half a pixel off each segment it passed. */
+.lmaa-theme-switch .lmaa-segment-marker {
+  left: var(--segment-inset);
+  width: var(--theme-segment-size);
+  transform: translateX(calc(var(--theme-choice-index) * var(--theme-segment-size)));
+}
+
+/* A segment stands above the mark, which is positioned and would otherwise
+   cover it. */
+.lmaa-theme-segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--theme-segment-size);
+  height: var(--theme-segment-size);
+  border-radius: var(--ds-radius-pill);
+  color: var(--theme-option-ink, var(--ds-text-subtle));
+  cursor: pointer;
+  transition:
+    color var(--ds-duration-base) var(--ds-ease),
+    box-shadow var(--ds-duration-fast) var(--ds-ease);
+}
+
+.lmaa-theme-segment:hover {
+  color: var(--theme-option-ink, var(--ds-text));
+}
+
+.lmaa-theme-menu {
+  position: relative;
+}
+
+.lmaa-theme-menu > summary {
+  display: grid;
+  place-items: center;
+  border: var(--card-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-header-control-text);
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration-base) var(--ds-ease),
+    box-shadow var(--ds-duration-fast) var(--ds-ease);
+}
+
+.lmaa-theme-menu > summary:hover {
+  background: var(--ds-header-control-hover-bg);
+}
+
+/* The button holds all three symbols on one spot and shows the chosen one,
+   so a new choice fades in where the old one fades out. */
+.lmaa-theme-menu > summary > [data-theme-option] {
+  grid-area: 1 / 1;
+  opacity: var(--theme-option-shown, 0);
+  transition: opacity var(--ds-duration-base) var(--ds-ease);
+}
+
+.lmaa-theme-menu-panel {
+  --theme-menu-padding: var(--ds-space-xs);
+  --theme-menu-radius: var(--ds-radius-2xl);
+  position: absolute;
+  top: calc(100% + var(--ds-space-xs));
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+  margin: 0;
+  padding: var(--theme-menu-padding);
+  border: var(--card-border-width) solid var(--ds-border);
+  border-radius: var(--theme-menu-radius);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-md);
+}
+
+/* A row's corner is the list's, less the distance between the two edges. */
+.lmaa-theme-option {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-sm);
+  padding: var(--ds-space-xs) var(--ds-space-sm);
+  border-radius: max(
+    calc(var(--theme-menu-radius) - var(--card-border-width) - var(--theme-menu-padding)),
+    0px
+  );
+  background: var(--theme-option-fill, transparent);
+  color: var(--ds-text);
+  font-size: var(--ds-text-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration-base) var(--ds-ease),
+    box-shadow var(--ds-duration-fast) var(--ds-ease);
+}
+
+.lmaa-theme-option:hover {
+  background: var(--theme-option-fill, var(--ds-control-hover-bg));
+}
+
+.lmaa-theme-option > svg {
+  color: var(--theme-option-ink, var(--ds-text-subtle));
+  transition: color var(--ds-duration-base) var(--ds-ease);
+}
+
+/* Keyboard focus is on the radio button, which is hidden, so the option it
+   belongs to shows it. */
+.lmaa-theme-segment:has(:focus-visible),
+.lmaa-theme-option:has(:focus-visible),
+.lmaa-theme-menu > summary:focus-visible {
+  box-shadow: 0 0 0 2px var(--ds-focus-ring);
+}
+
+/* A menu in the header fades in under its button when it opens and back out
+   when it closes. The header's script holds a closing menu open until its
+   animation has finished, because a closed `details` element hides its
+   contents at once. */
+@keyframes lmaa-disclosure-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--ds-space-xs)));
+  }
+}
+
+@keyframes lmaa-disclosure-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--ds-space-xs)));
+  }
+}
+
+[data-header-disclosure][open] [data-disclosure-panel] {
+  animation: lmaa-disclosure-in var(--ds-duration-fast) var(--ds-ease-out);
+}
+
+[data-header-disclosure].is-closing [data-disclosure-panel] {
+  animation: lmaa-disclosure-out var(--ds-duration-fast) var(--ds-ease-in) forwards;
+}
+
+/* A change of theme crossfades the page as one picture. Left to the elements,
+   those that carry a color transition would fade and the rest would jump, so
+   the change would arrive in two stages. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--ds-duration-slow);
 }
 
 /* A block that names one way to pay stands off the page, so the ways read as

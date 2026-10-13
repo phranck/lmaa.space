@@ -19,14 +19,14 @@ const label = "Ich will dabei sein";
 const visibleLabel = variant === "mobile-header" ? "Unterstützen" : label;
 const href = "/support-me";
 
-// The outlined call to action takes its colours from the theme: ink in Papier,
-// gold in Salon.
+// The outlined call to action takes the colours of the header's controls: ink
+// in Papier, gold in Salon.
 const outline =
-  "items-center gap-1.5 h-9 rounded-full text-sm font-medium text-[var(--ds-cta-outline-text)] border border-[var(--ds-cta-outline-border)] hover:bg-[var(--ds-cta-outline-hover-bg)] transition-colors";
+  "items-center gap-1.5 h-9 rounded-full text-sm font-medium text-[var(--ds-header-control-text)] border border-[var(--ds-header-control-border)] hover:bg-[var(--ds-header-control-hover-bg)] transition-colors";
 const classes =
   variant === "desktop"
-    ? `hidden md:flex px-3 ${outline}`
-    : `inline-flex md:hidden px-4 whitespace-nowrap ${outline}`;
+    ? `hidden lg:flex px-3 ${outline}`
+    : `inline-flex lg:hidden px-4 whitespace-nowrap ${outline}`;
 
 const placement = variant === "desktop" ? "header" : "header-mobile";
 ---

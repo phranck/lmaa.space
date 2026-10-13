@@ -104,7 +104,9 @@ try {
 ---
 
 <!doctype html>
-<html lang="de" data-theme="theme-autumn">
+{/* System until the head script has read the visitor's choice, which is also
+    what a browser without scripts keeps. */}
+<html lang="de" data-theme-choice="system">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -137,8 +139,9 @@ try {
     <!-- JSON-LD -->
     {jsonLd && <script is:inline type="application/ld+json" set:html={serializeJsonLd(jsonLd)} />}
 
-    <!-- Theme color -->
-    <meta name="theme-color" content="#1C1917" />
+    {/* The color of the browser's own bar, which the head script fills in from
+        the theme's `--ds-theme-color` before the first paint. */}
+    <meta name="theme-color" content="" />
 
     {/* Umami Analytics (privacy-friendly, no cookies).
 
