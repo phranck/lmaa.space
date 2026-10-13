@@ -51,6 +51,7 @@ scripts/*
 !scripts/lib/
 scripts/lib/*
 !scripts/lib/runtime-smoke.mjs
+!scripts/lib/runtime-smoke.test.mjs
 !scripts/hooks/
 scripts/hooks/*
 !scripts/hooks/pre-commit

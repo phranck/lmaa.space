@@ -100,9 +100,12 @@ async function verifyService(service) {
     // repository and then searches upwards from there, which finds every module
     // the working tree has and defeats the point of the staging tree. Keeping
     // resolution on the symlinked paths confines it to what was staged.
+    //
+    // Every entry here is a `run.start` command, so it has to keep running.
     const result = await runEntrypoint(service.entry, {
       cwd: stagingDir,
       nodeArgs: ["--preserve-symlinks", "--preserve-symlinks-main"],
+      mustKeepRunning: true,
     });
     return {
       ...result,
