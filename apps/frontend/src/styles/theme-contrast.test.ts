@@ -312,10 +312,10 @@ const pairs: Pair[] = [
     minimum: TEXT,
   },
   { foreground: "--ds-accent-text", background: "--ds-accent-subtle", minimum: TEXT },
-  // The home page's invitation to suggest a shop stands on the accent's wash.
+  // The home page's invitation to suggest a shop stands on its band.
   ...["--ds-text", "--ds-text-muted"].map((foreground) => ({
     foreground,
-    background: "--ds-accent-tint",
+    background: "--ds-band-bg",
     minimum: TEXT,
   })),
   // Check marks and chip type on a filled accent, such as a ticked box.

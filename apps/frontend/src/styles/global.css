@@ -106,6 +106,10 @@ html {
   --ds-header-control-border: color-mix(in srgb, var(--ds-text) 35%, transparent);
   --ds-header-control-hover-bg: var(--ds-control-hover-bg);
 
+  /* Papier: a band across the page that sets an invitation off from it, such
+     as the home page's call to suggest a shop, takes the accent's wash. */
+  --ds-band-bg: var(--ds-accent-tint);
+
   /* Papier: the shared token file's red and amber type reach only 4.4:1 on
      their own washes, so they go a step darker here. */
   --ds-danger-text: hsl(0 75% 44%);
@@ -197,6 +201,10 @@ html.dark {
   --ds-header-control-text: var(--ds-accent);
   --ds-header-control-border: color-mix(in srgb, var(--ds-accent) 45%, transparent);
   --ds-header-control-hover-bg: var(--ds-accent-tint);
+
+  /* The band takes the step a card takes above the page, because the gold
+     wash turns the charcoal yellow. */
+  --ds-band-bg: var(--ds-surface);
 
   /* Status colours on a dark ground: a deep wash, a mid border and a light
      type, each in the hue the light theme uses for the same state. */
