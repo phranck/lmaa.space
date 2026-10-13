@@ -211,10 +211,15 @@ const ROUNDING_TOLERANCE = 1e-12;
 const ROUNDING_STEPS = 50;
 const ROUNDING_NUDGE = 1e-7;
 
-// The icon: a 512 tile with circular corners, and the head on a stub of neck
+// The icon: a 512 tile shaped as a squircle, and the head on a stub of neck
 // standing the margin away from the tile's edge on its taller side.
-const ICON_TILE = 512;
-const ICON_CORNER = 112.64;
+export const ICON_TILE = 512;
+// The squircle is the superellipse |x|^5 + |y|^5 = 1 stretched over the tile.
+// With exponent 5 its corners reach as far out along the diagonal as circular
+// corners of 22 percent of the side would. Each eighth of it, from the middle
+// of a side to the diagonal, is written as ICON_SQUIRCLE_CURVES cubic curves.
+export const ICON_SQUIRCLE_EXPONENT = 5;
+const ICON_SQUIRCLE_CURVES = 6;
 const ICON_MARGIN = 32;
 // How far the neck runs on below the throat, as a share of its width, and the
 // radius of the two corners of its straight cut, as a share as well.
@@ -512,7 +517,7 @@ function smoothedHead() {
  * @param {number} along The curve's parameter, 0 at the start and 1 at the end.
  * @returns {[number, number]}
  */
-function bezierPoint([start, first, second, end], along) {
+export function bezierPoint([start, first, second, end], along) {
   const rest = 1 - along;
   return [0, 1].map(
     (axis) =>
@@ -850,8 +855,90 @@ export function wordmarkPath(format = formatNumber) {
 }
 
 /**
+ * The icon's tile as a squircle, the superellipse with ICON_SQUIRCLE_EXPONENT
+ * stretched over the tile, written as cubic curves.
+ *
+ * The first eighth runs from the middle of the right side to the diagonal,
+ * with x following from y. The second runs on to the middle of the top side,
+ * with y following from x. Each curve takes the superellipse's own points and
+ * directions at both of its ends, so the curves meet without a kink, on the
+ * diagonals and in the middle of the sides as well. The other three quarters
+ * are the first one turned.
+ *
+ * @param {(value: number) => string} format Writes a number into the path data.
+ * @returns {string} SVG path data in the tile's square.
+ */
+function squirclePath(format) {
+  const exponent = ICON_SQUIRCLE_EXPONENT;
+  const diagonal = 2 ** (-1 / exponent);
+  const across = (along) => (1 - along ** exponent) ** (1 / exponent);
+  const slope = (along) =>
+    -(along ** (exponent - 1)) * (1 - along ** exponent) ** (1 / exponent - 1);
+  // Where the curves of an eighth meet, closer together towards the diagonal,
+  // where the squircle bends most.
+  const towardsDiagonal = [];
+  for (let index = 0; index <= ICON_SQUIRCLE_CURVES; index++) {
+    towardsDiagonal.push(diagonal * Math.sin((Math.PI / 2) * (index / ICON_SQUIRCLE_CURVES)));
+  }
+  const eighths = [
+    {
+      point: (along) => [across(along), along],
+      direction: (along) => [slope(along), 1],
+      stations: towardsDiagonal,
+    },
+    {
+      point: (along) => [along, across(along)],
+      direction: (along) => [1, slope(along)],
+      stations: [...towardsDiagonal].reverse(),
+    },
+  ];
+  const quarter = [];
+  for (const { point, direction, stations } of eighths) {
+    for (let index = 0; index < ICON_SQUIRCLE_CURVES; index++) {
+      const start = stations[index];
+      const end = stations[index + 1];
+      const third = (end - start) / 3;
+      const startPoint = point(start);
+      const endPoint = point(end);
+      const startDirection = direction(start);
+      const endDirection = direction(end);
+      quarter.push([
+        startPoint,
+        [startPoint[0] + startDirection[0] * third, startPoint[1] + startDirection[1] * third],
+        [endPoint[0] - endDirection[0] * third, endPoint[1] - endDirection[1] * third],
+        endPoint,
+      ]);
+    }
+  }
+
+  const half = ICON_TILE / 2;
+  const turned = (point, quarters) => {
+    let [horizontal, vertical] = point;
+    for (let turn = 0; turn < quarters; turn++) {
+      [horizontal, vertical] = [-vertical, horizontal];
+    }
+    return [horizontal, vertical];
+  };
+  // The squircle's y points up, the tile's down.
+  const place = (point, quarters) => {
+    const [horizontal, vertical] = turned(point, quarters);
+    return `${format(half + horizontal * half)} ${format(half - vertical * half)}`;
+  };
+  const commands = [`M${place(quarter[0][0], 0)}`];
+  for (let quarters = 0; quarters < 4; quarters++) {
+    for (const [, first, second, end] of quarter) {
+      commands.push(
+        `C${place(first, quarters)} ${place(second, quarters)} ${place(end, quarters)}`,
+      );
+    }
+  }
+  commands.push("Z");
+  return commands.join("");
+}
+
+/**
  * Constructs the icon: the llama's head on a stub of neck, cut out of a tile
- * with rounded corners.
+ * shaped as a squircle.
  *
  * The head and the neck are the wordmark's, so the two marks share one
  * drawing. The neck runs on ICON_NECK_SHARE of its width below the throat and
@@ -884,13 +971,7 @@ export function iconPaths(format = formatNumber) {
   const offsetY = (ICON_TILE - boundsHeight * unit) / 2;
   const place = ([x, y]) => [offsetX + (x - boundsX) * unit, offsetY + (-y - boundsY) * unit];
 
-  const radius = format(ICON_CORNER);
-  const far = format(ICON_TILE - ICON_CORNER);
-  const corner = (x, y) => `A${radius} ${radius} 0 0 1 ${x} ${y}`;
-  const tile =
-    `M${radius} 0H${far}${corner(ICON_TILE, radius)}V${far}${corner(far, ICON_TILE)}` +
-    `H${radius}${corner(0, far)}V${radius}${corner(radius, 0)}Z`;
-  return { tile, head: outline.svg(place, unit, format) };
+  return { tile: squirclePath(format), head: outline.svg(place, unit, format) };
 }
 
 const COMMAND = /[MLAHVCZ]|-?\d*\.?\d+(?:e-?\d+)?/g;
