@@ -1,6 +1,8 @@
 # Brand marks
 
-Logos of other companies, used to mark a route out of the page. They are their owners' trademarks and are not ours to redraw, recolour, or rebuild, so each file goes in exactly as its owner publishes it.
+Logos of other companies, used to mark a route out of the page. They are their owners' trademarks and are not ours to redraw or rebuild, so each file goes in exactly as its owner publishes it.
+
+The dark theme shows each of them in white, with PayPal's two blues as two greys, because their blue and black sink into its dark cards. That rendition is not a file here. `src/lib/brand-lockups.ts` derives it from these files, and its test fails when a replaced file no longer writes the colors it replaces.
 
 ## github-lockup.svg
 
