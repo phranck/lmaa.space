@@ -60,17 +60,22 @@ export const SMOKE_ENV = {
  * @param options.graceMs - How long it may run before it counts as loaded.
  * @param options.env - Extra environment on top of {@link SMOKE_ENV}.
  * @param options.nodeArgs - Flags for the node process itself, before the entrypoint.
+ * @param options.mustKeepRunning - Whether any exit before the grace period fails
+ *   the check. Set it for a service's start command, which has to stay up.
  * @returns Outcome for this entrypoint.
  *
  * @remarks
  * A process still running after the grace period counts as loaded, which is the
- * normal outcome for anything that starts a server. An exit only fails the
- * check when the output matches {@link LOAD_ERROR_PATTERNS}, so the missing
- * database these checks deliberately point at does not cause a false alarm.
+ * normal outcome for anything that starts a server. Without `mustKeepRunning`,
+ * an exit only fails the check when the output matches
+ * {@link LOAD_ERROR_PATTERNS}, so a one-shot script that stops at the missing
+ * database these checks deliberately point at does not cause a false alarm. A
+ * start command gets no such allowance, because a server that exits is down
+ * whatever the error says, including a TypeError that names no module.
  */
 export function runEntrypoint(
   entry,
-  { cwd = process.cwd(), graceMs = 8000, env = {}, nodeArgs = [] } = {},
+  { cwd = process.cwd(), graceMs = 8000, env = {}, nodeArgs = [], mustKeepRunning = false } = {},
 ) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [...nodeArgs, entry], {
@@ -101,13 +106,34 @@ export function runEntrypoint(
       if (signal === "SIGKILL") return;
 
       if (LOAD_ERROR_PATTERNS.some((pattern) => pattern.test(output))) {
-        const firstLines = output.trim().split("\n").slice(0, 4).join("\n    ");
-        resolve({ entry, ok: false, detail: `failed while loading modules:\n    ${firstLines}` });
+        resolve({
+          entry,
+          ok: false,
+          detail: `failed while loading modules:\n    ${firstLines(output)}`,
+        });
+        return;
+      }
+      if (mustKeepRunning) {
+        resolve({
+          entry,
+          ok: false,
+          detail: `exited with ${code} before the grace period ended:\n    ${firstLines(output)}`,
+        });
         return;
       }
       resolve({ entry, ok: true, detail: `exited with ${code} and no load error` });
     });
   });
+}
+
+/**
+ * The opening lines of a process's output, indented to sit under a result line.
+ *
+ * @param output - Everything the process wrote to stdout and stderr.
+ * @returns Up to eight lines, which is enough to show an error and where it was thrown.
+ */
+function firstLines(output) {
+  return output.trim().split("\n").slice(0, 8).join("\n    ");
 }
 
 /**
