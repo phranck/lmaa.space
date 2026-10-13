@@ -352,6 +352,13 @@ const pairs: Pair[] = [
     underlay: WHITE_PHOTOGRAPH,
     minimum: TEXT,
   })),
+  // The category head's veil, where its type stands.
+  ...["--ds-photo-text", "--ds-photo-text-muted"].map((foreground) => ({
+    foreground,
+    background: "--ds-photo-veil-text",
+    underlay: WHITE_PHOTOGRAPH,
+    minimum: TEXT,
+  })),
   ...["--ds-border-strong", "--ds-focus-ring"].flatMap((foreground) =>
     surfaces.map((background) => ({ foreground, background, minimum: CONTROL_EDGE })),
   ),

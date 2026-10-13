@@ -150,6 +150,12 @@ html {
      wordmark's, because the wordmark's own gold reaches only 3.5:1 over a
      bright photograph and the kicker is small type. */
   --ds-photo-accent: var(--ds-color-brand-300);
+  /* The head of a category page sets its type at the bottom, so its veil is
+     only as dark as that type needs there and lightens towards the top, where
+     there is only the photograph. 0.65 keeps the quieter line at 5:1 over a
+     white photograph. */
+  --ds-photo-veil-text: oklch(14.7% 0.004 49.25 / 0.65);
+  --ds-photo-veil-light: oklch(14.7% 0.004 49.25 / 0.2);
 }
 
 /* Salon: a warm charcoal rather than black. A card stands a step lighter
@@ -653,6 +659,13 @@ html .prose {
   border: none;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* The veil over the photograph at the head of a category page. It holds the
+   strength the type needs up to the height the type reaches, 144 px with a
+   name on two lines, and fades towards the top from there. */
+.lmaa-head-veil {
+  background: linear-gradient(to top, var(--ds-photo-veil-text) 9rem, var(--ds-photo-veil-light));
 }
 
 /* The icon in the header.
