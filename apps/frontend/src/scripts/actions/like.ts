@@ -152,14 +152,18 @@ document.addEventListener("click", (e) => {
   // Fire-and-forget: sync like to server
   const likeToken = btn.dataset.likeToken;
   if (likeToken) {
-    generateFingerprint().then((fp) => {
-      fetch(`${API_BASE}/shops/${shopId}/like`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ liked: isNowLiked, token: likeToken, fingerprint: fp }),
-      }).catch(() => {
+    // Hashing fails where the page runs without a secure context, so the
+    // catch covers the fingerprint as well as the request.
+    generateFingerprint()
+      .then((fp) =>
+        fetch(`${API_BASE}/shops/${shopId}/like`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ liked: isNowLiked, token: likeToken, fingerprint: fp }),
+        }),
+      )
+      .catch(() => {
         /* silent - like is best-effort */
       });
-    });
   }
 });
