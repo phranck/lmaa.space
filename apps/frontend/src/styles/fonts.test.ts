@@ -61,8 +61,6 @@ describe("website font delivery", () => {
       "barlow-condensed-600.woff2",
       "barlow-condensed-700.woff2",
       "barlow-condensed-800.woff2",
-      "dynapuff-500.woff2",
-      "dynapuff-600.woff2",
     ];
 
     expect(fontStyles).not.toMatch(/url\(["']?\/fonts\//);
@@ -74,16 +72,15 @@ describe("website font delivery", () => {
       "barlow-condensed-400.woff2",
       "barlow-condensed-600.woff2",
       "barlow-condensed-700.woff2",
-      "dynapuff-500.woff2",
     ]) {
       expect(layout).toContain(`@/assets/fonts/${asset}?url`);
     }
 
     const displayFaceBlocks = fontStyles.match(/@font-face\s*{[^}]+}/g) ?? [];
     const criticalDisplayFaces = displayFaceBlocks.filter((block) =>
-      /font-family: "(?:Barlow Condensed|DynaPuff)"/.test(block),
+      /font-family: "Barlow Condensed"/.test(block),
     );
-    expect(criticalDisplayFaces).toHaveLength(7);
+    expect(criticalDisplayFaces).toHaveLength(5);
     for (const face of criticalDisplayFaces) {
       expect(face).toContain("font-display: block;");
     }

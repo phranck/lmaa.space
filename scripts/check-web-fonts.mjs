@@ -22,15 +22,12 @@ export const EXPECTED_FONT_FILES = [
   "barlow-condensed-600.woff2",
   "barlow-condensed-700.woff2",
   "barlow-condensed-800.woff2",
-  "dynapuff-500.woff2",
-  "dynapuff-600.woff2",
 ];
 
 export const CRITICAL_FONT_FILES = [
   "barlow-condensed-400.woff2",
   "barlow-condensed-600.woff2",
   "barlow-condensed-700.woff2",
-  "dynapuff-500.woff2",
 ];
 
 function invariant(condition, message) {
