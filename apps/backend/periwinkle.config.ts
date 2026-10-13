@@ -27,9 +27,9 @@ export default defineConfig({
   },
 
   navigation: {
-    // The llama mark is a single-colour silhouette, so it is tinted with the
-    // text colour and works in both themes from one file.
-    logo: "../frontend/src/assets/logo.png",
+    // The icon draws in one color, so it is tinted with the text color and
+    // works in both themes from the file the website and the dashboard use.
+    logo: "../../packages/ui/src/assets/marks/lmaa-icon.svg",
     logoTint: true,
     github: {
       url: "https://github.com/phranck/lmaa.space",
