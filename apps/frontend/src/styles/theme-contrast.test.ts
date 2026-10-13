@@ -15,6 +15,8 @@ const frontendRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 /** WCAG AA for ordinary text. */
 const TEXT = 4.5;
+/** WCAG AA for large text: 24 px and up, or 18.66 px and up in bold. */
+const LARGE_TEXT = 3;
 /** WCAG AA for the boundary of a control and for a focus indicator. */
 const CONTROL_EDGE = 3;
 /** The brightest photograph a page head can carry. */
@@ -354,14 +356,16 @@ const pairs: Pair[] = [
     surfaces.map((background) => ({ foreground, background, minimum: CONTROL_EDGE })),
   ),
   // The marks are graphics, so they need the ratio of a control's edge: the
-  // icon that links home in the header, and the wordmark on the photograph.
+  // icon that links home in the header, with its letter on the tile.
   { foreground: "--ds-header-mark", background: "--ds-header-bg", minimum: CONTROL_EDGE },
   { foreground: "--ds-header-mark-letter", background: "--ds-header-mark", minimum: CONTROL_EDGE },
+  // The wordmark and the claim's last word stand on the photograph in the
+  // wordmark's gold: a graphic and large type, which need the same 3:1.
   {
     foreground: "--ds-accent",
     background: "--ds-photo-veil",
     underlay: WHITE_PHOTOGRAPH,
-    minimum: CONTROL_EDGE,
+    minimum: LARGE_TEXT,
   },
 ];
 

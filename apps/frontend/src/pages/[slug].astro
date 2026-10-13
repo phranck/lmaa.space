@@ -2,6 +2,7 @@
 import type { FormConfig } from "@lmaa/contracts";
 import type { Category } from "@lmaa/shared";
 
+import bodoniModa500Url from "@/assets/fonts/bodoni-moda-500-latin.woff2?url";
 import ContentArticle from "@/components/ContentArticle.astro";
 import DynamicForm from "@/components/islands/DynamicForm";
 import BaseLayout from "@/layouts/BaseLayout.astro";
@@ -54,7 +55,7 @@ if (page) {
 ---
 
 {page ? (
-  <BaseLayout title={page.title} description={description}>
+  <BaseLayout title={page.title} description={description} fontPreloads={[bodoniModa500Url]}>
     <div class:list={[getContentWidthClass(page.contentWidth), "mx-auto px-4 sm:px-6 py-14"]}>
       <ContentArticle title={page.title} showTitle={page.showTitle} segments={contentSegments} />
     </div>

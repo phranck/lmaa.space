@@ -35,6 +35,14 @@ html {
   --accent-active: var(--ds-accent-active);
   --accent-text: var(--ds-accent-fg);
 
+  /* The site's display faces. Bodoni Moda, which the wordmark is drawn from,
+     sets headings and the claim. The main navigation stays sans-serif in
+     Barlow Condensed, and so does a name on a card, which sits in a narrow box
+     where the wider Bodoni would be cut short. The shared token file keeps its
+     own serif for the dashboard. */
+  --ds-font-serif: "Bodoni Moda", Georgia, serif;
+  --ds-font-label: "Barlow Condensed", "Barlow Condensed Fallback", system-ui, sans-serif;
+
   /* ── THEMES ─────────────────────────────────────────────────
      The public site has two themes, drawn from the new wordmark: Papier, the
      light one, stated here on the root, and Salon, the dark one, under

@@ -43,46 +43,40 @@ describe("website font delivery", () => {
     if (!existsSync(fontStylesPath)) return;
 
     const fontStyles = read("src/assets/fonts/fonts.css");
-    const expectedFontAssets = [
-      "barlow-400-italic-latin-ext.woff2",
-      "barlow-400-italic-latin.woff2",
-      "barlow-400-latin-ext.woff2",
-      "barlow-400-latin.woff2",
-      "barlow-500-italic-latin-ext.woff2",
-      "barlow-500-italic-latin.woff2",
-      "barlow-500-latin-ext.woff2",
-      "barlow-500-latin.woff2",
-      "barlow-600-italic-latin-ext.woff2",
-      "barlow-600-italic-latin.woff2",
-      "barlow-600-latin-ext.woff2",
-      "barlow-600-latin.woff2",
-      "barlow-condensed-400.woff2",
-      "barlow-condensed-500.woff2",
-      "barlow-condensed-600.woff2",
-      "barlow-condensed-700.woff2",
-      "barlow-condensed-800.woff2",
-    ];
-
-    expect(fontStyles).not.toMatch(/url\(["']?\/fonts\//);
-    for (const asset of expectedFontAssets) {
-      expect(fontStyles).toContain(`url("./${asset}")`);
-    }
-
-    for (const asset of [
-      "barlow-condensed-400.woff2",
-      "barlow-condensed-600.woff2",
-      "barlow-condensed-700.woff2",
-    ]) {
-      expect(layout).toContain(`@/assets/fonts/${asset}?url`);
-    }
-
-    const displayFaceBlocks = fontStyles.match(/@font-face\s*{[^}]+}/g) ?? [];
-    const criticalDisplayFaces = displayFaceBlocks.filter((block) =>
-      /font-family: "Barlow Condensed"/.test(block),
+    // Every file in the folder is declared, and every declared file is in the
+    // folder, so the folder is the one list of what the site ships.
+    const expectedFontAssets = readdirSync(resolve(frontendRoot, "src/assets/fonts")).filter(
+      (name) => name.endsWith(".woff2"),
     );
-    expect(criticalDisplayFaces).toHaveLength(5);
-    for (const face of criticalDisplayFaces) {
+    const declaredFontAssets = [...fontStyles.matchAll(/url\("\.\/([\w-]+\.woff2)"\)/g)].map(
+      (match) => match[1],
+    );
+    expect([...declaredFontAssets].sort()).toEqual([...expectedFontAssets].sort());
+    expect(fontStyles).not.toMatch(/url\(["']?\/fonts\//);
+
+    // A display face waits for its file rather than painting a fallback, and
+    // the layout preloads only display cuts, so a preload always shortens a
+    // wait the reader would otherwise see.
+    const displayFaceBlocks = (fontStyles.match(/@font-face\s*{[^}]+}/g) ?? []).filter((block) =>
+      /font-family: "(?:Barlow Condensed|Bodoni Moda)"/.test(block),
+    );
+    for (const face of displayFaceBlocks) {
       expect(face).toContain("font-display: block;");
+    }
+    // The layout preloads what every page shows, and a page adds its own.
+    const sourceRoot = resolve(frontendRoot, "src");
+    const preloads = readdirSync(sourceRoot, { recursive: true })
+      .filter((path): path is string => typeof path === "string" && path.endsWith(".astro"))
+      .flatMap((path) => [
+        ...readFileSync(resolve(sourceRoot, path), "utf8").matchAll(
+          /@\/assets\/fonts\/([\w-]+\.woff2)\?url/g,
+        ),
+      ])
+      .map((match) => match[1]);
+    expect(preloads.length).toBeGreaterThan(0);
+    for (const preload of preloads) {
+      const face = displayFaceBlocks.find((block) => block.includes(`url("./${preload}")`));
+      expect(face, preload).toBeDefined();
     }
   });
 });

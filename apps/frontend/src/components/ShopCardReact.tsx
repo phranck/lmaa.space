@@ -121,7 +121,7 @@ export default function ShopCardReact({
 
         {/* Name + domain */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-serif font-semibold text-[var(--ds-text)] text-base leading-snug truncate">
+          <h3 className="font-label font-semibold text-[var(--ds-text)] text-base leading-snug truncate">
             {name}
           </h3>
           <p className="text-xs text-[var(--ds-text-muted)] mt-0.5 truncate">{domain}</p>

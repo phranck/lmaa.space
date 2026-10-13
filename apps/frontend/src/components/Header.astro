@@ -17,7 +17,7 @@ const currentPath = Astro.url.pathname;
 function navLinkClass(href: string, external = false) {
   const isActive =
     !external && (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
-  return `font-serif text-lg tracking-wide transition-colors ${
+  return `font-label text-lg tracking-wide transition-colors ${
     isActive
       ? "text-[var(--ds-accent-text)] font-semibold"
       : "text-[var(--ds-text)] hover:text-[var(--ds-accent-text)]"
@@ -85,7 +85,7 @@ function navLinkClass(href: string, external = false) {
       <div class="flex items-center gap-5">
         <a
           href="/my-shops"
-          class="hidden max-md:hidden items-center gap-1.5 font-serif text-lg tracking-wide text-[var(--ds-text)] hover:text-[var(--ds-accent-text)] transition-colors"
+          class="hidden max-md:hidden items-center gap-1.5 font-label text-lg tracking-wide text-[var(--ds-text)] hover:text-[var(--ds-accent-text)] transition-colors"
           data-my-shops-link="desktop"
         >
           <svg
@@ -172,7 +172,7 @@ function navLinkClass(href: string, external = false) {
                 href !== null &&
                 (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
               return href === null ? (
-                <span class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-[var(--ds-text)]">
+                <span class="block px-3 py-2 rounded-md font-label text-lg transition-colors text-[var(--ds-text)]">
                   {label}
                 </span>
               ) : external ? (
@@ -180,7 +180,7 @@ function navLinkClass(href: string, external = false) {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)]"
+                  class="block px-3 py-2 rounded-md font-label text-lg transition-colors text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)]"
                   data-analytics-event="site-link-click"
                   data-analytics-kind="nav"
                   data-analytics-placement="header-mobile-menu"
@@ -192,7 +192,7 @@ function navLinkClass(href: string, external = false) {
               ) : (
                 <a
                   href={href}
-                  class={`block px-3 py-2 rounded-md font-serif text-lg transition-colors ${
+                  class={`block px-3 py-2 rounded-md font-label text-lg transition-colors ${
                     isActive
                       ? "text-[var(--ds-accent-text)] bg-[var(--ds-accent-tint)] font-semibold"
                       : "text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)]"
@@ -210,7 +210,7 @@ function navLinkClass(href: string, external = false) {
 
             <a
               href="/my-shops"
-              class="hidden px-3 py-2 rounded-md font-serif text-lg transition-colors text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)]"
+              class="hidden px-3 py-2 rounded-md font-label text-lg transition-colors text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)]"
               data-my-shops-link="mobile"
             >
               Meine Shops

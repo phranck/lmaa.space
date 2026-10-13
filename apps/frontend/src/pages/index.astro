@@ -1,6 +1,8 @@
 ---
 import type { Category } from "@lmaa/shared";
 
+import bodoniModa400ItalicUrl from "@/assets/fonts/bodoni-moda-400-italic-latin.woff2?url";
+import bodoniModa500ItalicUrl from "@/assets/fonts/bodoni-moda-500-italic-latin.woff2?url";
 import HeroLogo from "@/components/HeroLogo.astro";
 import FilterableCategoryGrid from "@/components/islands/FilterableCategoryGrid";
 import UnsplashAttribution from "@/components/UnsplashAttribution.astro";
@@ -54,7 +56,7 @@ const jsonLd = {
 };
 ---
 
-<BaseLayout jsonLd={jsonLd}>
+<BaseLayout jsonLd={jsonLd} fontPreloads={[bodoniModa400ItalicUrl, bodoniModa500ItalicUrl]}>
   <!-- Hero -->
   <section class="relative overflow-hidden text-[var(--ds-photo-text)] bg-[var(--ds-color-ink)]">
     {heroSrc && (
@@ -78,15 +80,18 @@ const jsonLd = {
       />
     )}
     <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-12 text-center">
-      <p class="text-xs font-semibold uppercase tracking-widest text-[var(--ds-photo-accent)] mb-4">
+      <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--ds-photo-accent)] mb-4">
         Kuratiert · Unabhängig · Kostenlos
       </p>
       <div class="my-8">
         <HeroLogo />
       </div>
-      <h1 class="font-serif text-[var(--ds-photo-text-muted)] text-4xl mb-10 max-w-xl mx-auto leading-tight">
-        Lokale Märkte. Alternative{" "}
-        <span class="text-[var(--ds-photo-accent)] font-bold">Anbieter</span>.
+      <!-- The claim as the wordmark proposal sets it, in the wordmark's face.
+           Its last word takes the wordmark's own gold, which a white photograph
+           under the veil holds at 3.46:1, enough for type of this size. -->
+      <h1 class="font-serif italic font-normal tracking-[0.01em] text-[var(--ds-photo-text-muted)] text-4xl mb-10 max-w-[46rem] mx-auto leading-tight">
+        Lokale Märkte. Alternative <span class="text-[var(--ds-accent)] font-medium">Anbieter</span>
+        .
       </h1>
 
       <form
