@@ -261,7 +261,7 @@ export function useShopEditorController({
         previewRequestUrl: nextUrl,
       }));
       if (nextUrl && nextUrl === imageState.previewRequestUrl) {
-        previewImageQuery.refetch();
+        void previewImageQuery.refetch();
       }
       return;
     }

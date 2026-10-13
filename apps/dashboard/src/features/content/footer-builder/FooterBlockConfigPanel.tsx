@@ -226,7 +226,7 @@ function SocialMediaOrderEditor({
   label,
   emptyHint,
 }: SocialMediaOrderEditorProps) {
-  const { data: accounts = [], isLoading } = useFooterEligibleAccounts();
+  const { data: accounts, isLoading } = useFooterEligibleAccounts();
   const sensors = useDashboardSortableSensors({ activationDistance: 4 });
 
   // block.order acts as an ordering hint, not a whitelist: accounts added

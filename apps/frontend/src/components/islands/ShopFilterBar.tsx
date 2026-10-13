@@ -54,7 +54,7 @@ export default function ShopFilterBar({ initialFilters, onFilterChange }: ShopFi
 
   useEffect(() => {
     const controller = new AbortController();
-    loadFilterCountries(controller.signal).then(setCountries);
+    void loadFilterCountries(controller.signal).then(setCountries);
     return () => controller.abort();
   }, []);
 

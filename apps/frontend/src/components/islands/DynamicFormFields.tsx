@@ -85,7 +85,7 @@ function buildValidationRules(
   if (effectiveType === "url" && !rules.pattern && !rules.validate) {
     rules.validate = (value: unknown) => {
       if (!value) return true;
-      const str = String(value).trim();
+      const str = typeof value === "string" ? value.trim() : "";
       if (!str) return true;
       const withScheme = /^https?:\/\//i.test(str) ? str : `https://${str}`;
       try {
