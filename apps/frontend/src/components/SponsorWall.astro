@@ -1,12 +1,11 @@
 ---
 import { HeartIcon, SealIcon } from "@phosphor-icons/react";
 
-import type { SponsorsPayload } from "@lmaa/contracts";
-import { daysLeft, formatDate, formatEuroWhole, fundingProgress } from "@lmaa/shared";
-
 import SponsorCard from "@/components/SponsorCard.astro";
 import { getFavicons } from "@/lib/favicons";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
+import type { SponsorsPayload } from "@lmaa/contracts";
+import { daysLeft, formatDate, formatEuroWhole, fundingProgress } from "@lmaa/shared";
 
 interface Props {
   /**
@@ -174,58 +173,66 @@ const emptyHtml = cards.length ? "" : await renderMarkdown(emptyText || EMPTY_DE
 <section class="lmaa-sponsors">
   {introHtml && <div class="lmaa-rich" set:html={introHtml} />}
 
-  {cards.length === 0 && (
-    <div class="lmaa-sponsor-empty lmaa-accent-wash">
-      {/* The place the first card will take, drawn as that card: the
+  {
+    cards.length === 0 && (
+      <div class="lmaa-sponsor-empty lmaa-accent-wash">
+        {/* The place the first card will take, drawn as that card: the
             medal where the picture goes, and beside it the lines a name and a
             sentence will fill. Saying it in the shape of the thing is
             what an outline of a box cannot do. */}
-      <div class="lmaa-sponsor-empty-figure" aria-hidden="true">
-        <span class="lmaa-sponsor-empty-seat">
-          <span class="lmaa-sponsor-empty-medal">
-            <SealIcon weight="fill" className="lmaa-sponsor-empty-medal-body" />
-            <SealIcon weight="fill" className="lmaa-sponsor-empty-medal-ring" />
+        <div class="lmaa-sponsor-empty-figure" aria-hidden="true">
+          <span class="lmaa-sponsor-empty-seat">
+            <span class="lmaa-sponsor-empty-medal">
+              <SealIcon weight="fill" className="lmaa-sponsor-empty-medal-body" />
+              <SealIcon weight="fill" className="lmaa-sponsor-empty-medal-ring" />
+            </span>
+            <span class="lmaa-sponsor-empty-numeral">1</span>
           </span>
-          <span class="lmaa-sponsor-empty-numeral">1</span>
-        </span>
-        <span class="lmaa-sponsor-empty-lines">
-          <span class="lmaa-sponsor-empty-line is-name" />
-          <span class="lmaa-sponsor-empty-line" />
-          <span class="lmaa-sponsor-empty-line is-short" />
-        </span>
-      </div>
+          <span class="lmaa-sponsor-empty-lines">
+            <span class="lmaa-sponsor-empty-line is-name" />
+            <span class="lmaa-sponsor-empty-line" />
+            <span class="lmaa-sponsor-empty-line is-short" />
+          </span>
+        </div>
 
-      <div class="lmaa-sponsor-empty-body">
-        <div class="lmaa-rich" set:html={emptyHtml} />
-        {emptyHref && (
-          <a class="lmaa-invite-action" href={emptyHref} data-opens-interval="sponsor">
-            <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
-            {emptyAction || EMPTY_ACTION_DEFAULT}
-          </a>
-        )}
+        <div class="lmaa-sponsor-empty-body">
+          <div class="lmaa-rich" set:html={emptyHtml} />
+          {emptyHref && (
+            <a class="lmaa-invite-action" href={emptyHref} data-opens-interval="sponsor">
+              <HeartIcon weight="fill" className="size-4" aria-hidden="true" />
+              {emptyAction || EMPTY_ACTION_DEFAULT}
+            </a>
+          )}
+        </div>
       </div>
-    </div>
-  )}
+    )
+  }
 
-  {cards.length > 0 && (
-    <div
-      class:list={["lmaa-sponsor-rail", scrolls && "is-scrolling"]}
-      style={`--sponsor-count:${cards.length}`}
-    >
-      {/* Both runs stand in one list, because that is what makes the loop
+  {
+    cards.length > 0 && (
+      <div
+        class:list={["lmaa-sponsor-rail", scrolls && "is-scrolling"]}
+        style={`--sponsor-count:${cards.length}`}
+      >
+        {/* Both runs stand in one list, because that is what makes the loop
             exact: every card carries the same trailing space, so half the list
             is precisely one run and moving by half of it lands where it began.
             Two lists would leave the space between them out of that sum. */}
-      <ul class="lmaa-sponsor-track">
-        {cards.map((card) => (
-          <SponsorCard {...card} favicons={favicons} />
-        ))}
-        {scrolls && cards.map((card) => <SponsorCard {...card} favicons={favicons} duplicate />)}
-      </ul>
-    </div>
-  )}
+        <ul class="lmaa-sponsor-track">
+          {cards.map((card) => (
+            <SponsorCard {...card} favicons={favicons} />
+          ))}
+          {scrolls && cards.map((card) => <SponsorCard {...card} favicons={favicons} duplicate />)}
+        </ul>
+      </div>
+    )
+  }
 
-  {payload.costsTotalCents > 0 && <div class="lmaa-rich mt-6 text-sm" set:html={costsLineHtml} />}
+  {
+    payload.costsTotalCents > 0 && (
+      <div class="lmaa-rich mt-6 text-sm" set:html={costsLineHtml} />
+    )
+  }
 </section>
 
 <script>

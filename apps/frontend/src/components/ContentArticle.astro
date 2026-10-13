@@ -8,8 +8,8 @@
  * this component is the one place that decides how.
  */
 import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
-import SupportLadder from "@/components/islands/SupportLadder";
 import SponsorWall from "@/components/SponsorWall.astro";
+import SupportLadder from "@/components/islands/SupportLadder";
 import type { RenderedContentSegment } from "@/lib/content-page-rendering";
 import { EMPTY_PAYEE, EMPTY_SPONSORS, getPayee, getSponsors } from "@/lib/sponsors";
 
@@ -55,65 +55,69 @@ const supportHref = segments.some((segment) => segment.type === "support-ladder"
   : "";
 ---
 
-<article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
+<article
+  class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
+>
   {showTitle && <h1>{title}</h1>}
-  {segments.map((segment) => {
-    if (segment.type === "html") {
-      return <Fragment set:html={segment.html} />;
-    }
+  {
+    segments.map((segment) => {
+      if (segment.type === "html") {
+        return <Fragment set:html={segment.html} />;
+      }
 
-    if (segment.type === "sponsors") {
-      // The heading belongs to the article and is therefore left inside the
-      // prose flow. Only the wall itself steps out of it, because its cards
-      // bring their own type and spacing.
-      return (
-        <Fragment>
-          {segment.title && <h2>{segment.title}</h2>}
-          <div class="not-prose mb-10">
-            <SponsorWall
-              payload={sponsors}
-              text={segment.text}
-              covered={segment.covered}
-              missing={segment.missing}
-              empty={segment.empty}
-              emptyAction={segment.emptyAction}
-              emptyHref={supportHref}
+      if (segment.type === "sponsors") {
+        // The heading belongs to the article and is therefore left inside the
+        // prose flow. Only the wall itself steps out of it, because its cards
+        // bring their own type and spacing.
+        return (
+          <Fragment>
+            {segment.title && <h2>{segment.title}</h2>}
+            <div class="not-prose mb-10">
+              <SponsorWall
+                payload={sponsors}
+                text={segment.text}
+                covered={segment.covered}
+                missing={segment.missing}
+                empty={segment.empty}
+                emptyAction={segment.emptyAction}
+                emptyHref={supportHref}
+              />
+            </div>
+          </Fragment>
+        );
+      }
+
+      if (segment.type === "support-ladder") {
+        // No top margin: what stands above decides the gap, exactly as it does
+        // between two paragraphs. Under a heading the island therefore sits as
+        // close as any other block rather than a whole step lower.
+        return (
+          <div class="not-prose mb-10" id={SUPPORT_LADDER_ANCHOR}>
+            <SupportLadder
+              client:load
+              bankAccount={segment.bankAccount}
+              payee={{
+                name: payee.payeeName,
+                iban: payee.payeeIban,
+                bic: payee.payeeBic,
+              }}
+              intervals={segment.intervals}
+              routes={segment.routes}
+              labels={segment.labels}
+              minSponsorAmountEur={minSponsorAmountEur}
             />
           </div>
-        </Fragment>
-      );
-    }
+        );
+      }
 
-    if (segment.type === "support-ladder") {
-      // No top margin: what stands above decides the gap, exactly as it does
-      // between two paragraphs. Under a heading the island therefore sits as
-      // close as any other block rather than a whole step lower.
       return (
-        <div class="not-prose mb-10" id={SUPPORT_LADDER_ANCHOR}>
-          <SupportLadder
-            client:load
-            bankAccount={segment.bankAccount}
-            payee={{
-              name: payee.payeeName,
-              iban: payee.payeeIban,
-              bic: payee.payeeBic,
-            }}
-            intervals={segment.intervals}
-            routes={segment.routes}
-            labels={segment.labels}
-            minSponsorAmountEur={minSponsorAmountEur}
-          />
-        </div>
+        <RejectedShopsTable
+          client:load
+          defaultPageSize={segment.defaultPageSize}
+          initialData={segment.initialData}
+          storageKey={segment.storageKey}
+        />
       );
-    }
-
-    return (
-      <RejectedShopsTable
-        client:load
-        defaultPageSize={segment.defaultPageSize}
-        initialData={segment.initialData}
-        storageKey={segment.storageKey}
-      />
-    );
-  })}
+    })
+  }
 </article>

@@ -5,6 +5,7 @@ import type { NavItem } from "@lmaa/shared";
 import FooterComponent from "@/components/Footer.astro";
 import type { SocialMediaProfile } from "@/components/Footer.astro";
 import { apiGet } from "@/lib/api";
+
 import "@/styles/global.css";
 
 export const prerender = false;
@@ -43,16 +44,14 @@ if (!/^[0-9a-f]{32}$/.test(token)) {
     <title>Footer Preview</title>
   </head>
   <body class="m-0 bg-transparent text-[var(--ds-text)]">
-    {config ? (
-      <FooterComponent
-        config={config}
-        navItems={navItems}
-        socialMediaProfiles={socialMediaProfiles}
-      />
-    ) : (
-      <main class="min-h-32 flex items-center justify-center px-6 py-8 text-center">
-        <p class="text-sm text-[var(--ds-text-muted)]">{errorMessage}</p>
-      </main>
-    )}
+    {
+      config ? (
+        <FooterComponent config={config} navItems={navItems} socialMediaProfiles={socialMediaProfiles} />
+      ) : (
+        <main class="min-h-32 flex items-center justify-center px-6 py-8 text-center">
+          <p class="text-sm text-[var(--ds-text-muted)]">{errorMessage}</p>
+        </main>
+      )
+    }
   </body>
 </html>

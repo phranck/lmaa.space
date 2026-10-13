@@ -1,16 +1,15 @@
 ---
-import type { FooterConfig, SocialPreviewPublicImage } from "@lmaa/contracts";
-import type { NavItem } from "@lmaa/shared";
-
+import Footer from "@/components/Footer.astro";
+import type { SocialMediaProfile } from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
 import barlowCondensed400Url from "@/assets/fonts/barlow-condensed-400.woff2?url";
 import barlowCondensed600Url from "@/assets/fonts/barlow-condensed-600.woff2?url";
 import barlowCondensed700Url from "@/assets/fonts/barlow-condensed-700.woff2?url";
 import dynaPuff500Url from "@/assets/fonts/dynapuff-500.woff2?url";
-import Footer from "@/components/Footer.astro";
-import type { SocialMediaProfile } from "@/components/Footer.astro";
-import Header from "@/components/Header.astro";
 import { apiGet } from "@/lib/api";
 import { ANALYTICS_SCRIPT_INTEGRITY, ANALYTICS_SCRIPT_URL } from "@/lib/csp";
+import type { FooterConfig, SocialPreviewPublicImage } from "@lmaa/contracts";
+import type { NavItem } from "@lmaa/shared";
 
 interface Props {
   title?: string;
@@ -112,9 +111,11 @@ try {
     <link rel="icon" type="image/png" href="/favicon.png" />
 
     <!-- Build-resolved critical fonts for navigation, headings, and the hero logo. -->
-    {criticalFontPreloads.map((href) => (
-      <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
-    ))}
+    {
+      criticalFontPreloads.map((href) => (
+        <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+      ))
+    }
 
     <!-- OG / Twitter -->
     <meta property="og:type" content="website" />
@@ -128,7 +129,15 @@ try {
     <meta name="twitter:image" content={resolvedOgImage} />
 
     <!-- JSON-LD -->
-    {jsonLd && <script is:inline type="application/ld+json" set:html={serializeJsonLd(jsonLd)} />}
+    {
+      jsonLd && (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={serializeJsonLd(jsonLd)}
+        />
+      )
+    }
 
     <!-- Theme color -->
     <meta name="theme-color" content="#1C1917" />

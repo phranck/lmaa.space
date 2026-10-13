@@ -54,30 +54,32 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
                 const isExternal = href !== null && block.external && isExternalHref(href);
                 const styleClass = `footer-btn footer-btn-${block.style}`;
                 const ButtonIcon = getButtonIconComponent(block.icon);
-                return href ? (
-                  <a
-                    href={href}
-                    target={isExternal ? "_blank" : undefined}
-                    rel={isExternal ? "noopener noreferrer" : undefined}
-                    class={styleClass}
-                    aria-label={block.label ?? block.icon ?? undefined}
-                  >
-                    {ButtonIcon && (
-                      <span class="footer-btn-icon" aria-hidden="true">
-                        <ButtonIcon width={15} height={15} />
-                      </span>
-                    )}
-                    {block.label && <span>{block.label}</span>}
-                  </a>
-                ) : (
-                  <span class={styleClass} aria-disabled="true">
-                    {ButtonIcon && (
-                      <span class="footer-btn-icon" aria-hidden="true">
-                        <ButtonIcon width={15} height={15} />
-                      </span>
-                    )}
-                    {block.label && <span>{block.label}</span>}
-                  </span>
+                return (
+                  href ? (
+                    <a
+                      href={href}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                      class={styleClass}
+                      aria-label={block.label ?? block.icon ?? undefined}
+                    >
+                      {ButtonIcon && (
+                        <span class="footer-btn-icon" aria-hidden="true">
+                          <ButtonIcon width={15} height={15} />
+                        </span>
+                      )}
+                      {block.label && <span>{block.label}</span>}
+                    </a>
+                  ) : (
+                    <span class={styleClass} aria-disabled="true">
+                      {ButtonIcon && (
+                        <span class="footer-btn-icon" aria-hidden="true">
+                          <ButtonIcon width={15} height={15} />
+                        </span>
+                      )}
+                      {block.label && <span>{block.label}</span>}
+                    </span>
+                  )
                 );
               }
 

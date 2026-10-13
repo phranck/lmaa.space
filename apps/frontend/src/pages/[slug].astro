@@ -1,9 +1,6 @@
 ---
-import type { FormConfig } from "@lmaa/contracts";
-import type { Category } from "@lmaa/shared";
-
-import ContentArticle from "@/components/ContentArticle.astro";
 import DynamicForm from "@/components/islands/DynamicForm";
+import ContentArticle from "@/components/ContentArticle.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import {
@@ -13,6 +10,8 @@ import {
   type ContentPageView,
   type RenderedContentSegment,
 } from "@/lib/content-page-rendering";
+import type { FormConfig } from "@lmaa/contracts";
+import type { Category } from "@lmaa/shared";
 
 const { slug } = Astro.params;
 const forbiddenSlugs = new Set(["api", "uploads", "_astro", "favicon.ico", "sitemap.xml"]);
