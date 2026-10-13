@@ -33,12 +33,19 @@ fi
 # finding behind it. Pointed at a single project it does start, and then reports
 # every dependency the staged files happen not to import, because the snapshot
 # holds nothing else. Neither answers what the commit changed.
+#
+# The scan runs without the git variables the hook was handed. In a worktree git
+# exports an absolute GIT_DIR, and React Doctor lists each workspace's files with
+# `git ls-files` from inside that workspace. With GIT_DIR set and no
+# GIT_WORK_TREE, git takes the workspace as the top of the working tree, so the
+# root .gitignore never applies and every built bundle under dist/ is scanned.
 run_react_doctor() {
 	if [ ! -x "./node_modules/.bin/react-doctor" ]; then
 		printf '%s\n' "react-doctor: not installed, skipping the scan." >&2
 		return 0
 	fi
 
+	unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
 	./node_modules/.bin/react-doctor . --yes --no-score --no-color --blocking warning
 }
 
