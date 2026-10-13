@@ -289,7 +289,6 @@ export function MenuPrimitive({
   return portal && portalTarget ? createPortal(menu, portalTarget) : menu;
 }
 
-export type MenuItemPrimitiveSize = "default" | "compact";
 export type MenuItemPrimitiveVariant = "default" | "danger";
 
 export interface MenuItemPrimitiveProps extends Omit<
@@ -300,7 +299,6 @@ export interface MenuItemPrimitiveProps extends Omit<
   closeOnSelect?: boolean;
   leadingIcon?: ReactNode;
   onSelect?: () => void;
-  size?: MenuItemPrimitiveSize;
   variant?: MenuItemPrimitiveVariant;
 }
 
@@ -315,7 +313,6 @@ export function MenuItemPrimitive({
   onKeyDown,
   onMouseEnter,
   onSelect,
-  size = "default",
   type = "button",
   variant = "default",
   ...buttonProps

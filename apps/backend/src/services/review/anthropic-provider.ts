@@ -1,9 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type {
-  BetaContentBlock,
-  BetaMessage,
-  BetaMessageParam,
-} from "@anthropic-ai/sdk/resources/beta/messages";
+import type { BetaMessage, BetaMessageParam } from "@anthropic-ai/sdk/resources/beta/messages";
 
 import type { ReviewEffortLevel, ReviewUsage } from "@lmaa/shared";
 

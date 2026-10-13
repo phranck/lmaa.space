@@ -7,8 +7,6 @@
     "build": "tsup",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
     "docs:build": "tsx src/docs/export-openapi.ts && periwinkle build --out docs-dist",
     "db:doctor": "tsx --env-file=.env.local src/db/doctor.ts",
     "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",

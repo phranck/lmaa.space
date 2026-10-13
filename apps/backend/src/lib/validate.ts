@@ -44,11 +44,11 @@ export function isExternalUrl(url: string): boolean {
     if (bare === "localhost" || bare === "127.0.0.1" || bare === "::1" || bare === "0.0.0.0")
       return false;
     // Private IPv4 ranges
-    if (/^10\./.test(bare)) return false;
+    if (bare.startsWith("10.")) return false;
     if (/^172\.(1[6-9]|2\d|3[01])\./.test(bare)) return false;
-    if (/^192\.168\./.test(bare)) return false;
+    if (bare.startsWith("192.168.")) return false;
     // Link-local + cloud metadata
-    if (/^169\.254\./.test(bare)) return false;
+    if (bare.startsWith("169.254.")) return false;
     // Private IPv6 ranges (ULA fc00::/7, link-local fe80::/10)
     if (/^f[cd]/i.test(bare)) return false;
     if (/^fe[89ab]/i.test(bare)) return false;

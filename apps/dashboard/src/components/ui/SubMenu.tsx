@@ -11,7 +11,7 @@ type SubMenuRootProps = MenuPrimitiveProps;
 
 type SubMenuActionItemProps = {
   icon?: ReactNode;
-} & Omit<MenuItemPrimitiveProps, "leadingIcon" | "size">;
+} & Omit<MenuItemPrimitiveProps, "leadingIcon">;
 
 interface SubMenuSeparatorItemProps {
   className?: string;
@@ -49,7 +49,6 @@ function SubMenuItem(props: SubMenuItemProps) {
         className,
       )}
       leadingIcon={icon ?? <span aria-hidden="true" className="size-4" />}
-      size="compact"
       variant={variant}
     >
       {children}

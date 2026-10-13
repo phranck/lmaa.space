@@ -37,6 +37,6 @@ describe("payment method contracts", () => {
         paymentMethods: ["bitcoin"],
         socialMedia: {},
       }),
-    ).toThrow();
+    ).toThrow(/paymentMethods/);
   });
 });

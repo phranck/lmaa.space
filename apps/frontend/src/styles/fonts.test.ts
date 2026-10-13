@@ -36,7 +36,7 @@ describe("website font delivery", () => {
     expect(existsSync(fontStylesPath)).toBe(true);
     expect(globalStyles).toContain('@import "../assets/fonts/fonts.css";');
     expect(layout).not.toContain('href="/fonts/fonts.css"');
-    expect(layout).not.toMatch(/href="\/fonts\/[^\"]+\.woff2"/);
+    expect(layout).not.toMatch(/href="\/fonts\/[^"]+\.woff2"/);
     expect(layout).toContain("criticalFontPreloads.map");
     expect(tokens).toContain('--ds-font-sans: "Barlow", system-ui, -apple-system, sans-serif;');
 

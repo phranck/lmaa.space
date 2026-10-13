@@ -1,17 +1,12 @@
-import { ArrowSquareOutIcon } from "@phosphor-icons/react";
-import type * as React from "react";
 import { useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from "react";
 
 import type { PendingSponsorshipReceipt } from "@lmaa/contracts";
 import {
   buildEpcQrPayload,
-  EURO_SYMBOL,
-  formatEuro,
   formatEuroWhole,
   SUPPORT_LADDER_LABEL_DEFAULTS,
   type SupportLadderLabelKey,
 } from "@lmaa/shared";
-import { PAYMENT_METHOD_MAP } from "@lmaa/ui";
 
 import SponsorForm from "@/components/islands/SponsorForm";
 import { NoticeCard } from "@/components/NoticeCard";
@@ -36,12 +31,7 @@ import {
 import { initialSupportLadderState, supportLadderReducer } from "@/lib/support-ladder-state";
 
 import { AmountGrid, RichText } from "./SupportLadderAmounts.tsx";
-import {
-  fitSvgToDrawing,
-  OutboundRoute,
-  RouteIcon,
-  TRIM_ATTEMPTS,
-} from "./SupportLadderRoutes.tsx";
+import { fitSvgToDrawing, OutboundRoute, TRIM_ATTEMPTS } from "./SupportLadderRoutes.tsx";
 import { TransferCard } from "./SupportLadderTransfer.tsx";
 
 /**
@@ -96,28 +86,6 @@ const MONTHS_PER_YEAR = 12;
  */
 const BODY_FADE_MS = 140;
 
-/** The label of one line on the transfer card. */
-const TRANSFER_LABEL_STYLE = { color: "var(--ds-text-subtle)" };
-
-/**
- * One value on the transfer card.
- *
- * Monospaced, because these are figures somebody copies into a banking app and
- * compares character by character. The slight reduction takes back the width a
- * monospaced face gains over the body face at the same size.
- */
-const TRANSFER_VALUE_CLASS = "m-0 font-mono font-semibold text-[0.92em]";
-
-/**
- * The reference line before there is a reference.
- *
- * Five groups of four, which is what a finished one measures, so the row keeps
- * its width and nothing shifts when the real value arrives. It stands in the
- * card from the start rather than appearing later, because a line that is
- * visibly missing is what sends somebody to the form above it.
- */
-const REFERENCE_MASK = "XXXX XXXX XXXX XXXX XXXX";
-
 /**
  * Notes the reference the site has just issued, with the moment it happened.
  *
@@ -147,14 +115,6 @@ const QR_DEFAULTS = {
  * a recurring ask, so a text that drops the placeholder loses the effect.
  */
 const YEARLY_TOTAL_PLACEHOLDER = "{annualAmount}";
-
-/** Groups an IBAN into blocks of four, which is how a person reads one back. */
-function groupIban(iban: string): string {
-  return iban
-    .replace(/\s+/g, "")
-    .replace(/(.{4})/g, "$1 ")
-    .trim();
-}
 
 /**
  * The amount ladder and the payment details of the support page.
@@ -594,7 +554,6 @@ export default function SupportLadder({
 
         {bankAccount && variant && hasPayee && (
           <TransferCard
-            bankAccount={bankAccount}
             variant={variant}
             payee={payee}
             amountEur={amountEur}

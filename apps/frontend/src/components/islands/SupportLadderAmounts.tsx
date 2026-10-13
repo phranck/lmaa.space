@@ -5,7 +5,6 @@ import { useState } from "react";
 import { EURO_SYMBOL, formatEuroWhole } from "@lmaa/shared";
 
 import type { SupportLadderInterval } from "@/lib/content-shortcode-segments";
-import { buttonBaseClass } from "@/lib/form-styles";
 
 /**
  * Renders one of the ladder's prose fields.

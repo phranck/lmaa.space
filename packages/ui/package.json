@@ -32,7 +32,6 @@
     "./toggle-switch": "./src/ToggleSwitch.tsx"
   },
   "scripts": {
-    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
