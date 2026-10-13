@@ -1,17 +1,16 @@
 ---
-import FilterableCategoryGrid from "@/components/islands/FilterableCategoryGrid";
+import type { Category } from "@lmaa/shared";
+
 import HeroLogo from "@/components/HeroLogo.astro";
+import FilterableCategoryGrid from "@/components/islands/FilterableCategoryGrid";
 import UnsplashAttribution from "@/components/UnsplashAttribution.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { loadSupportPrompts } from "@/lib/support-prompts";
-import type { Category } from "@lmaa/shared";
 
 const categories = await apiGet<Category[]>("/categories");
 const supportPrompts = await loadSupportPrompts("category-grid");
-const stats = await apiGet<{ shopCount: number; pendingReviewCount: number }>(
-  "/stats",
-);
+const stats = await apiGet<{ shopCount: number; pendingReviewCount: number }>("/stats");
 const shopCount = stats.shopCount;
 const pendingReviewCount = stats.pendingReviewCount;
 
@@ -54,9 +53,7 @@ const jsonLd = {
 };
 ---
 
-<BaseLayout
-  jsonLd={jsonLd}
->
+<BaseLayout jsonLd={jsonLd}>
   <!-- Hero -->
   <section class="relative overflow-hidden text-white bg-stone-950">
     {heroSrc && (
@@ -87,7 +84,8 @@ const jsonLd = {
         <HeroLogo />
       </div>
       <h1 class="font-serif text-stone-200 text-4xl mb-10 max-w-xl mx-auto leading-tight">
-        Lokale Märkte. Alternative <span style="color: var(--hero-highlight-color); font-weight: bold;">Anbieter</span>.
+        Lokale Märkte. Alternative{" "}
+        <span style="color: var(--hero-highlight-color); font-weight: bold;">Anbieter</span>.
       </h1>
 
       <form
@@ -116,8 +114,16 @@ const jsonLd = {
               class="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-200 transition-colors hidden"
               aria-label="Suchfeld löschen"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-5 h-5" fill="currentColor">
-                <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z" opacity="0.2" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                class="w-5 h-5"
+                fill="currentColor"
+              >
+                <path
+                  d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+                  opacity="0.2"
+                />
                 <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-130.34a8,8,0,0,1,0,11.32L139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35A8,8,0,0,1,165.66,85.66Z" />
               </svg>
             </button>
@@ -131,46 +137,51 @@ const jsonLd = {
         </div>
         <script>
           (() => {
-            const input = document.getElementById('hero-search') as HTMLInputElement | null;
-            const btn = document.getElementById('hero-search-clear');
-            const shortcut = document.getElementById('hero-search-shortcut');
+            const input = document.getElementById("hero-search") as HTMLInputElement | null;
+            const btn = document.getElementById("hero-search-clear");
+            const shortcut = document.getElementById("hero-search-shortcut");
             if (!input || !btn || !shortcut) return;
 
             // Show shortcut badge only on viewports >= sm breakpoint (640px)
-            const showShortcut = window.matchMedia('(min-width: 640px)').matches;
+            const showShortcut = window.matchMedia("(min-width: 640px)").matches;
             if (!showShortcut) {
-              input.placeholder = 'Shops oder Kategorien';
+              input.placeholder = "Shops oder Kategorien";
             }
             if (showShortcut) {
               const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
-              const kbdStyle = 'display:inline-flex;align-items:center;justify-content:center;padding:1px 5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:5px;font-size:11px;color:rgb(168,162,158);font-family:inherit;line-height:1.5';
-              shortcut.innerHTML = `<kbd style="${kbdStyle}">${isMac ? '\u2318' : 'Ctrl'}</kbd><kbd style="${kbdStyle}">K</kbd>`;
-              shortcut.classList.remove('hidden');
+              const kbdStyle =
+                "display:inline-flex;align-items:center;justify-content:center;padding:1px 5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:5px;font-size:11px;color:rgb(168,162,158);font-family:inherit;line-height:1.5";
+              shortcut.innerHTML = `<kbd style="${kbdStyle}">${isMac ? "\u2318" : "Ctrl"}</kbd><kbd style="${kbdStyle}">K</kbd>`;
+              shortcut.classList.remove("hidden");
             }
 
             const toggle = () => {
               const hasValue = !!input.value;
-              input.classList.toggle('pr-8', hasValue);
+              input.classList.toggle("pr-8", hasValue);
               if (hasValue) {
-                btn.classList.remove('hidden');
-                shortcut.classList.add('hidden');
+                btn.classList.remove("hidden");
+                shortcut.classList.add("hidden");
               } else {
-                btn.classList.add('hidden');
-                if (showShortcut) shortcut.classList.remove('hidden');
+                btn.classList.add("hidden");
+                if (showShortcut) shortcut.classList.remove("hidden");
               }
             };
 
-            input.addEventListener('input', toggle);
-            btn.addEventListener('click', () => { input.value = ''; toggle(); input.focus(); });
+            input.addEventListener("input", toggle);
+            btn.addEventListener("click", () => {
+              input.value = "";
+              toggle();
+              input.focus();
+            });
             toggle();
 
             // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-              if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+            document.addEventListener("keydown", (e) => {
+              if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 input.focus();
               }
-              if (e.key === 'Escape' && document.activeElement === input) {
+              if (e.key === "Escape" && document.activeElement === input) {
                 input.blur();
               }
             });
@@ -195,9 +206,7 @@ const jsonLd = {
   <!-- CTA -->
   <section class="bg-amber-50 border-y border-amber-100">
     <div class="max-w-2xl mx-auto px-4 py-16 text-center">
-      <h2 class="font-serif text-2xl font-semibold text-stone-800 mb-3">
-        Vermisst du einen Shop?
-      </h2>
+      <h2 class="font-serif text-2xl font-semibold text-stone-800 mb-3">Vermisst du einen Shop?</h2>
       <p class="text-stone-700 mb-6 text-sm leading-relaxed">
         Hilf der Community und schlage deinen Shop vor. Schnell und ohne Anmeldung.
       </p>
