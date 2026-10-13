@@ -100,19 +100,18 @@ function heightAt(drawing, width) {
 
 /**
  * The favicon: the icon in gold with the L in ink. A tab bar is light or dark
- * depending on the browser, so the L is filled rather than left open, and
- * the icon reads the same on either. The ink square stays inside the gold
- * one, so no ink shows at its rounded corners.
+ * depending on the browser, so the L is filled rather than left open, and the
+ * icon reads the same on either. The drawing carries the letter as a path of
+ * its own for this, the one the website's header fills as well.
  *
  * @param {{viewBox: number[], content: string}} icon - The icon drawing.
  * @returns {string} A complete SVG document.
  */
 function faviconSvg(icon) {
   const [, , size] = icon.viewBox;
-  const inset = size / 8;
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox.join(" ")}">`,
-    `<rect x="${inset}" y="${inset}" width="${size - 2 * inset}" height="${size - 2 * inset}" fill="${INK}"/>`,
+    `<style>.lmaa-icon-letter { fill: ${INK}; stroke: ${INK}; stroke-width: 1px; }</style>`,
     place(icon, 0, 0, size, GOLD),
     "</svg>",
     "",

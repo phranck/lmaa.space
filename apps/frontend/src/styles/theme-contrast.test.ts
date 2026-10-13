@@ -356,6 +356,7 @@ const pairs: Pair[] = [
   // The marks are graphics, so they need the ratio of a control's edge: the
   // icon that links home in the header, and the wordmark on the photograph.
   { foreground: "--ds-header-mark", background: "--ds-header-bg", minimum: CONTROL_EDGE },
+  { foreground: "--ds-header-mark-letter", background: "--ds-header-mark", minimum: CONTROL_EDGE },
   {
     foreground: "--ds-accent",
     background: "--ds-photo-veil",

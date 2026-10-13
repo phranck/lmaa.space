@@ -10,7 +10,9 @@ The word LMAA in Bodoni Moda 700, with the llama's head and neck in the stem of 
 
 ## lmaa-icon.svg
 
-The L with the llama, cut out of a square with rounded corners.
+The L with the llama, cut out of a square with rounded corners. The letter fills 64 % of the tile's width and 80 % of its height, so it reads at the 38 px the header shows it at.
+
+The letter is there a second time as a path of its own with the class `lmaa-icon-letter` and no fill. A place that wants the letter in a color of its own fills that path, as the header and the favicon do; everywhere else the letter stays cut out.
 
 ## lmaa-claim.svg
 

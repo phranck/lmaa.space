@@ -85,10 +85,11 @@ html {
   --ds-btn-filled-hover: #2b2722;
   --ds-btn-filled-fg: var(--ds-color-paper);
 
-  /* Papier: the header is paper under its blur, a step darker than the page,
-     and its icon is drawn in ink like the actions. */
+  /* Papier: the header is paper under its blur, a step darker than the page.
+     Its icon is an ink tile like the actions, with the letter in gold. */
   --ds-header-bg: color-mix(in srgb, var(--ds-color-paper) 92%, transparent);
   --ds-header-mark: var(--ds-color-ink);
+  --ds-header-mark-letter: var(--ds-accent);
 
   /* Papier: the outlined call to action in the header is drawn in ink. */
   --ds-cta-outline-text: var(--ds-text);
@@ -175,6 +176,7 @@ html.dark {
 
   --ds-header-bg: color-mix(in srgb, var(--ds-surface-inset) 92%, transparent);
   --ds-header-mark: var(--ds-accent);
+  --ds-header-mark-letter: var(--ds-surface-inset);
 
   --ds-cta-outline-text: var(--ds-accent);
   --ds-cta-outline-border: color-mix(in srgb, var(--ds-accent) 45%, transparent);
@@ -643,6 +645,17 @@ html .prose {
   border: none;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* The icon in the header.
+   The letter is a path of its own on top of the tile's cut-out, so the header
+   fills it in a color of its own. A stroke of one unit closes the seam
+   between the two edges, which would otherwise show the header's ground as a
+   hairline around the letter. */
+.lmaa-header-icon .lmaa-icon-letter {
+  fill: var(--ds-header-mark-letter);
+  stroke: var(--ds-header-mark-letter);
+  stroke-width: 1px;
 }
 
 /* The switch between the ways of giving.
