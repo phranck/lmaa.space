@@ -104,7 +104,8 @@ try {
 ---
 
 <!doctype html>
-{/* System until the head script has read the visitor's choice, which is also
+{/* The head script puts the visitor's theme only on a page whose root carries
+    `data-theme-choice`. System stands until it has read the choice, and is
     what a browser without scripts keeps. */}
 <html lang="de" data-theme-choice="system">
   <head>

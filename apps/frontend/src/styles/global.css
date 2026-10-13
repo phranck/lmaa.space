@@ -689,6 +689,14 @@ html .prose {
   stroke-width: 1px;
 }
 
+/* In Salon the footer stands on the header's color, so the page is framed by
+   one color at the top and at the bottom. The color the dashboard configures
+   for the footer holds in Papier. This outweighs the footer's own stylesheet,
+   which reads that color from `--footer-bg`. */
+html.dark .footer-root {
+  background: var(--ds-theme-color);
+}
+
 /* The switch between the ways of giving.
    The mark under the chosen tab is one element that slides, rather than a
    background appearing on one tab and vanishing from another. It moves by
