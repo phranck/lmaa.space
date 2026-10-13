@@ -1248,12 +1248,10 @@ html .prose {
   gap: var(--ds-space-xs);
   border-radius: var(--radius-control);
   padding: var(--ds-space-xs) var(--ds-space-sm);
-  background: var(--ds-accent);
-  /* White on the accent measures 2.26:1, which is below every threshold there
-     is. The weight carries part of that and cannot carry all of it; the colour
-     of the label is the thing to change, and that is a decision about the
-     design system rather than about this button. */
-  color: var(--ds-accent-fg);
+  /* The theme's filled action, as every other action on the site: ink with
+     paper type in Papier, gold with ink type in Salon. */
+  background: var(--ds-btn-filled-bg);
+  color: var(--ds-btn-filled-fg);
   /* One size for every button on the site, label and symbol alike, so two of
      them side by side read as the same kind of thing. The reading size rather
      than the small one: a button is a thing to hit, not a footnote. */
@@ -1282,7 +1280,7 @@ html .prose {
 }
 
 .lmaa-invite-action:hover {
-  background: var(--ds-accent-hover);
+  background: var(--ds-btn-filled-hover);
   transform: translateY(-1px);
   box-shadow: var(--ds-shadow-md);
 }

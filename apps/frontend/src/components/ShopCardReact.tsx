@@ -111,8 +111,11 @@ export default function ShopCardReact({
             />
           ) : (
             // The letter stands on the shop's logo ground, which is the same
-            // light colour in both themes, so its grey is fixed as well.
-            <span className="text-lg font-bold text-stone-300 select-none">{letter}</span>
+            // light colour in both themes, so its grey is fixed as well. It
+            // repeats the name beside it, so a screen reader skips it.
+            <span className="text-lg font-bold text-stone-300 select-none" aria-hidden="true">
+              {letter}
+            </span>
           )}
         </div>
 

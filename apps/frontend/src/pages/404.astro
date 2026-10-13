@@ -4,7 +4,12 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 
 <BaseLayout title="Seite nicht gefunden" noindex={true}>
   <div class="max-w-2xl mx-auto px-4 sm:px-6 py-24 text-center">
-    <p class="text-6xl font-serif font-semibold text-[var(--ds-border)] mb-4 select-none">404</p>
+    <p
+      class="text-6xl font-serif font-semibold text-[var(--ds-border)] mb-4 select-none"
+      aria-hidden="true"
+    >
+      404
+    </p>
     <h1 class="font-serif text-2xl font-semibold text-[var(--ds-text)] mb-3">
       Seite nicht gefunden
     </h1>

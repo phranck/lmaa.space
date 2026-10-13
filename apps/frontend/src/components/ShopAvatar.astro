@@ -21,7 +21,8 @@ const sizeClasses: Record<string, { container: string; letter: string }> = {
 
 const s = sizeClasses[size];
 // The letter stands on the shop's logo ground, which is the same light colour
-// in both themes, so its grey is fixed as well.
+// in both themes, so its grey is fixed as well. It repeats the name that stands
+// beside it, so a screen reader skips it.
 ---
 
 <div
@@ -41,11 +42,14 @@ const s = sizeClasses[size];
       />
       <span
         class={`${s.letter} font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full`}
+        aria-hidden="true"
       >
         {letter}
       </span>
     </>
   ) : (
-    <span class={`${s.letter} font-bold text-stone-300 select-none`}>{letter}</span>
+    <span class={`${s.letter} font-bold text-stone-300 select-none`} aria-hidden="true">
+      {letter}
+    </span>
   )}
 </div>
