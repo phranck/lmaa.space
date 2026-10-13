@@ -47,22 +47,24 @@ const {
   inert={duplicate}
 >
   <div class="flex items-center gap-3">
-    {imageUrl ? (
-      <img
-        src={imageUrl}
-        alt=""
-        width="48"
-        height="48"
-        class="size-12 rounded-full object-cover"
-        loading="lazy"
-        decoding="async"
-        referrerpolicy="no-referrer"
-      />
-    ) : (
-      <span class="lmaa-sponsor-initial" aria-hidden="true">
-        {name.slice(0, 1)}
-      </span>
-    )}
+    {
+      imageUrl ? (
+        <img
+          src={imageUrl}
+          alt=""
+          width="48"
+          height="48"
+          class="size-12 rounded-full object-cover"
+          loading="lazy"
+          decoding="async"
+          referrerpolicy="no-referrer"
+        />
+      ) : (
+        <span class="lmaa-sponsor-initial" aria-hidden="true">
+          {name.slice(0, 1)}
+        </span>
+      )
+    }
     <span class="min-w-0">
       <span class="block font-semibold">{name}</span>
       <SocialMediaIcons
@@ -75,8 +77,9 @@ const {
   {claimHtml && <div class="lmaa-rich text-sm" set:html={claimHtml} />}
   <p class="lmaa-sponsor-term">
     <span>
-      Sponsor seit <span class="lmaa-sponsor-date-long">{since}</span>
-      <span class="lmaa-sponsor-date-short">{sinceShort}</span>
+      Sponsor seit <span class="lmaa-sponsor-date-long">{since}</span><span
+        class="lmaa-sponsor-date-short">{sinceShort}</span
+      >
     </span>
     <span aria-hidden="true">·</span>
     <span>{left}</span>

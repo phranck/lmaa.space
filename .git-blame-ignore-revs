@@ -1,8 +1,5 @@
-# Commits that reformat code in bulk. GitHub skips them in blame on its own,
-# and `npm install` points local git at this file through blame.ignoreRevsFile.
+# Commits that only reformat code. GitHub skips them in blame on its own, and
+# `npm install` points local git at this file through blame.ignoreRevsFile.
 
 # Chore: Format the tree with oxfmt (#393)
 8d8aa3821828a14cd787ccd8cdd676a8a45bb25f
-
-# Chore: Format Astro files with oxfmt 0.73.0 (#402)
-9db708a049133d2a875026c9643995a1705a6ba8

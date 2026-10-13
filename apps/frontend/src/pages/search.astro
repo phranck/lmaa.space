@@ -1,10 +1,9 @@
 ---
-import type { Shop } from "@lmaa/shared";
-
 import FilterableSearchResults from "@/components/islands/FilterableSearchResults";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { buildFilterQuery, parseFiltersFromUrl } from "@/lib/filter-query";
+import type { Shop } from "@lmaa/shared";
 
 const q = Astro.url.searchParams.get("q")?.trim() ?? "";
 const filters = parseFiltersFromUrl(Astro.url);

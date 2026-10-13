@@ -1,12 +1,11 @@
 ---
-import type { Shop } from "@lmaa/shared";
-
 import FilterableCategoryShops from "@/components/islands/FilterableCategoryShops";
 import UnsplashAttribution from "@/components/UnsplashAttribution.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { buildFilterQuery, parseFiltersFromUrl } from "@/lib/filter-query";
 import { slugToTitle } from "@/lib/slug";
+import type { Shop } from "@lmaa/shared";
 
 const { slug } = Astro.params;
 
@@ -33,14 +32,9 @@ try {
   const endpoint = hasFilters
     ? `/filtered/categories/${slug}?${filterQuery}`
     : `/categories/${slug}`;
-  const remote = await apiGet<{
-    name: string;
-    imageUrl?: string | null;
-    imagePhotographer?: string | null;
-    imagePhotographerUrl?: string | null;
-    imageFocalPointY?: number;
-    shops: Shop[];
-  }>(endpoint);
+  const remote = await apiGet<{ name: string; imageUrl?: string | null; imagePhotographer?: string | null; imagePhotographerUrl?: string | null; imageFocalPointY?: number; shops: Shop[] }>(
+    endpoint,
+  );
   category = {
     name: remote.name,
     imageUrl: remote.imageUrl ?? null,
@@ -101,7 +95,9 @@ const jsonLd = {
       />
     )}
     <div class="absolute inset-0 flex flex-col justify-end px-6 sm:px-10 pb-8">
-      <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-white">{category.name}</h1>
+      <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-white">
+        {category.name}
+      </h1>
       <p class="text-stone-300 text-sm mt-1">
         {shopCount} {shopCount === 1 ? "Shop" : "Shops"} in dieser Kategorie
       </p>
@@ -125,4 +121,5 @@ const jsonLd = {
       />
     )}
   </div>
+
 </BaseLayout>

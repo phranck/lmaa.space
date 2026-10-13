@@ -20,7 +20,7 @@
     "@lmaa/shared": "0.1.0",
     "@lmaa/ui": "0.1.0",
     "@phosphor-icons/react": "^2.1.10",
-    "astro": "^7.3.8",
+    "astro": "^7.2.0",
     "hls.js": "^1.6.16",
     "marked": "^17.0.3",
     "marked-footnote": "^1.4.0",

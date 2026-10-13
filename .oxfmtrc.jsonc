@@ -9,10 +9,6 @@
   "singleQuote": false,
   "trailingComma": "all",
   "sortPackageJson": false,
-  // Formats `.astro` files through prettier-plugin-astro, which loads
-  // @astrojs/compiler-rs from the project. The root package.json declares that
-  // package for this reason, at the version Astro itself builds with.
-  "astro": true,
   // The order every module's imports follow: Node built-ins, packages, the
   // repository's own workspaces, the `@/` alias, then relative paths, each
   // group separated by a blank line.
