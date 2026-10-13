@@ -80,7 +80,7 @@ export default function CategoryCard({
       </div>
 
       <div style={{ padding: "var(--public-card-padding)" }}>
-        <p className="font-label font-semibold text-[var(--ds-text)] text-base sm:text-lg leading-snug truncate group-hover:text-[var(--ds-accent-text)] transition-colors">
+        <p className="font-serif font-semibold text-[var(--ds-text)] text-base sm:text-lg leading-snug truncate group-hover:text-[var(--ds-accent-text)] transition-colors">
           {name}
         </p>
         <p className="text-[var(--ds-text-muted)] text-xs mt-0.5">

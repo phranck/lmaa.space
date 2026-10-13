@@ -46,9 +46,9 @@ export default defineConfig({
     },
     font: {
       sans: '"Barlow", system-ui, -apple-system, sans-serif',
-      // Both read the faces `global.css` states for the site, so each is named once.
+      // Both read the faces the stylesheets state, so each is named once.
       serif: "var(--ds-font-serif)",
-      label: "var(--ds-font-label)",
+      claim: "var(--ds-font-claim)",
     },
     fontSize: {
       xs: ["var(--ds-text-xs)", { lineHeight: "var(--ds-leading-xs)" }],
