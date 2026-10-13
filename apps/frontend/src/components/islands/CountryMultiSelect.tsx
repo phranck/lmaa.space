@@ -110,7 +110,7 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
                   }`}
                 >
                   {checked && (
-                    <CheckIcon weight="bold" className="size-2.5 text-[var(--ds-color-ink)]" />
+                    <CheckIcon weight="bold" className="size-2.5 text-[var(--ds-accent-on)]" />
                   )}
                 </span>
                 <span className="mr-2">{countryFlag(code)}</span>

@@ -147,7 +147,7 @@ export function CheckboxPrimitive({
           "mt-0.5 flex shrink-0 items-center justify-center rounded border transition-colors",
           checkboxBoxSizeClass[size],
           checked || indeterminate
-            ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white"
+            ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--ds-accent-on)]"
             : "border-[var(--ds-border-strong)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))]",
           boxClassName,
         )}

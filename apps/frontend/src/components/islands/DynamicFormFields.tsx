@@ -334,7 +334,7 @@ function CustomCheckbox({ checked }: { checked: boolean }) {
           height="8"
           viewBox="0 0 12 10"
           fill="none"
-          className="text-[var(--ds-color-ink)]"
+          className="text-[var(--ds-accent-on)]"
           aria-hidden="true"
         >
           <path

@@ -81,7 +81,9 @@ export function CountryCodeSelect({
                       : "border-[var(--ds-border-strong)]"
                   }`}
                 >
-                  {checked && <CheckIcon weight="duotone" className="size-2.5 text-white" />}
+                  {checked && (
+                    <CheckIcon weight="duotone" className="size-2.5 text-[var(--ds-accent-on)]" />
+                  )}
                 </span>
               }
             >

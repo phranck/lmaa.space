@@ -316,6 +316,8 @@ const pairs: Pair[] = [
     background: "--ds-accent-tint",
     minimum: TEXT,
   })),
+  // Check marks and chip type on a filled accent, such as a ticked box.
+  { foreground: "--ds-accent-on", background: "--ds-accent", minimum: TEXT },
   { foreground: "--ds-btn-filled-fg", background: "--ds-btn-filled-bg", minimum: TEXT },
   { foreground: "--ds-btn-filled-fg", background: "--ds-btn-filled-hover", minimum: TEXT },
   { foreground: "--ds-btn-primary-fg", background: "--ds-btn-primary-bg", minimum: TEXT },
