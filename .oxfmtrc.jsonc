@@ -38,5 +38,8 @@
     "docs/reference/code/**",
     // Third-party markup the tests parse exactly as the site served it.
     "apps/backend/src/__tests__/fixtures/**",
+    // Self-contained reports with minified inline styles. Formatting the
+    // button inventory alone would turn 1572 lines into 6220.
+    "docs/ui-consolidation/*.html",
   ],
 }
