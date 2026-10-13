@@ -10,6 +10,10 @@ import type { SocialMediaProfile } from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
 import { apiGet } from "@/lib/api";
 import { ANALYTICS_SCRIPT_INTEGRITY, ANALYTICS_SCRIPT_URL } from "@/lib/csp";
+// In the frontmatter, so that the dev server serves the theme in the head as
+// the build does. A stylesheet that a script imports arrives after the first
+// paint, and the page would show without its colors until then.
+import "@/styles/global.css";
 
 interface Props {
   title?: string;
@@ -155,7 +159,6 @@ try {
     </main>
     <Footer config={footerConfig} navItems={footerNav} socialMediaProfiles={socialMediaProfiles} />
     <script>
-      import "@/styles/global.css";
       import "@/scripts/hls-video.ts";
       import "@/scripts/shop-actions.ts";
       import "@/scripts/site-analytics.ts";
