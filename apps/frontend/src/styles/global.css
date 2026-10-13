@@ -35,11 +35,6 @@ html {
   --accent-active: var(--ds-accent-active);
   --accent-text: var(--ds-accent-fg);
 
-  /* The claim on the home page is set in Bodoni Moda, the face the wordmark is
-     drawn from. Headings, names and the navigation keep Barlow Condensed,
-     which the shared token file states as `--ds-font-serif`. */
-  --ds-font-claim: "Bodoni Moda", Georgia, serif;
-
   /* ── THEMES ─────────────────────────────────────────────────
      The public site has two themes, drawn from the new wordmark: Papier, the
      light one, stated here on the root, and Salon, the dark one, under

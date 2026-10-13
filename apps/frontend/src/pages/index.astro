@@ -1,8 +1,7 @@
 ---
 import type { Category } from "@lmaa/shared";
 
-import bodoniModa400ItalicUrl from "@/assets/fonts/bodoni-moda-400-italic-latin.woff2?url";
-import bodoniModa500ItalicUrl from "@/assets/fonts/bodoni-moda-500-italic-latin.woff2?url";
+import barlowCondensed700Url from "@/assets/fonts/barlow-condensed-700.woff2?url";
 import HeroLogo from "@/components/HeroLogo.astro";
 import FilterableCategoryGrid from "@/components/islands/FilterableCategoryGrid";
 import UnsplashAttribution from "@/components/UnsplashAttribution.astro";
@@ -56,7 +55,8 @@ const jsonLd = {
 };
 ---
 
-<BaseLayout jsonLd={jsonLd} fontPreloads={[bodoniModa400ItalicUrl, bodoniModa500ItalicUrl]}>
+{/* The claim's last word is the one bold cut on the first screen. */}
+<BaseLayout jsonLd={jsonLd} fontPreloads={[barlowCondensed700Url]}>
   <!-- Hero -->
   <section class="relative overflow-hidden text-[var(--ds-photo-text)] bg-[var(--ds-color-ink)]">
     {heroSrc && (
@@ -86,12 +86,10 @@ const jsonLd = {
       <div class="my-8">
         <HeroLogo />
       </div>
-      <!-- The claim as the wordmark proposal sets it, in the wordmark's face.
-           Its last word takes the wordmark's own gold, which a white photograph
+      <!-- The last word takes the wordmark's gold, which a white photograph
            under the veil holds at 3.46:1, enough for type of this size. -->
-      <h1 class="font-claim italic font-normal tracking-[0.01em] text-[var(--ds-photo-text-muted)] text-4xl mb-10 max-w-[46rem] mx-auto leading-tight">
-        Lokale Märkte. Alternative <span class="text-[var(--ds-accent)] font-medium">Anbieter</span>
-        .
+      <h1 class="font-serif text-[var(--ds-photo-text-muted)] text-4xl mb-10 max-w-xl mx-auto leading-tight">
+        Lokale Märkte. Alternative <span class="text-[var(--ds-accent)] font-bold">Anbieter</span>.
       </h1>
 
       <form

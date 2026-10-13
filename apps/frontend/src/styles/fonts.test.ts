@@ -58,7 +58,7 @@ describe("website font delivery", () => {
     // the layout preloads only display cuts, so a preload always shortens a
     // wait the reader would otherwise see.
     const displayFaceBlocks = (fontStyles.match(/@font-face\s*{[^}]+}/g) ?? []).filter((block) =>
-      /font-family: "(?:Barlow Condensed|Bodoni Moda)"/.test(block),
+      /font-family: "Barlow Condensed"/.test(block),
     );
     for (const face of displayFaceBlocks) {
       expect(face).toContain("font-display: block;");

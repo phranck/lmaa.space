@@ -46,9 +46,8 @@ export default defineConfig({
     },
     font: {
       sans: '"Barlow", system-ui, -apple-system, sans-serif',
-      // Both read the faces the stylesheets state, so each is named once.
+      // Reads the face the shared token file states, so it is named once.
       serif: "var(--ds-font-serif)",
-      claim: "var(--ds-font-claim)",
     },
     fontSize: {
       xs: ["var(--ds-text-xs)", { lineHeight: "var(--ds-leading-xs)" }],
