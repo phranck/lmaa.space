@@ -55,7 +55,7 @@ const supportHref = segments.some((segment) => segment.type === "support-ladder"
   : "";
 ---
 
-<article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
+<article class="prose prose-base max-w-none prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
   {showTitle && <h1>{title}</h1>}
   {segments.map((segment) => {
     if (segment.type === "html") {

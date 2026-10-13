@@ -30,7 +30,7 @@ export default function CategoryCard({
 }: CategoryCardProps) {
   return (
     <div
-      className="group relative block rounded-lg sm:rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+      className="group relative block rounded-lg sm:rounded-2xl overflow-hidden border border-[var(--ds-border)] bg-[var(--ds-surface)] hover:border-[var(--ds-border-hover)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
       data-analytics-event="category-click"
       data-analytics-source="homepage-card"
       data-category-id={String(id)}
@@ -52,10 +52,10 @@ export default function CategoryCard({
           data-img-fallback=""
         />
         <div
-          className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center hidden"
+          className="absolute inset-0 bg-gradient-to-br from-[var(--ds-bg-elevated)] to-[var(--ds-surface-inset)] flex items-center justify-center hidden"
           aria-hidden="true"
         >
-          <span className="font-serif font-bold text-4xl text-stone-300 select-none">
+          <span className="font-serif font-bold text-4xl text-[var(--ds-text-placeholder)] select-none">
             {name.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -70,10 +70,10 @@ export default function CategoryCard({
       </div>
 
       <div style={{ padding: "var(--public-card-padding)" }}>
-        <p className="font-serif font-semibold text-stone-800 text-base sm:text-lg leading-snug truncate group-hover:text-amber-700 transition-colors">
+        <p className="font-serif font-semibold text-[var(--ds-text)] text-base sm:text-lg leading-snug truncate group-hover:text-[var(--ds-accent-text)] transition-colors">
           {name}
         </p>
-        <p className="text-stone-600 text-xs mt-0.5">
+        <p className="text-[var(--ds-text-muted)] text-xs mt-0.5">
           {shopCount} {shopCount === 1 ? "Shop" : "Shops"}
         </p>
       </div>

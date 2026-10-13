@@ -7,7 +7,7 @@ interface FilterToggleButtonProps {
 /**
  * Toggle button that shows/hides the shop filter bar.
  *
- * Displays an amber highlight when filters are active or the bar is open.
+ * Takes the accent's tint when filters are active or the bar is open.
  */
 export default function FilterToggleButton({
   showFilter,
@@ -20,8 +20,8 @@ export default function FilterToggleButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
         showFilter || filtersActive
-          ? "bg-amber-100 border-amber-300 text-amber-800"
-          : "bg-white border-stone-300 text-stone-500 hover:border-stone-400"
+          ? "bg-[var(--ds-accent-tint)] border-[var(--ds-btn-primary-border)] text-[var(--ds-accent-text)]"
+          : "bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-hover)]"
       }`}
       aria-expanded={showFilter}
       aria-label="Filter ein-/ausblenden"

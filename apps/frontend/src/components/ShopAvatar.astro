@@ -20,10 +20,12 @@ const sizeClasses: Record<string, { container: string; letter: string }> = {
 };
 
 const s = sizeClasses[size];
+// The letter stands on the shop's logo ground, which is the same light colour
+// in both themes, so its grey is fixed as well.
 ---
 
 <div
-  class={`shrink-0 ${s.container} overflow-hidden border border-stone-100 flex items-center justify-center`}
+  class={`shrink-0 ${s.container} overflow-hidden border border-[var(--ds-border-subtle)] flex items-center justify-center`}
   style={`background-color: ${bgColor}`}
 >
   {imageUrl ? (

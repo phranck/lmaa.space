@@ -17,12 +17,14 @@ function navLinkClass(href: string, external = false) {
   const isActive =
     !external && (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
   return `font-serif text-lg tracking-wide transition-colors ${
-    isActive ? "text-amber-700 font-semibold" : "text-stone-900 hover:text-stone-950"
+    isActive
+      ? "text-[var(--ds-accent-text)] font-semibold"
+      : "text-[var(--ds-text)] hover:text-[var(--ds-accent-text)]"
   }`;
 }
 ---
 
-<header class="sticky top-0 z-50 bg-stone-50/95 backdrop-blur-sm border-b border-stone-200">
+<header class="sticky top-0 z-50 bg-[var(--ds-header-bg)] backdrop-blur-sm border-b border-[var(--ds-border)]">
   <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="relative flex items-center justify-between h-16">
       <!-- Left: Logo + Desktop Nav -->
@@ -87,7 +89,7 @@ function navLinkClass(href: string, external = false) {
       <div class="flex items-center gap-5">
         <a
           href="/my-shops"
-          class="hidden max-md:hidden items-center gap-1.5 font-serif text-lg tracking-wide text-stone-900 hover:text-amber-700 transition-colors"
+          class="hidden max-md:hidden items-center gap-1.5 font-serif text-lg tracking-wide text-[var(--ds-text)] hover:text-[var(--ds-accent-text)] transition-colors"
           data-my-shops-link="desktop"
         >
           <svg
@@ -110,7 +112,7 @@ function navLinkClass(href: string, external = false) {
         <!-- Mobile hamburger -->
         <details class="md:hidden relative" id="mobile-menu-details">
           <summary
-            class="p-2 rounded-md text-stone-800 hover:text-stone-950 hover:bg-stone-100 transition-colors cursor-pointer"
+            class="p-2 rounded-md text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)] transition-colors cursor-pointer"
             aria-label="Menü öffnen/schließen"
           >
             <!-- Hamburger icon (shows when closed, hidden via CSS when open) -->
@@ -131,7 +133,7 @@ function navLinkClass(href: string, external = false) {
             </svg>
           </summary>
 
-          <div class="fixed left-0 right-0 top-16 pb-4 pt-2 space-y-1 border-t border-stone-100 bg-stone-50 shadow-lg">
+          <div class="fixed left-0 right-0 top-16 pb-4 pt-2 space-y-1 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-bg)] shadow-lg">
             <!-- Mobile Search -->
             <form
               action="/search"
@@ -145,10 +147,10 @@ function navLinkClass(href: string, external = false) {
                   type="search"
                   placeholder="Shops oder Kategorien suchen…"
                   aria-label="Shops suchen"
-                  class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                  class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
                 />
                 <svg
-                  class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none"
+                  class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] pointer-events-none"
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -174,7 +176,7 @@ function navLinkClass(href: string, external = false) {
                 href !== null &&
                 (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
               return href === null ? (
-                <span class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-800">
+                <span class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-[var(--ds-text)]">
                   {label}
                 </span>
               ) : external ? (
@@ -182,7 +184,7 @@ function navLinkClass(href: string, external = false) {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-800 hover:bg-stone-100"
+                  class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)]"
                   data-analytics-event="site-link-click"
                   data-analytics-kind="nav"
                   data-analytics-placement="header-mobile-menu"
@@ -196,8 +198,8 @@ function navLinkClass(href: string, external = false) {
                   href={href}
                   class={`block px-3 py-2 rounded-md font-serif text-lg transition-colors ${
                     isActive
-                      ? "text-amber-700 bg-amber-50 font-semibold"
-                      : "text-stone-800 hover:bg-stone-100"
+                      ? "text-[var(--ds-accent-text)] bg-[var(--ds-accent-tint)] font-semibold"
+                      : "text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)]"
                   }`}
                   data-analytics-event="site-link-click"
                   data-analytics-kind="nav"
@@ -212,7 +214,7 @@ function navLinkClass(href: string, external = false) {
 
             <a
               href="/my-shops"
-              class="hidden px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-800 hover:bg-stone-100"
+              class="hidden px-3 py-2 rounded-md font-serif text-lg transition-colors text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)]"
               data-my-shops-link="mobile"
             >
               Meine Shops

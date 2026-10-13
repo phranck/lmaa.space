@@ -295,6 +295,13 @@ const pairs: Pair[] = [
   ),
   { foreground: "--ds-text-placeholder", background: "--ds-input-bg", minimum: TEXT },
   { foreground: "--ds-text", background: "--ds-header-bg", minimum: TEXT },
+  { foreground: "--ds-cta-outline-text", background: "--ds-header-bg", minimum: TEXT },
+  {
+    foreground: "--ds-cta-outline-text",
+    background: "--ds-cta-outline-hover-bg",
+    underlay: "--ds-header-bg",
+    minimum: TEXT,
+  },
   { foreground: "--ds-accent-text", background: "--ds-accent-tint", minimum: TEXT },
   {
     foreground: "--ds-accent-text",

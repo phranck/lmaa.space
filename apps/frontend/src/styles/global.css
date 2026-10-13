@@ -34,7 +34,9 @@ html {
   --accent-hover: var(--ds-accent-hover);
   --accent-active: var(--ds-accent-active);
   --accent-text: var(--ds-accent-fg);
-  --hero-highlight-color: #ffb900;
+  /* The claim's last word on the hero photograph, in the wordmark's gold. The
+     photograph is the same in both themes, so this is too. */
+  --hero-highlight-color: var(--ds-color-brand-500);
 
   /* ── THEMES ─────────────────────────────────────────────────
      The public site has two themes, drawn from the new wordmark: Papier, the
@@ -87,6 +89,11 @@ html {
   /* Papier: the header carries the page through its blur. */
   --ds-header-bg: color-mix(in srgb, var(--ds-bg) 92%, transparent);
 
+  /* Papier: the outlined call to action in the header is drawn in ink. */
+  --ds-cta-outline-text: var(--ds-text);
+  --ds-cta-outline-border: color-mix(in srgb, var(--ds-text) 35%, transparent);
+  --ds-cta-outline-hover-bg: var(--ds-control-hover-bg);
+
   /* Papier: the shared token file's red and amber type reach only 4.4:1 on
      their own washes, so they go a step darker here. */
   --ds-danger-text: hsl(0 75% 44%);
@@ -105,6 +112,8 @@ html {
   --ds-btn-primary-hover-border: var(--ds-accent);
   --ds-btn-primary-hover-bg: var(--ds-accent-tint);
   --ds-btn-neutral-hover-bg: var(--ds-bg-elevated);
+  /* Half way to the strong edge, for a card the pointer rests on. */
+  --ds-border-hover: color-mix(in srgb, var(--ds-border) 50%, var(--ds-border-strong));
   --ds-btn-danger-border: var(--ds-danger-border);
   --ds-btn-danger-text: var(--ds-danger-text);
   --ds-btn-danger-hover-bg: var(--ds-danger-bg);
@@ -160,6 +169,10 @@ html.dark {
   --ds-btn-filled-fg: var(--ds-color-ink);
 
   --ds-header-bg: color-mix(in srgb, var(--ds-surface-inset) 92%, transparent);
+
+  --ds-cta-outline-text: var(--ds-accent);
+  --ds-cta-outline-border: color-mix(in srgb, var(--ds-accent) 45%, transparent);
+  --ds-cta-outline-hover-bg: var(--ds-accent-tint);
 
   /* Status colours on a dark ground: a deep wash, a mid border and a light
      type, each in the hue the light theme uses for the same state. */
@@ -529,15 +542,38 @@ details > summary::-webkit-details-marker {
 }
 
 /* A link inside a card reads like a link anywhere else on the page.
-   The prose around it resolves its link colour to the same palette variable,
-   so both sides take that one value instead of naming a colour twice. */
+   The prose around it resolves its link colour to the same role, so both
+   sides take that one value instead of naming a colour twice. */
 .lmaa-rich a {
-  color: var(--colors-amber-700);
+  color: var(--ds-accent-text);
   text-decoration: none;
 }
 
 .lmaa-rich a:hover {
   text-decoration: underline;
+}
+
+/* Prose takes its type from the theme. The typography preset states its own
+   palette on `.prose` and on every `prose-<colour>` class; the root in front
+   of this selector outweighs both, so no page has to name a palette. */
+html .prose {
+  --un-prose-body: var(--ds-text-muted);
+  --un-prose-lead: var(--ds-text-muted);
+  --un-prose-headings: var(--ds-text);
+  --un-prose-bold: var(--ds-text);
+  --un-prose-links: var(--ds-accent-text);
+  --un-prose-counters: var(--ds-text-subtle);
+  --un-prose-bullets: var(--ds-border-strong);
+  --un-prose-hr: var(--ds-border);
+  --un-prose-quotes: var(--ds-text);
+  --un-prose-quote-borders: var(--ds-border);
+  --un-prose-captions: var(--ds-text-subtle);
+  --un-prose-kbd: var(--ds-text);
+  --un-prose-code: var(--ds-text);
+  --un-prose-pre-code: var(--ds-text);
+  --un-prose-pre-bg: var(--ds-surface-inset);
+  --un-prose-th-borders: var(--ds-border);
+  --un-prose-td-borders: var(--ds-border-subtle);
 }
 
 /* A footnote marker set as ordinary superscript is a grey speck a reader misses.
@@ -550,8 +586,8 @@ details > summary::-webkit-details-marker {
   min-width: 1.35em;
   padding: 0 0.28em;
   border-radius: 0.35em;
-  background: var(--ds-accent-tint, rgb(180 131 27 / 0.14));
-  color: var(--colors-amber-800);
+  background: var(--ds-accent-tint);
+  color: var(--ds-accent-text);
   font-weight: 700;
   font-size: 0.78em;
   line-height: 1.5;
@@ -561,8 +597,8 @@ details > summary::-webkit-details-marker {
 
 .lmaa-rich sup a:hover,
 .prose sup a:hover {
-  background: var(--colors-amber-700);
-  color: white;
+  background: var(--ds-accent-text);
+  color: var(--ds-text-inverse);
   text-decoration: none;
 }
 

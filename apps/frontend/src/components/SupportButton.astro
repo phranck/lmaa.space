@@ -1,6 +1,6 @@
 ---
 interface Props {
-  variant: "desktop" | "mobile" | "mobile-header";
+  variant: "desktop" | "mobile-header";
 }
 
 const { variant } = Astro.props;
@@ -19,19 +19,16 @@ const label = "Ich will dabei sein";
 const visibleLabel = variant === "mobile-header" ? "Unterstützen" : label;
 const href = "/support-me";
 
+// The outlined call to action takes its colours from the theme: ink in Papier,
+// gold in Salon.
+const outline =
+  "items-center gap-1.5 h-9 rounded-full text-sm font-medium text-[var(--ds-cta-outline-text)] border border-[var(--ds-cta-outline-border)] hover:bg-[var(--ds-cta-outline-hover-bg)] transition-colors";
 const classes =
   variant === "desktop"
-    ? "hidden md:flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-medium text-[#57201e] border border-[#57201e]/40 hover:bg-[#57201e]/10 transition-colors"
-    : variant === "mobile-header"
-      ? "inline-flex md:hidden items-center gap-1.5 h-9 px-4 rounded-full text-[#57201e] bg-[#9f1d1d]/5 border border-[#57201e]/40 hover:bg-[#9f1d1d]/10 transition-colors text-sm font-medium whitespace-nowrap"
-      : "flex items-center gap-2 h-9 px-3 rounded-control text-[#57201e] bg-[#9f1d1d]/5 border border-[#57201e]/40 hover:bg-[#9f1d1d]/10 transition-colors text-sm font-medium w-full justify-center";
+    ? `hidden md:flex px-3 ${outline}`
+    : `inline-flex md:hidden px-4 whitespace-nowrap ${outline}`;
 
-const placement =
-  variant === "desktop"
-    ? "header"
-    : variant === "mobile-header"
-      ? "header-mobile"
-      : "header-mobile-menu";
+const placement = variant === "desktop" ? "header" : "header-mobile";
 ---
 
 <a
@@ -43,22 +40,20 @@ const placement =
   data-analytics-label={visibleLabel}
   data-analytics-href={href}
 >
-  {variant !== "mobile" && (
-    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        opacity="0.25"
-        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-      />
-      <path
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-      />
-    </svg>
-  )}
+  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      fill="currentColor"
+      opacity="0.25"
+      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+    />
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+    />
+  </svg>
   {variant === "desktop" ? <span class="hidden sm:inline">{visibleLabel}</span> : visibleLabel}
 </a>
