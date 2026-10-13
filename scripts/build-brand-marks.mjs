@@ -577,10 +577,14 @@ export function wordmarkPath() {
     (aRadius - (height - firstRightInner.point[1]) * firstNormal[1]) / firstNormal[0];
   const a2Offset = offsetForTangency([centerX, height], aRadius, A_LEFT_INNER);
 
-  const [barBottom, barTop] = A_BAR;
-  const barRadius = (barTop - barBottom) / 2;
-  const barMiddle = (barTop + barBottom) / 2;
-  const barGap = barTop - barBottom;
+  // The font draws the crossbar thinner than any other stroke. Here it takes
+  // the weight of the L's foot, the wordmark's other horizontal, on the line
+  // the font's bar is centered on.
+  const barMiddle = (A_BAR[0] + A_BAR[1]) / 2;
+  const barRadius = L_FOOT_TOP / 2;
+  const barBottom = barMiddle - barRadius;
+  const barTop = barMiddle + barRadius;
+  const barGap = L_FOOT_TOP;
 
   const outline = new Outline();
   outline.edge(new Line([0, 0], [1, 0]), L_FOOT_TOP / 2);
