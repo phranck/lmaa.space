@@ -296,10 +296,7 @@ describe("OpenAPI document", () => {
 
   it("keeps API documentation fonts in deployable shared source assets", () => {
     const zeropsConfig = readFileSync(resolve(repositoryRoot, "zerops.yml"), "utf8");
-    const backendEntry = readFileSync(
-      resolve(repositoryRoot, "apps/backend/src/index.ts"),
-      "utf8",
-    );
+    const backendEntry = readFileSync(resolve(repositoryRoot, "apps/backend/src/index.ts"), "utf8");
 
     expect(zeropsConfig).not.toContain("apps/frontend/public/fonts");
     expect(zeropsConfig).toContain("- apps/frontend/src/assets/fonts");

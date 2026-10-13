@@ -2,18 +2,12 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 import { cx } from "./classNames";
 
-export type SurfacePrimitiveVariant =
-  | "section"
-  | "panel"
-  | "elevated"
-  | "inset"
-  | "transparent";
+export type SurfacePrimitiveVariant = "section" | "panel" | "elevated" | "inset" | "transparent";
 
 export type SurfacePrimitivePadding = "none" | "sm" | "md" | "lg";
 export type SurfacePrimitiveRadius = "control" | "lg" | "xl" | "2xl";
 
-export interface SurfacePrimitiveProps
-  extends HTMLAttributes<HTMLDivElement> {
+export interface SurfacePrimitiveProps extends HTMLAttributes<HTMLDivElement> {
   padding?: SurfacePrimitivePadding;
   radius?: SurfacePrimitiveRadius;
   variant?: SurfacePrimitiveVariant;
@@ -22,8 +16,7 @@ export interface SurfacePrimitiveProps
 const surfaceVariantClass: Record<SurfacePrimitiveVariant, string> = {
   elevated:
     "border border-[var(--ds-border)] bg-[var(--ds-bg-elevated,var(--ds-surface))] shadow-[var(--ds-overlay-shadow)]",
-  inset:
-    "border border-[var(--ds-border-subtle,var(--ds-border))] bg-[var(--ds-surface-inset)]",
+  inset: "border border-[var(--ds-border-subtle,var(--ds-border))] bg-[var(--ds-surface-inset)]",
   panel: "border border-[var(--ds-border)] bg-[var(--ds-surface)] shadow-sm",
   section: "bg-[var(--ds-section-body-bg)] shadow-sm",
   transparent: "bg-transparent",
@@ -69,8 +62,7 @@ export function SurfacePrimitive({
 export type DialogFooterPrimitiveAlign = "start" | "end" | "between";
 export type DialogFooterPrimitiveDensity = "compact" | "default";
 
-export interface DialogFooterPrimitiveProps
-  extends HTMLAttributes<HTMLDivElement> {
+export interface DialogFooterPrimitiveProps extends HTMLAttributes<HTMLDivElement> {
   align?: DialogFooterPrimitiveAlign;
   children: ReactNode;
   density?: DialogFooterPrimitiveDensity;

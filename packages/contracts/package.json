@@ -8,8 +8,6 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

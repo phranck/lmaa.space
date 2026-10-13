@@ -31,9 +31,7 @@ export function buildPostVariables(ctx: PostContext): Record<string, string> {
       shopName: ctx.submission.shopName,
       shopUrl: ctx.submission.shopUrl,
       shopDescription: ctx.submission.description ?? "",
-      shopRegion: Array.isArray(ctx.submission.region)
-        ? ctx.submission.region.join(", ")
-        : "",
+      shopRegion: Array.isArray(ctx.submission.region) ? ctx.submission.region.join(", ") : "",
       shopShipping: ctx.submission.shipping ?? "",
       shopPickup: ctx.submission.pickup ?? "",
       shopContactEmail: ctx.submission.contactEmail ?? "",

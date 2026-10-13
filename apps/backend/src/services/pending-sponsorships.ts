@@ -10,8 +10,6 @@ import {
   type SocialPlatformKey,
 } from "@lmaa/shared";
 
-import { resolveSponsorAvatar } from "./sponsor-avatar.js";
-import { getSponsoringConfig } from "./sponsors.js";
 import type { PendingSponsorshipInsert, PendingSponsorshipRow, SponsorRow } from "../db/schema.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
 import { logger } from "../lib/logger.js";
@@ -27,6 +25,8 @@ import {
   updatePendingSponsorshipByReference,
 } from "../repositories/pending-sponsorships.js";
 import { insertSponsor } from "../repositories/sponsors.js";
+import { resolveSponsorAvatar } from "./sponsor-avatar.js";
+import { getSponsoringConfig } from "./sponsors.js";
 
 /**
  * What every reference opens with, so a statement says what the payment is.

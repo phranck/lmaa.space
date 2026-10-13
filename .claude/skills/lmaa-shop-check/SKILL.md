@@ -14,7 +14,7 @@ metadata:
 # lmaa.space Shop Check
 
 Bewerte eine Shop-URL gegen die jeweils aktuellen Aufnahmekriterien von
-*lmaa.space*. Liefere bei Aufnahme importierbares JSON und bei Ablehnung die
+_lmaa.space_. Liefere bei Aufnahme importierbares JSON und bei Ablehnung die
 beiden redaktionellen Texte samt belastbaren Quellen.
 
 ## When to Use
@@ -125,7 +125,7 @@ beiden redaktionellen Texte samt belastbaren Quellen.
 - Verwende geschlechtergerechte neutrale Formen wie `Mitarbeitende`,
   `Kundschaft` und `Betreibende`, sonst Paarformen. Keine Gendersterne oder Genderdoppelpunkte. Bezeichnungen namentlich genannter Personen bleiben unverändert.
 - Verwende keine Gedankenstriche. Schreibe vollständige Sätze.
-- Setze *lmaa.space* in Prosa kursiv und die erste Nennung des Shopnamens in jedem erzeugten Text fett, auch in `description`.
+- Setze _lmaa.space_ in Prosa kursiv und die erste Nennung des Shopnamens in jedem erzeugten Text fett, auch in `description`.
 - Bereinige Trackingparameter wie `utm_*`, `trk`, `si`, `fbclid` und `gclid` aus URLs.
 - Nutze den `todo`-Werkzeugaufruf nicht für eine einzelne Shopprüfung.
 

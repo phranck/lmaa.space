@@ -54,7 +54,14 @@ export interface SupportPromptStore {
 
 /** The store of somebody the site has never asked. */
 export function emptyStore(): SupportPromptStore {
-  return { shown: 0, snoozedUntil: 0, snoozedSince: 0, lastShopSlug: null, shopViews: 0, prompts: {} };
+  return {
+    shown: 0,
+    snoozedUntil: 0,
+    snoozedSince: 0,
+    lastShopSlug: null,
+    shopViews: 0,
+    prompts: {},
+  };
 }
 
 function emptyRecord(): SupportPromptRecord {

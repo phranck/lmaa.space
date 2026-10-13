@@ -7,9 +7,7 @@ import { defineConfig } from "vite";
 function buildDevProxy() {
   const backendUrl = process.env.BACKEND_URL?.trim();
   if (!backendUrl) {
-    throw new Error(
-      "Missing BACKEND_URL. Define it in .env.local — manually or via pewee.",
-    );
+    throw new Error("Missing BACKEND_URL. Define it in .env.local — manually or via pewee.");
   }
   return {
     "/api/v1": { target: backendUrl, changeOrigin: true },

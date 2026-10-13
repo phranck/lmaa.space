@@ -1,13 +1,13 @@
 import type { SocialMediaPostTemplateScope, TemplateAssignment } from "@lmaa/contracts";
 
-import { recordBackgroundError } from "./background-errors.js";
-import { postToBlueskyAccount } from "./bluesky.js";
-import { postToMastodonAccount } from "./mastodon.js";
-import type { PostContext } from "./post-context.js";
 import { logger } from "../lib/logger.js";
 import { upsertChoice } from "../repositories/admin-user-account-template-choice.js";
 import { getAccountById } from "../repositories/social-media-accounts.js";
 import { getSocialMediaPostTemplateById } from "../repositories/social-media-post-templates.js";
+import { recordBackgroundError } from "./background-errors.js";
+import { postToBlueskyAccount } from "./bluesky.js";
+import { postToMastodonAccount } from "./mastodon.js";
+import type { PostContext } from "./post-context.js";
 
 /**
  * Persists the sticky template choice per (admin, account, scope) and, when

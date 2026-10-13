@@ -9,9 +9,7 @@ function resolveFrontendUrl(): string {
   const explicit = import.meta.env.VITE_FRONTEND_URL;
   if (explicit) return explicit;
   if (import.meta.env.PROD) return "https://lmaa.space";
-  throw new Error(
-    "Missing VITE_FRONTEND_URL. Define it in .env.local — manually or via pewee.",
-  );
+  throw new Error("Missing VITE_FRONTEND_URL. Define it in .env.local — manually or via pewee.");
 }
 
 export const FRONTEND_URL: string = resolveFrontendUrl();

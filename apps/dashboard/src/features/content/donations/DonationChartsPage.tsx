@@ -16,6 +16,7 @@ import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { StatFigure } from "@/components/ui/StatFigure.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
+import { useSponsoringConfig } from "../sponsors/hooks/useSponsors.ts";
 import { FundingProgressBar } from "./charts/FundingProgressBar.tsx";
 import { IncomeOverTimeChart } from "./charts/IncomeOverTimeChart.tsx";
 import { PaymentRouteChart } from "./charts/PaymentRouteChart.tsx";
@@ -27,7 +28,6 @@ import {
   windowForPreset,
 } from "./donation-chart-window.ts";
 import { useDonationBreakdown, useDonationTotals } from "./hooks/useDonations.ts";
-import { useSponsoringConfig } from "../sponsors/hooks/useSponsors.ts";
 
 /** Which of the two views of the same figures the time series draws. */
 const TimeSeriesView = {

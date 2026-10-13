@@ -39,7 +39,10 @@ const EMPTY_AVATAR_STATE: AvatarState = {
   deleted: false,
 };
 
-export const userEditDraftReducer: Reducer<UserEditDraftState, UserEditDraftAction> = (state, action) => {
+export const userEditDraftReducer: Reducer<UserEditDraftState, UserEditDraftAction> = (
+  state,
+  action,
+) => {
   switch (action.type) {
     case "setField":
       return { ...state, [action.field]: action.value };

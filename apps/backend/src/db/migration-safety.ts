@@ -32,10 +32,15 @@ export function assertSafeMigrationIdentity(identity: MigrationIdentity): void {
   }
 }
 
-export function assertApplicationTableOwnership(rows: TableOwnershipMismatch[], expectedRole: string): void {
+export function assertApplicationTableOwnership(
+  rows: TableOwnershipMismatch[],
+  expectedRole: string,
+): void {
   if (rows.length === 0) return;
   const details = rows.map((row) => `${row.tableName} owned by ${row.owner}`).join(", ");
-  throw new Error(`Application table ownership mismatch for expected role "${expectedRole}": ${details}`);
+  throw new Error(
+    `Application table ownership mismatch for expected role "${expectedRole}": ${details}`,
+  );
 }
 
 export async function assertSafeMigrationConnection(

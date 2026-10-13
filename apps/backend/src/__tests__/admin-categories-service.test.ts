@@ -59,7 +59,11 @@ describe("uploadManagedAdminCategoryImage", () => {
       ok: true,
       dataUrl: "data:image/webp;base64,abc",
     });
-    repoMocks.setAdminCategoryImage.mockResolvedValue({ id: 1, name: "Mode", imageUrl: "data:..." });
+    repoMocks.setAdminCategoryImage.mockResolvedValue({
+      id: 1,
+      name: "Mode",
+      imageUrl: "data:...",
+    });
 
     const result = await uploadManagedAdminCategoryImage(1, {});
 

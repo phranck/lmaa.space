@@ -1,0 +1,5 @@
+# Commits that only reformat code. GitHub skips them in blame on its own, and
+# `npm install` points local git at this file through blame.ignoreRevsFile.
+
+# Chore: Format the tree with oxfmt (#393)
+8d8aa3821828a14cd787ccd8cdd676a8a45bb25f

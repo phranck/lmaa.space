@@ -465,7 +465,9 @@ export const BUTTON_ICON_LIST: readonly ButtonIconEntry[] = [
   { name: "waveform", label: "Waveform", keywords: ["audio", "sound"] },
 ];
 
-export function getButtonIconComponent(name: string | null | undefined): ButtonIconComponent | null {
+export function getButtonIconComponent(
+  name: string | null | undefined,
+): ButtonIconComponent | null {
   if (!name || !(name in BUTTON_ICON_COMPONENTS)) {
     return null;
   }

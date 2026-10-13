@@ -29,7 +29,11 @@ function acceptResult(description: string) {
       assessment: "Zwölf Mitarbeitende laut Unternehmensdatenbank.",
     },
     evidence: [
-      { url: "https://beispiel.de/impressum", label: "Impressum", retrievedAt: "2026-08-15T10:00:00.000Z" },
+      {
+        url: "https://beispiel.de/impressum",
+        label: "Impressum",
+        retrievedAt: "2026-08-15T10:00:00.000Z",
+      },
     ],
     uncertainties: [],
     accept: {
@@ -42,7 +46,11 @@ function acceptResult(description: string) {
       legal: { entityName: "Beispiel GmbH", entityType: "GmbH", owners: ["Ana Beispiel"] },
       headquarters: { city: "Bremen", countryCode: "DE", source: "Impressum" },
       socialMedia: [],
-      notes: { focus: ["Handwerkzeug"], brandsOrProducts: [], companyPresentation: "Kleiner Fachhandel." },
+      notes: {
+        focus: ["Handwerkzeug"],
+        brandsOrProducts: [],
+        companyPresentation: "Kleiner Fachhandel.",
+      },
     },
     reject: null,
     onhold: null,

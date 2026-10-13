@@ -1,14 +1,5 @@
 import { normalizeCreditorReference } from "@lmaa/shared";
 
-import { announceConsentRefused, announceConsentStage } from "./bank-consent.js";
-import {
-  BACKGROUND_INTERVAL_MS,
-  BACKGROUND_READS_PER_WINDOW,
-  MANUAL_READS_PER_WINDOW,
-  READ_WINDOW_HOURS,
-} from "./bank-read-schedule.js";
-import { fetchTransactions, type BankTransaction } from "./enable-banking-client.js";
-import { takeOverPendingSponsorshipByReference } from "./pending-sponsorships.js";
 import { env } from "../config/env.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
 import { HttpError } from "../lib/http.js";
@@ -22,6 +13,15 @@ import {
   type BankReadKind,
 } from "../repositories/bank-reads.js";
 import { fillDonationPayerName, insertDonation } from "../repositories/donations.js";
+import { announceConsentRefused, announceConsentStage } from "./bank-consent.js";
+import {
+  BACKGROUND_INTERVAL_MS,
+  BACKGROUND_READS_PER_WINDOW,
+  MANUAL_READS_PER_WINDOW,
+  READ_WINDOW_HOURS,
+} from "./bank-read-schedule.js";
+import { fetchTransactions, type BankTransaction } from "./enable-banking-client.js";
+import { takeOverPendingSponsorshipByReference } from "./pending-sponsorships.js";
 
 /** How far back the very first run reaches, in days. */
 const FIRST_RUN_LOOKBACK_DAYS = 90;

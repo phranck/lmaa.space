@@ -10,9 +10,9 @@ import {
   SYSTEM_REVIEW_SETTINGS_KEYS,
 } from "@lmaa/shared";
 
-import { resolveReviewEffort } from "./models.js";
 import { costLimitToNano } from "../../lib/review-cost.js";
 import { getSettings } from "../../repositories/app-settings.js";
+import { resolveReviewEffort } from "./models.js";
 
 /**
  * The automated review's runtime configuration.

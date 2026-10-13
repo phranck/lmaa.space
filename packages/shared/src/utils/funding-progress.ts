@@ -27,10 +27,7 @@ export interface FundingProgress {
  * zero either, because money beyond the costs is a surplus rather than a
  * negative shortfall, and no sentence on the site is written to say that.
  */
-export function fundingProgress(
-  costsTotalCents: number,
-  coveredCents: number,
-): FundingProgress {
+export function fundingProgress(costsTotalCents: number, coveredCents: number): FundingProgress {
   return {
     covered: costsTotalCents > 0 && coveredCents >= costsTotalCents,
     missingCents: Math.max(costsTotalCents - coveredCents, 0),

@@ -93,9 +93,11 @@ describe("tokenizeShortcodes", () => {
   });
 
   it("does not swallow a later node from a stray opener", () => {
-    const content = ["[[image:/uploads/a.png", "x".repeat(MAX_NODE_LENGTH + 100), "[[image:/uploads/b.png]]"].join(
-      "\n",
-    );
+    const content = [
+      "[[image:/uploads/a.png",
+      "x".repeat(MAX_NODE_LENGTH + 100),
+      "[[image:/uploads/b.png]]",
+    ].join("\n");
     const nodes = tokenizeShortcodes(content);
     expect(nodes).toHaveLength(1);
     expect(nodes[0].target).toBe("/uploads/b.png");

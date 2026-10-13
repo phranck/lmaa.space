@@ -86,8 +86,7 @@ async function verifyService(service) {
     // already covered there; what this check adds is whether the entrypoint can
     // resolve its modules, which is worth answering even from a partial tree.
     const missing = service.deployFiles.filter((entry) => !stagePath(stagingDir, entry));
-    const missingNote =
-      missing.length > 0 ? ` (not built locally: ${missing.join(", ")})` : "";
+    const missingNote = missing.length > 0 ? ` (not built locally: ${missing.join(", ")})` : "";
 
     if (!existsSync(path.join(stagingDir, service.entry))) {
       return {

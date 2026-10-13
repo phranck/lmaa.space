@@ -42,6 +42,7 @@ Im Dashboard (Shop-Editor und Submission-Editor) bekommt der Admin ein Farbfeld,
 - Frontend/Dashboard: inline `style="background-color: ${resolved}"` ersetzt die bestehende hartkodierte `bg-stone-50`-Klasse.
 
 Alternative-Verworfen:
+
 - **Inline-Default je Konsument** (drei Stellen mit `color ?? "#fafaf9"`) — DRY-Verletzung, abgelehnt.
 - **JSONB Style-Blob `display_style`** — YAGNI, aktuell genau ein Feld geplant. Abgelehnt.
 
@@ -94,6 +95,7 @@ export function resolveLogoBackground(color: string | null | undefined): string 
 ### Type-Erweiterung
 
 `Shop` und `Submission` Typen (in `packages/shared/src/types/`) bekommen:
+
 ```ts
 logoBackgroundColor: string | null;
 ```
@@ -113,14 +115,13 @@ Nach Änderung muss `npm run build -w @lmaa/shared` laufen (tsup dual-format ESM
 Bestehende `shopUpdateSchema` und `submissionUpdateSchema` (genaue Namen werden beim Plan-Write geprept) bekommen:
 
 ```ts
-logoBackgroundColor: z
-  .string()
+logoBackgroundColor: z.string()
   .regex(
     /^#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?$/,
     "Must be a 6-digit hex color or 8-digit hex with alpha",
   )
   .nullable()
-  .optional()
+  .optional();
 ```
 
 - Akzeptiert `#RRGGBB` (volle Farbe) und `#RRGGBBAA` (mit Alpha-Anteil). Keine 3-stelligen Kurzformen, keine `rgb()`/`hsl()`-Strings.
@@ -135,12 +136,12 @@ logoBackgroundColor: z
 
 SELECT-Listen in folgenden Files erweitern (raw SQL + Drizzle-Selects):
 
-| File | Lines | Anpassung |
-|------|-------|-----------|
-| `apps/backend/src/repositories/admin-shops.ts` | 68, 117 | `s.logo_background_color as "logoBackgroundColor"` nach `og_image as "ogImage"` |
-| `apps/backend/src/repositories/admin-submissions.ts` | 30 (Interface), SELECT-Stellen | Feld hinzufügen |
-| `apps/backend/src/repositories/public.ts` | 31, 177, 198, 243, 564 | Field zur Public-Shop-Projection |
-| `apps/backend/src/repositories/public-filtered.ts` | 217, 248, 292 | Field zu Category/Search-Listings |
+| File                                                 | Lines                          | Anpassung                                                                       |
+| ---------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------- |
+| `apps/backend/src/repositories/admin-shops.ts`       | 68, 117                        | `s.logo_background_color as "logoBackgroundColor"` nach `og_image as "ogImage"` |
+| `apps/backend/src/repositories/admin-submissions.ts` | 30 (Interface), SELECT-Stellen | Feld hinzufügen                                                                 |
+| `apps/backend/src/repositories/public.ts`            | 31, 177, 198, 243, 564         | Field zur Public-Shop-Projection                                                |
+| `apps/backend/src/repositories/public-filtered.ts`   | 217, 248, 292                  | Field zu Category/Search-Listings                                               |
 
 Alle Stellen werden bei Plan-Write nochmal mit Line-Numbers verifiziert.
 
@@ -155,6 +156,7 @@ Alle Stellen werden bei Plan-Write nochmal mit Line-Numbers verifiziert.
 ### Submission-Update
 
 `apps/backend/src/repositories/admin-submissions.ts:267` — Field-Passthrough-Block bekommt:
+
 ```ts
 ...(data.logoBackgroundColor !== undefined
   ? { logoBackgroundColor: data.logoBackgroundColor }
@@ -164,6 +166,7 @@ Alle Stellen werden bei Plan-Write nochmal mit Line-Numbers verifiziert.
 ### Approval-Brücke
 
 `apps/backend/src/repositories/admin-submissions.ts:219-233` — im `tx.insert(shops).values({ ... })`-Block nach `ogImage: submission.ogImage,` ergänzen:
+
 ```ts
 logoBackgroundColor: submission.logoBackgroundColor,
 ```
@@ -228,6 +231,7 @@ interface ShopPreviewImageSectionProps {
 ### i18n
 
 Keys in `apps/dashboard/src/i18n/messages.ts`:
+
 - `shops.editor.logoBackground.label` (nur aria-label am Swatch, nicht visuell)
 - `shops.editor.logoBackground.reset`
 
@@ -263,6 +267,7 @@ const bgColor = resolveLogoBackground(logoBackgroundColor);
 `bg-stone-50` entfernt. Border-Class bleibt — soll auch bei dunklen Custom-Backgrounds sichtbar bleiben.
 
 **Caller:** `apps/frontend/src/pages/shop/[token].astro:188`
+
 ```astro
 <ShopAvatar
   name={shop.name}
@@ -288,6 +293,7 @@ Props-Erweiterung: `logoBackgroundColor?: string | null`.
 ### Caller-Files für ShopCardReact
 
 Alle drei reichen `logoBackgroundColor={shop.logoBackgroundColor}` weiter:
+
 - `apps/frontend/src/components/islands/LikedShopsGrid.tsx`
 - `apps/frontend/src/components/islands/FilterableSearchResults.tsx`
 - `apps/frontend/src/components/islands/FilterableCategoryShops.tsx`
@@ -330,6 +336,7 @@ Public-API liefert das Feld bereits aus den erweiterten Repo-Selects → keine z
 ## Open Questions
 
 Keine. Alle Entscheidungen im Brainstorming geklärt:
+
 - Farbwahl-UI: freier HTML5 Color-Picker.
 - Default-Verhalten: nullable, Fallback bleibt `#fafaf9` (`stone-50`).
 - Submission-Workflow: setzbar im Submission-Editor, beim Approve übernommen.
@@ -341,21 +348,21 @@ Keine. Alle Entscheidungen im Brainstorming geklärt:
 
 Alle Code-Refs grep/Read-verifiziert am 2026-05-13:
 
-| Ref | Verified Via |
-|-----|--------------|
-| `apps/backend/src/db/schema.ts:63` `ogImage: text("og_image")` (shops) | Read |
-| `apps/backend/src/db/schema.ts:258` `ogImage: text("og_image")` (submissions) | Read |
-| `apps/backend/src/repositories/admin-submissions.ts:154-233` `reviewSubmission` mit `tx.insert(shops).values({…})` bei Line 219-233, `ogImage: submission.ogImage` bei Line 228 | Read |
-| `apps/backend/src/repositories/admin-submissions.ts:267` Field-Passthrough-Pattern für `ogImage` | grep |
-| `apps/backend/src/repositories/admin-shops.ts:68, 117` raw SQL SELECTs mit `s.og_image as "ogImage"` | grep |
-| `apps/backend/src/repositories/public.ts:31, 177, 198, 243, 564` `ogImage` in Public-Reads | grep |
-| `apps/backend/src/repositories/public-filtered.ts:217, 248, 292` `ogImage` in gefilterten Listings | grep |
-| `apps/dashboard/src/features/content/shops/ShopPreviewImageSection.tsx` existiert, Thumbnail-Container Line 57, Image-Tag Line 59 | Read |
-| `apps/dashboard/src/features/content/footer-builder/FooterStylePane.tsx:50` `type="color"` Color-Picker existiert | grep |
-| `apps/dashboard/src/features/overview/SubmissionEditorPage.tsx:33` `toSubmissionFormData()` mappt Submission auf Form-State | Read |
-| `apps/frontend/src/components/ShopAvatar.astro` `bg-stone-50` auf Line 21 | Read |
-| `apps/frontend/src/components/ShopCardReact.tsx:77` `bg-stone-50` in Logo-Wrapper | grep |
-| `apps/frontend/src/pages/shop/[token].astro:188` `<ShopAvatar ... />` Caller | grep |
-| `apps/frontend/src/components/islands/{LikedShopsGrid,FilterableSearchResults,FilterableCategoryShops}.tsx` als ShopCardReact-Caller | grep |
+| Ref                                                                                                                                                                             | Verified Via |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| `apps/backend/src/db/schema.ts:63` `ogImage: text("og_image")` (shops)                                                                                                          | Read         |
+| `apps/backend/src/db/schema.ts:258` `ogImage: text("og_image")` (submissions)                                                                                                   | Read         |
+| `apps/backend/src/repositories/admin-submissions.ts:154-233` `reviewSubmission` mit `tx.insert(shops).values({…})` bei Line 219-233, `ogImage: submission.ogImage` bei Line 228 | Read         |
+| `apps/backend/src/repositories/admin-submissions.ts:267` Field-Passthrough-Pattern für `ogImage`                                                                                | grep         |
+| `apps/backend/src/repositories/admin-shops.ts:68, 117` raw SQL SELECTs mit `s.og_image as "ogImage"`                                                                            | grep         |
+| `apps/backend/src/repositories/public.ts:31, 177, 198, 243, 564` `ogImage` in Public-Reads                                                                                      | grep         |
+| `apps/backend/src/repositories/public-filtered.ts:217, 248, 292` `ogImage` in gefilterten Listings                                                                              | grep         |
+| `apps/dashboard/src/features/content/shops/ShopPreviewImageSection.tsx` existiert, Thumbnail-Container Line 57, Image-Tag Line 59                                               | Read         |
+| `apps/dashboard/src/features/content/footer-builder/FooterStylePane.tsx:50` `type="color"` Color-Picker existiert                                                               | grep         |
+| `apps/dashboard/src/features/overview/SubmissionEditorPage.tsx:33` `toSubmissionFormData()` mappt Submission auf Form-State                                                     | Read         |
+| `apps/frontend/src/components/ShopAvatar.astro` `bg-stone-50` auf Line 21                                                                                                       | Read         |
+| `apps/frontend/src/components/ShopCardReact.tsx:77` `bg-stone-50` in Logo-Wrapper                                                                                               | grep         |
+| `apps/frontend/src/pages/shop/[token].astro:188` `<ShopAvatar ... />` Caller                                                                                                    | grep         |
+| `apps/frontend/src/components/islands/{LikedShopsGrid,FilterableSearchResults,FilterableCategoryShops}.tsx` als ShopCardReact-Caller                                            | grep         |
 
 **Plan-Checkliste-Vorgabe:** Plan-Write soll erneut alle Refs verifizieren, inklusive der exakten Namen für `shopUpdateSchema` / `submissionUpdateSchema` in `@lmaa/contracts` (noch nicht gegre'pt).

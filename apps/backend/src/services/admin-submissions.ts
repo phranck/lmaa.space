@@ -1,12 +1,6 @@
 import type { TemplateAssignment } from "@lmaa/contracts";
 import type { SubmissionReviewStatus } from "@lmaa/shared";
 
-import { recordBackgroundError } from "./background-errors.js";
-import { dispatchTemplateAssignments } from "./dispatch-template-assignments.js";
-import { renderEmailTemplate } from "./email-renderer.js";
-import { sendMail } from "./email.js";
-import type { PostContext } from "./post-context.js";
-import { hydrateShopOgImageInBackground } from "./preview-images.js";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 import { failure, success } from "../lib/result.js";
@@ -18,6 +12,12 @@ import {
   reviewSubmission,
 } from "../repositories/admin-submissions.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
+import { recordBackgroundError } from "./background-errors.js";
+import { dispatchTemplateAssignments } from "./dispatch-template-assignments.js";
+import { renderEmailTemplate } from "./email-renderer.js";
+import { sendMail } from "./email.js";
+import type { PostContext } from "./post-context.js";
+import { hydrateShopOgImageInBackground } from "./preview-images.js";
 
 /**
  * Input contract for submission moderation action.

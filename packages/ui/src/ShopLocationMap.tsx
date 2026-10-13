@@ -1,6 +1,7 @@
 import type { LatLngBoundsExpression, LatLngExpression, LatLngLiteral } from "leaflet";
 import { Control, DomEvent, DomUtil, DivIcon } from "leaflet";
 import "leaflet/dist/leaflet.css";
+
 import "./ShopLocationMap.css";
 import * as React from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";

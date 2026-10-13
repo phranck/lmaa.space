@@ -1,17 +1,15 @@
 import { CheckIcon, MinusIcon } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
-import type {
-  ButtonHTMLAttributes,
-  InputHTMLAttributes,
-  ReactNode,
-} from "react";
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
 
 import { cx } from "./classNames";
 
 export type SwitchPrimitiveSize = "sm" | "md";
 
-export interface SwitchPrimitiveProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onChange"> {
+export interface SwitchPrimitiveProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "onChange"
+> {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   size?: SwitchPrimitiveSize;
@@ -51,9 +49,7 @@ export function SwitchPrimitive({
         "focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)] focus:ring-offset-1",
         "disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]",
         switchTrackSizeClass[size],
-        checked
-          ? "bg-[var(--color-primary)]"
-          : "bg-[var(--ds-border-strong)]",
+        checked ? "bg-[var(--color-primary)]" : "bg-[var(--ds-border-strong)]",
         className,
       )}
       disabled={disabled}
@@ -80,8 +76,10 @@ export function SwitchPrimitive({
 
 export type CheckboxPrimitiveSize = "sm" | "md";
 
-export interface CheckboxPrimitiveProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "size" | "type"> {
+export interface CheckboxPrimitiveProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "onChange" | "size" | "type"
+> {
   boxClassName?: string;
   checked: boolean;
   description?: ReactNode;
@@ -157,18 +155,14 @@ export function CheckboxPrimitive({
         {indeterminate ? (
           <MinusIcon className={checkboxIconSizeClass[size]} strokeWidth={3} />
         ) : (
-          checked && (
-            <CheckIcon className={checkboxIconSizeClass[size]} strokeWidth={3} />
-          )
+          checked && <CheckIcon className={checkboxIconSizeClass[size]} strokeWidth={3} />
         )}
       </span>
       {(label || description) && (
         <span className="min-w-0">
           {label && <span className="block text-sm text-[var(--ds-text)]">{label}</span>}
           {description && (
-            <span className="block text-xs text-[var(--ds-text-muted)]">
-              {description}
-            </span>
+            <span className="block text-xs text-[var(--ds-text-muted)]">{description}</span>
           )}
         </span>
       )}

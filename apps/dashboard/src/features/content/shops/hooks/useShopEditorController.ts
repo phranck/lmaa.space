@@ -9,14 +9,6 @@ import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.
 import { useEditSubmission } from "@/features/overview/hooks/useSubmissions.ts";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
-import {
-  useAdminShop,
-  useFetchPreviewImage,
-  usePreviewImage,
-  useSaveShop,
-  useSetShopOgImage,
-  useSetShopVisibility,
-} from "./useAdminShops.ts";
 import type {
   RejectState,
   ShopCheckJsonPayload,
@@ -32,6 +24,14 @@ import {
   isShopWithId,
 } from "../shop-editor-utils.ts";
 import { getShopEditFormI18n } from "../shop-form-i18n.ts";
+import {
+  useAdminShop,
+  useFetchPreviewImage,
+  usePreviewImage,
+  useSaveShop,
+  useSetShopOgImage,
+  useSetShopVisibility,
+} from "./useAdminShops.ts";
 
 export function useShopEditorController({
   shopId,

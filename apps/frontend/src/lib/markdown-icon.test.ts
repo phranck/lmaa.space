@@ -63,7 +63,9 @@ describe("the icon shortcode", () => {
   });
 
   it("puts a label beside the icon and lays the two out as the alignment says", async () => {
-    const html = await renderMarkdown('[[icon name="heart" text="Danke!" textalignment="topLeading"]]');
+    const html = await renderMarkdown(
+      '[[icon name="heart" text="Danke!" textalignment="topLeading"]]',
+    );
 
     expect(html).toContain("md-icon-pair--row-reverse");
     expect(html).toContain("md-icon-pair--start");
@@ -76,8 +78,16 @@ describe("the icon shortcode", () => {
   });
 
   it("reads an alignment the way SwiftUI writes it, and the ways one might", async () => {
-    for (const written of [".topLeading", "topLeading", "topleading", "top-leading", " TOP_LEADING "]) {
-      const html = await renderMarkdown(`[[icon name="heart" text="x" textalignment="${written}"]]`);
+    for (const written of [
+      ".topLeading",
+      "topLeading",
+      "topleading",
+      "top-leading",
+      " TOP_LEADING ",
+    ]) {
+      const html = await renderMarkdown(
+        `[[icon name="heart" text="x" textalignment="${written}"]]`,
+      );
       expect(html, written).toContain("md-icon-pair--row-reverse");
     }
   });
@@ -90,7 +100,9 @@ describe("the icon shortcode", () => {
   });
 
   it("floats the icon so a paragraph runs around it when no label is given", async () => {
-    const html = await renderMarkdown('[[icon name="heart" textalignment="trailing"]]\nEin Absatz daneben.');
+    const html = await renderMarkdown(
+      '[[icon name="heart" textalignment="trailing"]]\nEin Absatz daneben.',
+    );
 
     expect(html).toContain("md-icon--float-start");
     expect(html).not.toContain("md-icon-pair");
@@ -101,8 +113,12 @@ describe("the icon shortcode", () => {
     // The alignment names where the text goes. In the floating case it once
     // named the icon's side instead, so one word meant opposite things in the
     // two modes and trailing put the text on the left.
-    const label = await renderMarkdown('[[icon name="heart" text="rechts" textalignment="trailing"]]');
-    const paragraph = await renderMarkdown('[[icon name="heart" textalignment="trailing"]]\nrechts.');
+    const label = await renderMarkdown(
+      '[[icon name="heart" text="rechts" textalignment="trailing"]]',
+    );
+    const paragraph = await renderMarkdown(
+      '[[icon name="heart" textalignment="trailing"]]\nrechts.',
+    );
 
     // Icon first, so its label follows on the right.
     expect(label).toContain("md-icon-pair--row");

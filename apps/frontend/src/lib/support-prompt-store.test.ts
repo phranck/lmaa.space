@@ -27,12 +27,16 @@ function candidate(id: string, threshold = 0, priority = 0) {
 describe("choosePrompt", () => {
   it("shows nothing once the reader has seen enough", () => {
     const store = { ...emptyStore(), shown: 4 };
-    expect(choosePrompt([candidate("a")], store, limits, { viewed: 10, liked: 10 }, now)).toBeNull();
+    expect(
+      choosePrompt([candidate("a")], store, limits, { viewed: 10, liked: 10 }, now),
+    ).toBeNull();
   });
 
   it("shows nothing whilst the site is meant to be quiet", () => {
     const store = { ...emptyStore(), snoozedUntil: now + 1000 };
-    expect(choosePrompt([candidate("a")], store, limits, { viewed: 10, liked: 10 }, now)).toBeNull();
+    expect(
+      choosePrompt([candidate("a")], store, limits, { viewed: 10, liked: 10 }, now),
+    ).toBeNull();
   });
 
   it("measures a running quiet period against the setting in force now", () => {
@@ -44,7 +48,15 @@ describe("choosePrompt", () => {
       snoozedSince: twoDaysAgo,
       snoozedUntil: twoDaysAgo + 14 * 24 * 60 * 60 * 1000,
     };
-    expect(choosePrompt([candidate("a")], store, { ...limits, snoozeDays: 1 }, { viewed: 10, liked: 10 }, now)).not.toBeNull();
+    expect(
+      choosePrompt(
+        [candidate("a")],
+        store,
+        { ...limits, snoozeDays: 1 },
+        { viewed: 10, liked: 10 },
+        now,
+      ),
+    ).not.toBeNull();
   });
 
   it("keeps quiet whilst the shortened period itself is still running", () => {
@@ -54,19 +66,47 @@ describe("choosePrompt", () => {
       snoozedSince: anHourAgo,
       snoozedUntil: anHourAgo + 14 * 24 * 60 * 60 * 1000,
     };
-    expect(choosePrompt([candidate("a")], store, { ...limits, snoozeDays: 1 }, { viewed: 10, liked: 10 }, now)).toBeNull();
+    expect(
+      choosePrompt(
+        [candidate("a")],
+        store,
+        { ...limits, snoozeDays: 1 },
+        { viewed: 10, liked: 10 },
+        now,
+      ),
+    ).toBeNull();
   });
 
   it("is never quiet at all when the setting is zero days", () => {
-    const store = { ...emptyStore(), snoozedSince: now, snoozedUntil: now + 14 * 24 * 60 * 60 * 1000 };
-    expect(choosePrompt([candidate("a")], store, { ...limits, snoozeDays: 0 }, { viewed: 10, liked: 10 }, now)).not.toBeNull();
+    const store = {
+      ...emptyStore(),
+      snoozedSince: now,
+      snoozedUntil: now + 14 * 24 * 60 * 60 * 1000,
+    };
+    expect(
+      choosePrompt(
+        [candidate("a")],
+        store,
+        { ...limits, snoozeDays: 0 },
+        { viewed: 10, liked: 10 },
+        now,
+      ),
+    ).not.toBeNull();
   });
 
   it("respects a stored end where no beginning was recorded", () => {
     // A store written before the beginning was kept has nothing to measure
     // against, so what it says stands.
     const store = { ...emptyStore(), snoozedUntil: now + 1000 };
-    expect(choosePrompt([candidate("a")], store, { ...limits, snoozeDays: 0 }, { viewed: 10, liked: 10 }, now)).toBeNull();
+    expect(
+      choosePrompt(
+        [candidate("a")],
+        store,
+        { ...limits, snoozeDays: 0 },
+        { viewed: 10, liked: 10 },
+        now,
+      ),
+    ).toBeNull();
   });
 
   it("sets every limit aside whilst always-show is on", () => {
@@ -77,13 +117,17 @@ describe("choosePrompt", () => {
       snoozedSince: now,
       snoozedUntil: now + 10 ** 12,
     };
-    expect(choosePrompt([candidate("a")], store, limits, { viewed: 10, liked: 10 }, now, true)?.id).toBe("a");
+    expect(
+      choosePrompt([candidate("a")], store, limits, { viewed: 10, liked: 10 }, now, true)?.id,
+    ).toBe("a");
   });
 
   it("keeps the threshold even whilst always-show is on", () => {
     // The threshold says which prompt belongs on this page, not how often one
     // reader may be asked, so setting it aside would show the wrong prompt.
-    expect(choosePrompt([candidate("a", 3)], emptyStore(), limits, { viewed: 2, liked: 2 }, now, true)).toBeNull();
+    expect(
+      choosePrompt([candidate("a", 3)], emptyStore(), limits, { viewed: 2, liked: 2 }, now, true),
+    ).toBeNull();
   });
 
   it("reads the counter the prompt names", () => {
@@ -101,25 +145,38 @@ describe("choosePrompt", () => {
     // which is never less than the threshold, and the prompt would show at once.
     const withoutBasis = { id: "a", threshold: 3, priority: 0 } as unknown as PromptCandidate;
 
-    expect(choosePrompt([withoutBasis], emptyStore(), limits, { viewed: 2, liked: 9 }, now)).toBeNull();
-    expect(choosePrompt([withoutBasis], emptyStore(), limits, { viewed: 3, liked: 0 }, now)?.id).toBe("a");
+    expect(
+      choosePrompt([withoutBasis], emptyStore(), limits, { viewed: 2, liked: 9 }, now),
+    ).toBeNull();
+    expect(
+      choosePrompt([withoutBasis], emptyStore(), limits, { viewed: 3, liked: 0 }, now)?.id,
+    ).toBe("a");
   });
 
   it("waits until the reader has reached the threshold", () => {
-    expect(choosePrompt([candidate("a", 3)], emptyStore(), limits, { viewed: 2, liked: 2 }, now)).toBeNull();
-    expect(choosePrompt([candidate("a", 3)], emptyStore(), limits, { viewed: 3, liked: 3 }, now)?.id).toBe("a");
+    expect(
+      choosePrompt([candidate("a", 3)], emptyStore(), limits, { viewed: 2, liked: 2 }, now),
+    ).toBeNull();
+    expect(
+      choosePrompt([candidate("a", 3)], emptyStore(), limits, { viewed: 3, liked: 3 }, now)?.id,
+    ).toBe("a");
   });
 
   it("skips a prompt this reader is done with", () => {
     const store = recordResolved(emptyStore(), "a");
-    expect(choosePrompt([candidate("a"), candidate("b")], store, limits, { viewed: 9, liked: 9 }, now)?.id).toBe("b");
+    expect(
+      choosePrompt([candidate("a"), candidate("b")], store, limits, { viewed: 9, liked: 9 }, now)
+        ?.id,
+    ).toBe("b");
   });
 
   it("prefers the higher priority", () => {
     const chosen = choosePrompt(
       [candidate("a", 0, 1), candidate("b", 0, 7), candidate("c", 0, 3)],
       emptyStore(),
-      limits, { viewed: 9, liked: 9 }, now,
+      limits,
+      { viewed: 9, liked: 9 },
+      now,
     );
     expect(chosen?.id).toBe("b");
   });
@@ -128,7 +185,9 @@ describe("choosePrompt", () => {
     const chosen = choosePrompt(
       [candidate("first", 0, 5), candidate("second", 0, 5)],
       emptyStore(),
-      limits, { viewed: 9, liked: 9 }, now,
+      limits,
+      { viewed: 9, liked: 9 },
+      now,
     );
     expect(chosen?.id).toBe("first");
   });
@@ -148,7 +207,9 @@ describe("recordShown", () => {
     for (let round = 0; round < limits.maxShown; round += 1) {
       store = recordShown(store, `p${round}`, limits, now);
     }
-    expect(choosePrompt([candidate("new")], store, limits, { viewed: 99, liked: 99 }, now + 10 ** 12)).toBeNull();
+    expect(
+      choosePrompt([candidate("new")], store, limits, { viewed: 99, liked: 99 }, now + 10 ** 12),
+    ).toBeNull();
   });
 });
 
@@ -182,7 +243,12 @@ describe("recordDismissed", () => {
   });
 
   it("never brings a quiet period forward", () => {
-    const store = recordDismissed({ ...emptyStore(), snoozedUntil: now + 10 ** 12 }, "a", limits, now);
+    const store = recordDismissed(
+      { ...emptyStore(), snoozedUntil: now + 10 ** 12 },
+      "a",
+      limits,
+      now,
+    );
     expect(store.snoozedUntil).toBe(now + 10 ** 12);
   });
 });

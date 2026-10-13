@@ -1,10 +1,5 @@
 import type { ShopMutableVisibility } from "@lmaa/shared";
 
-import {
-  fetchShopPreviewImageFromHomepage,
-  hydrateShopOgImageInBackground,
-} from "./preview-images.js";
-import { validateShopUrl } from "./public.js";
 import { db } from "../db/client.js";
 import { categories } from "../db/schema.js";
 import { failure, success } from "../lib/result.js";
@@ -22,6 +17,11 @@ import {
   updateAdminShop,
   updateAdminShopDeleteReason,
 } from "../repositories/admin-shops.js";
+import {
+  fetchShopPreviewImageFromHomepage,
+  hydrateShopOgImageInBackground,
+} from "./preview-images.js";
+import { validateShopUrl } from "./public.js";
 
 /**
  * Delete operation payload for admin shop removal workflow.

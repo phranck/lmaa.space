@@ -237,10 +237,7 @@ export async function insertDonation(data: DonationInsert): Promise<DonationView
  * condition sits in the statement rather than in a read followed by a write, so
  * two runs overlapping cannot both decide the row was empty.
  */
-export async function fillDonationPayerName(
-  externalRef: string,
-  name: string,
-): Promise<boolean> {
+export async function fillDonationPayerName(externalRef: string, name: string): Promise<boolean> {
   if (!name) return false;
 
   const filled = await db

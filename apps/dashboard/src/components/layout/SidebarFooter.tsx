@@ -63,9 +63,7 @@ export function FooterUserInfo({
   return (
     <>
       <div className="w-full flex items-center gap-3">
-        {username && (
-          <Avatar name={username} imageUrl={avatarUrl} size="sm" className="shrink-0" />
-        )}
+        {username && <Avatar name={username} imageUrl={avatarUrl} size="sm" className="shrink-0" />}
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-[var(--ds-text)] truncate">{displayName}</p>
           {role && (

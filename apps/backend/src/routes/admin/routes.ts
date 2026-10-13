@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 
+import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+import { adminFaviconRoutes } from "../favicon.js";
 import { authRoutes } from "./auth.js";
 import { bankConnectionRoutes } from "./bank-connection.js";
 import { categoriesRoutes } from "./categories.js";
@@ -25,13 +27,11 @@ import { socialMediaAccountRoutes } from "./social-media-accounts.js";
 import { socialMediaPostTemplateRoutes } from "./social-media-post-templates.js";
 import { socialPreviewImageRoutes } from "./social-preview-images.js";
 import { sponsorRoutes } from "./sponsors.js";
-import { adminFaviconRoutes } from "../favicon.js";
 import { statsRoutes } from "./stats.js";
 import { submissionsRoutes } from "./submissions.js";
 import { supportPromptRoutes } from "./support-prompts.js";
 import { unsplashRoutes } from "./unsplash.js";
 import { usersRoutes } from "./users.js";
-import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 
 /**
  * Root admin route bundle mounted at `/api/admin`.

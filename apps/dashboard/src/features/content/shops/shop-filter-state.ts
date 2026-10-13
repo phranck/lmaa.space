@@ -106,7 +106,10 @@ export function applyShopsVisibilityFilterSearchParam(
   return nextParams;
 }
 
-export function shopsFilterReducer(state: ShopsFilterState, action: ShopsFilterAction): ShopsFilterState {
+export function shopsFilterReducer(
+  state: ShopsFilterState,
+  action: ShopsFilterAction,
+): ShopsFilterState {
   switch (action.type) {
     case "setCategoryFilter":
       return { ...state, categoryFilter: action.value };

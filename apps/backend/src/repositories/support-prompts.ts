@@ -1,11 +1,7 @@
 import { and, asc, desc, eq, isNull, lte, or, gte } from "drizzle-orm";
 
 import { db } from "../db/client.js";
-import {
-  type SupportPromptInsert,
-  type SupportPromptRow,
-  supportPrompts,
-} from "../db/schema.js";
+import { type SupportPromptInsert, type SupportPromptRow, supportPrompts } from "../db/schema.js";
 
 /**
  * Returns every prompt, newest first within a slot, for the dashboard list.
@@ -14,7 +10,11 @@ export async function listSupportPrompts(): Promise<SupportPromptRow[]> {
   return db
     .select()
     .from(supportPrompts)
-    .orderBy(asc(supportPrompts.slot), desc(supportPrompts.priority), desc(supportPrompts.createdAt));
+    .orderBy(
+      asc(supportPrompts.slot),
+      desc(supportPrompts.priority),
+      desc(supportPrompts.createdAt),
+    );
 }
 
 /**
@@ -47,7 +47,11 @@ export async function listPublishedSupportPrompts(day: string): Promise<SupportP
         or(isNull(supportPrompts.endsAt), gte(supportPrompts.endsAt, day)),
       ),
     )
-    .orderBy(asc(supportPrompts.slot), desc(supportPrompts.priority), desc(supportPrompts.createdAt));
+    .orderBy(
+      asc(supportPrompts.slot),
+      desc(supportPrompts.priority),
+      desc(supportPrompts.createdAt),
+    );
 }
 
 /**

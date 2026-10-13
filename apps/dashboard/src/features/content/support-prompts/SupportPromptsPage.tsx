@@ -35,13 +35,14 @@ export function SupportPromptsPage() {
   const { data: prompts, isLoading } = useSupportPrompts();
   const { data: limits } = useSupportPromptLimits();
   const saveLimits = useSaveSupportPromptLimits();
-  const [draftLimits, setDraftLimits] = useState<SupportPromptLimits | null>(
-    null,
-  );
+  const [draftLimits, setDraftLimits] = useState<SupportPromptLimits | null>(null);
 
   // Whether the limits stand open is a decision about this screen rather than
   // about the data, so it belongs to the browser it was made in.
-  const [limitsExpanded, setLimitsExpanded] = useRememberedFlag("lmaa-support-prompt-limits:v1", false);
+  const [limitsExpanded, setLimitsExpanded] = useRememberedFlag(
+    "lmaa-support-prompt-limits:v1",
+    false,
+  );
 
   const today = new Date().toISOString().slice(0, 10);
   // The defaults come from the schema rather than being written out again, so
@@ -51,7 +52,10 @@ export function SupportPromptsPage() {
   return (
     <PageLayout>
       <PageHeader title={text.title}>
-        <CreateActionButton onClick={() => navigate("/support-prompts/new")} label={text.newPrompt} />
+        <CreateActionButton
+          onClick={() => navigate("/support-prompts/new")}
+          label={text.newPrompt}
+        />
       </PageHeader>
 
       <PageBody className="overflow-y-auto">
@@ -69,7 +73,9 @@ export function SupportPromptsPage() {
             subtitle={text.limitsHint}
             addOn={
               <SaveActionButton
-                onClick={() => saveLimits.mutate(currentLimits, { onSuccess: () => setDraftLimits(null) })}
+                onClick={() =>
+                  saveLimits.mutate(currentLimits, { onSuccess: () => setDraftLimits(null) })
+                }
                 disabled={draftLimits === null || saveLimits.isPending}
                 busy={saveLimits.isPending}
                 label={saveLimits.isPending ? common.saving : common.save}
@@ -180,7 +186,6 @@ export function SupportPromptsPage() {
             />
           </div>
         )}
-
       </PageBody>
     </PageLayout>
   );

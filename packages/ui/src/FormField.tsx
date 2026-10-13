@@ -21,7 +21,16 @@ export interface FormFieldProps {
   className?: string;
 }
 
-export function FormField({ label, htmlFor, required, optional, error, hint, children, className }: FormFieldProps): ReactNode {
+export function FormField({
+  label,
+  htmlFor,
+  required,
+  optional,
+  error,
+  hint,
+  children,
+  className,
+}: FormFieldProps): ReactNode {
   return (
     <div className={className}>
       <FormLabel htmlFor={htmlFor}>
@@ -35,7 +44,11 @@ export function FormField({ label, htmlFor, required, optional, error, hint, chi
         )}
       </FormLabel>
       {children}
-      {error ? <FormErrorText>{error}</FormErrorText> : hint ? <FormHelpText>{hint}</FormHelpText> : null}
+      {error ? (
+        <FormErrorText>{error}</FormErrorText>
+      ) : hint ? (
+        <FormHelpText>{hint}</FormHelpText>
+      ) : null}
     </div>
   );
 }

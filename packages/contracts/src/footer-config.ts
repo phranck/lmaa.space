@@ -58,9 +58,11 @@ export const buttonBlockSchema = z
     type: z.literal("button"),
     label: z.string().optional(),
     icon: z.string().optional(),
-    href: z.string().refine((value) => isSafeConfiguredUrl(value, { allowRelative: true, allowMailto: true }), {
-      message: "href must be a relative path or a safe URL",
-    }),
+    href: z
+      .string()
+      .refine((value) => isSafeConfiguredUrl(value, { allowRelative: true, allowMailto: true }), {
+        message: "href must be a relative path or a safe URL",
+      }),
     external: z.boolean(),
     style: z.enum(["filled", "outline", "ghost"]),
   })

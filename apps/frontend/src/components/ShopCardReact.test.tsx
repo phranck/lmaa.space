@@ -28,7 +28,7 @@ describe("ShopCardReact", () => {
     const html = render({ likeCount: 7 });
 
     expect(html).toContain(">7<");
-    expect(html).toContain("aria-label=\"7 mal gemerkt\"");
+    expect(html).toContain('aria-label="7 mal gemerkt"');
   });
 
   it("says nothing where nobody kept it", () => {
@@ -42,7 +42,7 @@ describe("ShopCardReact", () => {
   it("writes the one in the singular", () => {
     const html = render({ likeCount: 1 });
 
-    expect(html).toContain("aria-label=\"1 mal gemerkt\"");
+    expect(html).toContain('aria-label="1 mal gemerkt"');
   });
 
   it("draws no count where the card was given none", () => {

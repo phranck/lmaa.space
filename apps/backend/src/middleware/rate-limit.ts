@@ -3,13 +3,13 @@ import { isIP } from "node:net";
 import { eq, lt } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
 
-import { isInternalCaller } from "./internal-caller.js";
 import { env } from "../config/env.js";
 import { db } from "../db/client.js";
 import { rateLimitEntries } from "../db/schema.js";
 import { UNKNOWN_CLIENT_IP } from "../lib/client-ip.js";
 import { fail } from "../lib/http.js";
 import { logger } from "../lib/logger.js";
+import { isInternalCaller } from "./internal-caller.js";
 
 interface RateLimitEntry {
   count: number;

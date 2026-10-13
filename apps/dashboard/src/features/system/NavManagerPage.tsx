@@ -480,20 +480,16 @@ function NavColumnAddSection({
               searchPlaceholder={text.choosePageOrForm}
               options={[
                 { value: "", label: text.choosePageOrForm },
-                ...availablePages.map(
-                  (p): DropdownOption => ({
-                    value: p.slug,
-                    label: `${p.title} (/${p.slug})`,
-                    icon: <FileIcon weight="duotone" className="size-3.5" />,
-                  }),
-                ),
-                ...availableForms.map(
-                  (f): DropdownOption => ({
-                    value: `form:${f.slug}`,
-                    label: `${f.name} (/${f.slug})`,
-                    icon: <NotebookIcon weight="duotone" className="size-3.5" />,
-                  }),
-                ),
+                ...availablePages.map((p): DropdownOption => ({
+                  value: p.slug,
+                  label: `${p.title} (/${p.slug})`,
+                  icon: <FileIcon weight="duotone" className="size-3.5" />,
+                })),
+                ...availableForms.map((f): DropdownOption => ({
+                  value: `form:${f.slug}`,
+                  label: `${f.name} (/${f.slug})`,
+                  icon: <NotebookIcon weight="duotone" className="size-3.5" />,
+                })),
               ]}
             />
           </div>

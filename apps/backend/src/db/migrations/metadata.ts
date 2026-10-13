@@ -62,7 +62,10 @@ export function resolveMigrationsFolder(): string {
  * @param env - Object with `DATABASE_URL` and `DATABASE_URL_MIGRATOR` fields.
  * @returns The migrator-specific database URL.
  */
-export function getMigratorDatabaseUrl(env: { DATABASE_URL: string; DATABASE_URL_MIGRATOR: string }) {
+export function getMigratorDatabaseUrl(env: {
+  DATABASE_URL: string;
+  DATABASE_URL_MIGRATOR: string;
+}) {
   return env.DATABASE_URL_MIGRATOR;
 }
 

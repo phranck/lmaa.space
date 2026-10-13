@@ -208,5 +208,6 @@ export type SupportPromptLimits = z.infer<typeof supportPromptLimitsSchema>;
 export type SupportPromptPayload = z.infer<typeof supportPromptPayloadSchema>;
 
 /** The limits in force when nothing has been configured. */
-export const SUPPORT_PROMPT_LIMIT_DEFAULTS: SupportPromptLimits =
-  supportPromptLimitsSchema.parse({});
+export const SUPPORT_PROMPT_LIMIT_DEFAULTS: SupportPromptLimits = supportPromptLimitsSchema.parse(
+  {},
+);

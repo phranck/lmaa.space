@@ -29,16 +29,16 @@ import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortabl
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FRONTEND_URL } from "@/lib/env.ts";
 
-import { FooterBlockConfigPanel } from "./FooterBlockConfigPanel.tsx";
-import { FooterCanvas } from "./FooterCanvas.tsx";
-import { FooterPalette } from "./FooterPalette.tsx";
-import { FooterPreview } from "./FooterPreview.tsx";
-import { FooterStylePane } from "./FooterStylePane.tsx";
 import {
   useFooterConfig,
   useFooterPreview,
   useSaveFooterConfig,
 } from "../hooks/useFooterConfig.ts";
+import { FooterBlockConfigPanel } from "./FooterBlockConfigPanel.tsx";
+import { FooterCanvas } from "./FooterCanvas.tsx";
+import { FooterPalette } from "./FooterPalette.tsx";
+import { FooterPreview } from "./FooterPreview.tsx";
+import { FooterStylePane } from "./FooterStylePane.tsx";
 
 type Selection = { kind: "style" } | { kind: "block"; id: string } | null;
 type FooterBlockType = FooterBlock["type"];

@@ -9,13 +9,6 @@ import type {
   SubmissionStatus,
 } from "@lmaa/shared";
 
-import type { HeadquartersInput } from "./headquarters.js";
-import {
-  copySubmissionHeadquartersToShop,
-  loadSubmissionHeadquartersMap,
-  upsertSubmissionHeadquarters,
-} from "./headquarters.js";
-import { enqueueReviewJob } from "./review-jobs.js";
 import { db } from "../db/client.js";
 import {
   type Shop,
@@ -26,6 +19,13 @@ import {
   submissionCategories,
   submissions,
 } from "../db/schema.js";
+import type { HeadquartersInput } from "./headquarters.js";
+import {
+  copySubmissionHeadquartersToShop,
+  loadSubmissionHeadquartersMap,
+  upsertSubmissionHeadquarters,
+} from "./headquarters.js";
+import { enqueueReviewJob } from "./review-jobs.js";
 
 /**
  * Editable fields for a pending submission.

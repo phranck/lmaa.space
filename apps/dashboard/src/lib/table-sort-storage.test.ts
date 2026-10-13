@@ -40,10 +40,7 @@ describe("table sort storage", () => {
 
   it("rejects unsupported query parameters", () => {
     expect(
-      parseTableSortFromSearchParams(
-        new URLSearchParams("sort=unknown&dir=asc"),
-        SORTABLE_COLUMNS,
-      ),
+      parseTableSortFromSearchParams(new URLSearchParams("sort=unknown&dir=asc"), SORTABLE_COLUMNS),
     ).toBeNull();
     expect(
       parseTableSortFromSearchParams(
@@ -69,7 +66,10 @@ describe("table sort storage", () => {
   });
 
   it("removes invalid stored payloads", () => {
-    localStorage.setItem("table:sort", JSON.stringify({ version: 1, sort: { id: "x", dir: "asc" } }));
+    localStorage.setItem(
+      "table:sort",
+      JSON.stringify({ version: 1, sort: { id: "x", dir: "asc" } }),
+    );
 
     expect(readStoredTableSort("table:sort", SORTABLE_COLUMNS)).toBeUndefined();
     expect(localStorage.getItem("table:sort")).toBeNull();

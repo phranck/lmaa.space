@@ -100,9 +100,7 @@ export function writeStoredTableSort(
   if (typeof window === "undefined") return;
 
   try {
-    const normalizedSort = sort
-      ? normalizeSortState(sort, sortableColumns)
-      : null;
+    const normalizedSort = sort ? normalizeSortState(sort, sortableColumns) : null;
     if (sort && !normalizedSort) {
       window.localStorage.removeItem(storageKey);
       return;

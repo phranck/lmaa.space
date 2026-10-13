@@ -8,11 +8,7 @@ import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 import { useGridAnimation } from "@/hooks/useGridAnimation";
 import { fetchJson } from "@/lib/fetch-json";
-import {
-  type ShopFilters,
-  buildCategoryHref,
-  buildFilterQuery,
-} from "@/lib/filter-query";
+import { type ShopFilters, buildCategoryHref, buildFilterQuery } from "@/lib/filter-query";
 import type { SupportPromptSlotData } from "@/lib/support-prompts";
 
 import ShopFilterBar from "./ShopFilterBar";
@@ -97,40 +93,39 @@ export default function FilterableCategoryGrid({
   const [hasFiltered, setHasFiltered] = useState(false);
   const gridRef = useGridAnimation(hasFiltered);
 
-  const fetchFiltered = useCallback((filters: ShopFilters) => {
-    const hasFilters =
-      filters.city !== "" || filters.country.length > 0 || filters.region.length > 0;
+  const fetchFiltered = useCallback(
+    (filters: ShopFilters) => {
+      const hasFilters =
+        filters.city !== "" || filters.country.length > 0 || filters.region.length > 0;
 
-    setHasFiltered(true);
-    dispatch({ filtersActive: hasFilters, currentFilters: filters });
+      setHasFiltered(true);
+      dispatch({ filtersActive: hasFilters, currentFilters: filters });
 
-    if (!hasFilters) {
-      dispatch({
-        categories: mapInitialCategories(initialCategories),
-        shopCount: initialShopCount,
-      });
-      return;
-    }
+      if (!hasFilters) {
+        dispatch({
+          categories: mapInitialCategories(initialCategories),
+          shopCount: initialShopCount,
+        });
+        return;
+      }
 
-    const query = buildFilterQuery(filters);
-    fetchJson<{ categories: FilteredCategory[]; totalShops: number }>(
-      `/filtered/categories?${query}`,
-    )
-      .then((result) => {
-        dispatch({ categories: result.categories, shopCount: result.totalShops });
-      })
-      .catch(() => {});
-  }, [initialCategories, initialShopCount]);
+      const query = buildFilterQuery(filters);
+      fetchJson<{ categories: FilteredCategory[]; totalShops: number }>(
+        `/filtered/categories?${query}`,
+      )
+        .then((result) => {
+          dispatch({ categories: result.categories, shopCount: result.totalShops });
+        })
+        .catch(() => {});
+    },
+    [initialCategories, initialShopCount],
+  );
 
   const handleFilterChange = useDebouncedCallback(fetchFiltered);
 
-  const visibleCategories = filtersActive
-    ? categories.filter((c) => c.shopCount > 0)
-    : categories;
+  const visibleCategories = filtersActive ? categories.filter((c) => c.shopCount > 0) : categories;
 
-  const categoryCount = filtersActive
-    ? visibleCategories.length
-    : categories.length;
+  const categoryCount = filtersActive ? visibleCategories.length : categories.length;
 
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-16 pb-16">
@@ -160,10 +155,7 @@ export default function FilterableCategoryGrid({
       >
         <div className="overflow-hidden">
           <div className="mb-6">
-            <ShopFilterBar
-              initialFilters={currentFilters}
-              onFilterChange={handleFilterChange}
-            />
+            <ShopFilterBar initialFilters={currentFilters} onFilterChange={handleFilterChange} />
           </div>
         </div>
       </div>
@@ -171,9 +163,7 @@ export default function FilterableCategoryGrid({
       {/* Category grid */}
       {visibleCategories.length === 0 ? (
         <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
-          <p className="text-stone-500">
-            Keine Kategorien mit Shops für diesen Filter gefunden.
-          </p>
+          <p className="text-stone-500">Keine Kategorien mit Shops für diesen Filter gefunden.</p>
         </div>
       ) : (
         <div

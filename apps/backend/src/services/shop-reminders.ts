@@ -1,7 +1,3 @@
-import { recordBackgroundError } from "./background-errors.js";
-import { renderEmailTemplate } from "./email-renderer.js";
-import { sendMail } from "./email.js";
-import { sendPushNotification } from "./push-notifications.js";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 import {
@@ -10,6 +6,10 @@ import {
   deleteReminderById,
 } from "../repositories/shop-reminders.js";
 import type { DueReminder } from "../repositories/shop-reminders.js";
+import { recordBackgroundError } from "./background-errors.js";
+import { renderEmailTemplate } from "./email-renderer.js";
+import { sendMail } from "./email.js";
+import { sendPushNotification } from "./push-notifications.js";
 
 function getNextCustomRemindAt(reminder: DueReminder): Date {
   const base = new Date(reminder.remindAt);

@@ -26,7 +26,6 @@ describe("periodStart", () => {
   });
 });
 
-
 describe("daysLeft", () => {
   it("gives a full year on the day it was paid", () => {
     expect(daysLeft("2026-08-22", "2026-08-22")).toBe(365);

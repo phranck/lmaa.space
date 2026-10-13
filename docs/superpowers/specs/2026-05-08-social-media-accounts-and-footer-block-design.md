@@ -24,15 +24,15 @@ Replace today's two-platform Mastodon+Bluesky account management with a generic 
 
 ### Data model
 
-The existing `social_media_accounts` table already serves as the master for posting accounts (Mastodon + Bluesky). Three columns and a constraint rework turn it into the master for *all* social media accounts.
+The existing `social_media_accounts` table already serves as the master for posting accounts (Mastodon + Bluesky). Three columns and a constraint rework turn it into the master for _all_ social media accounts.
 
 #### New columns
 
-| Column | Type | Default | Purpose |
-| --- | --- | --- | --- |
-| `profile_url` | `text NOT NULL` | (none after backfill) | Public-facing profile URL displayed in the footer and elsewhere. Always required. |
-| `can_post` | `boolean NOT NULL` | `false` | True when the account has posting credentials configured. Triggers the Mastodon/Bluesky-specific column requirements (see below). |
-| `show_in_footer` | `boolean NOT NULL` | `true` | Whether the Footer Social Block should render a link for this account. Independent of `is_active`. |
+| Column           | Type               | Default               | Purpose                                                                                                                           |
+| ---------------- | ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `profile_url`    | `text NOT NULL`    | (none after backfill) | Public-facing profile URL displayed in the footer and elsewhere. Always required.                                                 |
+| `can_post`       | `boolean NOT NULL` | `false`               | True when the account has posting credentials configured. Triggers the Mastodon/Bluesky-specific column requirements (see below). |
+| `show_in_footer` | `boolean NOT NULL` | `true`                | Whether the Footer Social Block should render a link for this account. Independent of `is_active`.                                |
 
 #### Existing columns (semantics adjusted)
 
@@ -61,8 +61,8 @@ The current rows already represent posting accounts. Backfill:
 - `can_post = true`
 - `show_in_footer = true`
 - `profile_url`:
-    - Mastodon: `instance_url || '/@' || username` if `username IS NOT NULL`, else `instance_url`.
-    - Bluesky: `'https://bsky.app/profile/' || handle`.
+  - Mastodon: `instance_url || '/@' || username` if `username IS NOT NULL`, else `instance_url`.
+  - Bluesky: `'https://bsky.app/profile/' || handle`.
 
 Migration runs as a single Drizzle migration: add columns with defaults → backfill `profile_url` from a SQL expression → drop the default → adjust nullability and CHECKs → drop and re-add indexes.
 
@@ -195,13 +195,13 @@ Added to `footerBlockSchema` union. Type alias `SocialMediaBlock`.
 
 - `PlatformIcon` is an Astro-friendly SSR helper that resolves a platform key to its react-icons / phosphor icon. The existing pattern in `SocialMediaIcons.tsx` (used SSR in `pages/shop/[token].astro`) confirms the React icon components render server-side without hydration.
 - CSS additions in `FOOTER_STYLES_CSS` (`@lmaa/shared`):
-    - `.footer-social { display: flex; gap: ...; }`
-    - `.footer-social-left { justify-content: flex-start; }`
-    - `.footer-social-center { justify-content: center; }`
-    - `.footer-social-right { justify-content: flex-end; }`
-    - `.footer-social-sm { font-size: 16px; gap: 0.5rem; }`
-    - `.footer-social-md { font-size: 20px; gap: 0.75rem; }`
-    - `.footer-social-lg { font-size: 24px; gap: 1rem; }`
+  - `.footer-social { display: flex; gap: ...; }`
+  - `.footer-social-left { justify-content: flex-start; }`
+  - `.footer-social-center { justify-content: center; }`
+  - `.footer-social-right { justify-content: flex-end; }`
+  - `.footer-social-sm { font-size: 16px; gap: 0.5rem; }`
+  - `.footer-social-md { font-size: 20px; gap: 0.75rem; }`
+  - `.footer-social-lg { font-size: 24px; gap: 1rem; }`
 - Empty state: when `socialMediaProfiles.length === 0`, the block renders nothing.
 
 ### Tests

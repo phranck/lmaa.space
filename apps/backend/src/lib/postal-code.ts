@@ -88,7 +88,10 @@ const POSTAL_PATTERNS: Record<string, PostalPattern> = {
  * @returns Normalized query, possibly empty.
  */
 function normalizePostalQuery(query: string): string {
-  return query.trim().toUpperCase().replace(/[\s-]+/g, "");
+  return query
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "");
 }
 
 /**

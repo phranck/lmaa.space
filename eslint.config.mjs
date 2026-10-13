@@ -1,5 +1,4 @@
 import tsParser from "@typescript-eslint/parser";
-import importPlugin from "eslint-plugin-import";
 
 export default [
   {
@@ -25,35 +24,6 @@ export default [
           jsx: true,
         },
       },
-    },
-    plugins: {
-      import: importPlugin,
-    },
-    rules: {
-      "import/order": [
-        "error",
-        {
-          groups: ["builtin", "external", "internal", ["parent", "sibling", "index"], "object"],
-          pathGroups: [
-            {
-              pattern: "@lmaa/**",
-              group: "internal",
-              position: "before",
-            },
-            {
-              pattern: "@/**",
-              group: "internal",
-              position: "after",
-            },
-          ],
-          pathGroupsExcludedImportTypes: ["builtin"],
-          alphabetize: {
-            order: "asc",
-            caseInsensitive: true,
-          },
-          "newlines-between": "always",
-        },
-      ],
     },
   },
 ];

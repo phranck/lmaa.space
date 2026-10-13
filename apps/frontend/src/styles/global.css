@@ -998,7 +998,6 @@ details > summary::-webkit-details-marker {
   paint-order: stroke fill;
 }
 
-
 /* The lines a name and a sentence will fill.
    Three of them in the proportions a card actually carries, so the shape reads
    as a card at a glance without anybody having to read a word of it. */
@@ -1255,7 +1254,6 @@ details > summary::-webkit-details-marker {
      that the row does not look stuck. */
   animation: lmaa-sponsor-marquee calc(var(--sponsor-count) * 6s) linear infinite;
 }
-
 
 @keyframes lmaa-sponsor-marquee {
   from {
