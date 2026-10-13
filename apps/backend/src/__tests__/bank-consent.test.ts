@@ -133,7 +133,7 @@ describe("warning the owner", () => {
     // counted as said.
     mailMocks.sendMail.mockRejectedValue(new Error("smtp refused"));
 
-    await expect(announceConsentStage(NOW)).rejects.toThrow();
+    await expect(announceConsentStage(NOW)).rejects.toThrow("smtp refused");
     expect(repositoryMocks.setConsentNoticeStage).not.toHaveBeenCalled();
   });
 
