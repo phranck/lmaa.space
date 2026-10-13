@@ -34,9 +34,6 @@ html {
   --accent-hover: var(--ds-accent-hover);
   --accent-active: var(--ds-accent-active);
   --accent-text: var(--ds-accent-fg);
-  /* The claim's last word on the hero photograph, in the wordmark's gold. The
-     photograph is the same in both themes, so this is too. */
-  --hero-highlight-color: var(--ds-color-brand-500);
 
   /* ── THEMES ─────────────────────────────────────────────────
      The public site has two themes, drawn from the new wordmark: Papier, the
@@ -136,6 +133,10 @@ html {
   --ds-photo-veil: oklch(14.7% 0.004 49.25 / 0.7);
   --ds-photo-text: #ffffff;
   --ds-photo-text-muted: oklch(92.3% 0.003 48.717);
+  /* Gold for the kicker and the claim's last word, two steps lighter than the
+     wordmark's, because the wordmark's own gold reaches only 3.5:1 over a
+     bright photograph and the kicker is small type. */
+  --ds-photo-accent: var(--ds-color-brand-300);
 }
 
 /* Salon: a warm charcoal rather than black. A card stands a step lighter

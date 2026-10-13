@@ -310,6 +310,12 @@ const pairs: Pair[] = [
     minimum: TEXT,
   },
   { foreground: "--ds-accent-text", background: "--ds-accent-subtle", minimum: TEXT },
+  // The home page's invitation to suggest a shop stands on the accent's wash.
+  ...["--ds-text", "--ds-text-muted"].map((foreground) => ({
+    foreground,
+    background: "--ds-accent-tint",
+    minimum: TEXT,
+  })),
   { foreground: "--ds-btn-filled-fg", background: "--ds-btn-filled-bg", minimum: TEXT },
   { foreground: "--ds-btn-filled-fg", background: "--ds-btn-filled-hover", minimum: TEXT },
   { foreground: "--ds-btn-primary-fg", background: "--ds-btn-primary-bg", minimum: TEXT },
@@ -336,7 +342,7 @@ const pairs: Pair[] = [
     },
   ]),
   // A white photograph is the worst a veil has to carry type over.
-  ...["--ds-photo-text", "--ds-photo-text-muted"].map((foreground) => ({
+  ...["--ds-photo-text", "--ds-photo-text-muted", "--ds-photo-accent"].map((foreground) => ({
     foreground,
     background: "--ds-photo-veil",
     underlay: WHITE_PHOTOGRAPH,

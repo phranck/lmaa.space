@@ -20,6 +20,7 @@ import type {
 import { formatDate, resolveLogoBackground } from "@lmaa/shared";
 
 import { fetchJson } from "@/lib/fetch-json";
+import { fieldColorsClass } from "@/lib/form-styles";
 
 const PAGE_SIZE_OPTIONS: Array<{ value: PublicRejectedShopPageSize; label: string }> = [
   { value: "10", label: "10" },
@@ -116,7 +117,7 @@ function ShopLogo({
 
   return (
     <span
-      className="inline-flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-stone-100"
+      className="inline-flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--ds-border-subtle)]"
       style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
       aria-hidden="true"
     >
@@ -131,6 +132,8 @@ function ShopLogo({
           referrerPolicy="no-referrer"
         />
       ) : (
+        // The letter stands on the shop's logo ground, which is the same light
+        // colour in both themes, so its grey is fixed as well.
         <span className="flex size-full select-none items-center justify-center text-xs font-bold text-stone-300">
           {letter}
         </span>
@@ -166,7 +169,7 @@ function OpenRejectionLink({
       href={entry.rejectionUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] text-xs font-medium leading-none text-[var(--ds-btn-neutral-text)] no-underline transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] hover:no-underline focus:no-underline focus:outline-none focus:ring-2 focus:ring-amber-500/30 ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] text-xs font-medium leading-none text-[var(--ds-btn-neutral-text)] no-underline transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] hover:no-underline focus:no-underline focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)] ${className}`}
       style={{ textDecoration: "none" }}
       aria-label={`${entry.shopName} öffnen`}
       title="Öffnen"
@@ -252,12 +255,12 @@ export default function RejectedShopsTable({
 
   return (
     <section className="not-prose my-8 w-full max-w-full min-w-0">
-      <p className="text-sm font-medium text-stone-600" aria-live="polite">
+      <p className="text-sm font-medium text-[var(--ds-text-muted)]" aria-live="polite">
         {data.metrics.totalRejectedShops} abgelehnte Shops
         {state.search ? ` · ${data.metrics.filteredRejectedShops} Treffer` : ""}
       </p>
       {hasLoadError ? (
-        <p className="mt-2 text-sm text-red-700" role="status">
+        <p className="mt-2 text-sm text-[var(--ds-danger-text)]" role="status">
           Die Tabelle konnte nicht aktualisiert werden.
         </p>
       ) : null}
@@ -276,11 +279,11 @@ export default function RejectedShopsTable({
               onChange={(event) => setSearchInput(event.currentTarget.value)}
               aria-label="Abgelehnte Shops suchen"
               placeholder="Shop-Name…"
-              className="min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30"
+              className={`min-w-0 flex-1 rounded-lg px-3 py-1.5 text-sm transition ${fieldColorsClass}`}
             />
             <button
               type="submit"
-              className="inline-flex h-7 shrink-0 appearance-none items-center gap-1.5 rounded-control border border-transparent bg-[var(--ds-btn-filled-bg)] px-3 text-sm font-medium text-[var(--ds-btn-filled-fg)] transition-colors hover:bg-[var(--ds-btn-filled-hover)] focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="inline-flex h-7 shrink-0 appearance-none items-center gap-1.5 rounded-control border border-transparent bg-[var(--ds-btn-filled-bg)] px-3 text-sm font-medium text-[var(--ds-btn-filled-fg)] transition-colors hover:bg-[var(--ds-btn-filled-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
             >
               <MagnifyingGlassIcon weight="duotone" className="size-4" />
               Suchen
@@ -289,7 +292,7 @@ export default function RejectedShopsTable({
               <button
                 type="button"
                 onClick={clearSearch}
-                className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
               >
                 <XCircleIcon weight="duotone" className="size-4" />
                 Zurücksetzen
@@ -298,7 +301,7 @@ export default function RejectedShopsTable({
           </div>
         </form>
 
-        <label className="flex items-center gap-2 text-sm text-stone-600">
+        <label className="flex items-center gap-2 text-sm text-[var(--ds-text-muted)]">
           <span>Einträge pro Seite</span>
           <select
             value={state.pageSize}
@@ -308,7 +311,7 @@ export default function RejectedShopsTable({
                 page: 1,
               })
             }
-            className="h-8 rounded-lg border border-stone-300 bg-white px-2.5 text-sm font-normal normal-case tracking-normal text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30"
+            className={`h-8 rounded-lg px-2.5 text-sm font-normal normal-case tracking-normal transition ${fieldColorsClass}`}
           >
             {PAGE_SIZE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -319,8 +322,8 @@ export default function RejectedShopsTable({
         </label>
       </div>
 
-      <div className="mt-4 w-full max-w-full min-w-0 border-y border-stone-200 sm:hidden">
-        <div className="grid grid-cols-[minmax(0,1fr)_4.75rem_4.75rem] items-center gap-2 bg-stone-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-stone-500">
+      <div className="mt-4 w-full max-w-full min-w-0 border-y border-[var(--ds-border)] sm:hidden">
+        <div className="grid grid-cols-[minmax(0,1fr)_4.75rem_4.75rem] items-center gap-2 bg-[var(--ds-bg-elevated)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--ds-text-subtle)]">
           <SortButton field="shopName" state={state} onSort={sortBy} />
           <SortButton field="rejectedAt" state={state} onSort={sortBy} className="justify-end" />
           <span aria-hidden="true" />
@@ -330,13 +333,13 @@ export default function RejectedShopsTable({
             <div
               key={entry.id}
               className={`grid grid-cols-[minmax(0,1fr)_4.75rem_4.75rem] items-center gap-2 px-3 py-1.5 text-sm ${
-                index % 2 === 0 ? "bg-white" : "bg-stone-50/70"
+                index % 2 === 0 ? "bg-[var(--ds-surface)]" : "bg-[var(--ds-surface-soft)]"
               }`}
             >
-              <div className="min-w-0 font-medium text-stone-900">
+              <div className="min-w-0 font-medium text-[var(--ds-text)]">
                 <RejectedShopIdentity entry={entry} />
               </div>
-              <time className="whitespace-nowrap text-right text-xs leading-none text-stone-600">
+              <time className="whitespace-nowrap text-right text-xs leading-none text-[var(--ds-text-muted)]">
                 {formatDate(entry.rejectedAt)}
               </time>
               <div className="text-right">
@@ -345,16 +348,16 @@ export default function RejectedShopsTable({
             </div>
           ))}
           {data.entries.length === 0 ? (
-            <div className="px-3 py-8 text-center text-sm text-stone-500">
+            <div className="px-3 py-8 text-center text-sm text-[var(--ds-text-subtle)]">
               Keine abgelehnten Shops gefunden.
             </div>
           ) : null}
         </div>
       </div>
 
-      <div className="mt-4 hidden w-full max-w-full min-w-0 overflow-x-auto border-y border-stone-200 sm:block">
+      <div className="mt-4 hidden w-full max-w-full min-w-0 overflow-x-auto border-y border-[var(--ds-border)] sm:block">
         <table className="w-full table-fixed text-sm">
-          <thead className="text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
+          <thead className="text-left text-xs font-semibold uppercase tracking-wide text-[var(--ds-text-subtle)]">
             <tr>
               <SortableHeader field="shopName" state={state} onSort={sortBy} />
               <SortableHeader field="rejectedAt" state={state} onSort={sortBy} />
@@ -365,12 +368,12 @@ export default function RejectedShopsTable({
             {data.entries.map((entry) => (
               <tr
                 key={entry.id}
-                className="transition odd:bg-white even:bg-stone-50/70 hover:bg-amber-50/50"
+                className="transition odd:bg-[var(--ds-surface)] even:bg-[var(--ds-surface-soft)] hover:bg-[var(--ds-accent-tint)]"
               >
-                <td className="px-3 py-1 align-middle font-medium text-stone-900">
+                <td className="px-3 py-1 align-middle font-medium text-[var(--ds-text)]">
                   <RejectedShopIdentity entry={entry} />
                 </td>
-                <td className="whitespace-nowrap px-3 py-1 align-middle leading-none text-stone-600">
+                <td className="whitespace-nowrap px-3 py-1 align-middle leading-none text-[var(--ds-text-muted)]">
                   {formatDate(entry.rejectedAt)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-1 text-right align-middle">
@@ -380,7 +383,10 @@ export default function RejectedShopsTable({
             ))}
             {data.entries.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-3 py-8 text-center text-sm text-stone-500">
+                <td
+                  colSpan={3}
+                  className="px-3 py-8 text-center text-sm text-[var(--ds-text-subtle)]"
+                >
                   Keine abgelehnten Shops gefunden.
                 </td>
               </tr>
@@ -389,7 +395,7 @@ export default function RejectedShopsTable({
         </table>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-3 text-sm text-[var(--ds-text-muted)] sm:flex-row sm:items-center sm:justify-between">
         <p aria-live="polite">
           {data.total === 0
             ? "Keine Einträge"
@@ -401,7 +407,7 @@ export default function RejectedShopsTable({
               type="button"
               disabled={data.page <= 1 || isLoading}
               onClick={() => updatePage(Math.max(1, data.page - 1))}
-              className="inline-flex h-9 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-amber-500/30 disabled:pointer-events-none disabled:opacity-40"
+              className="inline-flex h-9 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
             >
               <CaretLeftIcon weight="bold" className="size-3.5" />
               Zurück
@@ -411,7 +417,7 @@ export default function RejectedShopsTable({
               type="button"
               disabled={data.page >= totalPages || isLoading}
               onClick={() => updatePage(Math.min(totalPages, data.page + 1))}
-              className="inline-flex h-9 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-amber-500/30 disabled:pointer-events-none disabled:opacity-40"
+              className="inline-flex h-9 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
             >
               <CaretRightIcon weight="bold" className="size-3.5" />
               Weiter
@@ -440,7 +446,7 @@ function SortButton({
     <button
       type="button"
       onClick={() => onSort(field)}
-      className={`inline-flex min-w-0 items-center gap-1 text-left transition hover:text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 ${className}`}
+      className={`inline-flex min-w-0 items-center gap-1 text-left transition hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)] ${className}`}
     >
       <span className="truncate">{SORT_LABELS[field]}</span>
       <span className="inline-flex size-3.5 shrink-0 items-center justify-center">

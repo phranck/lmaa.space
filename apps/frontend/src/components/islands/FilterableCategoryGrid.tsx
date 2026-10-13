@@ -131,11 +131,11 @@ export default function FilterableCategoryGrid({
     <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-16 pb-16">
       {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-6 px-[15px]">
-        <h2 className="font-serif text-2xl font-semibold text-stone-800 text-center sm:text-left">
+        <h2 className="font-serif text-2xl font-semibold text-[var(--ds-text)] text-center sm:text-left">
           Kategorien entdecken
         </h2>
         <div className="flex items-center justify-between sm:justify-end sm:gap-4">
-          <span className="text-sm text-stone-600">
+          <span className="text-sm text-[var(--ds-text-muted)]">
             {shopCount} Shops in {categoryCount} Kategorien
             {pendingReviewCount > 0 ? ` · ${pendingReviewCount} in Review` : ""}
           </span>
@@ -162,8 +162,10 @@ export default function FilterableCategoryGrid({
 
       {/* Category grid */}
       {visibleCategories.length === 0 ? (
-        <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
-          <p className="text-stone-500">Keine Kategorien mit Shops für diesen Filter gefunden.</p>
+        <div className="text-center py-20 bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)]">
+          <p className="text-[var(--ds-text-subtle)]">
+            Keine Kategorien mit Shops für diesen Filter gefunden.
+          </p>
         </div>
       ) : (
         <div

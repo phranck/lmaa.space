@@ -109,7 +109,9 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
                       : "border-[var(--ds-border-strong)]"
                   }`}
                 >
-                  {checked && <CheckIcon weight="bold" className="size-2.5 text-white" />}
+                  {checked && (
+                    <CheckIcon weight="bold" className="size-2.5 text-[var(--ds-color-ink)]" />
+                  )}
                 </span>
                 <span className="mr-2">{countryFlag(code)}</span>
                 <span className="whitespace-nowrap">{countryName(code)}</span>
@@ -126,7 +128,7 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
         ref={btnRef}
         type="button"
         onClick={handleToggle}
-        className={`w-full flex items-center justify-between px-3 py-1.5 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors h-9 rounded-lg border-stone-300 bg-white hover:border-stone-400 ${
+        className={`w-full flex items-center justify-between px-3 py-1.5 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors h-9 rounded-lg border-[var(--ds-border)] hover:border-[var(--ds-border-hover)] ${
           open ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20" : ""
         }`}
       >

@@ -8,6 +8,7 @@ import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 import { useGridAnimation } from "@/hooks/useGridAnimation";
 import { fetchJson } from "@/lib/fetch-json";
 import { type ShopFilters, buildCategoryHref, buildFilterQuery } from "@/lib/filter-query";
+import { fieldColorsClass } from "@/lib/form-styles";
 
 import ShopFilterBar from "./ShopFilterBar";
 
@@ -150,7 +151,7 @@ export default function FilterableSearchResults({
             onChange={handleQueryChange}
             aria-label="Shops oder Kategorien suchen"
             placeholder="Shops oder Kategorien suchen…"
-            className="w-full px-4 pr-10 py-3 text-base rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
+            className={`w-full px-4 pr-10 py-3 text-base rounded-xl transition-all ${fieldColorsClass}`}
           />
           {query && (
             <button
@@ -159,7 +160,7 @@ export default function FilterableSearchResults({
                 dispatch({ type: "query", query: "" });
                 scheduleSearch("", currentFilters);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-placeholder)] hover:text-[var(--ds-text-muted)] transition-colors"
               aria-label="Suchfeld löschen"
             >
               <XCircleIcon weight="duotone" className="size-5" />
@@ -175,23 +176,23 @@ export default function FilterableSearchResults({
 
       {/* Status line */}
       {hasQuery && (
-        <p className="text-sm text-stone-400 mb-6">
+        <p className="text-sm text-[var(--ds-text-subtle)] mb-6">
           {results.total} {results.total === 1 ? "Treffer" : "Treffer gefunden"}
         </p>
       )}
 
       {/* No results */}
       {hasQuery && results.total === 0 && (
-        <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
-          <p className="text-stone-600 mb-2 font-medium">
+        <div className="text-center py-20 bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)]">
+          <p className="text-[var(--ds-text-muted)] mb-2 font-medium">
             Keine Ergebnisse für &bdquo;{query.trim()}&ldquo;
           </p>
-          <p className="text-sm text-stone-400 mb-6">
+          <p className="text-sm text-[var(--ds-text-subtle)] mb-6">
             Vielleicht ist dieser Shop noch nicht in der Liste?
           </p>
           <a
             href="/suggestion"
-            className="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
+            className="inline-block px-6 py-3 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-xl text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
           >
             Shop vorschlagen
           </a>
@@ -201,7 +202,7 @@ export default function FilterableSearchResults({
       {/* Category results */}
       {results.categories.length > 0 && (
         <section className="mb-10">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--ds-text-subtle)] mb-4">
             Kategorien
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -209,11 +210,11 @@ export default function FilterableSearchResults({
               <a
                 key={cat.id}
                 href={buildCategoryHref(cat.slug, currentFilters)}
-                className="px-4 py-2 bg-white border border-stone-200 rounded-full text-sm font-medium text-stone-700 hover:border-amber-400 hover:text-amber-700 transition-colors"
+                className="px-4 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-full text-sm font-medium text-[var(--ds-text-muted)] hover:border-[var(--ds-accent)] hover:text-[var(--ds-accent-text)] transition-colors"
               >
                 {cat.name}
                 {cat.shopCount !== undefined && (
-                  <span className="ml-1.5 text-stone-400">({cat.shopCount})</span>
+                  <span className="ml-1.5 text-[var(--ds-text-subtle)]">({cat.shopCount})</span>
                 )}
               </a>
             ))}
@@ -224,7 +225,7 @@ export default function FilterableSearchResults({
       {/* Shop results */}
       {results.shops.length > 0 && (
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--ds-text-subtle)] mb-4">
             Shops
           </h2>
           <div ref={shopGridRef} className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">

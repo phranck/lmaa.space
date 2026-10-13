@@ -6,6 +6,7 @@ import { encodeShopToken, type Shop } from "@lmaa/shared";
 import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
 import ShopCardReact from "@/components/ShopCardReact";
 import { fetchJson } from "@/lib/fetch-json";
+import { buttonFilledClass } from "@/lib/form-styles";
 import {
   encodeLikedIds,
   getLikedShopIds,
@@ -41,21 +42,21 @@ function ImportDialog({
       <button
         type="button"
         aria-label="Importdialog schließen"
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-[var(--ds-overlay-bg)] backdrop-blur-sm"
         onClick={onCancel}
       />
       <dialog
         open
         aria-labelledby="liked-shops-import-title"
-        className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
+        className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
       >
         <h2
           id="liked-shops-import-title"
-          className="font-serif text-xl font-semibold text-stone-900 mb-1"
+          className="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1"
         >
           Shops importieren
         </h2>
-        <p className="text-sm text-stone-500 mb-5">
+        <p className="text-sm text-[var(--ds-text-muted)] mb-5">
           {importCount} {importCount === 1 ? "Shop wird" : "Shops werden"} importiert.
           {hasExisting ? " Du hast bereits gelikte Shops auf diesem Gerät." : ""}
         </p>
@@ -65,7 +66,7 @@ function ImportDialog({
             <button
               type="button"
               onClick={onMerge}
-              className="h-10 rounded-xl text-sm font-medium bg-stone-900 text-white hover:bg-stone-800 transition-colors cursor-pointer"
+              className={`h-10 rounded-xl text-sm font-medium transition-colors cursor-pointer ${buttonFilledClass}`}
             >
               Zusammenführen
             </button>
@@ -75,8 +76,8 @@ function ImportDialog({
             onClick={onReplace}
             className={`h-10 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
               hasExisting
-                ? "border border-stone-200 text-stone-600 hover:bg-stone-100"
-                : "bg-stone-900 text-white hover:bg-stone-800"
+                ? "border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-control-hover-bg)]"
+                : buttonFilledClass
             }`}
           >
             {hasExisting ? "Ersetzen" : "Importieren"}
@@ -84,7 +85,7 @@ function ImportDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="h-10 rounded-xl text-sm text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
+            className="h-10 rounded-xl text-sm text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] transition-colors cursor-pointer"
           >
             Abbrechen
           </button>
@@ -115,6 +116,8 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
     if (!qrRef.current) return;
 
     void import("qr-code-styling").then(({ default: QRCodeStyling }) => {
+      // A code is read by a camera, which wants dark modules on a light ground
+      // whatever the page around it looks like, so these colours stay fixed.
       const qrCode = new QRCodeStyling({
         width: 200,
         height: 200,
@@ -166,21 +169,21 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
       <button
         type="button"
         aria-label="Synchronisationsdialog schließen"
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-[var(--ds-overlay-bg)] backdrop-blur-sm"
         onClick={onClose}
       />
       <dialog
         open
         aria-labelledby="liked-shops-sync-title"
-        className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
+        className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
       >
         <h2
           id="liked-shops-sync-title"
-          className="font-serif text-xl font-semibold text-stone-900 mb-1"
+          className="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1"
         >
           Shops synchronisieren
         </h2>
-        <p className="text-sm text-stone-500 mb-5">
+        <p className="text-sm text-[var(--ds-text-muted)] mb-5">
           Scanne den QR-Code oder teile den Link, um deine gelikten Shops auf ein anderes Gerät zu
           übertragen.
         </p>
@@ -191,7 +194,7 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={handleShare}
-            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl text-sm font-medium bg-stone-900 text-white hover:bg-stone-800 transition-colors cursor-pointer"
+            className={`flex-1 h-10 flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition-colors cursor-pointer ${buttonFilledClass}`}
           >
             <ShareNetworkIcon weight="duotone" className="size-4" />
             {copied ? "Link kopiert!" : "Link teilen"}
@@ -199,7 +202,7 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="h-10 px-4 rounded-xl text-sm text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
+            className="h-10 px-4 rounded-xl text-sm text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] transition-colors cursor-pointer"
           >
             Schließen
           </button>
@@ -303,7 +306,9 @@ export default function LikedShopsGrid({ supportPrompts }: LikedShopsGridProps) 
   }
 
   if (loading && !importData) {
-    return <p className="text-sm text-stone-400 text-center py-12">Lade deine Shops…</p>;
+    return (
+      <p className="text-sm text-[var(--ds-text-subtle)] text-center py-12">Lade deine Shops…</p>
+    );
   }
 
   return (
@@ -319,15 +324,17 @@ export default function LikedShopsGrid({ supportPrompts }: LikedShopsGridProps) 
       )}
 
       {importDone && (
-        <div className="mb-6 px-4 py-3 rounded-xl bg-green-50 border border-green-200 text-sm text-green-800">
+        <div className="mb-6 px-4 py-3 rounded-xl bg-[var(--ds-success-bg)] border border-[var(--ds-success-border)] text-sm text-[var(--ds-success-text)]">
           Shops wurden erfolgreich importiert!
         </div>
       )}
 
       {shops.length === 0 && !importData ? (
         <div className="text-center py-16">
-          <p className="text-stone-500 text-lg mb-2">Du hast noch keine Shops geliked.</p>
-          <p className="text-stone-400 text-sm">
+          <p className="text-[var(--ds-text-muted)] text-lg mb-2">
+            Du hast noch keine Shops geliked.
+          </p>
+          <p className="text-[var(--ds-text-subtle)] text-sm">
             Klicke auf das Herz-Symbol auf einer Shop-Detailseite, um Shops hier zu sammeln.
           </p>
         </div>
@@ -338,7 +345,7 @@ export default function LikedShopsGrid({ supportPrompts }: LikedShopsGridProps) 
               <button
                 type="button"
                 onClick={() => dispatch({ showSync: true })}
-                className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-medium text-stone-600 border border-stone-200 hover:bg-stone-100 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-medium text-[var(--ds-text-muted)] border border-[var(--ds-border)] hover:bg-[var(--ds-control-hover-bg)] transition-colors cursor-pointer"
               >
                 <QrCodeIcon weight="duotone" className="size-4" />
                 Sync
