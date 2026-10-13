@@ -62,6 +62,30 @@ function devProxyPlugin() {
   };
 }
 
+/**
+ * Gives the dev server a Vite cache directory of its own.
+ *
+ * `astro check`, which the type check, the quality gate and the pre-commit hook
+ * run, starts Vite as well and writes its own, smaller set of pre-bundled
+ * dependencies into the shared cache. A dev server running beside it keeps
+ * handing out imports under the hash it bundled them with, those files are
+ * gone, and every island that needs one fails with "504 Outdated Optimize Dep"
+ * until the server restarts. Only `astro dev` moves, so the build and the check
+ * keep the default.
+ *
+ * @returns An Astro integration.
+ */
+function devServerCache() {
+  return {
+    name: "lmaa-dev-server-cache",
+    hooks: {
+      "astro:config:setup": ({ command, updateConfig }) => {
+        if (command === "dev") updateConfig({ vite: { cacheDir: "node_modules/.vite-dev" } });
+      },
+    },
+  };
+}
+
 export default defineConfig({
   site: "https://lmaa.space",
   output: "server",
@@ -136,6 +160,7 @@ export default defineConfig({
   integrations: [
     UnoCSS({ injectReset: false }),
     react(),
+    devServerCache(),
     obfuscateFirstPartyChunks(),
     sitemap({
       // The sitemap lists the pages meant for readers. `/preview/*` is the
