@@ -20,8 +20,8 @@ import {
   type MediaKind,
 } from "@lmaa/shared";
 
-import { detectImageType } from "./validate.js";
 import { env } from "../config/env.js";
+import { detectImageType } from "./validate.js";
 
 const IMAGE_MIME_BY_TYPE = {
   avif: "image/avif",

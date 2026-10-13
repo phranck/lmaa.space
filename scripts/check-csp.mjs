@@ -185,7 +185,10 @@ async function main() {
       exited = signal ?? code;
     });
 
-    await waitForBrowser(() => exited, () => startupOutput);
+    await waitForBrowser(
+      () => exited,
+      () => startupOutput,
+    );
     const failures = [];
 
     for (const route of routes) {
@@ -332,9 +335,7 @@ async function checkRoute(url) {
   await fetch(`http://127.0.0.1:${DEBUG_PORT}/json/close/${target.id}`);
 
   // The same rule usually fires once per blocked element; report each once.
-  return [...new Set([...violations, ...logged])].filter(
-    (violation) => !isExpected(violation),
-  );
+  return [...new Set([...violations, ...logged])].filter((violation) => !isExpected(violation));
 }
 
 await main();

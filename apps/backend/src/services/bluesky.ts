@@ -2,9 +2,9 @@ import { AtpAgent, RichText } from "@atproto/api";
 
 import { BLUESKY_PDS_URL } from "@lmaa/contracts";
 
-import { type PostContext, buildPostVariables } from "./post-context.js";
 import type { SocialMediaAccount, SocialMediaPostTemplate } from "../db/schema.js";
 import { logger } from "../lib/logger.js";
+import { type PostContext, buildPostVariables } from "./post-context.js";
 
 const VAR_REGEX = /\{\{(\w+)\}\}/g;
 
@@ -59,10 +59,7 @@ export async function postToBlueskyAccount(
     throw new Error(`BlueSky rate limit reached for account ${account.id}`);
   }
 
-  const text = renderPlainTemplate(
-    template.bodyBluesky,
-    buildPostVariables(context),
-  ).trim();
+  const text = renderPlainTemplate(template.bodyBluesky, buildPostVariables(context)).trim();
   if (!text) {
     logger.warn({ templateId: template.id }, "bluesky body rendered empty, skipping");
     return;

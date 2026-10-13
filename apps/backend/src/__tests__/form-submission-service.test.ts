@@ -175,9 +175,14 @@ describe("executeSubmissionChain", () => {
       { id: 1, name: "form" },
     );
 
-    expect(emailMocks.sendMail).toHaveBeenCalledWith("admin@example.com", "Hi", expect.any(String), {
-      replyTo: "user@reply.com",
-    });
+    expect(emailMocks.sendMail).toHaveBeenCalledWith(
+      "admin@example.com",
+      "Hi",
+      expect.any(String),
+      {
+        replyTo: "user@reply.com",
+      },
+    );
   });
 
   it("uses email template when templateId is provided", async () => {
@@ -257,10 +262,7 @@ describe("executeSubmissionChain", () => {
 
     await executeSubmissionChain(
       {
-        steps: [
-          { type: "store" },
-          { type: "email", to: "a@b.com", subject: "Hi" },
-        ],
+        steps: [{ type: "store" }, { type: "email", to: "a@b.com", subject: "Hi" }],
       },
       { x: "1" },
       { id: 1, name: "form" },

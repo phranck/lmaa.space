@@ -1,12 +1,12 @@
 import { SETTINGS_KEYS } from "@lmaa/shared";
 
-import { recordBackgroundError } from "./background-errors.js";
-import { renderEmailTemplate } from "./email-renderer.js";
-import { sendMail } from "./email.js";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 import { getSettings } from "../repositories/app-settings.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
+import { recordBackgroundError } from "./background-errors.js";
+import { renderEmailTemplate } from "./email-renderer.js";
+import { sendMail } from "./email.js";
 
 /**
  * Sends an email notification to the site owner when a new shop suggestion

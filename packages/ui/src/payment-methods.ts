@@ -35,7 +35,11 @@ interface PaymentMethodIconProps {
 }
 
 function createSvgIcon(assetUrl: string) {
-  return function PaymentMethodIcon({ className = "", size = 16, "aria-hidden": ariaHidden = true }: PaymentMethodIconProps) {
+  return function PaymentMethodIcon({
+    className = "",
+    size = 16,
+    "aria-hidden": ariaHidden = true,
+  }: PaymentMethodIconProps) {
     // All payment logos share a 3:2 (120x80) canvas with their own rounded card
     // background. Rendering the <img> at that ratio (not a square box) lets the
     // border and shadow hug the card itself. No `w-auto`/`h-auto`: those CSS

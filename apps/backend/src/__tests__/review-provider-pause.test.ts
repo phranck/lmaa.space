@@ -53,7 +53,10 @@ function message(stopReason: string, text?: string) {
     stop_reason: stopReason,
     content: text
       ? [{ type: "text", text }]
-      : [{ type: "thinking", thinking: "…" }, { type: "server_tool_use", name: "web_search" }],
+      : [
+          { type: "thinking", thinking: "…" },
+          { type: "server_tool_use", name: "web_search" },
+        ],
     usage: { input_tokens: 10, output_tokens: 20 },
   };
 }
@@ -79,7 +82,11 @@ describe("a paused turn", () => {
     // model forgot to reply, which is how a live check was lost.
     answers.push(message("pause_turn"), message("end_turn", '{"verdict":"onhold"}'));
 
-    const provider = new AnthropicReviewProvider({ model: "claude-opus-5", effort: "high", apiKey: "k" });
+    const provider = new AnthropicReviewProvider({
+      model: "claude-opus-5",
+      effort: "high",
+      apiKey: "k",
+    });
     const outcome = await provider.runReview(request as never);
 
     expect(created).toHaveLength(2);
@@ -93,7 +100,11 @@ describe("a paused turn", () => {
   it("adds up what every turn consumed", async () => {
     answers.push(message("pause_turn"), message("end_turn", '{"verdict":"onhold"}'));
 
-    const provider = new AnthropicReviewProvider({ model: "claude-opus-5", effort: "high", apiKey: "k" });
+    const provider = new AnthropicReviewProvider({
+      model: "claude-opus-5",
+      effort: "high",
+      apiKey: "k",
+    });
     const outcome = await provider.runReview(request as never);
 
     expect(outcome.usage.inputTokens).toBe(20);
@@ -120,7 +131,11 @@ describe("a batch the provider has not finished", () => {
     vi.useFakeTimers();
     poll.status = "in_progress";
 
-    const provider = new AnthropicReviewProvider({ model: "claude-opus-5", effort: "high", apiKey: "k" });
+    const provider = new AnthropicReviewProvider({
+      model: "claude-opus-5",
+      effort: "high",
+      apiKey: "k",
+    });
     const run = provider.runReview({ ...request, resumeBatchId: "msgbatch_slow" } as never);
     await vi.advanceTimersByTimeAsync(11 * 60 * 1000);
     const outcome = await run;
@@ -134,8 +149,15 @@ describe("a batch the provider has not finished", () => {
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     poll.error = new Anthropic.APIConnectionError({ message: "connection reset" });
 
-    const provider = new AnthropicReviewProvider({ model: "claude-opus-5", effort: "high", apiKey: "k" });
-    const outcome = await provider.runReview({ ...request, resumeBatchId: "msgbatch_slow" } as never);
+    const provider = new AnthropicReviewProvider({
+      model: "claude-opus-5",
+      effort: "high",
+      apiKey: "k",
+    });
+    const outcome = await provider.runReview({
+      ...request,
+      resumeBatchId: "msgbatch_slow",
+    } as never);
 
     expect(outcome.kind).toBe("pending");
     expect(outcome.providerResponseId).toBe("msgbatch_slow");

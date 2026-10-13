@@ -44,7 +44,11 @@ describe("what a claim does to the attempt counter", () => {
 describe("a job set aside to wait on its batch", () => {
   it("is one waiting at the provider with nobody holding it", () => {
     expect(
-      isParkedReviewJob({ state: "provider_waiting", leaseOwner: null, providerResponseId: "msgbatch_1" }),
+      isParkedReviewJob({
+        state: "provider_waiting",
+        leaseOwner: null,
+        providerResponseId: "msgbatch_1",
+      }),
     ).toBe(true);
   });
 

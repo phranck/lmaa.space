@@ -11,7 +11,10 @@ export type SocialMediaPlatformKey = SocialPlatformKey;
 
 export const socialMediaPlatformSchema = z.enum(SOCIAL_MEDIA_PLATFORM_KEYS);
 
-export const POSTING_PLATFORM_KEYS = ["mastodon", "bluesky"] as const satisfies readonly SocialMediaPlatformKey[];
+export const POSTING_PLATFORM_KEYS = [
+  "mastodon",
+  "bluesky",
+] as const satisfies readonly SocialMediaPlatformKey[];
 
 export type PostingPlatformKey = (typeof POSTING_PLATFORM_KEYS)[number];
 
@@ -103,12 +106,7 @@ const accountInputBase = z.object({
   accessToken: z.string().trim().min(1).max(4096).optional(),
   appPassword: z.string().trim().min(1).max(200).optional(),
   visibility: mastodonVisibilitySchema.optional(),
-  maxPostCharacters: z
-    .number()
-    .int()
-    .min(1)
-    .max(MASTODON_MAX_POST_CHARACTERS_LIMIT)
-    .optional(),
+  maxPostCharacters: z.number().int().min(1).max(MASTODON_MAX_POST_CHARACTERS_LIMIT).optional(),
 });
 
 type AccountInputBase = z.infer<typeof accountInputBase>;
@@ -155,8 +153,7 @@ function refinePostingInvariants(
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["handle"],
-        message:
-          "Must be a Bluesky handle (e.g. you.bsky.social) or email when canPost is true.",
+        message: "Must be a Bluesky handle (e.g. you.bsky.social) or email when canPost is true.",
       });
     }
     if (options.tokenRequired && !data.appPassword) {
@@ -173,10 +170,12 @@ export const socialMediaAccountCreateSchema = accountInputBase.superRefine((data
   refinePostingInvariants(data, ctx, { tokenRequired: true });
 });
 
-export const socialMediaAccountUpdateSchema = accountInputBase.partial().superRefine((data, ctx) => {
-  if (data.canPost === undefined) return;
-  refinePostingInvariants(data as AccountInputBase, ctx, { tokenRequired: false });
-});
+export const socialMediaAccountUpdateSchema = accountInputBase
+  .partial()
+  .superRefine((data, ctx) => {
+    if (data.canPost === undefined) return;
+    refinePostingInvariants(data as AccountInputBase, ctx, { tokenRequired: false });
+  });
 
 export type SocialMediaAccountCreateInput = z.infer<typeof socialMediaAccountCreateSchema>;
 export type SocialMediaAccountUpdateInput = z.infer<typeof socialMediaAccountUpdateSchema>;

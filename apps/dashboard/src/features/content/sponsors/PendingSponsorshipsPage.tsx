@@ -120,9 +120,7 @@ export function PendingSponsorshipsPage() {
         onClose={() => setTakingOver(null)}
       >
         <div className="px-6 py-4 space-y-4">
-          <p className="text-sm text-[var(--ds-text-muted)]">
-            {takingOver ? takingOver.name : ""}
-          </p>
+          <p className="text-sm text-[var(--ds-text-muted)]">{takingOver ? takingOver.name : ""}</p>
           <p className="text-sm text-[var(--ds-text-muted)]">{text.takeOverHint}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <DashboardNumberInput

@@ -21,10 +21,7 @@ import type {
 import { createPortal } from "react-dom";
 
 import { cx } from "./classNames";
-import {
-  OverlayLayerZIndexContext,
-  resolveOverlayZIndex,
-} from "./overlay-stack";
+import { OverlayLayerZIndexContext, resolveOverlayZIndex } from "./overlay-stack";
 
 export interface MenuOrigin {
   x: number;
@@ -49,8 +46,7 @@ export interface MenuPrimitiveRenderState {
   menuId: string;
 }
 
-export interface MenuPrimitiveProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+export interface MenuPrimitiveProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   autoFocus?: boolean;
   children: ReactNode | ((state: MenuPrimitiveRenderState) => ReactNode);
   clampPadding?: number;
@@ -135,14 +131,7 @@ export function MenuPrimitive({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [
-    clampPadding,
-    matchTriggerWidth,
-    open,
-    origin,
-    placementOffset,
-    triggerRef,
-  ]);
+  }, [clampPadding, matchTriggerWidth, open, origin, placementOffset, triggerRef]);
 
   useEffect(() => {
     if (!open) {
@@ -209,8 +198,7 @@ export function MenuPrimitive({
       const target = event.target;
       const targetIsInside =
         target instanceof Node &&
-        (menuRef.current?.contains(target) ||
-          triggerRef?.current?.contains(target));
+        (menuRef.current?.contains(target) || triggerRef?.current?.contains(target));
 
       if (!targetIsInside) {
         return;
@@ -275,8 +263,7 @@ export function MenuPrimitive({
           ...style,
         }
       : style;
-  const content =
-    typeof children === "function" ? children(renderState) : children;
+  const content = typeof children === "function" ? children(renderState) : children;
   const menu = (
     <MenuContext.Provider value={contextValue}>
       <div
@@ -297,8 +284,7 @@ export function MenuPrimitive({
     </MenuContext.Provider>
   );
   const portalTarget =
-    portalContainer ??
-    (typeof document !== "undefined" ? document.body : undefined);
+    portalContainer ?? (typeof document !== "undefined" ? document.body : undefined);
 
   return portal && portalTarget ? createPortal(menu, portalTarget) : menu;
 }
@@ -306,8 +292,10 @@ export function MenuPrimitive({
 export type MenuItemPrimitiveSize = "default" | "compact";
 export type MenuItemPrimitiveVariant = "default" | "danger";
 
-export interface MenuItemPrimitiveProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onSelect"> {
+export interface MenuItemPrimitiveProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "onSelect"
+> {
   addOn?: ReactNode;
   closeOnSelect?: boolean;
   leadingIcon?: ReactNode;
@@ -377,9 +365,7 @@ export function MenuItemPrimitive({
         "focus:bg-[var(--ds-control-hover-bg)] focus:outline-none hover:bg-[var(--ds-control-hover-bg)]",
         "disabled:pointer-events-none disabled:opacity-[var(--ds-control-disabled-opacity)]",
         "h-[var(--ds-control-h-menu-item)]",
-        variant === "danger"
-          ? "text-[var(--ds-danger-text)]"
-          : "text-[var(--ds-text)]",
+        variant === "danger" ? "text-[var(--ds-danger-text)]" : "text-[var(--ds-text)]",
         className,
       )}
       data-menu-item="true"
@@ -398,9 +384,7 @@ export function MenuItemPrimitive({
       )}
       <span className="min-w-0 flex-1 truncate">{children}</span>
       {addOn && (
-        <span className="flex shrink-0 items-center text-[var(--ds-text-muted)]">
-          {addOn}
-        </span>
+        <span className="flex shrink-0 items-center text-[var(--ds-text-muted)]">{addOn}</span>
       )}
     </button>
   );

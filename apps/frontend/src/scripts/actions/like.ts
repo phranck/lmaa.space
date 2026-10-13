@@ -143,7 +143,10 @@ document.addEventListener("click", (e) => {
     // button would be seen collapsing around an empty space.
     btn.classList.toggle("has-count", next > 0);
     if (next > 0) countEl.textContent = String(next);
-    else window.setTimeout(() => { countEl.textContent = ""; }, COUNT_COLLAPSE_MS);
+    else
+      window.setTimeout(() => {
+        countEl.textContent = "";
+      }, COUNT_COLLAPSE_MS);
   }
 
   // Fire-and-forget: sync like to server

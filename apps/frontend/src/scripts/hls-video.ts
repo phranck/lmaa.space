@@ -148,12 +148,7 @@ function isEditableShortcutTarget(target: EventTarget | null) {
 }
 
 function isVideoZoomToggleKey(event: KeyboardEvent) {
-  return (
-    event.key.toLowerCase() === "f" &&
-    !event.altKey &&
-    !event.ctrlKey &&
-    !event.metaKey
-  );
+  return event.key.toLowerCase() === "f" && !event.altKey && !event.ctrlKey && !event.metaKey;
 }
 
 function getVideoZoomFrameForShortcut(target: EventTarget | null) {

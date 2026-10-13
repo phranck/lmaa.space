@@ -83,7 +83,7 @@ Bestehende Zeilen erben `scope='submission'` und bleiben unter dem neuen PK gül
 
 ### Drizzle Schema (`apps/backend/src/db/schema.ts`)
 
-- `socialMediaPostTemplates`: neues Feld `scopes: text("scopes").array().notNull().default(sql\`ARRAY['submission']::text[]\`)` plus zwei `check`-Constraints analog zu den Plural-Pendants für `platforms`.
+- `socialMediaPostTemplates`: neues Feld `scopes: text("scopes").array().notNull().default(sql\`ARRAY['submission']::text[]\`)`plus zwei`check`-Constraints analog zu den Plural-Pendants für `platforms`.
 - `adminUserAccountTemplateChoice`: neues Feld `scope: text("scope").$type<"submission" | "category">().notNull().default("submission")`. PK in `(table) => [primaryKey({ columns: [table.adminUserId, table.socialMediaAccountId, table.scope] }), …]`.
 
 ---
@@ -100,7 +100,7 @@ export interface SocialMediaPostTemplate {
   id: number;
   name: string;
   platforms: SocialMediaPlatform[];
-  scopes: SocialMediaPostTemplateScope[];   // NEW
+  scopes: SocialMediaPostTemplateScope[]; // NEW
   bodyMastodon: string | null;
   bodyBluesky: string | null;
   isSystemTemplate: boolean;
@@ -112,7 +112,7 @@ export const socialMediaPostTemplateCreateSchema = z
   .object({
     name: z.string().trim().min(1).max(100),
     platforms: z.array(z.enum(SOCIAL_MEDIA_PLATFORMS)).min(1),
-    scopes: z.array(z.enum(SOCIAL_MEDIA_POST_TEMPLATE_SCOPES)).min(1),  // NEW
+    scopes: z.array(z.enum(SOCIAL_MEDIA_POST_TEMPLATE_SCOPES)).min(1), // NEW
     bodyMastodon: z.string().nullable().optional(),
     bodyBluesky: z.string().nullable().optional(),
   })
@@ -155,8 +155,9 @@ export const categoryBodySchema = z.object({
 
 ```ts
 import type { Category, Submission } from "@lmaa/shared";
+
 import { env } from "../config/env.js";
-import { encodeShopToken } from "./shop-tokens.js";  // existing helper
+import { encodeShopToken } from "./shop-tokens.js"; // existing helper
 
 export type PostContext =
   | {
@@ -207,6 +208,7 @@ export function idempotencyEntityKey(ctx: PostContext): string {
 ```
 
 `apps/backend/src/services/mastodon.ts` und `apps/backend/src/services/bluesky.ts` werden umgestellt:
+
 - `ApprovalPostContext` (heute `mastodon.ts:39`) wird Type-Alias auf `Extract<PostContext, { kind: "submission" }>` (Übergangs-Lesbarkeit; entfernbar wenn alle Aufrufer migriert sind).
 - `buildApprovalPostVariables` (heute `mastodon.ts:50`) wird zu `buildPostVariables` (re-exportiert aus `post-context.ts`).
 - `postToMastodonAccount` (`mastodon.ts:85-…`) und `postToBlueskyAccount` (`bluesky.ts:42-…`) nehmen `PostContext` statt `ApprovalPostContext`.
@@ -217,8 +219,9 @@ export function idempotencyEntityKey(ctx: PostContext): string {
 `dispatchTemplateAssignments` lebt heute privat in `apps/backend/src/services/admin-submissions.ts:108-170`. Wird extrahiert:
 
 ```ts
-import type { PostContext } from "./post-context.js";
 import type { SocialMediaPostTemplateScope } from "@lmaa/contracts";
+
+import type { PostContext } from "./post-context.js";
 
 export async function dispatchTemplateAssignments(
   adminUserId: number,
@@ -230,7 +233,10 @@ export async function dispatchTemplateAssignments(
     try {
       await upsertChoice(adminUserId, assignment.accountId, assignment.templateId, scope);
     } catch (err) {
-      await recordBackgroundError("template-choice-upsert", err, { adminUserId, accountId: assignment.accountId });
+      await recordBackgroundError("template-choice-upsert", err, {
+        adminUserId,
+        accountId: assignment.accountId,
+      });
     }
 
     if (assignment.templateId === null) continue;
@@ -244,9 +250,11 @@ export async function dispatchTemplateAssignments(
         continue;
       }
       if (!template.scopes.includes(scope)) {
-        await recordBackgroundError(`${account.platform}-post`, new Error(
-          `template ${template.id} does not cover scope ${scope}`,
-        ), { accountId: account.id, templateId: template.id });
+        await recordBackgroundError(
+          `${account.platform}-post`,
+          new Error(`template ${template.id} does not cover scope ${scope}`),
+          { accountId: account.id, templateId: template.id },
+        );
         continue;
       }
       if (!template.platforms.includes(account.platform)) {
@@ -259,7 +267,7 @@ export async function dispatchTemplateAssignments(
         await postToBlueskyAccount(account, template, context);
       }
     } catch (err) {
-      await recordBackgroundError("social-media-post", err, { /* … */ });
+      await recordBackgroundError("social-media-post", err, {/* … */});
     }
   }
 }
@@ -327,7 +335,9 @@ export interface CreateCategoryWithPostsInput {
   adminId: number;
 }
 
-export async function createCategoryWithPosts(input: CreateCategoryWithPostsInput): Promise<Category> {
+export async function createCategoryWithPosts(
+  input: CreateCategoryWithPostsInput,
+): Promise<Category> {
   const category = await createAdminCategory({
     name: input.name,
     slug: input.slug,
@@ -348,6 +358,7 @@ export async function createCategoryWithPosts(input: CreateCategoryWithPostsInpu
 **`apps/backend/src/routes/admin/categories.ts:39`** (POST `/admin/categories`)
 
 Heute:
+
 ```ts
 categoriesRoutes.post("/categories", zValidator("json", categoryBodySchema), async (c) => {
   const body = c.req.valid("json");
@@ -357,6 +368,7 @@ categoriesRoutes.post("/categories", zValidator("json", categoryBodySchema), asy
 ```
 
 Neu:
+
 ```ts
 categoriesRoutes.post("/categories", zValidator("json", categoryBodySchema), async (c) => {
   const body = c.req.valid("json");
@@ -377,18 +389,14 @@ const querySchema = z.object({
   scope: z.enum(SOCIAL_MEDIA_POST_TEMPLATE_SCOPES),
 });
 
-meTemplateChoicesRoutes.get(
-  "/me/template-choices",
-  zValidator("query", querySchema),
-  async (c) => {
-    const adminId = c.get("adminId");
-    const { scope } = c.req.valid("query");
-    const rows = await listChoicesForAdminUser(adminId, scope);
-    const map: Record<number, number | null> = {};
-    for (const row of rows) map[row.socialMediaAccountId] = row.templateId;
-    return ok(c, map);
-  },
-);
+meTemplateChoicesRoutes.get("/me/template-choices", zValidator("query", querySchema), async (c) => {
+  const adminId = c.get("adminId");
+  const { scope } = c.req.valid("query");
+  const rows = await listChoicesForAdminUser(adminId, scope);
+  const map: Record<number, number | null> = {};
+  for (const row of rows) map[row.socialMediaAccountId] = row.templateId;
+  return ok(c, map);
+});
 ```
 
 Backwards-Kompat: Frontend wird im selben Release umgestellt; ältere Clients ohne Scope-Param erhalten `400`.
@@ -407,8 +415,8 @@ Neue Datei `apps/dashboard/src/features/social/components/TemplateAssignmentsSec
 
 ```ts
 export interface TemplateAssignmentsSectionProps {
-  templates: SocialMediaPostTemplate[];        // bereits scope-gefiltert vom Caller
-  scope: SocialMediaPostTemplateScope;         // für useTemplateChoices
+  templates: SocialMediaPostTemplate[]; // bereits scope-gefiltert vom Caller
+  scope: SocialMediaPostTemplateScope; // für useTemplateChoices
   assignments: TemplateAssignment[];
   onChange: (next: TemplateAssignment[]) => void;
   open: boolean;
@@ -420,6 +428,7 @@ export interface TemplateAssignmentsSectionProps {
 Intern unverändert: nutzt weiterhin `usePostingAccount("mastodon")` und `usePostingAccount("bluesky")` aus `apps/dashboard/src/features/social/hooks/useSocialMediaAccounts.ts`. `useTemplateChoices` wird mit `scope`-Param aufgerufen.
 
 `SubmissionDialogs.tsx` importiert die Section neu und übergibt:
+
 - `scope="submission"`,
 - `previewBody` als Adapter, der `renderPostPreview(body, { submission, adminNote, categories })` aus dem heutigen `apps/dashboard/src/features/overview/post-preview.ts` nutzt.
 
@@ -431,9 +440,8 @@ Intern unverändert: nutzt weiterhin `usePostingAccount("mastodon")` und `usePos
 export function useTemplateChoices(scope: SocialMediaPostTemplateScope) {
   return useQuery({
     queryKey: ["me-template-choices", scope] as const,
-    queryFn: () => api.get<Record<number, number | null>>(
-      `/admin/me/template-choices?scope=${scope}`,
-    ),
+    queryFn: () =>
+      api.get<Record<number, number | null>>(`/admin/me/template-choices?scope=${scope}`),
   });
 }
 ```
@@ -446,14 +454,18 @@ Aufrufer: `TemplateAssignmentsSection` (intern, mit dem props.scope).
 export function useSocialMediaPostTemplates(scope?: SocialMediaPostTemplateScope) {
   return useQuery({
     queryKey: ["social-media-post-templates", scope ?? "all"] as const,
-    queryFn: () => api.get<SocialMediaPostTemplate[]>(
-      scope ? `/admin/social-media-post-templates?scope=${scope}` : `/admin/social-media-post-templates`,
-    ),
+    queryFn: () =>
+      api.get<SocialMediaPostTemplate[]>(
+        scope
+          ? `/admin/social-media-post-templates?scope=${scope}`
+          : `/admin/social-media-post-templates`,
+      ),
   });
 }
 ```
 
 Aufrufer:
+
 - `SubmissionEditorPage.tsx:133` → bleibt `useSocialMediaPostTemplates()` (alle, oder optional `"submission"` — clean).
 - `SocialMediaPostTemplateListPage.tsx` → `useSocialMediaPostTemplates()` (alle, weil Verwaltungs-Liste).
 - `CategoryEditCard.tsx` (neu) → `useSocialMediaPostTemplates("category")`.
@@ -471,7 +483,10 @@ interface CategoryPostPreviewContext {
 
 const VAR_REGEX = /\{\{(\w+)\}\}/g;
 
-export function renderCategoryPostPreview(body: string | null, ctx: CategoryPostPreviewContext): string {
+export function renderCategoryPostPreview(
+  body: string | null,
+  ctx: CategoryPostPreviewContext,
+): string {
   if (!body) return "";
   const dashboardUrl = typeof window !== "undefined" ? window.location.origin : "";
   const variables: Record<string, string> = {
@@ -501,22 +516,28 @@ export function renderCategoryPostPreview(body: string | null, ctx: CategoryPost
    ```
 3. Section unterhalb der Description-Textarea (vor den Footer-Buttons in `<OverlayCard>`):
    ```tsx
-   {isNew && templates.length > 0 && (
-     <TemplateAssignmentsSection
-       templates={templates}
-       scope="category"
-       assignments={templateAssignments}
-       onChange={setTemplateAssignments}
-       open={true}
-       previewBody={(t, platform) =>
-         renderCategoryPostPreview(
-           platform === "mastodon" ? t.bodyMastodon : t.bodyBluesky,
-           { category: { name: form.name, slug: form.slug, description: form.description, imageUrl: image.previewUrl } },
-         )
-       }
-       onOverflowChange={setHasPostOverflow}
-     />
-   )}
+   {
+     isNew && templates.length > 0 && (
+       <TemplateAssignmentsSection
+         templates={templates}
+         scope="category"
+         assignments={templateAssignments}
+         onChange={setTemplateAssignments}
+         open={true}
+         previewBody={(t, platform) =>
+           renderCategoryPostPreview(platform === "mastodon" ? t.bodyMastodon : t.bodyBluesky, {
+             category: {
+               name: form.name,
+               slug: form.slug,
+               description: form.description,
+               imageUrl: image.previewUrl,
+             },
+           })
+         }
+         onOverflowChange={setHasPostOverflow}
+       />
+     );
+   }
    ```
 4. Save-Button: `disabled={!canSave || hasPostOverflow}`.
 5. Overflow-Hint im Footer (parallel zum Approve-Dialog).
@@ -529,29 +550,30 @@ Mutation-Input erweitert um `templateAssignments?: TemplateAssignment[]`. Nur be
 mutationFn: async ({ form, image, templateAssignments }) => {
   let saved: Category;
   if (isNew) {
-    const body = templateAssignments?.length
-      ? { ...form, templateAssignments }
-      : form;
+    const body = templateAssignments?.length ? { ...form, templateAssignments } : form;
     saved = await api.post<Category>("/admin/categories", body);
   } else {
     saved = await api.patch<Category>(`/admin/categories/${categoryId}`, form);
   }
   // image flow unchanged …
-}
+};
 ```
 
 ### Templates-Verwaltung
 
 **`apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateListPage.tsx`**
+
 - Neue Spalte `Scopes` (Badge-Liste, e.g. `Submission` `Category`).
 
 **`apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx`**
+
 - Neuer Form-Block: zwei Checkboxen (`Submission`, `Category`). Mind. eine muss aktiv sein.
 - Variable-Hilfetext schaltet je nach aktiver Scope-Auswahl: `submission`-only zeigt Shop-Variablen, `category`-only zeigt Category-Variablen, beide aktiv zeigt beide Sets mit Hinweis "wird je nach Kontext gefüllt; nicht passende Variablen rendern leer".
 
 ### i18n
 
 Neue Keys (Schema; finale Strings beim Implementieren):
+
 - `messages.socialMediaPostTemplates.scopes.{submission,category}` (Checkbox-Labels)
 - `messages.socialMediaPostTemplates.scopesHelpText`
 - `messages.socialMediaPostTemplates.scopesValidation` ("mindestens ein Scope erforderlich")
@@ -572,7 +594,9 @@ Neue Keys (Schema; finale Strings beim Implementieren):
 - `apps/backend/src/__tests__/admin-submissions-service.test.ts`: bestehender Test bleibt grün; nur `upsertChoice`-Aufruf bekommt jetzt `"submission"`-Param.
 
 ### Frontend
+
 Dashboard hat heute keine Unit-Tests. Manuelle Smoke-Tests beim Stage-Merge:
+
 1. Submission-Approve: Templates erscheinen nur wenn `scopes` enthält `submission`.
 2. New Category: Templates erscheinen nur wenn `scopes` enthält `category`. Section nicht sichtbar wenn `templates.length === 0`.
 3. Template mit `scopes=['submission','category']` erscheint in beiden Dialogen.

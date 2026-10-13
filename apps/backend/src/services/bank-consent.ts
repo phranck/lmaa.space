@@ -1,9 +1,9 @@
-import { sendMail } from "./email.js";
-import { sendPushNotification } from "./push-notifications.js";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 import { getOwner } from "../repositories/admin-users.js";
 import { getLiveBankConnection, setConsentNoticeStage } from "../repositories/bank-connections.js";
+import { sendMail } from "./email.js";
+import { sendPushNotification } from "./push-notifications.js";
 
 /**
  * The warnings a lapsing consent produces, in the order they are reached.

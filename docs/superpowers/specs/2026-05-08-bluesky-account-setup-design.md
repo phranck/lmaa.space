@@ -9,6 +9,7 @@
 ## 1. Goals & Non-Goals
 
 ### Goals
+
 - BlueSky accounts can be created, edited, and deleted in the Dashboard.
 - **At most one account per social-media platform** is allowed (one Mastodon account, one BlueSky account). Enforced by DB UNIQUE constraint and reflected in the UI as a singleton-or-empty section per platform.
 - A submission approval can post to either, both, or neither of the configured Mastodon and BlueSky accounts; for each configured account the moderator picks a template (or "no post").
@@ -17,6 +18,7 @@
 - Each moderator's last choice per platform is persisted server-side and pre-selected on the next approve dialog.
 
 ### Non-Goals
+
 - BlueSky OAuth login (PKCE/DPoP) — App-Password is the only supported auth path.
 - Custom PDS URLs — hardcoded `https://bsky.social`.
 - Multiple accounts per platform — broadcast-to-many is dropped. The existing Mastodon multi-account broadcast capability is intentionally removed in Plan 2.
@@ -32,9 +34,11 @@
 The work is split into two sequential plans. Plan 1 must be merged and verified before Plan 2 starts.
 
 ### Plan 1 — Templates Refactor
+
 Generalise the template table and surrounding code without introducing BlueSky behaviour. Mastodon must continue to function identically end-to-end after this plan is merged.
 
 Scope:
+
 - Rename `mastodonPostTemplates` to `socialMediaPostTemplates`.
 - Add `platforms text[]`, `bodyMastodon text`, `bodyBluesky text`. Migrate existing `bodyText` into `bodyMastodon`. Set `platforms = ARRAY['mastodon']` for all existing rows. Drop `bodyText`.
 - Rename backend repos, services, routes, and Zod schemas.
@@ -44,9 +48,11 @@ Scope:
 - All Mastodon-specific posting logic continues to read `bodyMastodon` from the renamed table.
 
 ### Plan 2 — BlueSky Add & Account-Singleton Refactor
+
 Add the BlueSky platform end-to-end, enforce single-account-per-platform, and convert the approve flow to per-platform template selection.
 
 Scope:
+
 - Extend `socialMediaAccounts.platform` enum with `'bluesky'`.
 - Add `socialMediaAccounts.handle text`, `socialMediaAccounts.maxPostCharacters int NOT NULL`. Backfill `maxPostCharacters = 500` for existing Mastodon rows.
 - Add UNIQUE constraint on `socialMediaAccounts(platform)`. Migration pre-condition: at most one row exists for `platform = 'mastodon'`. If more, the migration aborts and the moderator must manually delete or merge surplus accounts via the existing UI before retrying. (BlueSky has no rows yet at migration time, so it is constraint-clean by definition.)
@@ -78,12 +84,14 @@ Scope:
 ```
 
 Constraints:
+
 - DB CHECK: `cardinality(platforms) >= 1`
 - DB CHECK: `array_position(platforms, 'mastodon') IS NULL OR bodyMastodon IS NOT NULL`
 - DB CHECK: `array_position(platforms, 'bluesky') IS NULL OR bodyBluesky IS NOT NULL`
 - App (Zod): `platforms` items must be in `['mastodon', 'bluesky']`. `bodyMastodon` ≤ 500. `bodyBluesky` ≤ 300.
 
 Migration from `mastodonPostTemplates`:
+
 ```sql
 ALTER TABLE mastodon_post_templates RENAME TO social_media_post_templates;
 ALTER TABLE social_media_post_templates ADD COLUMN platforms text[] NOT NULL DEFAULT ARRAY['mastodon']::text[];
@@ -103,18 +111,21 @@ Existing columns (unchanged):
 `id, platform (enum), label, instanceUrl, username, accessToken, visibility, isActive, createdAt, updatedAt`
 
 Plan 2 modifications:
+
 - `platform` enum gains value `'bluesky'`.
 - Add `handle text` — BlueSky handle, e.g. `lmaa.bsky.social`. Nullable; required for `platform = 'bluesky'` rows (app-layer Zod refinement).
 - Add `maxPostCharacters int NOT NULL` — character cap enforced before sending. Backfill: existing Mastodon rows default to 500.
 - Add UNIQUE constraint on `(platform)` so at most one row exists per platform value.
 
 Per-platform meaning of existing columns:
+
 - `instanceUrl` — Mastodon instance URL (e.g. `https://mastodon.social`); unused for BlueSky (always `https://bsky.social` at runtime).
 - `username` — Mastodon username; for BlueSky may be a display name or empty (handle is canonical).
 - `accessToken` — Mastodon OAuth bearer token; for BlueSky the App-Password (`xxxx-xxxx-xxxx-xxxx`). Stored plain, matching the existing Mastodon precedent (no encryption-at-rest in this scope).
 - `visibility` — Mastodon-only; null for BlueSky rows.
 
 Migration:
+
 ```sql
 -- pre-condition: at most one Mastodon account currently exists.
 -- If `SELECT count(*) FROM social_media_accounts WHERE platform = 'mastodon'` > 1,
@@ -152,22 +163,24 @@ Because at most one account per platform exists, the table holds at most two row
 
 ### 4.1 Plan 1 — Renames & Generalisation
 
-| Old | New |
-|---|---|
+| Old                                                        | New                                                            |
+| ---------------------------------------------------------- | -------------------------------------------------------------- |
 | `apps/backend/src/routes/admin/mastodon-post-templates.ts` | `apps/backend/src/routes/admin/social-media-post-templates.ts` |
 | `apps/backend/src/repositories/mastodon-post-templates.ts` | `apps/backend/src/repositories/social-media-post-templates.ts` |
-| `apps/backend/src/services/mastodon-post-templates.ts` | `apps/backend/src/services/social-media-post-templates.ts` |
-| `packages/contracts/src/admin-mastodon.ts` (template part) | `packages/contracts/src/admin-social-media-templates.ts` |
+| `apps/backend/src/services/mastodon-post-templates.ts`     | `apps/backend/src/services/social-media-post-templates.ts`     |
+| `packages/contracts/src/admin-mastodon.ts` (template part) | `packages/contracts/src/admin-social-media-templates.ts`       |
 
 Account-related Zod schemas and routes (`mastodonAccountCreateSchema`, `/admin/social-media/mastodon/accounts/*`) remain Mastodon-specific and stay in `admin-mastodon.ts` / `social-media-accounts.ts`.
 
 The Mastodon posting service (`apps/backend/src/services/mastodon.ts`) reads `template.bodyMastodon` instead of `template.bodyText` after Plan 1. Internal iteration over active Mastodon accounts is unchanged in this plan.
 
 Route paths:
+
 - `/admin/mastodon-post-templates` → `/admin/social-media-post-templates`
 - `/admin/mastodon-post-templates/:id` → `/admin/social-media-post-templates/:id`
 
 Approve payload:
+
 - `mastodonTemplateId` → `templateId` (semantic generalisation, single value, behaviour unchanged in Plan 1).
 
 ### 4.2 Plan 2 — BlueSky Service & Per-Account Approve
@@ -193,6 +206,7 @@ async function postToBlueskyAccount(account, body) {
 ```
 
 Behaviour notes:
+
 - Login is performed per send (no in-memory session cache). If profiling reveals this as a hotspot, a per-process session cache keyed by `accountId` with TTL just under the JWT lifetime can be added.
 - `RichText.detectFacets` covers links, mentions, and hashtags via UTF-8 byte offsets.
 - Errors flow through `recordBackgroundError` analogously to `mastodon.ts`.
@@ -204,13 +218,13 @@ Behaviour notes:
 
 #### Routes
 
-| Method | Path | Notes |
-|---|---|---|
-| GET | `/admin/social-media/bluesky/accounts` | list |
-| POST | `/admin/social-media/bluesky/accounts` | create — runs validator before insert |
-| PUT | `/admin/social-media/bluesky/accounts/:id` | update — runs validator if `accessToken` changed |
-| DELETE | `/admin/social-media/bluesky/accounts/:id` | delete |
-| GET | `/admin/me/template-choices` | returns `Record<accountId, templateId | null>` for the calling admin |
+| Method | Path                                       | Notes                                            |
+| ------ | ------------------------------------------ | ------------------------------------------------ |
+| GET    | `/admin/social-media/bluesky/accounts`     | list                                             |
+| POST   | `/admin/social-media/bluesky/accounts`     | create — runs validator before insert            |
+| PUT    | `/admin/social-media/bluesky/accounts/:id` | update — runs validator if `accessToken` changed |
+| DELETE | `/admin/social-media/bluesky/accounts/:id` | delete                                           |
+| GET    | `/admin/me/template-choices`               | returns `Record<accountId, templateId            | null>` for the calling admin |
 
 Repos: separate `mastodon-accounts.ts` and `bluesky-accounts.ts` for readability, both writing to the same `socialMediaAccounts` table with a `platform` predicate. The create routes return 409 Conflict if an account already exists for the platform (DB UNIQUE constraint translated by the route handler into a structured error).
 
@@ -227,6 +241,7 @@ Repos: separate `mastodon-accounts.ts` and `bluesky-accounts.ts` for readability
 ```
 
 Algorithm when `status === "approved"`:
+
 1. Validate that every `accountId` in `templateAssignments` refers to a configured (existing) social-media account belonging to a platform that has at most one account (it does, by UNIQUE constraint).
 2. For each assignment with `templateId !== null`:
    a. Fetch account and template.
@@ -248,20 +263,24 @@ Backwards compatibility: if a future client sends only `templateId` (the Plan 1 
 ### 5.1 Plan 1 — UI Renames
 
 File renames mirror the backend and contracts:
+
 - `apps/dashboard/src/features/templates/mastodon-post-templates/` → `apps/dashboard/src/features/templates/social-media-post-templates/`
 - Hook file and exported names: `useMastodonPostTemplates*` → `useSocialMediaPostTemplates*`
 - Page components: `MastodonPostTemplate{List,Edit}Page` → `SocialMediaPostTemplate{List,Edit}Page`
 
 Sidebar (`apps/dashboard/src/components/layout/Sidebar.tsx`):
+
 - Storage key `sidebar-mastodon-post-templates-open` → `sidebar-social-media-post-templates-open` (one-time loss of expanded/collapsed state for users — accepted).
 - Routes `/mastodon-post-templates` and `/mastodon-post-templates/:id` → `/social-media-post-templates` and `/social-media-post-templates/:id`.
 
 Templates editor (Plan 1 view):
+
 - New form section "Available on" with checkbox group containing only `[☑ Mastodon]`, marked as `checked + disabled` to reserve the visual real estate.
 - Body field labelled "Mastodon body", 500-char counter (single source — no dynamic minimum yet).
 - Submit payload: `{ name, platforms: ["mastodon"], bodyMastodon }`.
 
 Approve dialog (`SubmissionDialogs.tsx`) Plan 1:
+
 - Template select label updated; payload key sent as `templateId` instead of `mastodonTemplateId`.
 - No structural UI change otherwise.
 
@@ -283,6 +302,7 @@ Approve dialog (`SubmissionDialogs.tsx`) Plan 1:
 #### Social media accounts page
 
 `SocialMediaAccountsPage` is reorganised into two stacked sections, each rendering a singleton-or-empty state:
+
 - **Mastodon section** — when no account exists: empty placeholder with "Add Mastodon account" CTA. When configured: a single row showing label, instance URL, username, isActive toggle, edit and delete actions; no "Add another" button.
 - **BlueSky section** — same shape, with handle and isActive toggle. When configured, no "Add another" button.
 
@@ -303,6 +323,7 @@ BlueSky  · @lmaa.bsky.social      [▾  Welcome-BlueSky         ]
 ```
 
 Behaviour:
+
 - At most two rows: one for the Mastodon account (if configured and active) and one for the BlueSky account (if configured and active). When neither is configured, the section is omitted entirely.
 - Each select's options are templates whose `platforms` includes the platform of the row, plus the "— Kein Post —" entry as the first option.
 - Default selection comes from `GET /admin/me/template-choices`. Missing or stale entries (template deleted, or template no longer covers this account's platform) fall back to "— Kein Post —" with an inline hint when stale: `"Letzte Auswahl ist nicht mehr für diesen Account verfügbar."`
@@ -312,6 +333,7 @@ Behaviour:
 #### i18n
 
 New keys (Plan 2):
+
 - `socialMediaTemplates.platforms.mastodon`, `.bluesky`
 - `socialMediaTemplates.bodyMastodon`, `.bodyBluesky`
 - `socialMediaTemplates.counter.limitedBy`
@@ -326,11 +348,13 @@ New keys (Plan 2):
 ## 6. Testing
 
 ### Plan 1 tests
+
 - Updated `admin-mastodon-post-templates-routes.test.ts` (renamed) covering CRUD with the new `platforms` + `bodyMastodon` fields. Negative cases: empty `platforms`, `platforms = ['mastodon']` without `bodyMastodon`, name conflict on rename.
 - Updated `mastodon-service.test.ts` reading `bodyMastodon` from the new schema; existing variable-substitution and rate-limit cases retained.
 - Migration smoke test: count parity before/after, existing `isSystemTemplate` flag preserved.
 
 ### Plan 2 tests
+
 - `bluesky-account-validator.test.ts`: success path, invalid credentials, network failure (mocked `AtpAgent`).
 - `bluesky-service.test.ts`: send success including facet detection for a body containing a URL; rate-limit hit; pre-send length-cap rejection.
 - `admin-bluesky-accounts-routes.test.ts`: CRUD, validator integration on create/update, 409 on second-account-for-platform attempt.
@@ -340,6 +364,7 @@ New keys (Plan 2):
 - Sticky-choice tests: upsert during approve, read via `/admin/me/template-choices`, stale-handling when template is deleted (FK SET NULL → UI shows "no post"), reset when the account is deleted and recreated (FK CASCADE clears the row).
 
 ### Manual verification gates
+
 - After Plan 1 merge: approve a real submission against the staging environment; confirm the Mastodon post lands identically to before.
 - After Plan 2 merge: add a BlueSky account, create a multi-platform template, approve a submission, confirm both posts land. Verify sticky pre-selection on the next approve dialog.
 
@@ -361,18 +386,18 @@ New keys (Plan 2):
 
 Code references that this design depends on, verified against the repo at design time:
 
-| Reference | Verified at | Path |
-|---|---|---|
-| `mastodonPostTemplates` table | `apps/backend/src/db/schema.ts` lines 613–623 | DB schema |
-| `socialMediaAccounts` table with `platform` enum | `apps/backend/src/db/schema.ts` lines 580–608 | DB schema |
-| `adminUsers` table + `requireAdmin` middleware | `apps/backend/src/db/schema.ts` line 186 + `apps/backend/src/middleware/auth.ts` | auth layer |
-| `sendMastodonApprovalPost` posting entry-point | `apps/backend/src/services/mastodon.ts` lines 121–163 | posting pipeline |
-| `reviewAdminSubmission` approve handler | `apps/backend/src/services/admin-submissions.ts` lines 49–100 | approve pipeline |
-| Existing Mastodon route `/admin/social-media/mastodon/accounts` | `apps/backend/src/routes/admin/social-media-accounts.ts` | routing |
-| Existing Mastodon-template route `/admin/mastodon-post-templates` | `apps/backend/src/routes/admin/mastodon-post-templates.ts` | routing |
-| `MASTODON_POST_TEMPLATE_VARIABLES` constant | `packages/contracts/src/admin-mastodon.ts` lines 7–20 | template variables |
-| `SubmissionDialogs.tsx` MastodonTemplateSelect (lines 390–397, 443–475) | `apps/dashboard/src/features/overview/SubmissionDialogs.tsx` | approve dialog |
-| Sidebar group key `sidebar-mastodon-post-templates-open` | `apps/dashboard/src/components/layout/Sidebar.tsx` lines 340–375 | sidebar state |
+| Reference                                                               | Verified at                                                                      | Path               |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------ |
+| `mastodonPostTemplates` table                                           | `apps/backend/src/db/schema.ts` lines 613–623                                    | DB schema          |
+| `socialMediaAccounts` table with `platform` enum                        | `apps/backend/src/db/schema.ts` lines 580–608                                    | DB schema          |
+| `adminUsers` table + `requireAdmin` middleware                          | `apps/backend/src/db/schema.ts` line 186 + `apps/backend/src/middleware/auth.ts` | auth layer         |
+| `sendMastodonApprovalPost` posting entry-point                          | `apps/backend/src/services/mastodon.ts` lines 121–163                            | posting pipeline   |
+| `reviewAdminSubmission` approve handler                                 | `apps/backend/src/services/admin-submissions.ts` lines 49–100                    | approve pipeline   |
+| Existing Mastodon route `/admin/social-media/mastodon/accounts`         | `apps/backend/src/routes/admin/social-media-accounts.ts`                         | routing            |
+| Existing Mastodon-template route `/admin/mastodon-post-templates`       | `apps/backend/src/routes/admin/mastodon-post-templates.ts`                       | routing            |
+| `MASTODON_POST_TEMPLATE_VARIABLES` constant                             | `packages/contracts/src/admin-mastodon.ts` lines 7–20                            | template variables |
+| `SubmissionDialogs.tsx` MastodonTemplateSelect (lines 390–397, 443–475) | `apps/dashboard/src/features/overview/SubmissionDialogs.tsx`                     | approve dialog     |
+| Sidebar group key `sidebar-mastodon-post-templates-open`                | `apps/dashboard/src/components/layout/Sidebar.tsx` lines 340–375                 | sidebar state      |
 
 Implementation plans must re-verify each of these references at plan-write time and again at plan-execute time per `~/.claude/rules/plan-verification.md`.
 

@@ -1,5 +1,3 @@
-import { hashAdminInviteToken } from "./admin-invite.js";
-import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from "./auth.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
 import { failure, success } from "../lib/result.js";
 import {
@@ -11,6 +9,8 @@ import {
   findAdminByUsername,
   getAdminCount,
 } from "../repositories/admin-auth.js";
+import { hashAdminInviteToken } from "./admin-invite.js";
+import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from "./auth.js";
 
 /**
  * Input payload for initial owner setup.

@@ -9,7 +9,6 @@ import type {
 } from "@lmaa/contracts";
 import { encodeShopToken } from "@lmaa/shared";
 
-import { findMatchingDomainAlertRule } from "./domain-alert-rules.js";
 import { env } from "../config/env.js";
 import { UNKNOWN_CLIENT_IP } from "../lib/client-ip.js";
 import { equalsInConstantTime } from "../lib/constant-time.js";
@@ -50,6 +49,7 @@ import {
   searchPublicShops,
   setShopLikeState,
 } from "../repositories/public.js";
+import { findMatchingDomainAlertRule } from "./domain-alert-rules.js";
 
 const NUMERIC_REJECTED_SHOP_PAGE_SIZES = new Set([10, 15, 20, 30, 50]);
 

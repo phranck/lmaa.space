@@ -1,7 +1,7 @@
-import { recordBackgroundError } from "./background-errors.js";
 import { env } from "../config/env.js";
 import { isEmailRecipient } from "../lib/email-address.js";
 import { logger } from "../lib/logger.js";
+import { recordBackgroundError } from "./background-errors.js";
 
 /**
  * SMTP2GO send endpoint. The EU host keeps message processing and data within

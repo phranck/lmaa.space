@@ -181,7 +181,6 @@ export default function SupportPromptSlot({
     trackWebsiteEvent("support-prompt-shown", { prompt: prompt.name, id: prompt.id, slot });
   }, [prompts, limits, liveIds, devAlwaysShow, slot, shopSlug]);
 
-
   if (!shown) return null;
   const visible = shown.prompt;
 

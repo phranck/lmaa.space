@@ -200,7 +200,9 @@ describe("getDonationBreakdown", () => {
     });
 
     it("files a route the contract no longer lists under `other`", async () => {
-      listDonationProviders.mockResolvedValue([{ provider: "carrierpigeon", cents: 700, count: 1 }]);
+      listDonationProviders.mockResolvedValue([
+        { provider: "carrierpigeon", cents: 700, count: 1 },
+      ]);
 
       const result = await getDonationBreakdown({}, "2026-09-02");
 

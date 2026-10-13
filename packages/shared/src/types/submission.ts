@@ -1,7 +1,7 @@
-import type { ShopCheckNotes, ShopHeadquarters } from "./shop.js";
 import type { RegionCode, SubmissionReviewStatus, SubmissionStatus } from "../constants/domain.js";
 import type { PaymentMethodKey } from "../constants/payment-methods.js";
 import type { SocialMediaLinks } from "../utils/social-media.js";
+import type { ShopCheckNotes, ShopHeadquarters } from "./shop.js";
 
 /**
  * Re-exported submission status unions from domain constants.

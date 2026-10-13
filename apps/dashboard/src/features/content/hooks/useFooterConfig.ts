@@ -35,6 +35,9 @@ export function useSaveFooterConfig() {
 export function useFooterPreview() {
   return useMutation({
     mutationFn: (config: FooterConfig) =>
-      api.post<{ token: string; expiresAt: string }>("/admin/footer-config/preview-sessions", config),
+      api.post<{ token: string; expiresAt: string }>(
+        "/admin/footer-config/preview-sessions",
+        config,
+      ),
   });
 }

@@ -76,17 +76,13 @@ actingRoutes.post("/authorize", async (c) => {
 // Spends the return from the bank. The code is exchanged here rather than in
 // the dashboard, because the key that signs the exchange is here and nowhere
 // else.
-actingRoutes.post(
-  "/session",
-  validate("json", bankConnectionCallbackSchema),
-  async (c) => {
-    if (!isEnableBankingConfigured()) {
-      return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
-    }
-    const { code, state } = c.req.valid("json");
-    return ok(c, await completeBankAuthorization(code, state));
-  },
-);
+actingRoutes.post("/session", validate("json", bankConnectionCallbackSchema), async (c) => {
+  if (!isEnableBankingConfigured()) {
+    return fail(c, 503, "The bank connection is not configured", "bank_not_configured");
+  }
+  const { code, state } = c.req.valid("json");
+  return ok(c, await completeBankAuthorization(code, state));
+});
 
 // DELETE /api/v1/admin/bank-connection
 //

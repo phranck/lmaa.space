@@ -119,7 +119,8 @@ export function createNetworkRequestError(
       break;
     case "network":
       code = API_ERROR_CODE_NETWORK_LOST;
-      message = "Network connection to the server was lost. Please check your connection and try again.";
+      message =
+        "Network connection to the server was lost. Please check your connection and try again.";
       break;
   }
   const error = new Error(message, cause !== undefined ? { cause } : undefined) as ApiRequestError;

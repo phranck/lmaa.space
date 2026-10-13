@@ -2,11 +2,11 @@ import { sql } from "drizzle-orm";
 
 import type { ShopCategory } from "@lmaa/shared";
 
-import type { CategoryShopRow } from "./public.js";
 import { db } from "../db/client.js";
 import { geocode } from "../lib/geocoding.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
 import { parseCountryFilter, parseRegionFilter } from "../lib/shop-filters.js";
+import type { CategoryShopRow } from "./public.js";
 
 /**
  * Public shop row enriched with geo coordinates from headquarters.

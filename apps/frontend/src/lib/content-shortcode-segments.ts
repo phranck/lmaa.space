@@ -396,7 +396,9 @@ function readBankAccount(ladder: ParsedMarkdownShortcode): SupportLadderBankAcco
       recommended,
       icon: getStringParam(child.params.icon)?.trim() || undefined,
       qr: readQrStyle(child),
-      info: unescapeText(getStringParam(childrenOf(child, "info")[0]?.params.text)?.trim() ?? "") || undefined,
+      info:
+        unescapeText(getStringParam(childrenOf(child, "info")[0]?.params.text)?.trim() ?? "") ||
+        undefined,
       sponsorForm: readSponsorForm(child),
     });
   }

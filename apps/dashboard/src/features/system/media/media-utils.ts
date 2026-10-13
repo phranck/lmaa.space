@@ -71,8 +71,6 @@ export function formatBytes(
   return `${formatter.format(bytes / (1024 * 1024))} MB`;
 }
 
-
-
 export function getMediaTypeLabel(asset: MediaAsset) {
   if (isHlsBundleAsset(asset)) return "HLS";
 

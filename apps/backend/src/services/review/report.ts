@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 
 import type { ReviewAttemptRecord, ReviewCost, ReviewUsage } from "@lmaa/shared";
 
-import type { ReviewSettings } from "./settings.js";
 import { env } from "../../config/env.js";
 import type { ReviewJobRow } from "../../db/schema.js";
 import { logger } from "../../lib/logger.js";
@@ -11,6 +10,7 @@ import { getEmailTemplateById } from "../../repositories/email-templates.js";
 import { getSubmissionForReview } from "../../repositories/review-jobs.js";
 import { renderEmailTemplate } from "../email-renderer.js";
 import { sendMail } from "../email.js";
+import type { ReviewSettings } from "./settings.js";
 
 /**
  * Result of one delivery attempt.

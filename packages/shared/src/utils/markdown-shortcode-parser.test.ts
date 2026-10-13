@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { parseMarkdownShortcodes } from "./markdown-shortcode-parser.js";
 import { MARKDOWN_SHORTCODE_TOKENS } from "../markdown-shortcodes/index.js";
+import { parseMarkdownShortcodes } from "./markdown-shortcode-parser.js";
 
 describe("parseMarkdownShortcodes", () => {
-
   it("resolves a child against the parent definition rather than the document", () => {
     const content = [
       "[[support-ladder",
@@ -30,7 +29,7 @@ describe("parseMarkdownShortcodes", () => {
   it("does not resolve a child token at the top level", () => {
     // "option" is meaningful inside "interval" and nowhere else, so a stray one
     // in the page body is left alone rather than parsed.
-    expect(parseMarkdownShortcodes('[[option amount=5]]')).toHaveLength(0);
+    expect(parseMarkdownShortcodes("[[option amount=5]]")).toHaveLength(0);
   });
 
   it("accepts label and description as aliases of title and text", () => {
@@ -58,7 +57,7 @@ describe("parseMarkdownShortcodes", () => {
   });
 
   it("stops at the first closing pair rather than running on", () => {
-    const content = '[[image:/uploads/a.png]] text [[image:/uploads/b.png]]';
+    const content = "[[image:/uploads/a.png]] text [[image:/uploads/b.png]]";
     const found = parseMarkdownShortcodes(content);
     expect(found).toHaveLength(2);
     expect(found[0].target).toBe("/uploads/a.png");
@@ -69,11 +68,9 @@ describe("parseMarkdownShortcodes", () => {
     // Newlines are allowed inside a shortcode, so without a length cap this
     // stray "[[" would reach the closing pair far below and consume the prose
     // in between.
-    const content = [
-      "[[image:/uploads/a.png",
-      "x".repeat(8100),
-      "[[image:/uploads/b.png]]",
-    ].join("\n");
+    const content = ["[[image:/uploads/a.png", "x".repeat(8100), "[[image:/uploads/b.png]]"].join(
+      "\n",
+    );
 
     const found = parseMarkdownShortcodes(content);
     expect(found).toHaveLength(1);

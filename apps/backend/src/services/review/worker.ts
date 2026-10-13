@@ -5,16 +5,6 @@ import { REVIEW_RESULT_SCHEMA_VERSION, reviewResultSchema } from "@lmaa/contract
 import type { ReviewResult } from "@lmaa/contracts";
 import type { ReviewAttemptRecord, ReviewCost, ReviewJobState, ReviewVerdict } from "@lmaa/shared";
 
-import { applyReviewResult } from "./apply.js";
-import { MissingAdmissionCriteriaError, loadReviewRunContext } from "./context.js";
-import { createReviewProvider } from "./factory.js";
-import { collectPaymentEvidence } from "./payment-evidence.js";
-import type { ReviewProvider, ReviewProviderOutcome } from "./provider.js";
-import { sendReviewReport } from "./report.js";
-import { loadReviewSettings } from "./settings.js";
-import type { ReviewSettings } from "./settings.js";
-import { loadReviewSkill } from "./skill.js";
-import { applyRepairedTexts, collectRepairableTexts } from "./text-repair.js";
 import { db } from "../../db/client.js";
 import type { ReviewJobRow } from "../../db/schema.js";
 import { logger } from "../../lib/logger.js";
@@ -35,6 +25,16 @@ import {
   transitionReviewJob,
 } from "../../repositories/review-jobs.js";
 import { recordBackgroundError } from "../background-errors.js";
+import { applyReviewResult } from "./apply.js";
+import { MissingAdmissionCriteriaError, loadReviewRunContext } from "./context.js";
+import { createReviewProvider } from "./factory.js";
+import { collectPaymentEvidence } from "./payment-evidence.js";
+import type { ReviewProvider, ReviewProviderOutcome } from "./provider.js";
+import { sendReviewReport } from "./report.js";
+import { loadReviewSettings } from "./settings.js";
+import type { ReviewSettings } from "./settings.js";
+import { loadReviewSkill } from "./skill.js";
+import { applyRepairedTexts, collectRepairableTexts } from "./text-repair.js";
 
 /** How often the worker looks for work. */
 const TICK_INTERVAL_MS = 30_000;

@@ -167,7 +167,7 @@ describe("parseContentShortcodeSegments", () => {
 
   it("drops a tab that offers neither an amount nor a field", () => {
     const [segment] = parseContentShortcodeSegments(
-      ['[[support-ladder', '  [[interval key="sponsor" label="Sponsor werden"]]', "]]"].join("\n"),
+      ["[[support-ladder", '  [[interval key="sponsor" label="Sponsor werden"]]', "]]"].join("\n"),
     );
 
     expect(segment).toMatchObject({ type: "markdown" });

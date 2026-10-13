@@ -86,9 +86,7 @@ describe("post-context", () => {
       ).toBe("submission:42");
     });
     it("returns category key", () => {
-      expect(idempotencyEntityKey({ kind: "category", category: baseCategory })).toBe(
-        "category:7",
-      );
+      expect(idempotencyEntityKey({ kind: "category", category: baseCategory })).toBe("category:7");
     });
   });
 });

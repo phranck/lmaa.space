@@ -2,13 +2,6 @@ import { randomBytes } from "node:crypto";
 
 import type { BankAuthorizationStart, BankConnectionStatus } from "@lmaa/contracts";
 
-import { nextBackgroundReadAt } from "./bank-read-schedule.js";
-import {
-  closeSession,
-  createSession,
-  isEnableBankingConfigured,
-  startAuthorization,
-} from "./enable-banking-client.js";
 import { env } from "../config/env.js";
 import type { BankAccountReadRow, BankConnectionRow } from "../db/schema.js";
 import { HttpError } from "../lib/http.js";
@@ -21,6 +14,13 @@ import {
   takeAuthorizationState,
 } from "../repositories/bank-connections.js";
 import { getLastBankRead } from "../repositories/bank-reads.js";
+import { nextBackgroundReadAt } from "./bank-read-schedule.js";
+import {
+  closeSession,
+  createSession,
+  isEnableBankingConfigured,
+  startAuthorization,
+} from "./enable-banking-client.js";
 
 /**
  * How many random bytes the value carried through the return is made of.

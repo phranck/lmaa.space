@@ -96,7 +96,12 @@ interface FocalPointOverlayProps {
  * Horizontal line with drag handle that indicates and controls the vertical
  * focal point of an image. Render inside a `position: relative` container.
  */
-export function FocalPointOverlay({ focalY, onKeyDown, onMouseDown, title }: FocalPointOverlayProps) {
+export function FocalPointOverlay({
+  focalY,
+  onKeyDown,
+  onMouseDown,
+  title,
+}: FocalPointOverlayProps) {
   return (
     <div
       role="slider"

@@ -137,17 +137,14 @@ describe("shortcodeLineDepth", () => {
 
 describe("reindentShortcodeBlock", () => {
   it("indents a flat block by its own structure and the level it lands on", () => {
-    const block = ['[[hstack spacing=8 {', '[[icon name="heart" size=24]]', "daneben", "}]]"].join(
+    const block = ["[[hstack spacing=8 {", '[[icon name="heart" size=24]]', "daneben", "}]]"].join(
       "\n",
     );
 
     expect(reindentShortcodeBlock(block, 1)).toBe(
-      [
-        "  [[hstack spacing=8 {",
-        '    [[icon name="heart" size=24]]',
-        "    daneben",
-        "  }]]",
-      ].join("\n"),
+      ["  [[hstack spacing=8 {", '    [[icon name="heart" size=24]]', "    daneben", "  }]]"].join(
+        "\n",
+      ),
     );
   });
 
@@ -210,7 +207,9 @@ describe("shortcodePasteRewrite", () => {
   it("indents a multi-line block by its own structure", () => {
     const block = '[[hstack {\n[[icon name="heart"]]\ndaneben\n}]]';
     expect(applied("[[vstack {\n", block)).toBe(
-      ['[[vstack {', "  [[hstack {", '    [[icon name="heart"]]', "    daneben", "  }]]"].join("\n"),
+      ["[[vstack {", "  [[hstack {", '    [[icon name="heart"]]', "    daneben", "  }]]"].join(
+        "\n",
+      ),
     );
   });
 

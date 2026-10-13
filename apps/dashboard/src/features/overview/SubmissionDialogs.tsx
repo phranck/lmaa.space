@@ -45,9 +45,7 @@ interface SubmissionDialogsProps {
   reviewState: ReviewState;
   dispatchReview: React.Dispatch<ReviewAction>;
   reviewMutation: ReturnType<typeof useReviewSubmission>;
-  rejectMutation:
-    | ReturnType<typeof useReviewSubmission>
-    | ReturnType<typeof useEditRejectionText>;
+  rejectMutation: ReturnType<typeof useReviewSubmission> | ReturnType<typeof useEditRejectionText>;
   deleteMutation: ReturnType<typeof useDeleteSubmission>;
   emailTemplates: Array<{ id: number; name: string }>;
   templates: SocialMediaPostTemplate[];

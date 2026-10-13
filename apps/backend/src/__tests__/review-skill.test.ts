@@ -78,7 +78,9 @@ describe("loadReviewSkill", () => {
     // the `m` flag stops at a line break and one ending in `\\Z` matches a
     // literal Z. Either would leave the last section of a file in place, which
     // no fixture in this repository would notice.
-    const trimmed = toAutomationRules("## Procedure\n\nbleibt.\n\n## Prerequisites\n\nfliegt raus.\n");
+    const trimmed = toAutomationRules(
+      "## Procedure\n\nbleibt.\n\n## Prerequisites\n\nfliegt raus.\n",
+    );
     expect(trimmed).toContain("bleibt.");
     expect(trimmed).not.toContain("fliegt raus.");
   });

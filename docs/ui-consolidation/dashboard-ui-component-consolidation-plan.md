@@ -136,16 +136,16 @@ const controlSize = {
 
 ## Explizite Ausnahmen
 
-| Ausnahme           | Erlaubte Abweichung        | Bedingung                                                                  |
-| ------------------ | -------------------------- | -------------------------------------------------------------------------- |
-| Action-Buttons     | `h-8`/`size-8`             | nur fuer echte Dashboard-Actions aus dem Action-Katalog                    |
-| Compact Controls   | `h-8`                      | Table Header, Toolbar, kleine Header-AddOns, explizit per `size="compact"` |
-| Large Controls     | `h-9`                      | Auth-/Setup-Submit, grosse Form-Entry-Screens, explizit per `size="large"` |
-| Textareas/Editoren | keine fixe `h-8`           | rows/minRows/Editor-Height bestimmen die Flaeche                           |
-| Kalender-Tage      | `w-9 h-9`                  | Date-Picker Grid, wegen Trefferflaeche                                     |
-| IconPicker Grid    | `size-8` oder `size-9`     | explizite Icon-Erkennbarkeit, kein allgemeiner Button-Default              |
-| Drag-Overlay       | objektabhaengig            | Overlay kopiert Karten-/Listenhoehe, nicht Handle-Hoehe                    |
-| Hidden Inputs      | keine visuelle Hoehe       | sichtbarer Trigger folgt Button- oder Field-Primitive                      |
+| Ausnahme           | Erlaubte Abweichung    | Bedingung                                                                  |
+| ------------------ | ---------------------- | -------------------------------------------------------------------------- |
+| Action-Buttons     | `h-8`/`size-8`         | nur fuer echte Dashboard-Actions aus dem Action-Katalog                    |
+| Compact Controls   | `h-8`                  | Table Header, Toolbar, kleine Header-AddOns, explizit per `size="compact"` |
+| Large Controls     | `h-9`                  | Auth-/Setup-Submit, grosse Form-Entry-Screens, explizit per `size="large"` |
+| Textareas/Editoren | keine fixe `h-8`       | rows/minRows/Editor-Height bestimmen die Flaeche                           |
+| Kalender-Tage      | `w-9 h-9`              | Date-Picker Grid, wegen Trefferflaeche                                     |
+| IconPicker Grid    | `size-8` oder `size-9` | explizite Icon-Erkennbarkeit, kein allgemeiner Button-Default              |
+| Drag-Overlay       | objektabhaengig        | Overlay kopiert Karten-/Listenhoehe, nicht Handle-Hoehe                    |
+| Hidden Inputs      | keine visuelle Hoehe   | sichtbarer Trigger folgt Button- oder Field-Primitive                      |
 
 ## Migrationsplan
 

@@ -10,18 +10,16 @@ export const DOMAIN_ALERT_DOMAINS_MAX_LENGTH = 4000;
 export const DOMAIN_ALERT_MESSAGE_MAX_LENGTH = 5000;
 
 function normalizeDomainAlertDomain(input: string): string {
-  const withoutScheme = input.trim().toLowerCase().replace(/^https?:\/\//, "");
+  const withoutScheme = input
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "");
   const host = withoutScheme.split(/[/?#]/, 1)[0] ?? "";
   return host.replace(/^\.+|\.+$/g, "");
 }
 
 function isLikelyDomain(value: string): boolean {
-  return (
-    value.length > 0 &&
-    value.length <= 253 &&
-    value.includes(".") &&
-    !/[\s:]/.test(value)
-  );
+  return value.length > 0 && value.length <= 253 && value.includes(".") && !/[\s:]/.test(value);
 }
 
 /**

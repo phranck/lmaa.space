@@ -71,7 +71,9 @@ async function loadInitialRejectedShopsData(
  * Titles, labels and button captions are left as plain text, because a heading
  * inside a heading is not a thing anybody wants.
  */
-async function renderSupportLadderProse(segment: SupportLadderIsland): Promise<SupportLadderIsland> {
+async function renderSupportLadderProse(
+  segment: SupportLadderIsland,
+): Promise<SupportLadderIsland> {
   const [intervals, variants, routes] = await Promise.all([
     Promise.all(
       segment.intervals.map(async (interval) => ({

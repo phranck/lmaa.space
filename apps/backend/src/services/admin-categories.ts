@@ -1,8 +1,5 @@
 import type { TemplateAssignment } from "@lmaa/contracts";
 
-import { dispatchTemplateAssignments } from "./dispatch-template-assignments.js";
-import type { PostContext } from "./post-context.js";
-import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 import { processImageUpload } from "../lib/image-upload.js";
 import { failure, success } from "../lib/result.js";
 import {
@@ -12,7 +9,13 @@ import {
   setAdminCategoryImage,
   setAdminCategoryUnsplashImage,
 } from "../repositories/admin-categories.js";
-import { updateUnsplashImageLocation, upsertUnsplashImage } from "../repositories/unsplash-images.js";
+import {
+  updateUnsplashImageLocation,
+  upsertUnsplashImage,
+} from "../repositories/unsplash-images.js";
+import { dispatchTemplateAssignments } from "./dispatch-template-assignments.js";
+import type { PostContext } from "./post-context.js";
+import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 
 /**
  * Uploads and normalizes a category hero image.

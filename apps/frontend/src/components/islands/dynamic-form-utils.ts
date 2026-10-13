@@ -9,7 +9,13 @@ export interface DynamicFormMultiSelectState {
   staticMultiSelects: Record<string, string[]>;
 }
 
-const NON_SUBMIT_FIELD_TYPES = new Set(["richtext", "button", "headline", "separator", "paragraph"]);
+const NON_SUBMIT_FIELD_TYPES = new Set([
+  "richtext",
+  "button",
+  "headline",
+  "separator",
+  "paragraph",
+]);
 
 /**
  * Returns the backend submission key for a field.

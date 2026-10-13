@@ -1,4 +1,3 @@
-import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 import type { HeroImage } from "../db/schema.js";
 import { getSetting, putSetting } from "../repositories/app-settings.js";
 import {
@@ -14,6 +13,7 @@ import {
   updateUnsplashImageLocation,
   upsertUnsplashImage,
 } from "../repositories/unsplash-images.js";
+import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 
 export type { HeroImage };
 

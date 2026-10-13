@@ -9,8 +9,6 @@ import {
   type SocialMediaPlatformKey,
 } from "@lmaa/contracts";
 
-import { verifyBlueskyCredentials } from "./bluesky-account-validator.js";
-import { verifyMastodonCredentials } from "./mastodon-account-validator.js";
 import type {
   SocialMediaAccount as SocialMediaAccountRow,
   SocialMediaAccountInsert,
@@ -26,6 +24,8 @@ import {
   listFooterAccounts,
   updateAccount,
 } from "../repositories/social-media-accounts.js";
+import { verifyBlueskyCredentials } from "./bluesky-account-validator.js";
+import { verifyMastodonCredentials } from "./mastodon-account-validator.js";
 
 const POSTING_PLATFORMS = new Set<SocialMediaPlatformKey>(POSTING_PLATFORM_KEYS);
 

@@ -9,15 +9,13 @@ import { createContext } from "react";
 
 export type OverlayLayerZIndex = number | string;
 
-export const OverlayLayerZIndexContext = createContext<
-	OverlayLayerZIndex | undefined
->(undefined);
+export const OverlayLayerZIndexContext = createContext<OverlayLayerZIndex | undefined>(undefined);
 
 type EscHandler = () => void;
 
 interface OverlayLayer {
-	id: string;
-	onEscape: EscHandler;
+  id: string;
+  onEscape: EscHandler;
 }
 
 const stack: OverlayLayer[] = [];
@@ -25,24 +23,24 @@ let stackSnapshot: string[] = [];
 const listeners = new Set<() => void>();
 
 function syncSnapshot() {
-	stackSnapshot = stack.map((layer) => layer.id);
+  stackSnapshot = stack.map((layer) => layer.id);
 }
 
 function emit() {
-	for (const listener of listeners) listener();
+  for (const listener of listeners) listener();
 }
 
 function handleKeyDown(e: KeyboardEvent) {
-	if (e.key !== "Escape" || stack.length === 0) return;
-	e.stopPropagation();
-	stack[stack.length - 1]?.onEscape();
+  if (e.key !== "Escape" || stack.length === 0) return;
+  e.stopPropagation();
+  stack[stack.length - 1]?.onEscape();
 }
 
 let listening = false;
 
 /** Returns the current snapshot of active overlay IDs in stack order (bottom to top). */
 export function getOverlayStackSnapshot(): string[] {
-	return stackSnapshot;
+  return stackSnapshot;
 }
 
 /**
@@ -52,8 +50,8 @@ export function getOverlayStackSnapshot(): string[] {
  * @returns Unsubscribe function.
  */
 export function subscribeOverlayStack(listener: () => void): () => void {
-	listeners.add(listener);
-	return () => listeners.delete(listener);
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
 /**
@@ -61,39 +59,39 @@ export function subscribeOverlayStack(listener: () => void): () => void {
  * removes it again.
  */
 export function registerOverlay(id: string, onEscape: EscHandler): () => void {
-	stack.push({ id, onEscape });
-	syncSnapshot();
-	emit();
+  stack.push({ id, onEscape });
+  syncSnapshot();
+  emit();
 
-	if (!listening) {
-		window.addEventListener("keydown", handleKeyDown);
-		listening = true;
-	}
+  if (!listening) {
+    window.addEventListener("keydown", handleKeyDown);
+    listening = true;
+  }
 
-	return () => {
-		const idx = stack.findIndex((layer) => layer.id === id);
-		if (idx !== -1) {
-			stack.splice(idx, 1);
-			syncSnapshot();
-			emit();
-		}
+  return () => {
+    const idx = stack.findIndex((layer) => layer.id === id);
+    if (idx !== -1) {
+      stack.splice(idx, 1);
+      syncSnapshot();
+      emit();
+    }
 
-		if (stack.length === 0 && listening) {
-			window.removeEventListener("keydown", handleKeyDown);
-			listening = false;
-		}
-	};
+    if (stack.length === 0 && listening) {
+      window.removeEventListener("keydown", handleKeyDown);
+      listening = false;
+    }
+  };
 }
 
 export function resolveOverlayZIndex(
-	zIndex: OverlayLayerZIndex,
-	offset: number,
+  zIndex: OverlayLayerZIndex,
+  offset: number,
 ): OverlayLayerZIndex {
-	if (offset === 0) {
-		return zIndex;
-	}
-	if (typeof zIndex === "number") {
-		return zIndex + offset;
-	}
-	return `calc(${zIndex} + ${offset})`;
+  if (offset === 0) {
+    return zIndex;
+  }
+  if (typeof zIndex === "number") {
+    return zIndex + offset;
+  }
+  return `calc(${zIndex} + ${offset})`;
 }

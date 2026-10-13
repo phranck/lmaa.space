@@ -14,7 +14,10 @@ import { useCallback, useState } from "react";
  * @param fallback - What holds until somebody decides otherwise.
  * @returns The current answer and a way to change it.
  */
-export function useRememberedFlag(key: string, fallback: boolean): [boolean, (next: boolean) => void] {
+export function useRememberedFlag(
+  key: string,
+  fallback: boolean,
+): [boolean, (next: boolean) => void] {
   const [value, setValue] = useState(() => {
     try {
       const stored = window.localStorage.getItem(key);

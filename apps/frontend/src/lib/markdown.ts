@@ -11,7 +11,6 @@ import {
 
 import { duotonePaths, loadDuotoneIcons } from "@/lib/phosphor-duotone";
 
-
 import {
   escapeHtmlAttribute,
   getSafeConfigHref,

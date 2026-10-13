@@ -3,7 +3,6 @@ import type { ReviewResult } from "@lmaa/contracts";
 import { generateRejectionToken } from "@lmaa/shared";
 import type { ReviewAutoApplyVerdict } from "@lmaa/shared";
 
-import type { ReviewSettings } from "./settings.js";
 import { db } from "../../db/client.js";
 import { categories } from "../../db/schema.js";
 import { geocodeAddress } from "../../lib/geocoding.js";
@@ -11,6 +10,7 @@ import { logger } from "../../lib/logger.js";
 import { mapShopJsonToSubmissionEditData } from "../../lib/shopjson-mapper.js";
 import { editSubmission, setReadyForReview } from "../../repositories/admin-submissions.js";
 import { reviewAdminSubmission } from "../admin-submissions.js";
+import type { ReviewSettings } from "./settings.js";
 
 /**
  * What applying a review result did to the submission.

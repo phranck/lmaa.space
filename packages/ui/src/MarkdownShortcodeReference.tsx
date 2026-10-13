@@ -19,7 +19,9 @@ import {
  * Two kinds share one column because they answer the same question from the
  * writer: what may I put here, and how is it spelt.
  */
-type HelpSelection = { kind: "shortcode"; token: MarkdownShortcodeDefinitionToken } | { kind: "variables" };
+type HelpSelection =
+  | { kind: "shortcode"; token: MarkdownShortcodeDefinitionToken }
+  | { kind: "variables" };
 
 /**
  * How long the copy confirmation stays visible, in milliseconds.
@@ -478,7 +480,6 @@ export function MarkdownShortcodeReference({
   const panelRef = React.useRef<HTMLElement | null>(null);
   const frameRef = React.useRef<HelpFrame | null>(null);
 
-
   // Which shortcode the right column describes. It survives a close and reopen,
   // so somebody who was reading about one finds it again.
   const [selected, setSelected] = React.useState<HelpSelection>({
@@ -487,9 +488,8 @@ export function MarkdownShortcodeReference({
   });
   const shownDefinition =
     selected.kind === "shortcode"
-      ? (MARKDOWN_SHORTCODE_DEFINITIONS.find(
-          (definition) => definition.token === selected.token,
-        ) ?? MARKDOWN_SHORTCODE_DEFINITIONS[0])
+      ? (MARKDOWN_SHORTCODE_DEFINITIONS.find((definition) => definition.token === selected.token) ??
+        MARKDOWN_SHORTCODE_DEFINITIONS[0])
       : null;
 
   // Places the panel on open, from storage or centred.
@@ -667,7 +667,11 @@ export function MarkdownShortcodeReference({
       <div className="lmaa-help-split">
         <ShortcodeList selected={selected} onSelect={setSelected} />
         <div className="lmaa-help-body">
-          {shownDefinition ? <DefinitionEntry definition={shownDefinition} depth={0} /> : <VariableTable />}
+          {shownDefinition ? (
+            <DefinitionEntry definition={shownDefinition} depth={0} />
+          ) : (
+            <VariableTable />
+          )}
         </div>
       </div>
     </aside>,

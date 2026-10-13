@@ -57,15 +57,12 @@ function requestAs(role: string, path: string, init: RequestInit = {}) {
 describe("admin route role checks", () => {
   // Every admin router is mounted at one root, so a check one router registers
   // for all paths runs for every router mounted after it.
-  it.each(["/submissions", "/shops", "/categories"])(
-    "lets a moderator read %s",
-    async (path) => {
-      const response = await requestAs("moderator", path);
+  it.each(["/submissions", "/shops", "/categories"])("lets a moderator read %s", async (path) => {
+    const response = await requestAs("moderator", path);
 
-      expect(response.status).not.toBe(403);
-      expect(response.status).not.toBe(401);
-    },
-  );
+    expect(response.status).not.toBe(403);
+    expect(response.status).not.toBe(401);
+  });
 
   it.each(["/stats", "/form-configs", "/settings/bulk", "/submissions/1/review"])(
     "keeps a moderator out of %s",

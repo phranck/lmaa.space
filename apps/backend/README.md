@@ -50,25 +50,25 @@ Weitere optionale Runtime-Variablen sind in `src/config/env.ts` definiert und we
 
 Die automatisierte Prüfung eingehender Shop-Vorschläge läuft als Hintergrund-Job im Backend. Aus der Umgebung kommt nur der Provider-Schlüssel.
 
-| Variable            | Pflicht | Bedeutung                                                                                                   |
-| ------------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| Variable            | Pflicht | Bedeutung                                                                                                    |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
 | `ANTHROPIC_API_KEY` | ja      | Schlüssel für die Claude-API. Fehlt er, bleibt der Worker stehen und das übrige Backend läuft normal weiter. |
 
 Alles andere sind Systemeinstellungen und stehen im Dashboard unter Einstellungen im Reiter „Automatische Prüfung". Eine Änderung wirkt beim nächsten Durchlauf des Workers, spätestens nach 30 Sekunden, und braucht kein Deployment.
 
-| Einstellung                             | Default         | Bedeutung                                                                                                                                        |
-| --------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Modus                                   | `off`           | `off` nimmt keine Arbeit an. `assist` schreibt das Rechercheergebnis in den Vorschlag und setzt ihn auf „bereit zur Prüfung". |
-| Aufnahmen automatisch freigeben         | aus             | Wirkt nur im Modus `assist`.                                                                                                                     |
-| Ablehnungen automatisch veröffentlichen | aus             | Wirkt nur im Modus `assist`.                                                                                                                     |
-| E-Mail bei automatischer Aufnahme        | keine           | Template, mit dem die Automatik an die vorschlagende Person schreibt. Ohne Template wird nichts versendet. |
-| E-Mail bei automatischer Ablehnung       | keine           | Wie oben, für eine Ablehnung. Der Link zur öffentlichen Begründung steckt im Template. |
+| Einstellung                             | Default         | Bedeutung                                                                                                                              |
+| --------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Modus                                   | `off`           | `off` nimmt keine Arbeit an. `assist` schreibt das Rechercheergebnis in den Vorschlag und setzt ihn auf „bereit zur Prüfung".          |
+| Aufnahmen automatisch freigeben         | aus             | Wirkt nur im Modus `assist`.                                                                                                           |
+| Ablehnungen automatisch veröffentlichen | aus             | Wirkt nur im Modus `assist`.                                                                                                           |
+| E-Mail bei automatischer Aufnahme       | keine           | Template, mit dem die Automatik an die vorschlagende Person schreibt. Ohne Template wird nichts versendet.                             |
+| E-Mail bei automatischer Ablehnung      | keine           | Wie oben, für eine Ablehnung. Der Link zur öffentlichen Begründung steckt im Template.                                                 |
 | Modell                                  | `claude-opus-5` | Zur Auswahl stehen die Modelle, die Anthropic meldet und die eine Prüfung auch ausführen können. Wird an jeder Prüfung mitgeschrieben. |
-| Denktiefe                               | `high`          | Angeboten wird, was das gewählte Modell laut Anbieter annimmt. Claude Sonnet 4.6 kennt zum Beispiel kein `xhigh`. |
-| Versuche je Vorschlag                   | `3`             | Danach endet die Prüfung als zurückgestellt.                                                                                                     |
-| Deckel je Prüfung                       | `2` USD         | Bricht den laufenden Versuch ab.                                                                                                                 |
-| Deckel je Tag                           | `10` USD        | Der Worker nimmt dann keine neuen Vorschläge mehr an.                                                                                            |
-| Bericht nach jeder Prüfung              | aus             | Braucht ein E-Mail-Template und geht an `OWNER_EMAIL`.                                                                                           |
+| Denktiefe                               | `high`          | Angeboten wird, was das gewählte Modell laut Anbieter annimmt. Claude Sonnet 4.6 kennt zum Beispiel kein `xhigh`.                      |
+| Versuche je Vorschlag                   | `3`             | Danach endet die Prüfung als zurückgestellt.                                                                                           |
+| Deckel je Prüfung                       | `2` USD         | Bricht den laufenden Versuch ab.                                                                                                       |
+| Deckel je Tag                           | `10` USD        | Der Worker nimmt dann keine neuen Vorschläge mehr an.                                                                                  |
+| Bericht nach jeder Prüfung              | aus             | Braucht ein E-Mail-Template und geht an `OWNER_EMAIL`.                                                                                 |
 
 Warum die Trennung: ein Schlüssel ist ein Geheimnis und gehört nicht in eine Einstellungstabelle, die im Dashboard lesbar ist. Alles andere ist eine Betriebsentscheidung, die man abends um zehn ändern können muss, ohne zu deployen.
 
@@ -78,9 +78,9 @@ Lokal reicht in `apps/backend/.env.local` der Schlüssel des gewählten Anbieter
 
 Die Seite liest die Zahlungseingänge auf ihrem eigenen Konto über Enable Banking, einen lizenzierten Kontoinformationsdienst. Warum dieser Weg und kein anderer, steht in `docs/adr/0001`.
 
-| Variable                        | Pflicht | Bedeutung                                                                                       |
-| ------------------------------- | ------- | ----------------------------------------------------------------------------------------------- |
-| `ENABLE_BANKING_APPLICATION_ID` | nein    | Die Anwendung, unter der die Seite beim Anbieter geführt wird.                                    |
+| Variable                        | Pflicht | Bedeutung                                                                                          |
+| ------------------------------- | ------- | -------------------------------------------------------------------------------------------------- |
+| `ENABLE_BANKING_APPLICATION_ID` | nein    | Die Anwendung, unter der die Seite beim Anbieter geführt wird.                                     |
 | `ENABLE_BANKING_PRIVATE_KEY`    | nein    | Der private RSA-Schlüssel dieser Anwendung, als PKCS#8-PEM. Signiert jede Anfrage an den Anbieter. |
 
 Beide gehören zusammen. Ist nur eine von beiden gesetzt, bricht der Start ab, statt halb bewaffnet zu laufen. Sind beide leer, bleibt die Funktion aus: `/api/v1/admin/bank-connection` meldet `configured: false`, die beiden anderen Routen antworten mit 503, und der Rest des Backends läuft unverändert.

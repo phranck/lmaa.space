@@ -45,7 +45,9 @@ describe("the stack shortcodes", () => {
   });
 
   it("names the alignment each axis spells its own way", async () => {
-    expect(await renderMarkdown('[[vstack alignment="trailing" { a }]]')).toContain("md-stack--end");
+    expect(await renderMarkdown('[[vstack alignment="trailing" { a }]]')).toContain(
+      "md-stack--end",
+    );
     expect(await renderMarkdown('[[hstack alignment="bottom" { a }]]')).toContain("md-stack--end");
     expect(await renderMarkdown('[[hstack alignment="firstTextBaseline" { a }]]')).toContain(
       "md-stack--baseline",

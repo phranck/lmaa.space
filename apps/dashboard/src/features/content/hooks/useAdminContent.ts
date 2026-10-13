@@ -86,8 +86,12 @@ export function useCreateContentPreviewSession(slug: string) {
 export function useCreateContentPage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { slug: string; title: string; status?: string; contentWidth?: ContentWidth }) =>
-      api.post<ContentPageSummary>("/admin/content", data),
+    mutationFn: (data: {
+      slug: string;
+      title: string;
+      status?: string;
+      contentWidth?: ContentWidth;
+    }) => api.post<ContentPageSummary>("/admin/content", data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["content-pages"] });
     },

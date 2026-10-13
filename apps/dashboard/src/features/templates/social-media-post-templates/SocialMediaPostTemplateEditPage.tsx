@@ -472,10 +472,7 @@ function TemplateVariableItem({
         className="mt-0.5 shrink-0"
         icon={
           copied ? (
-            <CheckCircleIcon
-              weight="duotone"
-              className="size-3.5 text-green-400"
-            />
+            <CheckCircleIcon weight="duotone" className="size-3.5 text-green-400" />
           ) : (
             <CopyIcon weight="duotone" className="size-3.5" />
           )
