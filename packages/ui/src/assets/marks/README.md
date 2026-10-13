@@ -8,9 +8,9 @@ The word LMAA as one closed outline, with the llama's head on the stem of the L.
 
 ## lmaa-icon.svg
 
-The L with the llama, cut out of a square tile with rounded corners. Its stem and foot are heavier than in the wordmark so it holds at small sizes. The letter keeps the same distance from all four sides of the tile, and the end of its foot is rounded around the same center as the tile's corner.
+The llama's head on a short stub of neck, cut out of a square tile with rounded corners. Head and neck are the wordmark's; the neck ends a little below the throat in a straight cut with rounded corners. The figure keeps the same distance from the tile's edge at the top and the bottom and is centered across it.
 
-The letter is there a second time as a path of its own with the class `lmaa-icon-letter` and no fill. A place that wants the letter in a color of its own fills that path, as the header and the favicon do; everywhere else the letter stays cut out.
+The head is there a second time as a path of its own with the class `lmaa-icon-head` and no fill. A place that wants the head in a color of its own fills that path, as the header and the favicon do; everywhere else the head stays cut out.
 
 ## How the two marks are made
 

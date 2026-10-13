@@ -199,18 +199,15 @@ const TOLERANCE = 1e-6;
 // meant to be smooth and are made so; larger ones are corners on purpose.
 const SMOOTH_LIMIT_DEGREES = 5;
 
-// The icon: a 512 tile with circular corners, the letter the same distance
-// from all four sides, and stem and foot heavier than in the wordmark.
+// The icon: a 512 tile with circular corners, and the head on a stub of neck
+// standing the margin away from the tile's edge on its taller side.
 const ICON_TILE = 512;
 const ICON_CORNER = 112.64;
 const ICON_MARGIN = 46;
-const ICON_WEIGHT_GAIN = 1.2;
-// The rounding that takes the foot's end into its top, as a share of the foot.
-const ICON_FOOT_TOP_SHARE = 0.25;
-// How the back of the head follows the wider neck: the nape starts this much
-// lower per unit of widening, and its upper handle moves this share along.
-const BACK_DROP = 0.75;
-const BACK_PULL = 0.5;
+// How far the neck runs on below the throat, as a share of its width, and the
+// radius of the two corners of its straight cut, as a share as well.
+const ICON_NECK_SHARE = 0.6;
+const ICON_NECK_CORNER_SHARE = 0.2;
 // The outline turns left at every rounded corner with y up. Turned over for
 // SVG, that is the direction its sweep flag 0 draws.
 const SWEEP_CONVEX = 0;
@@ -465,14 +462,10 @@ class Outline {
  * than SMOOTH_LIMIT_DEGREES are corners on purpose: the ear tips, the ear
  * bases and the throat.
  *
- * @param {Array} [backSegment] A replacement for the first curve, the back of the head.
  * @returns {Array} The curves, each as four points.
  */
-function smoothedHead(backSegment) {
+function smoothedHead() {
   const segments = HEAD.map((segment) => segment.map((point) => [...point]));
-  if (backSegment) {
-    segments[0] = backSegment.map((point) => [...point]);
-  }
   for (let index = 0; index < segments.length - 1; index++) {
     const ending = segments[index];
     const starting = segments[index + 1];
@@ -504,14 +497,13 @@ function smoothedHead(backSegment) {
  *
  * @param {number} stemLeft Where the left edge of the L's stem stands.
  * @param {number} scale How much smaller or larger than in Bodoni the head is drawn.
- * @param {Array} [backSegment] A replacement for the back of the head.
  */
-function headPiece(stemLeft, scale, backSegment) {
+function headPiece(stemLeft, scale) {
   const place = (point) => [
     stemLeft + (point[0] - BODONI_NECK[0]) * scale,
     100 - (point[1] - BODONI_CAP_LINE) * scale,
   ];
-  const segments = smoothedHead(backSegment);
+  const segments = smoothedHead();
   return {
     start: place(segments[0][0]),
     segments: segments.map((segment) => [
@@ -522,28 +514,6 @@ function headPiece(stemLeft, scale, backSegment) {
     ]),
     end: place(segments.at(-1)[3]),
   };
-}
-
-/** The leftmost and the highest point of the head, sampled along its curves. */
-function headExtent(stemLeft, scale, backSegment) {
-  const { start, segments } = headPiece(stemLeft, scale, backSegment);
-  let [left, top] = start;
-  let previous = start;
-  for (const [, first, second, end] of segments) {
-    for (let step = 1; step <= 64; step++) {
-      const t = step / 64;
-      const u = 1 - t;
-      const along = (axis) =>
-        u ** 3 * previous[axis] +
-        3 * u * u * t * first[axis] +
-        3 * u * t * t * second[axis] +
-        t ** 3 * end[axis];
-      left = Math.min(left, along(0));
-      top = Math.max(top, along(1));
-    }
-    previous = end;
-  }
-  return { left, top };
 }
 
 const headScale = (L_STEM_RIGHT - L_STEM_LEFT) / (BODONI_NECK[1] - BODONI_NECK[0]);
@@ -676,66 +646,37 @@ export function wordmarkPath() {
 }
 
 /**
- * Constructs the icon: the L with the llama, cut out of a tile with rounded corners.
+ * Constructs the icon: the llama's head on a stub of neck, cut out of a tile
+ * with rounded corners.
  *
- * The stem and the foot are ICON_WEIGHT_GAIN times as heavy as the font's.
- * The stem grows to the right, so the throat and the ears keep their place,
- * and the back of the head is drawn out to the wider neck.
+ * The head and the neck are the wordmark's, so the two marks share one
+ * drawing. The neck runs on ICON_NECK_SHARE of its width below the throat and
+ * ends in a straight cut whose corners are rounded. The figure stands
+ * ICON_MARGIN from the tile's edge on its taller side and is centered on both
+ * axes.
  *
- * The letter stands with the same margin on all four sides of the tile, which
- * fixes how long the foot is. The end of the foot follows the tile's corner:
- * its lower rounding shares the corner's center, with the margin as the
- * difference of the two radii, and a smaller rounding takes it into the top of
- * the foot. The tile's corners are circular arcs for that reason.
- *
- * @returns {{ tile: string, letter: string }} SVG path data in a 512 unit square.
+ * @returns {{ tile: string, head: string }} SVG path data in a 512 unit square.
  */
 export function iconPaths() {
-  const stemWidth = (L_STEM_RIGHT - L_STEM_LEFT) * ICON_WEIGHT_GAIN;
-  const foot = L_FOOT_TOP * ICON_WEIGHT_GAIN;
-  const stemRight = L_STEM_LEFT + stemWidth;
-  const widening = (stemWidth - (L_STEM_RIGHT - L_STEM_LEFT)) / headScale;
-  const original = HEAD[0];
-  const backSegment = [
-    [original[0][0] + widening, original[0][1] + widening * BACK_DROP],
-    [original[0][0] + widening, original[1][1] + (widening * BACK_DROP) / 2],
-    [original[2][0] + widening * BACK_PULL, original[2][1]],
-    original[3],
-  ];
-  const { left, top } = headExtent(L_STEM_LEFT, headScale, backSegment);
-  const unit = (ICON_TILE - 2 * ICON_MARGIN) / top;
-  const footEnd = left + top;
-  const cornerRadius = (ICON_CORNER - ICON_MARGIN) / unit;
-  const place = ([x, y]) => [ICON_MARGIN + (x - left) * unit, ICON_TILE - ICON_MARGIN - y * unit];
-
-  // The lower rounding of the foot's end, centered where the tile's corner is.
-  const bigCenter = [footEnd - cornerRadius, cornerRadius];
-  const smallRadius = foot * ICON_FOOT_TOP_SHARE;
-  const smallCenterY = foot - smallRadius;
-  const smallCenterX =
-    bigCenter[0] +
-    Math.sqrt((cornerRadius - smallRadius) ** 2 - (smallCenterY - bigCenter[1]) ** 2);
-  const reach = cornerRadius / (cornerRadius - smallRadius);
-  const meeting = [
-    bigCenter[0] + (smallCenterX - bigCenter[0]) * reach,
-    bigCenter[1] + (smallCenterY - bigCenter[1]) * reach,
-  ];
+  const neckWidth = L_STEM_RIGHT - L_STEM_LEFT;
+  const head = headPiece(L_STEM_LEFT, headScale);
+  const neckBottom = head.end[1] - neckWidth * ICON_NECK_SHARE;
 
   const outline = new Outline();
-  outline.edge(new Line([0, 0], [1, 0]));
-  outline.piece(
-    [bigCenter[0], 0],
-    [
-      ["A", cornerRadius, meeting],
-      ["A", smallRadius, [smallCenterX, foot]],
-    ],
-    [smallCenterX, foot],
-  );
-  outline.edge(new Line([0, foot], [-1, 0]));
-  const head = headPiece(L_STEM_LEFT, headScale, backSegment);
-  outline.edge(new Line([stemRight, 0], [0, 1]));
+  outline.edge(new Line([0, neckBottom], [1, 0]), neckWidth * ICON_NECK_CORNER_SHARE);
+  outline.edge(new Line([L_STEM_RIGHT, 0], [0, 1]));
   outline.piece(head.start, head.segments, head.end);
-  outline.edge(new Line([L_STEM_LEFT, 0], [0, -1]), fontRadii().lBottomLeft);
+  outline.edge(new Line([L_STEM_LEFT, 0], [0, -1]), neckWidth * ICON_NECK_CORNER_SHARE);
+
+  // Measured on the drawing itself, so the fit follows the curves of the head
+  // rather than its control points.
+  const [boundsX, boundsY, boundsWidth, boundsHeight] = pathBounds(
+    outline.svg(([x, y]) => [x, -y], 1),
+  );
+  const unit = (ICON_TILE - 2 * ICON_MARGIN) / Math.max(boundsWidth, boundsHeight);
+  const offsetX = (ICON_TILE - boundsWidth * unit) / 2;
+  const offsetY = (ICON_TILE - boundsHeight * unit) / 2;
+  const place = ([x, y]) => [offsetX + (x - boundsX) * unit, offsetY + (-y - boundsY) * unit];
 
   const radius = formatNumber(ICON_CORNER);
   const far = formatNumber(ICON_TILE - ICON_CORNER);
@@ -743,7 +684,7 @@ export function iconPaths() {
   const tile =
     `M${radius} 0H${far}${corner(ICON_TILE, radius)}V${far}${corner(far, ICON_TILE)}` +
     `H${radius}${corner(0, far)}V${radius}${corner(radius, 0)}Z`;
-  return { tile, letter: outline.svg(place, unit) };
+  return { tile, head: outline.svg(place, unit) };
 }
 
 const COMMAND = /[MLAHVCZ]|-?\d*\.?\d+(?:e-?\d+)?/g;
@@ -887,22 +828,22 @@ export function pathBounds(path) {
  * Both drawings as complete SVG files.
  *
  * The wordmark's box is the ink's own, without a margin, so a place that
- * shows it decides the space around it. The icon keeps the letter as a path
- * of its own with the class `lmaa-icon-letter` and no fill, so a place that
- * wants the letter in a color of its own can fill it.
+ * shows it decides the space around it. The icon keeps the head as a path of
+ * its own with the class `lmaa-icon-head` and no fill, so a place that wants
+ * the head in a color of its own can fill it.
  *
  * @returns {{ wordmark: string, icon: string }}
  */
 export function buildMarks() {
   const mark = wordmarkPath();
   const viewBox = pathBounds(mark).map(formatNumber).join(" ");
-  const { tile, letter } = iconPaths();
+  const { tile, head } = iconPaths();
   return {
     wordmark: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"><path fill="currentColor" d="${mark}"/></svg>\n`,
     icon:
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ICON_TILE} ${ICON_TILE}">` +
-      `<path fill="currentColor" fill-rule="evenodd" d="${tile}${letter}"/>` +
-      `<path class="lmaa-icon-letter" fill="none" d="${letter}"/></svg>\n`,
+      `<path fill="currentColor" fill-rule="evenodd" d="${tile}${head}"/>` +
+      `<path class="lmaa-icon-head" fill="none" d="${head}"/></svg>\n`,
   };
 }
 

@@ -101,10 +101,11 @@ function heightAt(drawing, width) {
 }
 
 /**
- * The favicon: the icon in gold with the L in ink. A tab bar is light or dark
- * depending on the browser, so the L is filled rather than left open, and the
- * icon reads the same on either. The drawing carries the letter as a path of
- * its own for this, the one the website's header fills as well.
+ * The favicon: the icon in gold with the llama's head in ink. A tab bar is
+ * light or dark depending on the browser, so the head is filled rather than
+ * left open, and the icon reads the same on either. The drawing carries the
+ * head as a path of its own for this, the one the website's header fills as
+ * well.
  *
  * @param {{viewBox: number[], content: string}} icon - The icon drawing.
  * @returns {string} A complete SVG document.
@@ -113,7 +114,7 @@ function faviconSvg(icon) {
   const [, , size] = icon.viewBox;
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox.join(" ")}">`,
-    `<style>.lmaa-icon-letter { fill: ${INK}; stroke: ${INK}; stroke-width: 1px; }</style>`,
+    `<style>.lmaa-icon-head { fill: ${INK}; stroke: ${INK}; stroke-width: 1px; }</style>`,
     place(icon, 0, 0, size, GOLD),
     "</svg>",
     "",

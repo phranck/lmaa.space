@@ -363,9 +363,9 @@ const pairs: Pair[] = [
     surfaces.map((background) => ({ foreground, background, minimum: CONTROL_EDGE })),
   ),
   // The marks are graphics, so they need the ratio of a control's edge: the
-  // icon that links home in the header, with its letter on the tile.
+  // icon that links home in the header, with the llama's head on the tile.
   { foreground: "--ds-header-mark", background: "--ds-header-bg", minimum: CONTROL_EDGE },
-  { foreground: "--ds-header-mark-letter", background: "--ds-header-mark", minimum: CONTROL_EDGE },
+  { foreground: "--ds-header-mark-head", background: "--ds-header-mark", minimum: CONTROL_EDGE },
   // The theme switch's symbols: the ones not chosen on the header, the chosen
   // one on the mark under it, and in the phone's list on the chosen row.
   { foreground: "--ds-text-subtle", background: "--ds-header-bg", minimum: CONTROL_EDGE },

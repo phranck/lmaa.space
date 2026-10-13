@@ -89,11 +89,11 @@ html {
      The browser paints its own bar around the page in the same color, which
      the head script reads from `--ds-theme-color` into the `theme-color` meta
      element, so the color is stated here and nowhere else. Its icon is an ink
-     tile like the actions, with the letter in gold. */
+     tile like the actions, with the llama's head in gold. */
   --ds-theme-color: var(--ds-color-paper);
   --ds-header-bg: color-mix(in srgb, var(--ds-theme-color) 92%, transparent);
   --ds-header-mark: var(--ds-color-ink);
-  --ds-header-mark-letter: var(--ds-accent);
+  --ds-header-mark-head: var(--ds-accent);
 
   /* Papier: the outlined controls in the header, the support button and the
      theme switch, are drawn in ink. */
@@ -191,7 +191,7 @@ html.dark {
 
   --ds-theme-color: var(--ds-surface-inset);
   --ds-header-mark: var(--ds-accent);
-  --ds-header-mark-letter: var(--ds-surface-inset);
+  --ds-header-mark-head: var(--ds-surface-inset);
 
   --ds-header-control-text: var(--ds-accent);
   --ds-header-control-border: color-mix(in srgb, var(--ds-accent) 45%, transparent);
@@ -674,13 +674,13 @@ html .prose {
 }
 
 /* The icon in the header.
-   The letter is a path of its own on top of the tile's cut-out, so the header
-   fills it in a color of its own. A stroke of one unit closes the seam
+   The llama's head is a path of its own on top of the tile's cut-out, so the
+   header fills it in a color of its own. A stroke of one unit closes the seam
    between the two edges, which would otherwise show the header's ground as a
-   hairline around the letter. */
-.lmaa-header-icon .lmaa-icon-letter {
-  fill: var(--ds-header-mark-letter);
-  stroke: var(--ds-header-mark-letter);
+   hairline around the head. */
+.lmaa-header-icon .lmaa-icon-head {
+  fill: var(--ds-header-mark-head);
+  stroke: var(--ds-header-mark-head);
   stroke-width: 1px;
 }
 

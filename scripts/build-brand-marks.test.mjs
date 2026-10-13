@@ -56,8 +56,8 @@ test("every arc of the wordmark meets its edges without a kink", () => {
 });
 
 test("every arc of the icon meets its edges without a kink", () => {
-  const { tile, letter } = iconPaths();
-  assert.deepEqual(kinkedArcJoints(letter), []);
+  const { tile, head } = iconPaths();
+  assert.deepEqual(kinkedArcJoints(head), []);
   assert.deepEqual(kinkedArcJoints(tile), []);
 });
 
