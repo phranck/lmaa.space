@@ -51,6 +51,9 @@ jobs:
       # Four workspaces carry a suite: backend, shared, dashboard and frontend.
       # `ci:quality` has already built @lmaa/shared, which they import.
       - run: npm test --workspaces --if-present
+      # The checks under scripts/ guard what reaches production, so their own
+      # tests run here as well.
+      - run: npm run test:scripts
 
   # Which services a change can actually reach. The workspace graph decides it:
   # backend depends on contracts and shared, website and dashboard additionally
