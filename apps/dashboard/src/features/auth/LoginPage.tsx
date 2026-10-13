@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
 import { useNavigate } from "react-router";
 
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
+import { LmaaIcon } from "@/components/ui/LmaaIcon.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { AuthBackground } from "@/features/auth/AuthBackground.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -52,17 +52,6 @@ function useAutofillSwap(ids: string[], setters: Record<string, (v: string) => v
 }
 
 const FIELD_IDS = ["username", "password"];
-const LOGO_MASK_STYLE: CSSProperties = {
-  backgroundColor: "var(--color-primary)",
-  WebkitMaskImage: "url(/logo.png)",
-  WebkitMaskSize: "contain",
-  WebkitMaskRepeat: "no-repeat",
-  WebkitMaskPosition: "center",
-  maskImage: "url(/logo.png)",
-  maskSize: "contain",
-  maskRepeat: "no-repeat",
-  maskPosition: "center",
-};
 
 /**
  * Login screen for existing dashboard users.
@@ -109,9 +98,8 @@ export function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="relative mx-auto size-[120px]">
-            <div className="absolute inset-0 rounded-full animate-[auth-glow_8s_ease-in-out_infinite] bg-[var(--color-primary)]" />
-            <div aria-hidden="true" style={LOGO_MASK_STYLE} className="relative size-[120px]" />
-            <img alt={messages.auth.logoAlt} className="sr-only" src="/logo.png" />
+            <div className="absolute inset-0 rounded-full animate-[auth-glow_8s_ease-in-out_infinite] bg-[var(--ds-accent)]" />
+            <LmaaIcon label={messages.auth.logoAlt} className="relative size-[120px]" />
           </div>
         </div>
 

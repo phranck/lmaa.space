@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
+import { LmaaIcon } from "@/components/ui/LmaaIcon.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { AuthBackground } from "@/features/auth/AuthBackground.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -54,8 +55,8 @@ export function SetupPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="relative mx-auto size-[120px]">
-            <div className="absolute inset-0 rounded-full animate-[auth-glow_8s_ease-in-out_infinite] bg-[var(--color-primary)]" />
-            <img src="/logo.png" alt={messages.auth.logoAlt} className="relative size-[120px]" />
+            <div className="absolute inset-0 rounded-full animate-[auth-glow_8s_ease-in-out_infinite] bg-[var(--ds-accent)]" />
+            <LmaaIcon label={messages.auth.logoAlt} className="relative size-[120px]" />
           </div>
         </div>
 

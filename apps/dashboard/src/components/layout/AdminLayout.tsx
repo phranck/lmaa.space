@@ -5,6 +5,7 @@ import { Outlet, useNavigate } from "react-router";
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { FooterUserInfo } from "@/components/layout/SidebarFooter.tsx";
 import { Card } from "@/components/ui/Card.tsx";
+import { LmaaIcon } from "@/components/ui/LmaaIcon.tsx";
 import { BodyCardProvider, useBodyCard } from "@/context/BodyCardContext.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { PageFooterProvider, usePageFooterContext } from "@/context/PageFooterContext.tsx";
@@ -108,7 +109,7 @@ function AdminLayoutInner() {
           className="hidden md:flex items-center justify-center shrink-0 h-full px-3"
           style={{ width: sidebarWidth }}
         >
-          <img src="/logo.png" alt="lmaa.space" className="h-8 w-auto invert brightness-90" />
+          <LmaaIcon label="lmaa.space" className="size-8" />
         </div>
         <div className="flex-1 flex items-center justify-between px-3">
           <div className="flex min-w-0 items-center gap-4">
