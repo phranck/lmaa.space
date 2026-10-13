@@ -101,7 +101,7 @@ export function LoginPage() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") handleLogin();
+    if (e.key === "Enter") void handleLogin();
   }
 
   return (

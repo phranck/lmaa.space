@@ -1,5 +1,10 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // Rules that need type information run through oxlint-tsgolint, which
+  // builds each tsconfig's program with typescript-go.
+  "options": {
+    "typeAware": true,
+  },
   // React and accessibility rules belong to React Doctor, which runs on oxlint
   // as well and keeps their exceptions in doctor.config.ts. Enabling them here
   // would report the same findings twice and need every exception twice.
@@ -22,8 +27,28 @@
     // it: `og.ts` deletes search parameters while walking them, and the OpenAPI
     // schema walk adds to the set it iterates.
     "unicorn/no-useless-spread": "off",
+    "typescript/no-floating-promises": [
+      "error",
+      {
+        "allowForKnownSafeCalls": [
+          { "from": "package", "name": "invalidateQueries", "package": "@tanstack/query-core" },
+          { "from": "package", "name": "NavigateFunction", "package": "react-router" },
+          { "from": "package", "name": "test", "package": "node:test" },
+        ],
+      },
+    ],
   },
   "overrides": [
+    {
+      // `expect(mock.method)` hands the mock to the assertion rather than
+      // calling it, and a test that stringifies the wrong value fails rather
+      // than misleading anybody.
+      "files": ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx", "**/*.test.mjs"],
+      "rules": {
+        "typescript/unbound-method": "off",
+        "typescript/no-base-to-string": "off",
+      },
+    },
     {
       // Both match control characters on purpose, to reject or strip them.
       "files": ["apps/backend/src/lib/email-address.ts", "apps/backend/src/lib/media-storage.ts"],

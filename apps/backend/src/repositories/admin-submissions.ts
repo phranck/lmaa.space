@@ -19,6 +19,7 @@ import {
   submissionCategories,
   submissions,
 } from "../db/schema.js";
+import { formValueToText } from "../lib/form-value-text.js";
 import type { HeadquartersInput } from "./headquarters.js";
 import {
   copySubmissionHeadquartersToShop,
@@ -409,8 +410,8 @@ export async function setReadyForReview(id: number, value: boolean): Promise<voi
 }
 
 export async function createSubmissionFromFormData(data: Record<string, unknown>): Promise<number> {
-  const str = (key: string) => (data[key] != null ? String(data[key]) : "");
-  const strOrNull = (key: string) => (data[key] != null ? String(data[key]) : null);
+  const str = (key: string) => formValueToText(data[key]);
+  const strOrNull = (key: string) => (data[key] != null ? formValueToText(data[key]) : null);
   const region = Array.isArray(data.region) ? (data.region as string[]) : [];
   const categoryIds: number[] = [];
   if (Array.isArray(data.submissionCategories)) {

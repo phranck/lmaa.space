@@ -114,8 +114,10 @@ async function getJson<T>(url: string, label: string, configuredBase: string): P
   try {
     res = await fetch(url, { signal: controller.signal, headers: requestHeaders(url) });
   } catch (err) {
+    const reason = err instanceof Error ? err.message : "unknown error";
     throw new Error(
-      `API fetch failed for ${url} — is API_URL set correctly? (current: ${configuredBase})\n${err}`,
+      `API fetch failed for ${url}. Is API_URL set correctly? (current: ${configuredBase})\n${reason}`,
+      { cause: err },
     );
   } finally {
     clearTimeout(timeoutId);

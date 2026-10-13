@@ -86,7 +86,7 @@ function AdminLayoutInner() {
 
   useEffect(() => {
     if (push.state === "unsubscribed" && Notification.permission === "granted") {
-      push.enable();
+      void push.enable();
     }
   }, [push.state, push.enable]);
 

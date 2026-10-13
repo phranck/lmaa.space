@@ -170,7 +170,7 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
               let removed = 0;
               for (const [key, entry] of defaultRateLimitStore.entries()) {
                 if (entry.resetAt < now) {
-                  void defaultRateLimitStore.delete(key);
+                  defaultRateLimitStore.delete(key);
                   removed++;
                 }
               }

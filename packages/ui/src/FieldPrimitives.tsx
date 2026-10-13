@@ -54,7 +54,7 @@ function isFieldShellRenderFunction(
   return typeof children === "function";
 }
 
-function hasInvalidState(value: InputPrimitiveProps["aria-invalid"] | boolean | undefined) {
+function hasInvalidState(value: InputPrimitiveProps["aria-invalid"]) {
   return value === true || value === "true";
 }
 

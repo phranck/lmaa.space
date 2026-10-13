@@ -65,7 +65,7 @@ export function InvitePage() {
       }
     }
 
-    loadInvite();
+    void loadInvite();
     return () => {
       cancelled = true;
     };

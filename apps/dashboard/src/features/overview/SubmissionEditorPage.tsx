@@ -192,7 +192,7 @@ function LoadedSubmissionEditorPage({
 
   useKeyboardSave(() => {
     if (reviewState.reviewMode === "approve" && !reviewMutation.isPending) {
-      handleApprove(false);
+      void handleApprove(false);
     }
   }, reviewState.reviewMode === "approve");
 

@@ -5,17 +5,21 @@
 
 # The quality gate blocks: what it checks has to hold before the change is
 # recorded.
+#
+# @lmaa/shared is built before lint and typecheck, because both resolve it
+# through its dist like every other workspace does. Without a current build the
+# type-aware rules see its types as errors and report every place that uses them.
 quality_gate_checks() {
-	printf '%s\n' "pre-commit: format + lint + typecheck + @lmaa/shared build…" >&2
+	printf '%s\n' "pre-commit: format + @lmaa/shared build + lint + typecheck…" >&2
 	npm run format:check || return 1
+	npm run build -w @lmaa/shared || return 1
 	npm run lint || return 1
 	npm run typecheck --workspaces --if-present || return 1
-	npm run build -w @lmaa/shared || return 1
 }
 
 if ! quality_gate_checks; then
 	printf '%s\n' \
-		"pre-commit: quality gate failed (format/lint/typecheck/shared-build)." \
+		"pre-commit: quality gate failed (format/shared-build/lint/typecheck)." \
 		"Fix the issue and re-stage before committing." >&2
 	exit 1
 fi

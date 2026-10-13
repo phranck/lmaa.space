@@ -263,14 +263,14 @@ export function UnsplashBrowser({
       isFirstRun.current = false;
       if (query.trim()) {
         const { orientation: o, orderBy: ob, color: c } = stateRef.current;
-        search(query, 1, false, o, ob, c);
+        void search(query, 1, false, o, ob, c);
       }
       return;
     }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       const { query: q, orientation: o, orderBy: ob, color: c } = stateRef.current;
-      search(q, 1, false, o, ob, c);
+      void search(q, 1, false, o, ob, c);
     }, 400);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -290,7 +290,7 @@ export function UnsplashBrowser({
         const { page: p, query: q, orientation: o, orderBy: ob, color: c } = stateRef.current;
         loadingMoreRef.current = true;
         dispatch({ type: "next-page" });
-        searchRef.current(q, p + 1, true, o, ob, c);
+        void searchRef.current(q, p + 1, true, o, ob, c);
       },
       { root: container, threshold: 0.1 },
     );

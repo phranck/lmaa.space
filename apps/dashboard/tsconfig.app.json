@@ -24,8 +24,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    /* Path aliases */
-    "baseUrl": ".",
+    /* Path aliases, resolved against this file's directory */
     "paths": {
       "@/*": ["./src/*"],
       "@lmaa/shared": ["../../packages/shared/src/index.ts"],

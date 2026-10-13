@@ -205,9 +205,11 @@ function FullscreenControl() {
           const root = map.getContainer().closest(".slm-root");
           if (!root) return;
           if (!document.fullscreenElement) {
-            root.requestFullscreen();
+            // The browser may refuse, inside a frame without permission for
+            // example, and then the map simply stays where it is.
+            root.requestFullscreen().catch(() => {});
           } else {
-            document.exitFullscreen();
+            void document.exitFullscreen();
           }
         });
         return container;

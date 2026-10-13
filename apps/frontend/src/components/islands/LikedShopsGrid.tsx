@@ -114,7 +114,7 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (!qrRef.current) return;
 
-    import("qr-code-styling").then(({ default: QRCodeStyling }) => {
+    void import("qr-code-styling").then(({ default: QRCodeStyling }) => {
       const qrCode = new QRCodeStyling({
         width: 200,
         height: 200,
