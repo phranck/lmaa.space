@@ -47,16 +47,18 @@ html {
      `theme-contrast.test.ts`, which reads this file. */
   color-scheme: light;
 
-  /* The two colours the themes trade between them: the paper of the light
-     page, which is the type of the dark one, and the ink of the light
-     theme's actions, which is the type on the dark theme's gold ones. */
+  /* The two colors the themes trade between them: the paper of the light
+     header and of the type on the light theme's actions, which is the type of
+     the dark one, and the ink of the light theme's actions, which is the type
+     on the dark theme's gold ones. */
   --ds-color-paper: #f4efe6;
   --ds-color-ink: #0f0f0f;
 
-  /* Papier: surfaces. The page is paper, a card is a step lighter, a raised
-     or inset surface a step darker. */
-  --ds-bg: var(--ds-color-paper);
-  --ds-surface: #fbf8f2;
+  /* Papier: surfaces. The page is lighter and less yellow than paper, so the
+     header, which keeps the paper, stands apart from it. A card is a step
+     lighter than the page, a raised or inset surface a step darker. */
+  --ds-bg: #f8f6f2;
+  --ds-surface: #fdfcfa;
   --ds-bg-elevated: #efe8dc;
   --ds-surface-inset: #ebe4d7;
   --ds-surface-alt: var(--ds-surface-inset);
@@ -83,9 +85,9 @@ html {
   --ds-btn-filled-hover: #2b2722;
   --ds-btn-filled-fg: var(--ds-color-paper);
 
-  /* Papier: the header carries the page through its blur, and its icon is
-     drawn in ink like the actions. */
-  --ds-header-bg: color-mix(in srgb, var(--ds-bg) 92%, transparent);
+  /* Papier: the header is paper under its blur, a step darker than the page,
+     and its icon is drawn in ink like the actions. */
+  --ds-header-bg: color-mix(in srgb, var(--ds-color-paper) 92%, transparent);
   --ds-header-mark: var(--ds-color-ink);
 
   /* Papier: the outlined call to action in the header is drawn in ink. */
