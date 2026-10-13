@@ -1,18 +1,4 @@
 ---
-import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
-import SectionLabel from "@/components/SectionLabel.astro";
-import ShopAvatar from "@/components/ShopAvatar.astro";
-import BaseLayout from "@/layouts/BaseLayout.astro";
-import { apiGet } from "@/lib/api";
-import { stripMarkdown } from "@/lib/markdown";
-import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
-import { shopDomain, shopRefUrl } from "@/lib/shop";
-import { slugToTitle } from "@/lib/slug";
-import { loadSupportPrompts } from "@/lib/support-prompts";
-import { countryName, encodeShopToken, type Shop } from "@lmaa/shared";
-import { PaymentMethodIcons, SocialMediaIcons } from "@lmaa/ui";
-import { getFavicons } from "@/lib/favicons";
-import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 import {
   ArrowLeftIcon,
   ArrowSquareOutIcon,
@@ -23,6 +9,22 @@ import {
   ShareNetworkIcon,
   StorefrontIcon,
 } from "@phosphor-icons/react";
+
+import { countryName, encodeShopToken, type Shop } from "@lmaa/shared";
+import { PaymentMethodIcons, SocialMediaIcons } from "@lmaa/ui";
+import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
+
+import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
+import SectionLabel from "@/components/SectionLabel.astro";
+import ShopAvatar from "@/components/ShopAvatar.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import { getFavicons } from "@/lib/favicons";
+import { stripMarkdown } from "@/lib/markdown";
+import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
+import { shopDomain, shopRefUrl } from "@/lib/shop";
+import { slugToTitle } from "@/lib/slug";
+import { loadSupportPrompts } from "@/lib/support-prompts";
 
 const { token } = Astro.params;
 
@@ -37,9 +39,10 @@ const fromQuery = Astro.url.searchParams.get("q");
 
 // Fetch shop + category image in parallel when navigating from a category page
 const shopPromise = apiGet<Shop>(`/shops/${token}`);
-const categoryFromSlugPromise = (from === "category" && fromSlug)
-  ? apiGet<{ imageUrl?: string | null }>(`/categories/${fromSlug}`).catch(() => null)
-  : Promise.resolve(null);
+const categoryFromSlugPromise =
+  from === "category" && fromSlug
+    ? apiGet<{ imageUrl?: string | null }>(`/categories/${fromSlug}`).catch(() => null)
+    : Promise.resolve(null);
 
 let shop: Shop;
 try {
@@ -64,7 +67,9 @@ let categoryImageUrl: string | null = categoryFromSlugResult?.imageUrl ?? null;
 // Fallback: use first category's banner when not coming from a category page
 if (!categoryImageUrl && shop.categories.length > 0) {
   try {
-    const cat = await apiGet<{ imageUrl?: string | null }>(`/categories/${shop.categories[0].slug}`);
+    const cat = await apiGet<{ imageUrl?: string | null }>(
+      `/categories/${shop.categories[0].slug}`,
+    );
     categoryImageUrl = cat.imageUrl ?? null;
   } catch {
     // ignore — no hero banner
@@ -81,9 +86,7 @@ let backHref = "/";
 
 if (from === "category" && fromSlug) {
   const matchedCategory = shop.categories.find((c) => c.slug === fromSlug);
-  const categoryLabel = matchedCategory
-    ? matchedCategory.name
-    : slugToTitle(fromSlug);
+  const categoryLabel = matchedCategory ? matchedCategory.name : slugToTitle(fromSlug);
   const categoryHref = `/category/${fromSlug}`;
   breadcrumb.push({ label: categoryLabel, href: categoryHref });
   backHref = categoryHref;
@@ -168,7 +171,6 @@ const metaDescription = shop.description
        half of it, because a line set hard against a rounded corner reads as
        colliding with it. -->
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10" style="--map-radius: 1rem">
-
     <!-- Breadcrumb with back button -->
     <nav class="flex items-center gap-3 mb-8" aria-label="Breadcrumb">
       <a
@@ -181,12 +183,20 @@ const metaDescription = shop.description
       <ol class="flex items-center gap-1.5 text-sm text-stone-600 min-w-0">
         {breadcrumb.map((item, i) => (
           <li class="flex items-center gap-1.5 min-w-0">
-            {i > 0 && <span class="text-stone-300 shrink-0" aria-hidden="true">›</span>}
-            <a href={item.href} class="hover:text-amber-700 transition-colors truncate">{item.label}</a>
+            {i > 0 && (
+              <span class="text-stone-300 shrink-0" aria-hidden="true">
+                ›
+              </span>
+            )}
+            <a href={item.href} class="hover:text-amber-700 transition-colors truncate">
+              {item.label}
+            </a>
           </li>
         ))}
         <li class="flex items-center gap-1.5 min-w-0">
-          <span class="text-stone-300 shrink-0" aria-hidden="true">›</span>
+          <span class="text-stone-300 shrink-0" aria-hidden="true">
+            ›
+          </span>
           <span class="text-stone-600 truncate">{shop.name}</span>
         </li>
       </ol>
@@ -207,7 +217,12 @@ const metaDescription = shop.description
         data-shop-name={shop.name}
         data-shop-domain={domain}
       >
-        <ShopAvatar name={shop.name} imageUrl={shop.ogImage} logoBackgroundColor={shop.logoBackgroundColor} size="md" />
+        <ShopAvatar
+          name={shop.name}
+          imageUrl={shop.ogImage}
+          logoBackgroundColor={shop.logoBackgroundColor}
+          size="md"
+        />
       </a>
       <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-start gap-3">
@@ -269,14 +284,19 @@ const metaDescription = shop.description
               >
                 <span class="relative inline-flex w-5 h-5 shrink-0 items-center justify-center">
                   <HeartIcon weight="regular" className="like-icon-regular w-5 h-5" />
-                  <HeartIcon weight="duotone" className="like-icon-duotone w-5 h-5 absolute hidden" />
+                  <HeartIcon
+                    weight="duotone"
+                    className="like-icon-duotone w-5 h-5 absolute hidden"
+                  />
                 </span>
                 <span class="like-count-slot">
                   <span
                     class="like-count-value text-sm tabular-nums leading-none"
                     data-like-count-value
                     data-shop-id={String(shop.id)}
-                  >{shop.likeCount > 0 ? shop.likeCount : ""}</span>
+                  >
+                    {shop.likeCount > 0 ? shop.likeCount : ""}
+                  </span>
                 </span>
               </button>
               <button
@@ -397,7 +417,6 @@ const metaDescription = shop.description
       </div>
     </section>
 
-
     <!-- Standort (Map) -->
     {hasMap && (
       <section>
@@ -469,11 +488,15 @@ const metaDescription = shop.description
     aria-modal="true"
     class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
   >
-    <h2 id={`${deadDialogId}-title`} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
+    <h2
+      id={`${deadDialogId}-title`}
+      class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1"
+    >
       Link defekt?
     </h2>
     <p id={`${deadDialogId}-desc`} class="text-sm text-[var(--ds-text-muted)] mb-6">
-      Ist der Link von <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> wirklich nicht mehr erreichbar?
+      Ist der Link von <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> wirklich
+      nicht mehr erreichbar?
     </p>
     <div class="flex gap-3 justify-end">
       <button
@@ -503,11 +526,15 @@ const metaDescription = shop.description
     class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
   >
     <div data-report-form>
-      <h2 id={`${reportDialogId}-title`} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
+      <h2
+        id={`${reportDialogId}-title`}
+        class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1"
+      >
         Shop melden
       </h2>
       <p id={`${reportDialogId}-desc`} class="text-sm text-[var(--ds-text-muted)] mb-5">
-        Du möchtest <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> melden? Beschreibe kurz, warum dieser Shop deiner Meinung nach nicht auf lmaa.space gehört.
+        Du möchtest <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> melden?
+        Beschreibe kurz, warum dieser Shop deiner Meinung nach nicht auf lmaa.space gehört.
       </p>
       <div class="space-y-4">
         <textarea
