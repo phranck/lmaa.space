@@ -34,7 +34,7 @@ export async function recordBackgroundError(
   const { message, details } = normalizeBackgroundError(error);
   const sanitizedContext = buildBackgroundErrorContext(context, details);
   const logError = error instanceof Error ? error : (details ?? message);
-  logger.error({ err: logError, source, ...(sanitizedContext ?? {}) }, "background job failed");
+  logger.error({ err: logError, source, ...sanitizedContext }, "background job failed");
 }
 
 function normalizeBackgroundError(error: unknown): NormalizedBackgroundError {

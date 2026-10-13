@@ -160,7 +160,7 @@ export function ShopEditForm({
     set(
       "shopCheckNotes",
       normalizeShopCheckNotes({
-        ...(value.shopCheckNotes ?? {}),
+        ...value.shopCheckNotes,
         [key]: fieldValue,
       }),
     );
