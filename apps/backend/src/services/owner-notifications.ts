@@ -1,6 +1,7 @@
 import { SETTINGS_KEYS } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
+import { formValueToText } from "../lib/form-value-text.js";
 import { logger } from "../lib/logger.js";
 import { getSettings } from "../repositories/app-settings.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
@@ -74,13 +75,7 @@ function buildTemplateVariables(
   };
 
   for (const [key, value] of Object.entries(data)) {
-    if (value == null) {
-      variables[key] = "";
-    } else if (Array.isArray(value)) {
-      variables[key] = value.join(", ");
-    } else {
-      variables[key] = String(value);
-    }
+    variables[key] = formValueToText(value);
   }
 
   return variables;

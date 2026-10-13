@@ -1,6 +1,7 @@
 import type { SubmissionConfig } from "@lmaa/contracts";
 
 import { isEmailRecipient } from "../lib/email-address.js";
+import { formValueToText } from "../lib/form-value-text.js";
 import { escapeHtml } from "../lib/html.js";
 import { logger } from "../lib/logger.js";
 import { createSubmissionFromFormData } from "../repositories/admin-submissions.js";
@@ -87,7 +88,7 @@ function buildPlainTable(data: Record<string, unknown>): string {
   const rows = Object.entries(data)
     .map(
       ([k, v]) =>
-        `<tr><td style="padding:4px 8px;font-weight:600">${escapeHtml(k)}</td><td style="padding:4px 8px">${escapeHtml(String(v ?? ""))}</td></tr>`,
+        `<tr><td style="padding:4px 8px;font-weight:600">${escapeHtml(k)}</td><td style="padding:4px 8px">${escapeHtml(formValueToText(v))}</td></tr>`,
     )
     .join("");
   return `<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">${rows}</table>`;
@@ -106,7 +107,9 @@ async function handleEmail(
       ? (data[replyToFieldId] as string)
       : undefined;
 
-  const variables = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v ?? "")]));
+  const variables = Object.fromEntries(
+    Object.entries(data).map(([k, v]) => [k, formValueToText(v)]),
+  );
 
   let html: string;
   let resolvedSubject = subject ?? `${DEFAULT_SUBMISSION_SUBJECT}: ${formName}`;
