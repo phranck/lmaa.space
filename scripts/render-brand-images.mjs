@@ -9,6 +9,8 @@
  *
  *   node scripts/render-brand-images.mjs
  *
+ * `favicons` or `banners` as the argument renders only that half.
+ *
  * The output is committed. The email masthead keeps its name because stored
  * email settings link it by URL.
  */
@@ -221,5 +223,9 @@ async function renderBanners(wordmark, claim) {
 const [icon, wordmark, claim] = await Promise.all(
   ["lmaa-icon.svg", "lmaa-wordmark.svg", "lmaa-claim.svg"].map(readDrawing),
 );
-await renderFavicons(icon);
-await renderBanners(wordmark, claim);
+const only = process.argv[2];
+if (only !== undefined && only !== "favicons" && only !== "banners") {
+  throw new Error(`unknown argument ${only}: give favicons, banners, or nothing for both`);
+}
+if (only !== "banners") await renderFavicons(icon);
+if (only !== "favicons") await renderBanners(wordmark, claim);

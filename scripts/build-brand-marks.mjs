@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Constructs the LMAA wordmark and icon and writes them to `brand/`.
+ * Constructs the LMAA wordmark and icon and writes them to the marks folder of
+ * `@lmaa/ui`, `packages/ui/src/assets/marks/`.
  *
  * The drawings are built rather than traced. Every straight edge of L, M and
  * A was measured off Google Sans Flex at wght 559, wdth 125, ROND 100 and opsz
@@ -905,15 +906,19 @@ export function buildMarks() {
   };
 }
 
-/** Where the drawings live, relative to this file. */
+/**
+ * Where the drawings live, relative to this file: the marks folder of
+ * `@lmaa/ui`, which the website, the dashboard, the API reference and
+ * `render-brand-images.mjs` all read, so each drawing exists once.
+ */
 export const MARK_FILES = {
-  wordmark: new URL("../brand/lmaa-wordmark.svg", import.meta.url),
-  icon: new URL("../brand/lmaa-icon.svg", import.meta.url),
+  wordmark: new URL("../packages/ui/src/assets/marks/lmaa-wordmark.svg", import.meta.url),
+  icon: new URL("../packages/ui/src/assets/marks/lmaa-icon.svg", import.meta.url),
 };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const marks = buildMarks();
   await writeFile(MARK_FILES.wordmark, marks.wordmark);
   await writeFile(MARK_FILES.icon, marks.icon);
-  console.log("brand marks written: brand/lmaa-wordmark.svg, brand/lmaa-icon.svg");
+  console.log("marks written: packages/ui/src/assets/marks/lmaa-wordmark.svg and lmaa-icon.svg");
 }
