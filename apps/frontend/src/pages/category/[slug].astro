@@ -7,6 +7,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { buildFilterQuery, parseFiltersFromUrl } from "@/lib/filter-query";
 import { slugToTitle } from "@/lib/slug";
+import { unsplashAvif } from "@/lib/unsplash-photo";
 
 const { slug } = Astro.params;
 
@@ -85,7 +86,7 @@ const jsonLd = {
   <!-- Hero Banner -->
   <div class="relative h-52 sm:h-64 overflow-hidden">
     <img
-      src={category.imageUrl ?? `/images/${slug}.jpg`}
+      src={category.imageUrl ? unsplashAvif(category.imageUrl) : `/images/${slug}.jpg`}
       alt=""
       aria-hidden="true"
       fetchpriority="high"

@@ -25,6 +25,7 @@ import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { slugToTitle } from "@/lib/slug";
 import { loadSupportPrompts } from "@/lib/support-prompts";
+import { unsplashAvif } from "@/lib/unsplash-photo";
 
 const { token } = Astro.params;
 
@@ -155,7 +156,7 @@ const metaDescription = shop.description
   {categoryImageUrl && (
     <div class="relative h-52 sm:h-64 overflow-hidden">
       <img
-        src={categoryImageUrl}
+        src={unsplashAvif(categoryImageUrl)}
         alt=""
         aria-hidden="true"
         fetchpriority="high"

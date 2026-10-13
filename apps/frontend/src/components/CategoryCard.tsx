@@ -1,4 +1,14 @@
 import UnsplashAttribution from "@/components/UnsplashAttribution";
+import { unsplashAvif } from "@/lib/unsplash-photo";
+
+/**
+ * The photo's size in pixels. A card shows it at 294 CSS pixels across at the
+ * most, which is 588 on a screen of twice the density, so 640 is enough. As
+ * AVIF it weighs about a fifth of the stored 1080-pixel JPEG. Its proportion
+ * is the card's 16 by 9.
+ */
+const CARD_PHOTO_WIDTH = 640;
+const CARD_PHOTO_HEIGHT = 360;
 
 interface CategoryCardProps {
   id: number;
@@ -41,11 +51,11 @@ export default function CategoryCard({
 
       <div className="aspect-video overflow-hidden relative">
         <img
-          src={imageUrl ?? `/images/${slug}.jpg`}
+          src={imageUrl ? unsplashAvif(imageUrl, CARD_PHOTO_WIDTH) : `/images/${slug}.jpg`}
           alt=""
           aria-hidden="true"
-          width={640}
-          height={360}
+          width={CARD_PHOTO_WIDTH}
+          height={CARD_PHOTO_HEIGHT}
           className="w-full h-full object-cover"
           style={{ objectPosition: `50% ${imageFocalPointY}%` }}
           loading="lazy"

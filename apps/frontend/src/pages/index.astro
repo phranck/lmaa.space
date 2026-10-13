@@ -7,6 +7,7 @@ import UnsplashAttribution from "@/components/UnsplashAttribution.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { loadSupportPrompts } from "@/lib/support-prompts";
+import { unsplashAvif } from "@/lib/unsplash-photo";
 
 const categories = await apiGet<Category[]>("/categories");
 const supportPrompts = await loadSupportPrompts("category-grid");
@@ -36,7 +37,7 @@ if (heroImage?.nextState) {
   });
 }
 
-const heroSrc = heroImage?.url;
+const heroSrc = heroImage?.url ? unsplashAvif(heroImage.url) : undefined;
 
 const site = Astro.site?.origin ?? "https://lmaa.space";
 const jsonLd = {
