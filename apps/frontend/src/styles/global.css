@@ -83,8 +83,10 @@ html {
   --ds-btn-filled-hover: #2b2722;
   --ds-btn-filled-fg: var(--ds-color-paper);
 
-  /* Papier: the header carries the page through its blur. */
+  /* Papier: the header carries the page through its blur, and its icon is
+     drawn in ink like the actions. */
   --ds-header-bg: color-mix(in srgb, var(--ds-bg) 92%, transparent);
+  --ds-header-mark: var(--ds-color-ink);
 
   /* Papier: the outlined call to action in the header is drawn in ink. */
   --ds-cta-outline-text: var(--ds-text);
@@ -170,6 +172,7 @@ html.dark {
   --ds-btn-filled-fg: var(--ds-color-ink);
 
   --ds-header-bg: color-mix(in srgb, var(--ds-surface-inset) 92%, transparent);
+  --ds-header-mark: var(--ds-accent);
 
   --ds-cta-outline-text: var(--ds-accent);
   --ds-cta-outline-border: color-mix(in srgb, var(--ds-accent) 45%, transparent);

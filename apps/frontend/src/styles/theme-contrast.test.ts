@@ -353,6 +353,15 @@ const pairs: Pair[] = [
   ...["--ds-border-strong", "--ds-focus-ring"].flatMap((foreground) =>
     surfaces.map((background) => ({ foreground, background, minimum: CONTROL_EDGE })),
   ),
+  // The marks are graphics, so they need the ratio of a control's edge: the
+  // icon that links home in the header, and the wordmark on the photograph.
+  { foreground: "--ds-header-mark", background: "--ds-header-bg", minimum: CONTROL_EDGE },
+  {
+    foreground: "--ds-accent",
+    background: "--ds-photo-veil",
+    underlay: WHITE_PHOTOGRAPH,
+    minimum: CONTROL_EDGE,
+  },
 ];
 
 describe.each([

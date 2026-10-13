@@ -1,7 +1,7 @@
 ---
 import type { NavItem } from "@lmaa/shared";
+import Icon from "@lmaa/ui/marks/lmaa-icon.svg";
 
-import logo from "@/assets/logo.png";
 import SupportButton from "@/components/SupportButton.astro";
 import { fieldColorsClass } from "@/lib/form-styles";
 import { getSafeConfigHref, isExternalHref } from "@/lib/safe-url";
@@ -31,15 +31,10 @@ function navLinkClass(href: string, external = false) {
       <!-- Left: Logo + Desktop Nav -->
       <div class="flex items-center gap-10">
         <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
-          <img
-            src={logo.src}
-            width={logo.width}
-            height={logo.height}
-            alt="lmaa.space"
-            class="h-8 w-auto"
-            loading="eager"
-            decoding="sync"
-            style="transform: translateZ(0);"
+          <Icon
+            role="img"
+            aria-label="lmaa.space"
+            class="block size-[2.1rem] text-[var(--ds-header-mark)]"
           />
         </a>
 

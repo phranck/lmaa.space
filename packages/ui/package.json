@@ -18,6 +18,7 @@
     "./form-primitives": "./src/form-primitives.ts",
     "./json-editor": "./src/JsonEditor.tsx",
     "./listbox-primitives": "./src/ListboxPrimitives.tsx",
+    "./marks/*": "./src/assets/marks/*",
     "./markdown-editor": "./src/MarkdownEditor.tsx",
     "./menu-primitives": "./src/MenuPrimitives.tsx",
     "./multi-select": "./src/MultiSelect.tsx",
