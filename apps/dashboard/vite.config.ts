@@ -20,37 +20,22 @@ export default defineConfig(({ command }) => ({
   plugins: [react(), UnoCSS()],
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src"),
-      "@lmaa/contracts": resolve(__dirname, "../../packages/contracts/src/index.ts"),
+      "@": resolve(import.meta.dirname, "./src"),
+      "@lmaa/contracts": resolve(import.meta.dirname, "../../packages/contracts/src/index.ts"),
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes("/node_modules/@dnd-kit/")) {
-            return "dnd-kit";
-          }
-
-          if (id.includes("/node_modules/@mdxeditor/")) {
-            return "mdxeditor-core";
-          }
-
-          if (id.includes("/node_modules/lexical/")) {
-            return "lexical";
-          }
-
-          if (id.includes("/node_modules/@codemirror/")) {
-            return "codemirror";
-          }
-
-          if (id.includes("/node_modules/@lezer/")) {
-            return "lezer";
-          }
-
-          if (id.includes("/node_modules/recharts/")) {
-            return "recharts";
-          }
+        codeSplitting: {
+          groups: [
+            { name: "dnd-kit", test: /node_modules[\\/]@dnd-kit[\\/]/ },
+            // The Lezer parsers ride along: Rolldown puts the dependencies of a
+            // captured module into the same chunk, so a group of their own
+            // would stay empty.
+            { name: "codemirror", test: /node_modules[\\/]@(codemirror|lezer)[\\/]/ },
+            { name: "recharts", test: /node_modules[\\/]recharts[\\/]/ },
+          ],
         },
       },
     },
