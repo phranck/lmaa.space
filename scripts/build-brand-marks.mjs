@@ -1,0 +1,919 @@
+#!/usr/bin/env node
+/**
+ * Constructs the LMAA wordmark and icon and writes them to `brand/`.
+ *
+ * The drawings are built rather than traced. Every straight edge of L, M and
+ * A was measured off Google Sans Flex at wght 559, wdth 125, ROND 100 and opsz
+ * 144, in units where the cap height is 100. Every rounded corner is a circular
+ * arc that touches both of its edges, so no edge meets an arc at an angle.
+ *
+ * The letters run into one another. The foot of the L carries the left stem
+ * of the M, whose right edge stands on the end of the foot. Where two round
+ * feet meet, at M to A and at A to A, the bottom is a single arc with the
+ * font's foot radius, touching the edge on either side and resting on the line
+ * the round feet reach; that arc decides how far apart the two letters stand.
+ * Each A's crossbar hangs from its right leg only and ends on the left in a
+ * round cap, a bar's thickness away from the left leg.
+ *
+ * The llama's head is the drawing from the Bodoni Moda wordmark, fitted to the
+ * stem of the L. It is the one part made of Bézier curves, because it is a
+ * drawing rather than geometry.
+ *
+ * Construction runs with y pointing up and the baseline at 0; the SVG output
+ * turns it over.
+ *
+ * Run `npm run brand:marks` after changing anything here, and commit the
+ * drawings it writes. `build-brand-marks.test.mjs` fails while they differ.
+ */
+import { writeFile } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
+
+// Measured edges of the three letters, in their own coordinates.
+const L_STEM_LEFT = 9.21;
+const L_STEM_RIGHT = 29.896;
+const L_FOOT_TOP = 17.354;
+const L_FOOT_END = 94.209;
+const M_LEFT_STEM = [9.21, 28.963];
+const M_RIGHT_STEM = [133.307, 152.917];
+const M_BOTTOM = -1.071;
+const M_LEFT_DIAGONAL_LOWER = [
+  [28.964, 71.74],
+  [71.495, 4.483],
+];
+const M_RIGHT_DIAGONAL_LOWER = [
+  [90.466, 4.483],
+  [133.307, 72.254],
+];
+const M_RIGHT_DIAGONAL_UPPER = [
+  [127.091, 93.69],
+  [81.541, 23.476],
+];
+const M_LEFT_DIAGONAL_UPPER = [
+  [81.536, 23.476],
+  [36.377, 93.477],
+];
+const A_LEFT_OUTER = [
+  [54.921, 93.502],
+  [6.508, 13.244],
+];
+const A_LEFT_INNER = [
+  [21.578, 3.633],
+  [64.439, 74.67],
+];
+const A_INNER_APEX = [
+  [64.439, 74.67],
+  [66.412, 77.004],
+  [66.419, 77.004],
+  [68.35, 74.66],
+];
+const A_RIGHT_INNER = [
+  [68.35, 74.66],
+  [111.048, 3.728],
+];
+const A_RIGHT_OUTER = [
+  [126.386, 13.721],
+  [78.2, 93.502],
+];
+const A_BAR = [22.949, 36.588];
+const A_BOTTOM = -1.045;
+
+// Tangent points of the font's rounded corners, which fix their radii.
+const FONT_CORNERS = {
+  lBottomLeft: [
+    [9.21, 10.662],
+    [20.499, 0],
+  ],
+  mVertex: [
+    [71.495, 4.483],
+    [90.466, 4.483],
+  ],
+  mTopLeft: [
+    [36.377, 93.477],
+    [9.219, 85.951],
+  ],
+  mTopRight: [
+    [152.917, 86.542],
+    [127.091, 93.69],
+  ],
+  aApex: [
+    [78.2, 93.502],
+    [54.921, 93.502],
+  ],
+  aFootInner: [
+    [111.048, 3.728],
+    [119.493, -1.045],
+  ],
+};
+
+// The llama's head as drawn for the Bodoni wordmark: its neck spans x 69.69
+// to 90.37 there, its crown sits on the cap line at y 61.97, and y points
+// down. The curves run from the back of the neck over the ears and the snout
+// to the throat. The last control point of the first curve stands straight
+// above the neck, so the back of the head leaves the stem without a kink.
+const BODONI_NECK = [69.69, 90.37];
+const BODONI_CAP_LINE = 61.97;
+const HEAD = [
+  [
+    [90.37, 73.66],
+    [90.37, 70.81],
+    [88.7, 68.55],
+    [86.89, 66.81],
+  ],
+  [
+    [86.89, 66.81],
+    [85.44, 53.67],
+    [85.28, 47.53],
+    [81.35, 35.73],
+  ],
+  [
+    [81.35, 35.73],
+    [81.08, 36.65],
+    [80.82, 37.52],
+    [80.57, 38.36],
+  ],
+  [
+    [80.57, 38.36],
+    [79.13, 43.26],
+    [78.04, 46.95],
+    [77.38, 50.28],
+  ],
+  [
+    [77.38, 50.28],
+    [78.373, 54.593],
+    [79.183, 58.84],
+    [79.81, 63.02],
+  ],
+  [
+    [79.81, 63.02],
+    [79.26, 62.87],
+    [78.7, 62.74],
+    [78.12, 62.62],
+  ],
+  [
+    [78.12, 62.62],
+    [76.5, 51.46],
+    [74.2, 43.19],
+    [70.69, 32.66],
+  ],
+  [
+    [70.69, 32.66],
+    [66.92, 45.5],
+    [66.87, 52.62],
+    [68.63, 62.38],
+  ],
+  [
+    [68.63, 62.38],
+    [66.93, 62.59],
+    [65.27, 62.94],
+    [63.72, 63.41],
+  ],
+  [
+    [63.72, 63.41],
+    [55.11, 66.07],
+    [49.37, 70.99],
+    [41.17, 73.04],
+  ],
+  [
+    [41.17, 73.04],
+    [37.48, 73.86],
+    [34, 75.09],
+    [32.97, 79.6],
+  ],
+  [
+    [32.97, 79.6],
+    [31.74, 84.93],
+    [34.2, 90.67],
+    [40.76, 91.08],
+  ],
+  [
+    [40.76, 91.08],
+    [52.32, 91.89],
+    [63.5, 91.5],
+    [69.69, 95.07],
+  ],
+];
+
+const TOLERANCE = 1e-6;
+// Joints of the head drawing that turn by less than this many degrees are
+// meant to be smooth and are made so; larger ones are corners on purpose.
+const SMOOTH_LIMIT_DEGREES = 5;
+
+// The icon: a 512 tile with circular corners, the letter the same distance
+// from all four sides, and stem and foot heavier than in the wordmark.
+const ICON_TILE = 512;
+const ICON_CORNER = 112.64;
+const ICON_MARGIN = 46;
+const ICON_WEIGHT_GAIN = 1.2;
+// The rounding that takes the foot's end into its top, as a share of the foot.
+const ICON_FOOT_TOP_SHARE = 0.25;
+// How the back of the head follows the wider neck: the nape starts this much
+// lower per unit of widening, and its upper handle moves this share along.
+const BACK_DROP = 0.75;
+const BACK_PULL = 0.5;
+// The outline turns left at every rounded corner with y up. Turned over for
+// SVG, that is the direction its sweep flag 0 draws.
+const SWEEP_CONVEX = 0;
+
+/**
+ * Writes a number with at most three decimals and without trailing zeros.
+ *
+ * @param {number} value Coordinate or length.
+ * @returns {string} The number as it appears in path data.
+ */
+export function formatNumber(value) {
+  const text = value.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
+  return text === "-0" ? "0" : text;
+}
+
+/** An edge the outline runs along, with the direction the outline takes on it. */
+class Line {
+  /**
+   * @param {[number, number]} point Any point on the edge.
+   * @param {[number, number]} direction The direction of travel, any length.
+   */
+  constructor(point, direction) {
+    const length = Math.hypot(direction[0], direction[1]);
+    this.point = point;
+    this.direction = [direction[0] / length, direction[1] / length];
+  }
+
+  /**
+   * @param {[number, number]} start First point, in the letter's own coordinates.
+   * @param {[number, number]} end Second point, travelled towards.
+   * @param {number} [offset] How far right the letter stands.
+   * @returns {Line} The edge through both points.
+   */
+  static through(start, end, offset = 0) {
+    return new Line([start[0] + offset, start[1]], [end[0] - start[0], end[1] - start[1]]);
+  }
+
+  /** The unit normal on the left of travel, which is the ink side of the outline. */
+  get leftNormal() {
+    return [-this.direction[1], this.direction[0]];
+  }
+}
+
+/**
+ * @param {Line} first
+ * @param {Line} second
+ * @returns {[number, number]} Where the two edges, extended, cross.
+ */
+function intersect(first, second) {
+  const [px, py] = first.point;
+  const [dx, dy] = first.direction;
+  const [qx, qy] = second.point;
+  const [ex, ey] = second.direction;
+  const denominator = dx * ey - dy * ex;
+  if (Math.abs(denominator) < TOLERANCE) {
+    throw new Error("parallel edges have no corner");
+  }
+  const along = ((qx - px) * ey - (qy - py) * ex) / denominator;
+  return [px + along * dx, py + along * dy];
+}
+
+function distance(first, second) {
+  return Math.hypot(first[0] - second[0], first[1] - second[1]);
+}
+
+/**
+ * The angle the outline turns through from one edge to the next, left positive.
+ *
+ * @param {Line} first
+ * @param {Line} second
+ * @returns {number} Radians.
+ */
+function turnBetween(first, second) {
+  const [ax, ay] = first.direction;
+  const [bx, by] = second.direction;
+  return Math.atan2(ax * by - ay * bx, ax * bx + ay * by);
+}
+
+/**
+ * The radius of the circle that touches both edges where the font's curve leaves them.
+ *
+ * @param {Line} first
+ * @param {Line} second
+ * @param {[[number, number], [number, number]]} tangents Where the font's curve meets each edge.
+ * @returns {number} The fillet radius.
+ */
+function fittedRadius(first, second, [tangentFirst, tangentSecond]) {
+  const corner = intersect(first, second);
+  const reach = (distance(corner, tangentFirst) + distance(corner, tangentSecond)) / 2;
+  const vectors = [tangentFirst, tangentSecond].map((tangent) => [
+    tangent[0] - corner[0],
+    tangent[1] - corner[1],
+  ]);
+  const cosine =
+    (vectors[0][0] * vectors[1][0] + vectors[0][1] * vectors[1][1]) /
+    (Math.hypot(...vectors[0]) * Math.hypot(...vectors[1]));
+  const interior = Math.acos(Math.max(-1, Math.min(1, cosine)));
+  return reach * Math.tan(interior / 2);
+}
+
+/**
+ * How far right a letter has to stand for one of its edges to touch a circle from the ink side.
+ *
+ * @param {[number, number]} center
+ * @param {number} radius
+ * @param {[[number, number], [number, number]]} edge The edge, in the letter's own coordinates.
+ * @returns {number} The letter's offset.
+ */
+function offsetForTangency(center, radius, [start, end]) {
+  const line = Line.through(start, end);
+  const normal = line.leftNormal;
+  const reach = (center[0] - line.point[0]) * normal[0] + (center[1] - line.point[1]) * normal[1];
+  return (reach - radius) / normal[0];
+}
+
+/**
+ * Collects edges, corners and drawn pieces, and writes them out as SVG path data.
+ *
+ * A piece is a stretch the edges cannot describe, such as the head or the cap
+ * of a bar. It runs from a point on the edge before it to a point on the edge
+ * after it, as a list of `["A", radius, end]` and `["C", first, second, end]`
+ * segments in construction coordinates.
+ */
+class Outline {
+  constructor() {
+    this.items = [];
+  }
+
+  /**
+   * @param {Line} line The edge.
+   * @param {number} [radius] Rounds the corner where the outline leaves this edge for the next one.
+   */
+  edge(line, radius = 0) {
+    this.items.push({ kind: "edge", line, radius });
+  }
+
+  /**
+   * @param {[number, number]} start A point on the previous edge.
+   * @param {Array} segments The drawn stretch.
+   * @param {[number, number]} end A point on the next edge.
+   */
+  piece(start, segments, end) {
+    this.items.push({ kind: "piece", start, segments, end });
+  }
+
+  /** Resolves every corner into the point where the outline arrives and the one it leaves from. */
+  corners() {
+    const resolved = new Map();
+    const count = this.items.length;
+    this.items.forEach((item, index) => {
+      const following = this.items[(index + 1) % count];
+      if (item.kind !== "edge" || following.kind !== "edge") {
+        return;
+      }
+      const corner = intersect(item.line, following.line);
+      if (item.radius <= 0) {
+        resolved.set(index, { arrive: corner, leave: corner, radius: null });
+        return;
+      }
+      const turn = turnBetween(item.line, following.line);
+      if (turn <= 0) {
+        throw new Error(`corner after item ${index} turns right and cannot take a radius`);
+      }
+      const reach = item.radius * Math.tan(turn / 2);
+      const [fx, fy] = item.line.direction;
+      const [sx, sy] = following.line.direction;
+      resolved.set(index, {
+        arrive: [corner[0] - fx * reach, corner[1] - fy * reach],
+        leave: [corner[0] + sx * reach, corner[1] + sy * reach],
+        radius: item.radius,
+      });
+    });
+    return resolved;
+  }
+
+  /** Fails when a rounded corner eats past the end of its edge. */
+  checkSegments(resolved) {
+    const count = this.items.length;
+    this.items.forEach((item, index) => {
+      if (item.kind !== "edge") {
+        return;
+      }
+      const previousIndex = (index - 1 + count) % count;
+      const previous = this.items[previousIndex];
+      const following = this.items[(index + 1) % count];
+      const start = previous.kind === "edge" ? resolved.get(previousIndex).leave : previous.end;
+      const end = following.kind === "edge" ? resolved.get(index).arrive : following.start;
+      const [dx, dy] = item.line.direction;
+      const length = (end[0] - start[0]) * dx + (end[1] - start[1]) * dy;
+      if (length < -1e-6) {
+        throw new Error(`edge ${index} runs backwards by ${(-length).toFixed(4)}`);
+      }
+    });
+  }
+
+  /**
+   * Writes the outline as one closed path.
+   *
+   * @param {(point: [number, number]) => [number, number]} place Maps a construction point.
+   * @param {number} scale How lengths scale under `place`.
+   * @returns {string} SVG path data.
+   */
+  svg(place, scale) {
+    const resolved = this.corners();
+    this.checkSegments(resolved);
+    const point = (value) => {
+      const [x, y] = place(value);
+      return `${formatNumber(x)} ${formatNumber(y)}`;
+    };
+    const arc = (radius, end) =>
+      `A${formatNumber(radius * scale)} ${formatNumber(radius * scale)} 0 0 ${SWEEP_CONVEX} ${point(end)}`;
+
+    // Start where the outline leaves the first resolved corner and go once
+    // round, so the path also closes through that corner.
+    const first = resolved.keys().next().value;
+    const commands = [`M${point(resolved.get(first).leave)}`];
+    const count = this.items.length;
+    for (let step = 1; step <= count; step++) {
+      const index = (first + step) % count;
+      const item = this.items[index];
+      if (item.kind === "piece") {
+        commands.push(`L${point(item.start)}`);
+        for (const segment of item.segments) {
+          if (segment[0] === "A") {
+            commands.push(arc(segment[1], segment[2]));
+          } else {
+            commands.push(`C${segment.slice(1).map(point).join(" ")}`);
+          }
+        }
+        continue;
+      }
+      if (!resolved.has(index)) {
+        continue;
+      }
+      const { arrive, leave, radius } = resolved.get(index);
+      commands.push(`L${point(arrive)}`);
+      if (radius !== null) {
+        commands.push(arc(radius, leave));
+      }
+    }
+    commands.push("Z");
+    return commands.join("");
+  }
+}
+
+/**
+ * The head's curves in Bodoni coordinates, with the joints meant to be smooth made smooth.
+ *
+ * The drawing joins some of its curves at angles of a degree or so, where the
+ * line is plainly meant to run on. Those joints are turned into tangent ones
+ * by laying both handles along their mean direction. Joints that turn by more
+ * than SMOOTH_LIMIT_DEGREES are corners on purpose: the ear tips, the ear
+ * bases and the throat.
+ *
+ * @param {Array} [backSegment] A replacement for the first curve, the back of the head.
+ * @returns {Array} The curves, each as four points.
+ */
+function smoothedHead(backSegment) {
+  const segments = HEAD.map((segment) => segment.map((point) => [...point]));
+  if (backSegment) {
+    segments[0] = backSegment.map((point) => [...point]);
+  }
+  for (let index = 0; index < segments.length - 1; index++) {
+    const ending = segments[index];
+    const starting = segments[index + 1];
+    const joint = ending[3];
+    const incoming = [joint[0] - ending[2][0], joint[1] - ending[2][1]];
+    const outgoing = [starting[1][0] - joint[0], starting[1][1] - joint[1]];
+    const incomingLength = Math.hypot(...incoming);
+    const outgoingLength = Math.hypot(...outgoing);
+    const cosine =
+      (incoming[0] * outgoing[0] + incoming[1] * outgoing[1]) / (incomingLength * outgoingLength);
+    const angle = (Math.acos(Math.max(-1, Math.min(1, cosine))) * 180) / Math.PI;
+    if (angle >= SMOOTH_LIMIT_DEGREES) {
+      continue;
+    }
+    const sum = [
+      incoming[0] / incomingLength + outgoing[0] / outgoingLength,
+      incoming[1] / incomingLength + outgoing[1] / outgoingLength,
+    ];
+    const sumLength = Math.hypot(...sum);
+    const mean = [sum[0] / sumLength, sum[1] / sumLength];
+    ending[2] = [joint[0] - mean[0] * incomingLength, joint[1] - mean[1] * incomingLength];
+    starting[1] = [joint[0] + mean[0] * outgoingLength, joint[1] + mean[1] * outgoingLength];
+  }
+  return segments;
+}
+
+/**
+ * The head as a piece from the back of the neck to the throat, in construction coordinates.
+ *
+ * @param {number} stemLeft Where the left edge of the L's stem stands.
+ * @param {number} scale How much smaller or larger than in Bodoni the head is drawn.
+ * @param {Array} [backSegment] A replacement for the back of the head.
+ */
+function headPiece(stemLeft, scale, backSegment) {
+  const place = (point) => [
+    stemLeft + (point[0] - BODONI_NECK[0]) * scale,
+    100 - (point[1] - BODONI_CAP_LINE) * scale,
+  ];
+  const segments = smoothedHead(backSegment);
+  return {
+    start: place(segments[0][0]),
+    segments: segments.map((segment) => [
+      "C",
+      place(segment[1]),
+      place(segment[2]),
+      place(segment[3]),
+    ]),
+    end: place(segments.at(-1)[3]),
+  };
+}
+
+/** The leftmost and the highest point of the head, sampled along its curves. */
+function headExtent(stemLeft, scale, backSegment) {
+  const { start, segments } = headPiece(stemLeft, scale, backSegment);
+  let [left, top] = start;
+  let previous = start;
+  for (const [, first, second, end] of segments) {
+    for (let step = 1; step <= 64; step++) {
+      const t = step / 64;
+      const u = 1 - t;
+      const along = (axis) =>
+        u ** 3 * previous[axis] +
+        3 * u * u * t * first[axis] +
+        3 * u * t * t * second[axis] +
+        t ** 3 * end[axis];
+      left = Math.min(left, along(0));
+      top = Math.max(top, along(1));
+    }
+    previous = end;
+  }
+  return { left, top };
+}
+
+const headScale = (L_STEM_RIGHT - L_STEM_LEFT) / (BODONI_NECK[1] - BODONI_NECK[0]);
+
+/** The radii of the font's rounded corners, fitted from where its curves meet the edges. */
+function fontRadii() {
+  return {
+    lBottomLeft: fittedRadius(
+      new Line([L_STEM_LEFT, 0], [0, -1]),
+      new Line([0, 0], [1, 0]),
+      FONT_CORNERS.lBottomLeft,
+    ),
+    mVertex: fittedRadius(
+      Line.through(...M_LEFT_DIAGONAL_LOWER),
+      Line.through(...M_RIGHT_DIAGONAL_LOWER),
+      FONT_CORNERS.mVertex,
+    ),
+    mTopLeft: fittedRadius(
+      Line.through(...M_LEFT_DIAGONAL_UPPER),
+      new Line([M_LEFT_STEM[0], 0], [0, -1]),
+      FONT_CORNERS.mTopLeft,
+    ),
+    mTopRight: fittedRadius(
+      new Line([M_RIGHT_STEM[1], 0], [0, 1]),
+      Line.through(...M_RIGHT_DIAGONAL_UPPER),
+      FONT_CORNERS.mTopRight,
+    ),
+    aApex: fittedRadius(
+      Line.through(...A_RIGHT_OUTER),
+      Line.through(...A_LEFT_OUTER),
+      FONT_CORNERS.aApex,
+    ),
+    aFootInner: fittedRadius(
+      Line.through(...A_RIGHT_INNER),
+      new Line([0, A_BOTTOM], [1, 0]),
+      FONT_CORNERS.aFootInner,
+    ),
+  };
+}
+
+/**
+ * Constructs the wordmark as one closed outline.
+ *
+ * @returns {string} SVG path data with y pointing down and the baseline at 0.
+ */
+export function wordmarkPath() {
+  const radii = fontRadii();
+  const mOffset = L_FOOT_END - M_LEFT_STEM[1];
+  const mCap = (M_RIGHT_STEM[1] - M_RIGHT_STEM[0]) / 2;
+
+  // M to A: the M's stem rounds into the A's left leg with the stem's own cap radius.
+  const mToACenter = [M_RIGHT_STEM[0] + mOffset + mCap, M_BOTTOM + mCap];
+  const a1Offset = offsetForTangency(mToACenter, mCap, A_LEFT_INNER);
+  // A to A: the right leg of the first A rounds into the left leg of the second.
+  const aRadius = radii.aFootInner;
+  const firstRightInner = Line.through(...A_RIGHT_INNER, a1Offset);
+  const height = A_BOTTOM + aRadius;
+  const firstNormal = firstRightInner.leftNormal;
+  const centerX =
+    firstRightInner.point[0] +
+    (aRadius - (height - firstRightInner.point[1]) * firstNormal[1]) / firstNormal[0];
+  const a2Offset = offsetForTangency([centerX, height], aRadius, A_LEFT_INNER);
+
+  const [barBottom, barTop] = A_BAR;
+  const barRadius = (barTop - barBottom) / 2;
+  const barMiddle = (barTop + barBottom) / 2;
+  const barGap = barTop - barBottom;
+
+  const outline = new Outline();
+  outline.edge(new Line([0, 0], [1, 0]), L_FOOT_TOP / 2);
+  outline.edge(new Line([M_LEFT_STEM[1] + mOffset, 0], [0, 1]));
+  outline.edge(Line.through(...M_LEFT_DIAGONAL_LOWER, mOffset), radii.mVertex);
+  outline.edge(Line.through(...M_RIGHT_DIAGONAL_LOWER, mOffset));
+  outline.edge(new Line([M_RIGHT_STEM[0] + mOffset, 0], [0, -1]), mCap);
+
+  for (const [aOffset, last] of [
+    [a1Offset, false],
+    [a2Offset, true],
+  ]) {
+    const leftInner = Line.through(...A_LEFT_INNER, aOffset);
+    outline.edge(leftInner);
+    outline.edge(Line.through(A_INNER_APEX[0], A_INNER_APEX[1], aOffset));
+    outline.edge(Line.through(A_INNER_APEX[2], A_INNER_APEX[3], aOffset));
+    const rightInner = Line.through(...A_RIGHT_INNER, aOffset);
+    outline.edge(rightInner);
+    // The cap's center stands a bar's thickness plus its radius from the left leg.
+    const normal = leftInner.leftNormal;
+    const capX =
+      leftInner.point[0] +
+      (-(barRadius + barGap) - (barMiddle - leftInner.point[1]) * normal[1]) / normal[0];
+    outline.edge(new Line([0, barTop], [-1, 0]));
+    outline.piece(
+      [capX, barTop],
+      [
+        ["A", barRadius, [capX - barRadius, barMiddle]],
+        ["A", barRadius, [capX, barBottom]],
+      ],
+      [capX, barBottom],
+    );
+    outline.edge(new Line([0, barBottom], [1, 0]));
+    outline.edge(rightInner, last ? radii.aFootInner : aRadius);
+  }
+
+  // The free foot of the last A: one rounding into the bottom, one out of it,
+  // meeting at a single lowest point.
+  const lastRightInner = Line.through(...A_RIGHT_INNER, a2Offset);
+  const bottom = new Line([0, A_BOTTOM], [1, 0]);
+  const lastRightOuter = Line.through(...A_RIGHT_OUTER, a2Offset);
+  const innerReach = radii.aFootInner * Math.tan(turnBetween(lastRightInner, bottom) / 2);
+  const outerRadius =
+    (distance(intersect(lastRightInner, bottom), intersect(bottom, lastRightOuter)) - innerReach) /
+    Math.tan(turnBetween(bottom, lastRightOuter) / 2);
+  outline.edge(bottom, outerRadius);
+  outline.edge(lastRightOuter, radii.aApex);
+  outline.edge(Line.through(...A_LEFT_OUTER, a2Offset));
+  outline.edge(Line.through(...A_RIGHT_OUTER, a1Offset), radii.aApex);
+  outline.edge(Line.through(...A_LEFT_OUTER, a1Offset));
+  outline.edge(new Line([M_RIGHT_STEM[1] + mOffset, 0], [0, 1]), radii.mTopRight);
+  outline.edge(Line.through(...M_RIGHT_DIAGONAL_UPPER, mOffset));
+  outline.edge(Line.through(...M_LEFT_DIAGONAL_UPPER, mOffset), radii.mTopLeft);
+  outline.edge(new Line([M_LEFT_STEM[0] + mOffset, 0], [0, -1]));
+  outline.edge(new Line([0, L_FOOT_TOP], [-1, 0]));
+
+  const head = headPiece(L_STEM_LEFT, headScale);
+  outline.edge(new Line([L_STEM_RIGHT, 0], [0, 1]));
+  outline.piece(head.start, head.segments, head.end);
+  outline.edge(new Line([L_STEM_LEFT, 0], [0, -1]), radii.lBottomLeft);
+
+  return outline.svg(([x, y]) => [x, -y], 1);
+}
+
+/**
+ * Constructs the icon: the L with the llama, cut out of a tile with rounded corners.
+ *
+ * The stem and the foot are ICON_WEIGHT_GAIN times as heavy as the font's.
+ * The stem grows to the right, so the throat and the ears keep their place,
+ * and the back of the head is drawn out to the wider neck.
+ *
+ * The letter stands with the same margin on all four sides of the tile, which
+ * fixes how long the foot is. The end of the foot follows the tile's corner:
+ * its lower rounding shares the corner's center, with the margin as the
+ * difference of the two radii, and a smaller rounding takes it into the top of
+ * the foot. The tile's corners are circular arcs for that reason.
+ *
+ * @returns {{ tile: string, letter: string }} SVG path data in a 512 unit square.
+ */
+export function iconPaths() {
+  const stemWidth = (L_STEM_RIGHT - L_STEM_LEFT) * ICON_WEIGHT_GAIN;
+  const foot = L_FOOT_TOP * ICON_WEIGHT_GAIN;
+  const stemRight = L_STEM_LEFT + stemWidth;
+  const widening = (stemWidth - (L_STEM_RIGHT - L_STEM_LEFT)) / headScale;
+  const original = HEAD[0];
+  const backSegment = [
+    [original[0][0] + widening, original[0][1] + widening * BACK_DROP],
+    [original[0][0] + widening, original[1][1] + (widening * BACK_DROP) / 2],
+    [original[2][0] + widening * BACK_PULL, original[2][1]],
+    original[3],
+  ];
+  const { left, top } = headExtent(L_STEM_LEFT, headScale, backSegment);
+  const unit = (ICON_TILE - 2 * ICON_MARGIN) / top;
+  const footEnd = left + top;
+  const cornerRadius = (ICON_CORNER - ICON_MARGIN) / unit;
+  const place = ([x, y]) => [ICON_MARGIN + (x - left) * unit, ICON_TILE - ICON_MARGIN - y * unit];
+
+  // The lower rounding of the foot's end, centered where the tile's corner is.
+  const bigCenter = [footEnd - cornerRadius, cornerRadius];
+  const smallRadius = foot * ICON_FOOT_TOP_SHARE;
+  const smallCenterY = foot - smallRadius;
+  const smallCenterX =
+    bigCenter[0] +
+    Math.sqrt((cornerRadius - smallRadius) ** 2 - (smallCenterY - bigCenter[1]) ** 2);
+  const reach = cornerRadius / (cornerRadius - smallRadius);
+  const meeting = [
+    bigCenter[0] + (smallCenterX - bigCenter[0]) * reach,
+    bigCenter[1] + (smallCenterY - bigCenter[1]) * reach,
+  ];
+
+  const outline = new Outline();
+  outline.edge(new Line([0, 0], [1, 0]));
+  outline.piece(
+    [bigCenter[0], 0],
+    [
+      ["A", cornerRadius, meeting],
+      ["A", smallRadius, [smallCenterX, foot]],
+    ],
+    [smallCenterX, foot],
+  );
+  outline.edge(new Line([0, foot], [-1, 0]));
+  const head = headPiece(L_STEM_LEFT, headScale, backSegment);
+  outline.edge(new Line([stemRight, 0], [0, 1]));
+  outline.piece(head.start, head.segments, head.end);
+  outline.edge(new Line([L_STEM_LEFT, 0], [0, -1]), fontRadii().lBottomLeft);
+
+  const radius = formatNumber(ICON_CORNER);
+  const far = formatNumber(ICON_TILE - ICON_CORNER);
+  const corner = (x, y) => `A${radius} ${radius} 0 0 1 ${x} ${y}`;
+  const tile =
+    `M${radius} 0H${far}${corner(ICON_TILE, radius)}V${far}${corner(far, ICON_TILE)}` +
+    `H${radius}${corner(0, far)}V${radius}${corner(radius, 0)}Z`;
+  return { tile, letter: outline.svg(place, unit) };
+}
+
+const COMMAND = /[MLAHVCZ]|-?\d*\.?\d+(?:e-?\d+)?/g;
+const ARGUMENT_COUNT = { M: 2, L: 2, H: 1, V: 1, A: 7, C: 6, Z: 0 };
+
+/**
+ * Splits path data into drawn segments, each with the direction it leaves and arrives in.
+ *
+ * Understands the absolute M, L, H, V, A, C and Z this generator writes. An
+ * arc is taken as the small arc of a circle, which every arc here is.
+ *
+ * @param {string} path SVG path data.
+ * @returns {Array<Array<{ kind: string, start: number[], end: number[], leaving: number[], arriving: number[], center?: number[], radius?: number, sweep?: number }>>}
+ *   The segments of each contour.
+ */
+export function pathContours(path) {
+  const tokens = path.match(COMMAND);
+  const contours = [];
+  let contour = [];
+  let current = null;
+  let start = null;
+  const unit = ([x, y]) => {
+    const length = Math.hypot(x, y);
+    return [x / length, y / length];
+  };
+  const line = (end) => {
+    if (distance(current, end) > 1e-9) {
+      const direction = unit([end[0] - current[0], end[1] - current[1]]);
+      contour.push({ kind: "L", start: current, end, leaving: direction, arriving: direction });
+    }
+    current = end;
+  };
+  for (let index = 0; index < tokens.length;) {
+    const letter = tokens[index++];
+    const values = tokens.slice(index, index + ARGUMENT_COUNT[letter]).map(Number);
+    index += ARGUMENT_COUNT[letter];
+    if (letter === "M") {
+      current = start = values;
+    } else if (letter === "L") {
+      line(values);
+    } else if (letter === "H") {
+      line([values[0], current[1]]);
+    } else if (letter === "V") {
+      line([current[0], values[0]]);
+    } else if (letter === "A") {
+      const [radius, , , , sweep, x, y] = values;
+      const end = [x, y];
+      const middle = [(current[0] + end[0]) / 2, (current[1] + end[1]) / 2];
+      const half = distance(current, end) / 2;
+      const depth = Math.sqrt(Math.max(radius * radius - half * half, 0));
+      const chord = unit([end[0] - current[0], end[1] - current[1]]);
+      // SVG puts the center on the left of the chord when the large-arc and
+      // sweep flags differ, and every arc here takes the small arc.
+      const side = sweep ? 1 : -1;
+      const center = [middle[0] - chord[1] * depth * side, middle[1] + chord[0] * depth * side];
+      const turn = sweep ? 1 : -1;
+      const tangent = ([px, py]) => unit([-(py - center[1]) * turn, (px - center[0]) * turn]);
+      contour.push({
+        kind: "A",
+        start: current,
+        end,
+        leaving: tangent(current),
+        arriving: tangent(end),
+        center,
+        radius,
+        sweep,
+      });
+      current = end;
+    } else if (letter === "C") {
+      const first = [values[0], values[1]];
+      const second = [values[2], values[3]];
+      const end = [values[4], values[5]];
+      contour.push({
+        kind: "C",
+        start: current,
+        end,
+        first,
+        second,
+        leaving: unit([first[0] - current[0], first[1] - current[1]]),
+        arriving: unit([end[0] - second[0], end[1] - second[1]]),
+      });
+      current = end;
+    } else if (letter === "Z") {
+      line(start);
+      contours.push(contour);
+      contour = [];
+    }
+  }
+  return contours;
+}
+
+/**
+ * The box around a path, sampled along its arcs and curves.
+ *
+ * @param {string} path SVG path data as `pathContours` reads it.
+ * @returns {[number, number, number, number]} x, y, width and height.
+ */
+export function pathBounds(path) {
+  const points = [];
+  for (const contour of pathContours(path)) {
+    for (const segment of contour) {
+      points.push(segment.start, segment.end);
+      if (segment.kind === "A") {
+        const from = Math.atan2(
+          segment.start[1] - segment.center[1],
+          segment.start[0] - segment.center[0],
+        );
+        let sweep =
+          Math.atan2(segment.end[1] - segment.center[1], segment.end[0] - segment.center[0]) - from;
+        if (segment.sweep && sweep < 0) sweep += 2 * Math.PI;
+        if (!segment.sweep && sweep > 0) sweep -= 2 * Math.PI;
+        for (let step = 1; step < 64; step++) {
+          const angle = from + (sweep * step) / 64;
+          points.push([
+            segment.center[0] + segment.radius * Math.cos(angle),
+            segment.center[1] + segment.radius * Math.sin(angle),
+          ]);
+        }
+      } else if (segment.kind === "C") {
+        for (let step = 1; step < 64; step++) {
+          const t = step / 64;
+          const u = 1 - t;
+          const along = (axis) =>
+            u ** 3 * segment.start[axis] +
+            3 * u * u * t * segment.first[axis] +
+            3 * u * t * t * segment.second[axis] +
+            t ** 3 * segment.end[axis];
+          points.push([along(0), along(1)]);
+        }
+      }
+    }
+  }
+  const xs = points.map(([x]) => x);
+  const ys = points.map(([, y]) => y);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return [x, y, Math.max(...xs) - x, Math.max(...ys) - y];
+}
+
+/**
+ * Both drawings as complete SVG files.
+ *
+ * The wordmark's box is the ink's own, without a margin, so a place that
+ * shows it decides the space around it. The icon keeps the letter as a path
+ * of its own with the class `lmaa-icon-letter` and no fill, so a place that
+ * wants the letter in a color of its own can fill it.
+ *
+ * @returns {{ wordmark: string, icon: string }}
+ */
+export function buildMarks() {
+  const mark = wordmarkPath();
+  const viewBox = pathBounds(mark).map(formatNumber).join(" ");
+  const { tile, letter } = iconPaths();
+  return {
+    wordmark: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"><path fill="currentColor" d="${mark}"/></svg>\n`,
+    icon:
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ICON_TILE} ${ICON_TILE}">` +
+      `<path fill="currentColor" fill-rule="evenodd" d="${tile}${letter}"/>` +
+      `<path class="lmaa-icon-letter" fill="none" d="${letter}"/></svg>\n`,
+  };
+}
+
+/** Where the drawings live, relative to this file. */
+export const MARK_FILES = {
+  wordmark: new URL("../brand/lmaa-wordmark.svg", import.meta.url),
+  icon: new URL("../brand/lmaa-icon.svg", import.meta.url),
+};
+
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  const marks = buildMarks();
+  await writeFile(MARK_FILES.wordmark, marks.wordmark);
+  await writeFile(MARK_FILES.icon, marks.icon);
+  console.log("brand marks written: brand/lmaa-wordmark.svg, brand/lmaa-icon.svg");
+}
