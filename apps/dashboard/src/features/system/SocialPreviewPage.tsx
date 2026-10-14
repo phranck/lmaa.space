@@ -67,7 +67,7 @@ import type {
 } from "@lmaa/contracts";
 import {
   SOCIAL_PREVIEW_MAX_EDGE_PX,
-  SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX,
+  SOCIAL_PREVIEW_MAX_BLUR_PX,
   SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX,
 } from "@lmaa/contracts";
 import { formatDateTime } from "@lmaa/shared";
@@ -3319,6 +3319,7 @@ function ShapeLayerContent({ layer }: { layer: SocialPreviewShapeLayer }) {
     <svg
       className="size-full cursor-move overflow-visible"
       viewBox={`0 0 ${layer.width} ${layer.height}`}
+      style={{ filter: layer.blur ? `blur(${layer.blur}px)` : undefined }}
     >
       {layer.shape === "rectangle" ? (
         <rect
@@ -4223,6 +4224,27 @@ function ShapeLayerAttributes({
           }
         />
       </AttributeLabel>
+      <AttributeLabel
+        title={messages.shapeBlur}
+        icon={<ApertureIcon weight="duotone" className="size-4" />}
+      >
+        <span className="w-8 text-right tabular-nums">{layer.blur ?? 0}</span>
+        <AttributeInput
+          aria-label={messages.shapeBlur}
+          type="range"
+          min={0}
+          max={SOCIAL_PREVIEW_MAX_BLUR_PX}
+          step={1}
+          value={layer.blur ?? 0}
+          className="w-20"
+          padding="px-0"
+          onChange={(event) =>
+            onChange({
+              blur: clamp(Number(event.currentTarget.value) || 0, 0, SOCIAL_PREVIEW_MAX_BLUR_PX),
+            })
+          }
+        />
+      </AttributeLabel>
     </>
   );
 }
@@ -4403,7 +4425,7 @@ function TextShadowAttributes({
         label={messages.textShadowBlur}
         value={settings.blur}
         min={0}
-        max={SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX}
+        max={SOCIAL_PREVIEW_MAX_BLUR_PX}
         disabled={disabled}
         className={COMPACT_NUMBER_INPUT_CLASS}
         onChange={(shadowBlur) => onChange({ shadowBlur })}

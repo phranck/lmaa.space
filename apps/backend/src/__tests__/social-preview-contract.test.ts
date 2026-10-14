@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX,
+  SOCIAL_PREVIEW_MAX_BLUR_PX,
   SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX,
+  socialPreviewShapeLayerSchema,
   socialPreviewTextLayerSchema,
 } from "@lmaa/contracts";
 
@@ -46,7 +47,7 @@ describe("socialPreviewTextLayerSchema shadow", () => {
       socialPreviewTextLayerSchema.safeParse({
         ...textLayer,
         ...shadow,
-        shadowBlur: SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX,
+        shadowBlur: SOCIAL_PREVIEW_MAX_BLUR_PX,
         shadowOffsetX: -SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX,
         shadowOffsetY: SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX,
       }).success,
@@ -55,7 +56,7 @@ describe("socialPreviewTextLayerSchema shadow", () => {
 
   it("refuses a blur or an offset beyond its bounds", () => {
     for (const outOfBounds of [
-      { shadowBlur: SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX + 1 },
+      { shadowBlur: SOCIAL_PREVIEW_MAX_BLUR_PX + 1 },
       { shadowBlur: -1 },
       { shadowOffsetX: SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX + 1 },
       { shadowOffsetY: -SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX - 1 },
@@ -72,6 +73,45 @@ describe("socialPreviewTextLayerSchema shadow", () => {
       expect(
         socialPreviewTextLayerSchema.safeParse({ ...textLayer, ...shadow, shadowColor }).success,
       ).toBe(false);
+    }
+  });
+});
+
+const shapeLayer = {
+  id: "shape-1",
+  type: "shape",
+  x: 180,
+  y: 160,
+  width: 280,
+  height: 180,
+  rotation: 0,
+  opacity: 1,
+  shape: "rectangle",
+  cornerRadius: 0,
+  radius: 90,
+  sides: 5,
+  points: 5,
+  color: "#ffffff",
+  border: true,
+  borderColor: "#111827",
+  borderThickness: 4,
+  borderOpacity: 1,
+};
+
+describe("socialPreviewShapeLayerSchema blur", () => {
+  it("accepts a shape stored before blur existed", () => {
+    expect(socialPreviewShapeLayerSchema.safeParse(shapeLayer).success).toBe(true);
+  });
+
+  it("accepts a blur within its bounds", () => {
+    for (const blur of [0, 12.5, SOCIAL_PREVIEW_MAX_BLUR_PX]) {
+      expect(socialPreviewShapeLayerSchema.safeParse({ ...shapeLayer, blur }).success).toBe(true);
+    }
+  });
+
+  it("refuses a blur beyond its bounds", () => {
+    for (const blur of [-1, SOCIAL_PREVIEW_MAX_BLUR_PX + 1]) {
+      expect(socialPreviewShapeLayerSchema.safeParse({ ...shapeLayer, blur }).success).toBe(false);
     }
   });
 });

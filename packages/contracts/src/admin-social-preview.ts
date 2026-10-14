@@ -12,8 +12,8 @@ export type SocialPreviewFormat = (typeof SOCIAL_PREVIEW_FORMATS)[number];
  */
 export const SOCIAL_PREVIEW_MAX_EDGE_PX = 4096;
 
-/** The largest blur radius a text shadow may have, in canvas pixels. */
-export const SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX = 200;
+/** The largest blur, of a text shadow or of a shape, in canvas pixels. */
+export const SOCIAL_PREVIEW_MAX_BLUR_PX = 200;
 
 /** How far a text shadow may sit from its text on either axis, in canvas pixels. */
 export const SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX = 500;
@@ -86,7 +86,7 @@ export const socialPreviewTextLayerSchema = socialPreviewBaseLayerSchema.extend(
   shadow: z.boolean().optional(),
   shadowColor: socialPreviewHexColorSchema.optional(),
   shadowOpacity: z.number().min(0).max(1).optional(),
-  shadowBlur: z.number().min(0).max(SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX).optional(),
+  shadowBlur: z.number().min(0).max(SOCIAL_PREVIEW_MAX_BLUR_PX).optional(),
   shadowOffsetX: z
     .number()
     .min(-SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX)
@@ -124,6 +124,9 @@ export const socialPreviewShapeLayerSchema = socialPreviewBaseLayerSchema.extend
   borderColor: z.string().max(40),
   borderThickness: z.number().min(0).max(200),
   borderOpacity: z.number().min(0).max(1),
+  // The standard deviation of a Gaussian blur, as CSS `blur()` takes it. A
+  // shape stored before blur existed has none and stays sharp.
+  blur: z.number().min(0).max(SOCIAL_PREVIEW_MAX_BLUR_PX).optional(),
 });
 
 export const socialPreviewLayerSchema = z.discriminatedUnion("type", [
