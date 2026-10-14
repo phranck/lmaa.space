@@ -1,110 +1,25 @@
 #!/usr/bin/env node
 /**
- * Constructs the LMAA icon and wordmark and writes them to the marks folder of
- * `@lmaa/ui`, `packages/ui/src/assets/marks/`.
+ * Writes the LMAA wordmark from the icon, and puts the icon file into the form
+ * the site reads. Both live in the marks folder of `@lmaa/ui`,
+ * `packages/ui/src/assets/marks/`.
  *
- * The icon is the llama's head on a stub of neck, cut out of a squircle. The
- * head is the drawing from the Bodoni Moda wordmark, made of Bézier curves
- * because it is a drawing rather than geometry. The tips of its ears and the
- * corners of the neck's cut are circular arcs that touch the curves and edges
- * on both sides, so nothing meets an arc at an angle.
+ * The icon, `lmaa-icon.svg`, is drawn by hand: a squircle tile with the
+ * llama's head cut out of it. An editor writes it back in its own form, so the
+ * generator reads the path that holds the tile, takes the subpath spanning the
+ * whole drawing as the tile and the others as the head, and writes the file
+ * again with the cut-out filled in `currentColor` and the head a second time
+ * as a path of its own with the class `lmaa-icon-head`. A file it wrote comes
+ * out unchanged.
  *
  * The wordmark sets the icon beside "LMAA" as Google Sans Flex draws it.
  *
- * Construction runs with y pointing up; the SVG output turns it over.
- *
- * Run `npm run brand:marks` after changing anything here, and commit the
- * drawings it writes. `build-brand-marks.test.mjs` fails while they differ.
+ * Run `npm run brand:marks` after changing the icon or anything here, and
+ * commit the drawings it writes. `build-brand-marks.test.mjs` fails while they
+ * differ.
  */
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-
-// The llama's head as drawn for the Bodoni wordmark, where its neck spans x
-// 69.69 to 90.37 and y points down. The curves run from the back of the neck
-// over the ears and the snout to the throat. The first handle of the first
-// curve stands straight above the back of the neck, so the head leaves the
-// neck without a kink.
-const BODONI_NECK = [69.69, 90.37];
-const HEAD = [
-  [
-    [90.37, 73.66],
-    [90.37, 70.81],
-    [88.7, 68.55],
-    [86.89, 66.81],
-  ],
-  [
-    [86.89, 66.81],
-    [85.44, 53.67],
-    [85.28, 47.53],
-    [81.35, 35.73],
-  ],
-  [
-    [81.35, 35.73],
-    [81.08, 36.65],
-    [80.82, 37.52],
-    [80.57, 38.36],
-  ],
-  [
-    [80.57, 38.36],
-    [79.13, 43.26],
-    [78.04, 46.95],
-    [77.38, 50.28],
-  ],
-  [
-    [77.38, 50.28],
-    [78.373, 54.593],
-    [79.183, 58.84],
-    [79.81, 63.02],
-  ],
-  [
-    [79.81, 63.02],
-    [79.26, 62.87],
-    [78.7, 62.74],
-    [78.12, 62.62],
-  ],
-  [
-    [78.12, 62.62],
-    [76.5, 51.46],
-    [74.2, 43.19],
-    [70.69, 32.66],
-  ],
-  [
-    [70.69, 32.66],
-    [66.92, 45.5],
-    [66.87, 52.62],
-    [68.63, 62.38],
-  ],
-  [
-    [68.63, 62.38],
-    [66.93, 62.59],
-    [65.27, 62.94],
-    [63.72, 63.41],
-  ],
-  [
-    [63.72, 63.41],
-    [55.11, 66.07],
-    [49.37, 70.99],
-    [41.17, 73.04],
-  ],
-  [
-    [41.17, 73.04],
-    [37.48, 73.86],
-    [34, 75.09],
-    [32.97, 79.6],
-  ],
-  [
-    [32.97, 79.6],
-    [31.74, 84.93],
-    [34.2, 90.67],
-    [40.76, 91.08],
-  ],
-  [
-    [40.76, 91.08],
-    [52.32, 91.89],
-    [63.5, 91.5],
-    [69.69, 95.07],
-  ],
-];
 
 // "LMAA" as Google Sans Flex 5.000 sets it at wght 559, wdth 125, ROND 100
 // and opsz 144: shaped by HarfBuzz, drawn with fontTools, and its quadratic
@@ -119,46 +34,9 @@ const LETTERS_CAP_HEIGHT = 100;
 // from the L's ink.
 const WORDMARK_ICON_SIZE = 150;
 const WORDMARK_GAP = 45;
-
-const TOLERANCE = 1e-6;
-// Joints of the head drawing that turn by less than this many degrees are
-// meant to be smooth and are made so; larger ones are corners on purpose.
-const SMOOTH_LIMIT_DEGREES = 5;
-// The curves of HEAD with these indices end in the tips of the back ear and
-// the front ear. Each tip is rounded with a circle of EAR_TIP_RADIUS, in the
-// units of the head drawing.
-const EAR_TIP_JOINTS = [1, 6];
-const EAR_TIP_RADIUS = 1.5;
-// The search for where a round touches its curves stops once the two centers
-// it compares lie this close, and gives up after this many steps. It measures
-// its slope by moving each place this far along its curves.
-const ROUNDING_TOLERANCE = 1e-12;
-const ROUNDING_STEPS = 50;
-const ROUNDING_NUDGE = 1e-7;
-
-// The icon: a 512 tile shaped as a squircle, and the head on a stub of neck
-// standing the margin away from the tile's edge on its taller side.
-export const ICON_TILE = 512;
-// The squircle is the superellipse |x|^4 + |y|^4 = 1, the classic one,
-// stretched over the tile. Each eighth of it, from the middle of a side to the
-// diagonal, is written as ICON_SQUIRCLE_CURVES cubic curves.
-export const ICON_SQUIRCLE_EXPONENT = 4;
-const ICON_SQUIRCLE_CURVES = 6;
-const ICON_MARGIN = 32;
-// How far the neck runs on below the throat, as a share of its width, and the
-// radius of the two corners of its straight cut, as a share as well.
-const ICON_NECK_SHARE = 0.6;
-const ICON_NECK_CORNER_SHARE = 0.2;
-// How much further in the back of the neck stands at the cut than below the
-// head, as a share of the neck's width, so that it runs out of the back of the
-// head in one outward curve. The curve's control point stands
-// ICON_NECK_BEND_SHARE of the way from the head down to the cut; the further
-// down, the more the curve bulges.
-const ICON_NECK_TAPER_SHARE = 0.35;
-const ICON_NECK_BEND_SHARE = 0.5;
-// The outline turns left at every rounded corner with y up. Turned over for
-// SVG, that is the direction its sweep flag 0 draws.
-const SWEEP_CONVEX = 0;
+// A subpath of the icon whose box comes this close to every edge of the
+// drawing is the tile. An editor writes the tile's edge to three decimals.
+const TILE_TOLERANCE = 0.5;
 
 /**
  * Writes a number with at most three decimals and without trailing zeros.
@@ -169,246 +47,6 @@ const SWEEP_CONVEX = 0;
 export function formatNumber(value) {
   const text = value.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
   return text === "-0" ? "0" : text;
-}
-
-/** An edge the outline runs along, with the direction the outline takes on it. */
-class Line {
-  /**
-   * @param {[number, number]} point Any point on the edge.
-   * @param {[number, number]} direction The direction of travel, any length.
-   */
-  constructor(point, direction) {
-    const length = Math.hypot(direction[0], direction[1]);
-    this.point = point;
-    this.direction = [direction[0] / length, direction[1] / length];
-  }
-
-  /**
-   * @param {[number, number]} start First point.
-   * @param {[number, number]} end Second point, travelled towards.
-   * @returns {Line} The edge through both points.
-   */
-  static through(start, end) {
-    return new Line(start, [end[0] - start[0], end[1] - start[1]]);
-  }
-}
-
-/**
- * @param {Line} first
- * @param {Line} second
- * @returns {[number, number]} Where the two edges, extended, cross.
- */
-function intersect(first, second) {
-  const [px, py] = first.point;
-  const [dx, dy] = first.direction;
-  const [qx, qy] = second.point;
-  const [ex, ey] = second.direction;
-  const denominator = dx * ey - dy * ex;
-  if (Math.abs(denominator) < TOLERANCE) {
-    throw new Error("parallel edges have no corner");
-  }
-  const along = ((qx - px) * ey - (qy - py) * ex) / denominator;
-  return [px + along * dx, py + along * dy];
-}
-
-function distance(first, second) {
-  return Math.hypot(first[0] - second[0], first[1] - second[1]);
-}
-
-/**
- * The angle the outline turns through from one edge to the next, left positive.
- *
- * @param {Line} first
- * @param {Line} second
- * @returns {number} Radians.
- */
-function turnBetween(first, second) {
-  const [ax, ay] = first.direction;
-  const [bx, by] = second.direction;
-  return Math.atan2(ax * by - ay * bx, ax * bx + ay * by);
-}
-
-/**
- * Where a circular arc rounds the corner between two edges, touching both.
- *
- * @param {Line} first The edge the outline arrives on.
- * @param {Line} second The edge it leaves on.
- * @param {number} radius The arc's radius.
- * @returns {{ arrive: [number, number], leave: [number, number] }} Where the
- *   arc touches the first edge and the second.
- */
-function roundedCorner(first, second, radius) {
-  const corner = intersect(first, second);
-  const turn = turnBetween(first, second);
-  if (turn <= 0) {
-    throw new Error("a corner that turns right cannot take a radius");
-  }
-  const reach = radius * Math.tan(turn / 2);
-  const [arrivingX, arrivingY] = first.direction;
-  const [leavingX, leavingY] = second.direction;
-  return {
-    arrive: [corner[0] - arrivingX * reach, corner[1] - arrivingY * reach],
-    leave: [corner[0] + leavingX * reach, corner[1] + leavingY * reach],
-  };
-}
-
-/**
- * Collects edges, corners and drawn pieces, and writes them out as SVG path data.
- *
- * A piece is a stretch the edges cannot describe, such as the head. It runs from a point on the edge before it to a point on the edge
- * after it, as a list of `["A", radius, end]` and `["C", first, second, end]`
- * segments in construction coordinates.
- */
-class Outline {
-  constructor() {
-    this.items = [];
-  }
-
-  /**
-   * @param {Line} line The edge.
-   * @param {number} [radius] Rounds the corner where the outline leaves this edge for the next one.
-   */
-  edge(line, radius = 0) {
-    this.items.push({ kind: "edge", line, radius });
-  }
-
-  /**
-   * @param {[number, number]} start A point on the previous edge.
-   * @param {Array} segments The drawn stretch.
-   * @param {[number, number]} end A point on the next edge.
-   */
-  piece(start, segments, end) {
-    this.items.push({ kind: "piece", start, segments, end });
-  }
-
-  /** Resolves every corner into the point where the outline arrives and the one it leaves from. */
-  corners() {
-    const resolved = new Map();
-    const count = this.items.length;
-    this.items.forEach((item, index) => {
-      const following = this.items[(index + 1) % count];
-      if (item.kind !== "edge" || following.kind !== "edge") {
-        return;
-      }
-      if (item.radius <= 0) {
-        const corner = intersect(item.line, following.line);
-        resolved.set(index, { arrive: corner, leave: corner, radius: null });
-        return;
-      }
-      const { arrive, leave } = roundedCorner(item.line, following.line, item.radius);
-      resolved.set(index, { arrive, leave, radius: item.radius });
-    });
-    return resolved;
-  }
-
-  /** Fails when a rounded corner eats past the end of its edge. */
-  checkSegments(resolved) {
-    const count = this.items.length;
-    this.items.forEach((item, index) => {
-      if (item.kind !== "edge") {
-        return;
-      }
-      const previousIndex = (index - 1 + count) % count;
-      const previous = this.items[previousIndex];
-      const following = this.items[(index + 1) % count];
-      const start = previous.kind === "edge" ? resolved.get(previousIndex).leave : previous.end;
-      const end = following.kind === "edge" ? resolved.get(index).arrive : following.start;
-      const [dx, dy] = item.line.direction;
-      const length = (end[0] - start[0]) * dx + (end[1] - start[1]) * dy;
-      if (length < -1e-6) {
-        throw new Error(`edge ${index} runs backwards by ${(-length).toFixed(4)}`);
-      }
-    });
-  }
-
-  /**
-   * Writes the outline as one closed path.
-   *
-   * @param {(point: [number, number]) => [number, number]} place Maps a construction point.
-   * @param {number} scale How lengths scale under `place`.
-   * @param {(value: number) => string} [format] Writes a number into the path data.
-   * @returns {string} SVG path data.
-   */
-  svg(place, scale, format = formatNumber) {
-    const resolved = this.corners();
-    this.checkSegments(resolved);
-    const point = (value) => {
-      const [x, y] = place(value);
-      return `${format(x)} ${format(y)}`;
-    };
-    const arc = (radius, end) =>
-      `A${format(radius * scale)} ${format(radius * scale)} 0 0 ${SWEEP_CONVEX} ${point(end)}`;
-
-    // Start where the outline leaves the first resolved corner and go once
-    // round, so the path also closes through that corner.
-    const first = resolved.keys().next().value;
-    const commands = [`M${point(resolved.get(first).leave)}`];
-    const count = this.items.length;
-    for (let step = 1; step <= count; step++) {
-      const index = (first + step) % count;
-      const item = this.items[index];
-      if (item.kind === "piece") {
-        commands.push(`L${point(item.start)}`);
-        for (const segment of item.segments) {
-          if (segment[0] === "A") {
-            commands.push(arc(segment[1], segment[2]));
-          } else {
-            commands.push(`C${segment.slice(1).map(point).join(" ")}`);
-          }
-        }
-        continue;
-      }
-      if (!resolved.has(index)) {
-        continue;
-      }
-      const { arrive, leave, radius } = resolved.get(index);
-      commands.push(`L${point(arrive)}`);
-      if (radius !== null) {
-        commands.push(arc(radius, leave));
-      }
-    }
-    commands.push("Z");
-    return commands.join("");
-  }
-}
-
-/**
- * The head's curves in Bodoni coordinates, with the joints meant to be smooth made smooth.
- *
- * The drawing joins some of its curves at angles of a degree or so, where the
- * line is plainly meant to run on. Those joints are turned into tangent ones
- * by laying both handles along their mean direction. Joints that turn by more
- * than SMOOTH_LIMIT_DEGREES are corners on purpose: the ear tips, which
- * `roundedHead` rounds off afterwards, the ear bases and the throat.
- *
- * @returns {Array} The curves, each as four points.
- */
-function smoothedHead() {
-  const segments = HEAD.map((segment) => segment.map((point) => [...point]));
-  for (let index = 0; index < segments.length - 1; index++) {
-    const ending = segments[index];
-    const starting = segments[index + 1];
-    const joint = ending[3];
-    const incoming = [joint[0] - ending[2][0], joint[1] - ending[2][1]];
-    const outgoing = [starting[1][0] - joint[0], starting[1][1] - joint[1]];
-    const incomingLength = Math.hypot(...incoming);
-    const outgoingLength = Math.hypot(...outgoing);
-    const cosine =
-      (incoming[0] * outgoing[0] + incoming[1] * outgoing[1]) / (incomingLength * outgoingLength);
-    const angle = (Math.acos(Math.max(-1, Math.min(1, cosine))) * 180) / Math.PI;
-    if (angle >= SMOOTH_LIMIT_DEGREES) {
-      continue;
-    }
-    const sum = [
-      incoming[0] / incomingLength + outgoing[0] / outgoingLength,
-      incoming[1] / incomingLength + outgoing[1] / outgoingLength,
-    ];
-    const sumLength = Math.hypot(...sum);
-    const mean = [sum[0] / sumLength, sum[1] / sumLength];
-    ending[2] = [joint[0] - mean[0] * incomingLength, joint[1] - mean[1] * incomingLength];
-    starting[1] = [joint[0] + mean[0] * outgoingLength, joint[1] + mean[1] * outgoingLength];
-  }
-  return segments;
 }
 
 /**
@@ -429,338 +67,8 @@ export function bezierPoint([start, first, second, end], along) {
   );
 }
 
-/**
- * The direction a cubic Bézier curve runs in at a point, as its derivative.
- *
- * @param {Array} curve Start, first handle, second handle and end.
- * @param {number} along The curve's parameter.
- * @returns {[number, number]} Not of unit length.
- */
-function bezierDirection([start, first, second, end], along) {
-  const rest = 1 - along;
-  return [0, 1].map(
-    (axis) =>
-      3 * rest * rest * (first[axis] - start[axis]) +
-      6 * rest * along * (second[axis] - first[axis]) +
-      3 * along * along * (end[axis] - second[axis]),
-  );
-}
-
-/**
- * Splits a cubic Bézier curve in two at a parameter, by de Casteljau's construction.
- *
- * @param {Array} curve Start, first handle, second handle and end.
- * @param {number} along Where to split.
- * @returns {[Array, Array]} The part before and the part after, each as four points.
- */
-function splitBezier([start, first, second, end], along) {
-  const mix = (from, to) => [
-    from[0] + (to[0] - from[0]) * along,
-    from[1] + (to[1] - from[1]) * along,
-  ];
-  const startSide = mix(start, first);
-  const handles = mix(first, second);
-  const endSide = mix(second, end);
-  const beforeSplit = mix(startSide, handles);
-  const afterSplit = mix(handles, endSide);
-  const split = mix(beforeSplit, afterSplit);
-  return [
-    [start, startSide, beforeSplit, split],
-    [split, afterSplit, endSide, end],
-  ];
-}
-
-/**
- * The stretch of a cubic Bézier curve between two parameters, as a curve of its own.
- *
- * @param {Array} curve Start, first handle, second handle and end.
- * @param {number} from Where the stretch begins, below 1.
- * @param {number} to Where it ends, above `from`.
- * @returns {Array} Four points.
- */
-function bezierPart(curve, from, to) {
-  const [, tail] = splitBezier(curve, from);
-  return splitBezier(tail, (to - from) / (1 - from))[0];
-}
-
-/**
- * Where a circle rounds off a corner of the head drawing, touching the curve
- * that arrives at the corner and the one that leaves it.
- *
- * The circle can reach past the curve on either side into the next one, so a
- * place on the drawing is a curve's index and a parameter on that curve. The
- * places are found by Newton's method, starting from where the circle would
- * touch if both curves ran on straight from the corner.
- *
- * @param {Array} curves The head drawing, each curve as four points.
- * @param {number} joint The index of the curve that ends in the corner.
- * @param {number} radius The circle's radius. The corner must turn by less
- *   than half a circle.
- * @returns {{ arrive: { index: number, along: number }, leave: { index: number, along: number } }}
- *   Where the outline leaves the curves for the arc, and where it returns to them.
- */
-function cornerRounding(curves, joint, radius) {
-  // How far the circle reaches back from the corner and on from it, counted
-  // in curves, so that the search can run on past the end of one.
-  const arrivePlace = (reach) => ({
-    index: joint - Math.floor(reach),
-    along: 1 - (reach - Math.floor(reach)),
-  });
-  const leavePlace = (reach) => ({
-    index: joint + 1 + Math.floor(reach),
-    along: reach - Math.floor(reach),
-  });
-  const arriving = bezierDirection(curves[joint], 1);
-  const leaving = bezierDirection(curves[joint + 1], 0);
-  // The circle lies on the side the corner turns towards.
-  const side = Math.sign(arriving[0] * leaving[1] - arriving[1] * leaving[0]);
-  const center = ({ index, along }) => {
-    const curve = curves[index];
-    if (curve === undefined) {
-      throw new Error(`the round at joint ${joint} runs off the drawing`);
-    }
-    const point = bezierPoint(curve, along);
-    const direction = bezierDirection(curve, along);
-    const length = Math.hypot(...direction);
-    return [
-      point[0] - (side * direction[1] * radius) / length,
-      point[1] + (side * direction[0] * radius) / length,
-    ];
-  };
-  const mismatch = ([back, on]) => {
-    const fromArriving = center(arrivePlace(back));
-    const fromLeaving = center(leavePlace(on));
-    return [fromArriving[0] - fromLeaving[0], fromArriving[1] - fromLeaving[1]];
-  };
-
-  const turn = Math.acos(
-    (arriving[0] * leaving[0] + arriving[1] * leaving[1]) /
-      (Math.hypot(...arriving) * Math.hypot(...leaving)),
-  );
-  const straightReach = radius * Math.tan(turn / 2);
-  let reaches = [straightReach / Math.hypot(...arriving), straightReach / Math.hypot(...leaving)];
-  for (let step = 0; step < ROUNDING_STEPS; step++) {
-    const residual = mismatch(reaches);
-    if (Math.hypot(...residual) < ROUNDING_TOLERANCE) {
-      if (reaches[0] <= 0 || reaches[1] <= 0) {
-        throw new Error(`the round at joint ${joint} touches outside the corner`);
-      }
-      return { arrive: arrivePlace(reaches[0]), leave: leavePlace(reaches[1]) };
-    }
-    const columns = [0, 1].map((axis) => {
-      const nudged = [...reaches];
-      nudged[axis] += ROUNDING_NUDGE;
-      const moved = mismatch(nudged);
-      return [(moved[0] - residual[0]) / ROUNDING_NUDGE, (moved[1] - residual[1]) / ROUNDING_NUDGE];
-    });
-    const determinant = columns[0][0] * columns[1][1] - columns[1][0] * columns[0][1];
-    reaches = [
-      reaches[0] - (residual[0] * columns[1][1] - residual[1] * columns[1][0]) / determinant,
-      reaches[1] - (columns[0][0] * residual[1] - columns[0][1] * residual[0]) / determinant,
-    ];
-  }
-  throw new Error(`the round at joint ${joint} does not settle`);
-}
-
-/**
- * The head drawing with the tips of both ears rounded, in its own coordinates.
- *
- * Each tip becomes an arc of EAR_TIP_RADIUS that touches the curves on both
- * sides, as every other rounded corner of the marks does. The curves are cut
- * where the arc touches them, and whatever lay between falls away.
- *
- * @returns {{ start: [number, number], segments: Array }} Where the drawing
- *   begins, and its segments as `["C", first, second, end]` and
- *   `["A", radius, end]`.
- */
-function roundedHead() {
-  const curves = smoothedHead();
-  const segments = [];
-  const appendCurves = (from, to) => {
-    for (let index = from.index; index <= to.index; index++) {
-      const [, first, second, end] = bezierPart(
-        curves[index],
-        index === from.index ? from.along : 0,
-        index === to.index ? to.along : 1,
-      );
-      segments.push(["C", first, second, end]);
-    }
-  };
-  let from = { index: 0, along: 0 };
-  for (const joint of EAR_TIP_JOINTS) {
-    const { arrive, leave } = cornerRounding(curves, joint, EAR_TIP_RADIUS);
-    appendCurves(from, arrive);
-    segments.push(["A", EAR_TIP_RADIUS, bezierPoint(curves[leave.index], leave.along)]);
-    from = leave;
-  }
-  appendCurves(from, { index: curves.length - 1, along: 1 });
-  return { start: curves[0][0], segments };
-}
-
-/**
- * The head as a piece from the back of the neck to the throat, in construction
- * coordinates: the head drawing's own, turned over so that y points up.
- *
- * @returns {{ start: [number, number], segments: Array, end: [number, number] }}
- */
-function headPiece() {
-  const place = ([x, y]) => [x, -y];
-  const { start, segments } = roundedHead();
-  return {
-    start: place(start),
-    segments: segments.map((segment) =>
-      segment[0] === "A"
-        ? ["A", segment[1], place(segment[2])]
-        : ["C", place(segment[1]), place(segment[2]), place(segment[3])],
-    ),
-    end: place(segments.at(-1).at(-1)),
-  };
-}
-
-/**
- * The icon's tile as a squircle, the superellipse with ICON_SQUIRCLE_EXPONENT
- * stretched over the tile, written as cubic curves.
- *
- * The first eighth runs from the middle of the right side to the diagonal,
- * with x following from y. The second runs on to the middle of the top side,
- * with y following from x. Each curve takes the superellipse's own points and
- * directions at both of its ends, so the curves meet without a kink, on the
- * diagonals and in the middle of the sides as well. The other three quarters
- * are the first one turned.
- *
- * @param {(value: number) => string} format Writes a number into the path data.
- * @returns {string} SVG path data in the tile's square.
- */
-function squirclePath(format) {
-  const exponent = ICON_SQUIRCLE_EXPONENT;
-  const diagonal = 2 ** (-1 / exponent);
-  const across = (along) => (1 - along ** exponent) ** (1 / exponent);
-  const slope = (along) =>
-    -(along ** (exponent - 1)) * (1 - along ** exponent) ** (1 / exponent - 1);
-  // Where the curves of an eighth meet, closer together towards the diagonal,
-  // where the squircle bends most.
-  const towardsDiagonal = [];
-  for (let index = 0; index <= ICON_SQUIRCLE_CURVES; index++) {
-    towardsDiagonal.push(diagonal * Math.sin((Math.PI / 2) * (index / ICON_SQUIRCLE_CURVES)));
-  }
-  const eighths = [
-    {
-      point: (along) => [across(along), along],
-      direction: (along) => [slope(along), 1],
-      stations: towardsDiagonal,
-    },
-    {
-      point: (along) => [along, across(along)],
-      direction: (along) => [1, slope(along)],
-      stations: [...towardsDiagonal].reverse(),
-    },
-  ];
-  const quarter = [];
-  for (const { point, direction, stations } of eighths) {
-    for (let index = 0; index < ICON_SQUIRCLE_CURVES; index++) {
-      const start = stations[index];
-      const end = stations[index + 1];
-      const third = (end - start) / 3;
-      const startPoint = point(start);
-      const endPoint = point(end);
-      const startDirection = direction(start);
-      const endDirection = direction(end);
-      quarter.push([
-        startPoint,
-        [startPoint[0] + startDirection[0] * third, startPoint[1] + startDirection[1] * third],
-        [endPoint[0] - endDirection[0] * third, endPoint[1] - endDirection[1] * third],
-        endPoint,
-      ]);
-    }
-  }
-
-  const half = ICON_TILE / 2;
-  const turned = (point, quarters) => {
-    let [horizontal, vertical] = point;
-    for (let turn = 0; turn < quarters; turn++) {
-      [horizontal, vertical] = [-vertical, horizontal];
-    }
-    return [horizontal, vertical];
-  };
-  // The squircle's y points up, the tile's down.
-  const place = (point, quarters) => {
-    const [horizontal, vertical] = turned(point, quarters);
-    return `${format(half + horizontal * half)} ${format(half - vertical * half)}`;
-  };
-  const commands = [`M${place(quarter[0][0], 0)}`];
-  for (let quarters = 0; quarters < 4; quarters++) {
-    for (const [, first, second, end] of quarter) {
-      commands.push(
-        `C${place(first, quarters)} ${place(second, quarters)} ${place(end, quarters)}`,
-      );
-    }
-  }
-  commands.push("Z");
-  return commands.join("");
-}
-
-/**
- * Constructs the icon: the llama's head on a stub of neck, cut out of a tile
- * shaped as a squircle.
- *
- * The neck is as wide as the head drawing's own. It runs on ICON_NECK_SHARE of
- * its width below the throat and
- * ends in a straight cut whose corners are rounded. Its back curves outward
- * from the head and stands ICON_NECK_TAPER_SHARE of its width further in at
- * the cut. The figure stands ICON_MARGIN from the tile's edge on its taller
- * side and is centered on both axes.
- *
- * @param {(value: number) => string} [format] Writes a number into the path
- *   data. The default writes three decimals, as the drawing is committed.
- * @returns {{ tile: string, head: string }} SVG path data in a 512 unit square.
- */
-export function iconPaths(format = formatNumber) {
-  const [neckLeft, neckRight] = BODONI_NECK;
-  const neckWidth = neckRight - neckLeft;
-  const head = headPiece();
-  const neckBottom = head.end[1] - neckWidth * ICON_NECK_SHARE;
-
-  const neckCorner = neckWidth * ICON_NECK_CORNER_SHARE;
-  const cut = new Line([0, neckBottom], [1, 0]);
-  // The back of the neck is a parabola from the cut to the head. Its control
-  // point stands straight below the head, so the back leaves the head
-  // tangentially and bends in towards the cut, curving outward all the way.
-  // The cut's corner rounds into the parabola's tangent at the foot, and the
-  // curve starts where that arc ends.
-  const backFoot = [neckRight - neckWidth * ICON_NECK_TAPER_SHARE, neckBottom];
-  const backBend = [neckRight, head.start[1] - (head.start[1] - neckBottom) * ICON_NECK_BEND_SHARE];
-  const back = Line.through(backFoot, backBend);
-  const backStart = roundedCorner(cut, back, neckCorner).leave;
-  const backCurve = [
-    "C",
-    [
-      backStart[0] + (2 / 3) * (backBend[0] - backStart[0]),
-      backStart[1] + (2 / 3) * (backBend[1] - backStart[1]),
-    ],
-    [
-      head.start[0] + (2 / 3) * (backBend[0] - head.start[0]),
-      head.start[1] + (2 / 3) * (backBend[1] - head.start[1]),
-    ],
-    head.start,
-  ];
-
-  const outline = new Outline();
-  outline.edge(cut, neckCorner);
-  outline.edge(back);
-  outline.piece(backStart, [backCurve, ...head.segments], head.end);
-  outline.edge(new Line([neckLeft, 0], [0, -1]), neckCorner);
-
-  // Measured on the drawing itself, so the fit follows the curves of the head
-  // rather than its control points.
-  const [boundsX, boundsY, boundsWidth, boundsHeight] = pathBounds(
-    outline.svg(([x, y]) => [x, -y], 1),
-  );
-  const unit = (ICON_TILE - 2 * ICON_MARGIN) / Math.max(boundsWidth, boundsHeight);
-  const offsetX = (ICON_TILE - boundsWidth * unit) / 2;
-  const offsetY = (ICON_TILE - boundsHeight * unit) / 2;
-  const place = ([x, y]) => [offsetX + (x - boundsX) * unit, offsetY + (-y - boundsY) * unit];
-
-  return { tile: squirclePath(format), head: outline.svg(place, unit, format) };
+function distance(first, second) {
+  return Math.hypot(first[0] - second[0], first[1] - second[1]);
 }
 
 const COMMAND = /[MLAHVCZ]|-?\d*\.?\d+(?:e-?\d+)?/g;
@@ -769,14 +77,24 @@ const ARGUMENT_COUNT = { M: 2, L: 2, H: 1, V: 1, A: 7, C: 6, Z: 0 };
 /**
  * Splits path data into drawn segments, each with the direction it leaves and arrives in.
  *
- * Understands the absolute M, L, H, V, A, C and Z this generator writes. An
- * arc is taken as the small arc of a circle, which every arc here is.
+ * Understands the absolute M, L, H, V, A, C and Z that this generator, the
+ * font tools and the editor the icon is drawn in write, separated by spaces or
+ * commas. Any other command fails, because reading past it would misplace
+ * every point after it. An arc is taken as the small arc of a circle.
  *
  * @param {string} path SVG path data.
  * @returns {Array<Array<{ kind: string, start: number[], end: number[], leaving: number[], arriving: number[], center?: number[], radius?: number, sweep?: number }>>}
  *   The segments of each contour.
  */
 export function pathContours(path) {
+  const unknown = (path.match(/[A-Za-z]/g) ?? []).filter(
+    (letter) => letter !== "e" && !(letter in ARGUMENT_COUNT),
+  );
+  if (unknown.length > 0) {
+    throw new Error(
+      `path data uses ${[...new Set(unknown)].join(", ")}; only the absolute commands M, L, H, V, A, C and Z are read`,
+    );
+  }
   const tokens = path.match(COMMAND);
   const contours = [];
   let contour = [];
@@ -895,6 +213,66 @@ export function pathBounds(path) {
 }
 
 /**
+ * Reads the icon as an editor or this generator wrote it.
+ *
+ * The drawing is square and starts at 0 0. Of its paths, the one with a
+ * subpath that spans the whole drawing holds the icon: that subpath is the
+ * tile, and the others are the head cut out of it. Every other path, such as
+ * a second copy of the head, is left out, so the head always comes from the
+ * shape that is seen.
+ *
+ * @param {string} source The SVG file's text.
+ * @returns {{ size: number, tile: string, head: string }} The drawing's side
+ *   length, and the path data of the tile and of the head.
+ */
+export function readIcon(source) {
+  const viewBox = source
+    .match(/viewBox="([^"]+)"/)?.[1]
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number);
+  if (!viewBox || viewBox[0] !== 0 || viewBox[1] !== 0 || viewBox[2] !== viewBox[3]) {
+    throw new Error("the icon needs a square viewBox that starts at 0 0");
+  }
+  const size = viewBox[2];
+  const spansDrawing = (subpath) =>
+    pathBounds(subpath).every(
+      (value, index) => Math.abs(value - [0, 0, size, size][index]) <= TILE_TOLERANCE,
+    );
+  for (const [, data] of source.matchAll(/<path\b[^>]*\sd="([^"]+)"/g)) {
+    const subpaths = data.match(/M[^M]*/g)?.map((subpath) => subpath.trim()) ?? [];
+    const tileIndex = subpaths.findIndex(spansDrawing);
+    if (tileIndex >= 0) {
+      return {
+        size,
+        tile: subpaths[tileIndex],
+        head: subpaths.filter((subpath, index) => index !== tileIndex).join(""),
+      };
+    }
+  }
+  throw new Error("the icon has no path with a subpath that spans the whole drawing");
+}
+
+/**
+ * The icon as a complete SVG file in the form the site reads.
+ *
+ * The tile with the head cut out of it fills with `currentColor`. The head is
+ * there a second time as a path of its own with the class `lmaa-icon-head`
+ * and no fill, so a place that wants the head in a color of its own can fill
+ * it, as the website's header and the favicon do.
+ *
+ * @param {{ size: number, tile: string, head: string }} icon The icon as `readIcon` returns it.
+ * @returns {string}
+ */
+function iconSvg({ size, tile, head }) {
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">` +
+    `<path fill="currentColor" fill-rule="evenodd" d="${tile}${head}"/>` +
+    `<path class="lmaa-icon-head" fill="none" d="${head}"/></svg>\n`
+  );
+}
+
+/**
  * The wordmark as a complete SVG file: the icon on the left and "LMAA" on its
  * right.
  *
@@ -903,12 +281,12 @@ export function pathBounds(path) {
  * ground shows through it. The box is the ink's own, without a margin, so a
  * place that shows the wordmark decides the space around it.
  *
+ * @param {{ size: number, tile: string, head: string }} icon The icon as `readIcon` returns it.
  * @returns {string}
  */
-function wordmarkSvg() {
-  const { tile, head } = iconPaths();
+function wordmarkSvg({ size, tile, head }) {
   const [lettersX, lettersY, lettersWidth, lettersHeight] = pathBounds(LETTERS);
-  // The squircle touches all four sides of its tile, so the tile is its box.
+  // The tile spans the whole icon, so the icon's box is the square it is drawn in.
   const iconX = lettersX - WORDMARK_GAP - WORDMARK_ICON_SIZE;
   const iconY = -(LETTERS_CAP_HEIGHT + WORDMARK_ICON_SIZE) / 2;
   const top = Math.min(iconY, lettersY);
@@ -918,7 +296,7 @@ function wordmarkSvg() {
     .join(" ");
   // The scale is written in full, because three decimals would shrink the
   // icon by a hundredth of a percent.
-  const iconPlacement = `translate(${formatNumber(iconX)} ${formatNumber(iconY)}) scale(${WORDMARK_ICON_SIZE / ICON_TILE})`;
+  const iconPlacement = `translate(${formatNumber(iconX)} ${formatNumber(iconY)}) scale(${WORDMARK_ICON_SIZE / size})`;
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">` +
     `<path fill="currentColor" fill-rule="evenodd" transform="${iconPlacement}" d="${tile}${head}"/>` +
@@ -927,23 +305,14 @@ function wordmarkSvg() {
 }
 
 /**
- * Both drawings as complete SVG files.
+ * Both drawings as complete SVG files, from the icon file's text.
  *
- * `wordmarkSvg` describes the wordmark. The icon keeps the head as a path of
- * its own with the class `lmaa-icon-head` and no fill, so a place that wants
- * the head in a color of its own can fill it.
- *
+ * @param {string} iconSource The icon file as an editor or this generator wrote it.
  * @returns {{ wordmark: string, icon: string }}
  */
-export function buildMarks() {
-  const { tile, head } = iconPaths();
-  return {
-    wordmark: wordmarkSvg(),
-    icon:
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ICON_TILE} ${ICON_TILE}">` +
-      `<path fill="currentColor" fill-rule="evenodd" d="${tile}${head}"/>` +
-      `<path class="lmaa-icon-head" fill="none" d="${head}"/></svg>\n`,
-  };
+export function buildMarks(iconSource) {
+  const icon = readIcon(iconSource);
+  return { wordmark: wordmarkSvg(icon), icon: iconSvg(icon) };
 }
 
 /**
@@ -957,8 +326,8 @@ export const MARK_FILES = {
 };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  const marks = buildMarks();
-  await writeFile(MARK_FILES.wordmark, marks.wordmark);
+  const marks = buildMarks(await readFile(MARK_FILES.icon, "utf8"));
   await writeFile(MARK_FILES.icon, marks.icon);
-  console.log("marks written: packages/ui/src/assets/marks/lmaa-wordmark.svg and lmaa-icon.svg");
+  await writeFile(MARK_FILES.wordmark, marks.wordmark);
+  console.log("marks written: packages/ui/src/assets/marks/lmaa-icon.svg and lmaa-wordmark.svg");
 }

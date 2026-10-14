@@ -8,21 +8,22 @@ The icon on the left and the word LMAA on its right, as Google Sans Flex sets it
 
 ## lmaa-icon.svg
 
-The llama's head on a short stub of neck, cut out of a tile shaped as a squircle, the superellipse with exponent 4. The neck ends a little below the throat in a straight cut with rounded corners, and its back runs out of the back of the head in one outward curve, narrowing towards the cut. The figure keeps the same distance from the tile's edge at the top and the bottom and is centered across it.
+The llama's head on a short stub of neck, cut out of a tile shaped as a squircle, the superellipse with exponent 4. The neck ends a little below the throat in a straight cut with rounded corners, and its back runs out of the back of the head in an outward curve. The figure keeps the same distance from the tile's edge at the top and the bottom.
 
 The head is there a second time as a path of its own with the class `lmaa-icon-head` and no fill. A place that wants the head in a color of its own fills that path, as the header and the favicon do; everywhere else the head stays cut out.
 
 ## How the two marks are made
 
-`scripts/build-brand-marks.mjs` constructs both drawings and writes them here. Run it after changing anything in it:
+The icon is drawn by hand, in any editor that writes absolute path commands. Only the filled shape counts: `scripts/build-brand-marks.mjs` takes the subpath that spans the whole drawing as the tile and the rest as the head, writes the file back with `currentColor` and the `lmaa-icon-head` path, and builds the wordmark from it. Run both commands after every change to the icon:
 
 ```bash
 npm run brand:marks
+node scripts/render-brand-images.mjs
 ```
 
-The llama's head is a drawing made of Bézier curves. The tips of its ears and the corners of the neck's cut are circular arcs that touch the curves and edges on both sides. The letters of the wordmark were shaped once by HarfBuzz from Google Sans Flex 5.000 and drawn with fontTools. The generator keeps their outlines, so it needs no font file.
+The second one renders the favicons and the banners. The letters of the wordmark were shaped once by HarfBuzz from Google Sans Flex 5.000 and drawn with fontTools. The generator keeps their outlines, so it needs no font file.
 
-`scripts/build-brand-marks.test.mjs` fails when a file here differs from what the generator writes, when an arc meets its neighbor at an angle, when the back of the neck kinks where it meets the head or bends inward, and when the tile's curves kink or stray from the superellipse. Edit the generator, not the files.
+`scripts/build-brand-marks.test.mjs` fails when a file here differs from what the generator writes. Change the icon or the generator, never the wordmark.
 
 ## lmaa-claim.svg
 
