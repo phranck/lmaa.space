@@ -18,15 +18,27 @@ import {
   subscribeOverlayStack,
   type OverlayLayerZIndex,
 } from "./overlay-stack.ts";
+import { type ResizableCardSize, ResizableDialogCard } from "./ResizableDialogCard.tsx";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-interface OverlayCardProps {
+/**
+ * How large an overlay card is: one of three fixed widths, most of the
+ * window, or a card the user resizes and that keeps its size.
+ */
+export type OverlayCardSize =
+  | "fixed-sm"
+  | "fixed-md"
+  | "fixed-lg"
+  | "fullscreen"
+  | ResizableCardSize;
+
+export interface OverlayCardProps {
   open: boolean;
   onClose: () => void;
-  size?: "fixed-sm" | "fixed-md" | "fixed-lg";
+  size?: OverlayCardSize;
   "aria-label": string;
   className?: string;
   style?: React.CSSProperties;
@@ -99,6 +111,42 @@ function trapFocus(e: KeyboardEvent, container: HTMLElement | null) {
   }
 }
 
+/**
+ * Finds the element that holds an overlay, which carries `data-overlay-card`,
+ * so focus inside one can be told apart from focus on the page.
+ */
+const OVERLAY_SELECTOR = "[data-overlay-card]";
+
+/** The element that last took focus outside every overlay. */
+let lastFocusOutsideOverlays: HTMLElement | null = null;
+
+if (typeof document !== "undefined") {
+  document.addEventListener(
+    "focusin",
+    (event) => {
+      const target = event.target;
+      if (target instanceof HTMLElement && !target.closest(OVERLAY_SELECTOR)) {
+        lastFocusOutsideOverlays = target;
+      }
+    },
+    true,
+  );
+}
+
+/**
+ * The element to give focus back to when an overlay closes.
+ *
+ * Normally that is whatever has focus when the overlay's effect runs. Content
+ * that focuses itself, such as a field with `autoFocus`, takes focus during the
+ * commit, before that effect, and then the element that had focus before the
+ * overlay opened is the one tracked by the listener above.
+ */
+function findOpener(): HTMLElement | null {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && !active.closest(OVERLAY_SELECTOR)) return active;
+  return lastFocusOutsideOverlays;
+}
+
 // ---------------------------------------------------------------------------
 // OverlayCard
 // ---------------------------------------------------------------------------
@@ -117,7 +165,6 @@ export function OverlayCard({
 }: OverlayCardProps) {
   const overlayId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
   const closingRef = useRef(false);
   const [closing, setClosing] = useState(false);
   const overlayIds = useSyncExternalStore(
@@ -149,10 +196,8 @@ export function OverlayCard({
 
   useEffect(() => {
     if (!open) return;
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-    return () => {
-      previousFocusRef.current?.focus();
-    };
+    const opener = findOpener();
+    return () => opener?.focus();
   }, [open]);
 
   useEffect(() => {
@@ -182,8 +227,6 @@ export function OverlayCard({
 
   const handleBackdropClick = isTopMost && backdropClose && !closing ? startClose : undefined;
 
-  const fixedMaxWidth =
-    size === "fixed-lg" ? "max-w-lg" : size === "fixed-md" ? "max-w-md" : "max-w-sm";
   const cardAnim = closing
     ? "lmaa-card-out 280ms ease forwards"
     : "lmaa-card-in 380ms ease forwards";
@@ -191,10 +234,65 @@ export function OverlayCard({
     ? "lmaa-overlay-out 280ms ease forwards"
     : "lmaa-overlay-in 360ms ease forwards";
   const effectiveZIndex = isRegistered ? resolveOverlayZIndex(zIndex, stackIndex * 100) : zIndex;
+  const cardProps = { "aria-modal": true, "aria-label": ariaLabel };
+
+  let card: ReactNode;
+  if (typeof size === "object") {
+    card = (
+      <ResizableDialogCard
+        ref={dialogRef}
+        {...size}
+        className={["flex flex-col rounded-[var(--radius-card)] shadow-2xl", className]
+          .filter(Boolean)
+          .join(" ")}
+        style={{ animation: cardAnim, ...style }}
+        {...cardProps}
+      >
+        {children}
+      </ResizableDialogCard>
+    );
+  } else if (size === "fullscreen") {
+    card = (
+      <dialog
+        open
+        ref={dialogRef}
+        className={[
+          "relative m-0 p-0 bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={{ width: "85vw", height: "85vh", animation: cardAnim, ...style }}
+        {...cardProps}
+      >
+        {children}
+      </dialog>
+    );
+  } else {
+    const fixedMaxWidth =
+      size === "fixed-lg" ? "max-w-lg" : size === "fixed-md" ? "max-w-md" : "max-w-sm";
+    card = (
+      <dialog
+        open
+        ref={dialogRef}
+        className={[
+          `relative m-0 p-0 bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl overflow-hidden w-full ${fixedMaxWidth}`,
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={{ animation: cardAnim, ...style }}
+        {...cardProps}
+      >
+        {children}
+      </dialog>
+    );
+  }
 
   return (
     <OverlayLayerZIndexContext.Provider value={effectiveZIndex}>
       <div
+        data-overlay-card=""
         className="fixed inset-0 flex items-center justify-center px-4"
         style={{ zIndex: effectiveZIndex }}
       >
@@ -212,21 +310,7 @@ export function OverlayCard({
           onClick={handleBackdropClick}
           onAnimationEnd={handleBackdropAnimationEnd}
         />
-        <dialog
-          open
-          ref={dialogRef}
-          className={[
-            `relative m-0 p-0 bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl overflow-hidden w-full ${fixedMaxWidth}`,
-            className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          style={{ animation: cardAnim, ...style }}
-          aria-modal={true}
-          aria-label={ariaLabel}
-        >
-          {children}
-        </dialog>
+        {card}
       </div>
     </OverlayLayerZIndexContext.Provider>
   );

@@ -6,21 +6,29 @@ import {
   useRef,
 } from "react";
 
-import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-
-interface ResizableDialogCardProps extends ComponentPropsWithoutRef<"div"> {
-  ref?: Ref<HTMLDivElement>;
-  /** Base key for localStorage, e.g. "submissions:review-modal-size" */
+/**
+ * The size a resizable overlay card opens at and how small it may become.
+ *
+ * @property storageKey - The `localStorage` key the card's size is kept under,
+ *   exactly as written. An app that keeps sizes per user scopes the key before
+ *   it gets here.
+ * @property defaultWidth - The width in pixels while nothing is stored.
+ * @property defaultHeight - The height in pixels while nothing is stored. Left
+ *   out, the card is as high as its content.
+ * @property minWidth - The narrowest the card can be dragged, in pixels.
+ * @property minHeight - The lowest the card can be dragged, in pixels.
+ */
+export interface ResizableCardSize {
   storageKey: string;
-  /** Default width in px, used when no stored size exists */
   defaultWidth?: number;
-  /** Default height in px, used when no stored size exists */
   defaultHeight?: number;
-  /** Minimum width in px */
   minWidth?: number;
-  /** Minimum height in px */
   minHeight?: number;
+}
+
+interface ResizableDialogCardProps
+  extends ResizableCardSize, Omit<ComponentPropsWithoutRef<"dialog">, "open"> {
+  ref?: Ref<HTMLDialogElement>;
 }
 
 /** The eight places a card can be taken hold of. */
@@ -43,6 +51,14 @@ const RESIZE_HANDLES: { name: ResizeHandle; className: string }[] = [
   { name: "se", className: "bottom-0 right-0 size-3 cursor-nwse-resize" },
 ];
 
+/**
+ * An overlay card that can be resized from every edge and corner and opens at
+ * the size it was left at.
+ *
+ * The size is read from `localStorage` when the card mounts and written back
+ * whenever it changes, as long as it stays above the minimum. The card renders
+ * as an open `<dialog>` element, so the overlay around it gives it its role.
+ */
 export function ResizableDialogCard({
   storageKey,
   defaultWidth = 448,
@@ -55,15 +71,12 @@ export function ResizableDialogCard({
   ref: forwardedRef,
   ...rest
 }: ResizableDialogCardProps) {
-  const innerRef = useRef<HTMLDivElement>(null);
-  useImperativeHandle(forwardedRef, () => innerRef.current as HTMLDivElement);
-
-  const { user } = useAuth();
-  const fullKey = getSegmentedStorageKey(user?.id, storageKey);
+  const innerRef = useRef<HTMLDialogElement>(null);
+  useImperativeHandle(forwardedRef, () => innerRef.current as HTMLDialogElement);
 
   const storedSize = (() => {
     try {
-      const raw = localStorage.getItem(fullKey);
+      const raw = localStorage.getItem(storageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (typeof parsed.w === "number" && typeof parsed.h === "number") {
@@ -71,14 +84,14 @@ export function ResizableDialogCard({
         }
       }
     } catch {
-      // ignore
+      // A size that cannot be read is no size, and the card opens at its default.
     }
     return null;
   })();
 
   useEffect(() => {
-    const el = innerRef.current;
-    if (!el) return;
+    const element = innerRef.current;
+    if (!element) return;
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -86,18 +99,18 @@ export function ResizableDialogCard({
         if (!box || box.inlineSize < minWidth || box.blockSize < minHeight) return;
         try {
           localStorage.setItem(
-            fullKey,
+            storageKey,
             JSON.stringify({ w: Math.round(box.inlineSize), h: Math.round(box.blockSize) }),
           );
         } catch {
-          // ignore
+          // Storage can be full or blocked. The card still works, it only forgets.
         }
       }
     });
 
-    observer.observe(el);
+    observer.observe(element);
     return () => observer.disconnect();
-  }, [fullKey, minWidth, minHeight]);
+  }, [storageKey, minWidth, minHeight]);
 
   const mergedStyle: React.CSSProperties = {
     width: storedSize?.w ?? defaultWidth,
@@ -110,9 +123,9 @@ export function ResizableDialogCard({
   /**
    * Resizes from one edge or corner.
    *
-   * The card is centred by the overlay around it, so a drag has to move both of
-   * its sides at once: the pointer moves by one distance whilst the card grows
-   * by twice that, and the middle stays where it is. Dragging one edge
+   * The card is centered by the overlay around it, so a drag has to move both
+   * of its sides at once: the pointer moves by one distance while the card
+   * grows by twice that, and the middle stays where it is. Dragging one edge
    * otherwise appears to push the card sideways instead of resizing it.
    */
   function startResize(event: React.PointerEvent<HTMLDivElement>, handle: ResizeHandle) {
@@ -147,10 +160,11 @@ export function ResizableDialogCard({
   }
 
   return (
-    <div
+    <dialog
+      open
       ref={innerRef}
       className={[
-        "relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] max-w-[calc(100vw-2rem)] overflow-hidden",
+        "relative m-0 p-0 bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] max-w-[calc(100vw-2rem)] overflow-hidden",
         className,
       ]
         .filter(Boolean)
@@ -167,6 +181,6 @@ export function ResizableDialogCard({
           onPointerDown={(event) => startResize(event, handle.name)}
         />
       ))}
-    </div>
+    </dialog>
   );
 }
