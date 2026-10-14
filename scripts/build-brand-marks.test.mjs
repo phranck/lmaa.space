@@ -103,6 +103,25 @@ test("the back of the icon's neck runs into the head without a kink", () => {
   assert.ok(angle <= TANGENT_TOLERANCE_DEGREES, `turns by ${angle} degrees`);
 });
 
+test("the back of the icon's neck curves outward, without a dent", () => {
+  // The outline starts on the back of the neck and closes through the cut's
+  // right corner, an arc that turns the way every outward curve does.
+  const contour = pathContours(iconPaths(FULL_PRECISION).head)[0];
+  const [back] = contour;
+  const cutCorner = contour.at(-1);
+  const turn = (first, second) => first[0] * second[1] - first[1] * second[0];
+  const step = (from, to) => [to[0] - from[0], to[1] - from[1]];
+  const outward = Math.sign(turn(cutCorner.leaving, cutCorner.arriving));
+  const handles = [back.start, back.first, back.second, back.end];
+  for (let index = 0; index < 2; index++) {
+    const bend = turn(
+      step(handles[index], handles[index + 1]),
+      step(handles[index + 1], handles[index + 2]),
+    );
+    assert.equal(Math.sign(bend), outward, `the back bends inward after handle ${index}`);
+  }
+});
+
 test("the icon's tile is a squircle of curves that meet without a kink", () => {
   const { tile } = iconPaths(FULL_PRECISION);
   const contours = pathContours(tile);

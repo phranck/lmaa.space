@@ -149,9 +149,13 @@ const ICON_MARGIN = 32;
 // radius of the two corners of its straight cut, as a share as well.
 const ICON_NECK_SHARE = 0.6;
 const ICON_NECK_CORNER_SHARE = 0.2;
-// How much further out the back of the neck stands at the cut than below the
-// head, as a share of the neck's width, so that it bends like an animal's.
-const ICON_NECK_LEAN_SHARE = 0.25;
+// How much further in the back of the neck stands at the cut than below the
+// head, as a share of the neck's width, so that it runs out of the back of the
+// head in one outward curve. The curve's control point stands
+// ICON_NECK_BEND_SHARE of the way from the head down to the cut; the further
+// down, the more the curve bulges.
+const ICON_NECK_TAPER_SHARE = 0.35;
+const ICON_NECK_BEND_SHARE = 0.65;
 // The outline turns left at every rounded corner with y up. Turned over for
 // SVG, that is the direction its sweep flag 0 draws.
 const SWEEP_CONVEX = 0;
@@ -701,10 +705,10 @@ function squirclePath(format) {
  *
  * The neck is as wide as the head drawing's own. It runs on ICON_NECK_SHARE of
  * its width below the throat and
- * ends in a straight cut whose corners are rounded. Its back bends out
- * towards the cut by ICON_NECK_LEAN_SHARE of its width. The figure stands
- * ICON_MARGIN from the tile's edge on its taller side and is centered on both
- * axes.
+ * ends in a straight cut whose corners are rounded. Its back curves outward
+ * from the head and stands ICON_NECK_TAPER_SHARE of its width further in at
+ * the cut. The figure stands ICON_MARGIN from the tile's edge on its taller
+ * side and is centered on both axes.
  *
  * @param {(value: number) => string} [format] Writes a number into the path
  *   data. The default writes three decimals, as the drawing is committed.
@@ -719,12 +723,12 @@ export function iconPaths(format = formatNumber) {
   const neckCorner = neckWidth * ICON_NECK_CORNER_SHARE;
   const cut = new Line([0, neckBottom], [1, 0]);
   // The back of the neck is a parabola from the cut to the head. Its control
-  // point stands straight below the head, halfway down, so the back leaves the
-  // head without a kink and leans out towards the cut. The cut's corner rounds
-  // into the parabola's tangent at the foot, and the curve starts where that
-  // arc ends.
-  const backFoot = [neckRight + neckWidth * ICON_NECK_LEAN_SHARE, neckBottom];
-  const backBend = [neckRight, (neckBottom + head.start[1]) / 2];
+  // point stands straight below the head, so the back leaves the head
+  // tangentially and bends in towards the cut, curving outward all the way.
+  // The cut's corner rounds into the parabola's tangent at the foot, and the
+  // curve starts where that arc ends.
+  const backFoot = [neckRight - neckWidth * ICON_NECK_TAPER_SHARE, neckBottom];
+  const backBend = [neckRight, head.start[1] - (head.start[1] - neckBottom) * ICON_NECK_BEND_SHARE];
   const back = Line.through(backFoot, backBend);
   const backStart = roundedCorner(cut, back, neckCorner).leave;
   const backCurve = [

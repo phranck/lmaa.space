@@ -8,7 +8,7 @@ The icon on the left and the word LMAA on its right, as Google Sans Flex sets it
 
 ## lmaa-icon.svg
 
-The llama's head on a short stub of neck, cut out of a tile shaped as a squircle, the superellipse with exponent 4. The neck ends a little below the throat in a straight cut with rounded corners, and its back bends out a little towards the cut, as an animal's neck does. The figure keeps the same distance from the tile's edge at the top and the bottom and is centered across it.
+The llama's head on a short stub of neck, cut out of a tile shaped as a squircle, the superellipse with exponent 4. The neck ends a little below the throat in a straight cut with rounded corners, and its back runs out of the back of the head in one outward curve, narrowing towards the cut. The figure keeps the same distance from the tile's edge at the top and the bottom and is centered across it.
 
 The head is there a second time as a path of its own with the class `lmaa-icon-head` and no fill. A place that wants the head in a color of its own fills that path, as the header and the favicon do; everywhere else the head stays cut out.
 
@@ -22,7 +22,7 @@ npm run brand:marks
 
 The llama's head is a drawing made of Bézier curves. The tips of its ears and the corners of the neck's cut are circular arcs that touch the curves and edges on both sides. The letters of the wordmark were shaped once by HarfBuzz from Google Sans Flex 5.000 and drawn with fontTools. The generator keeps their outlines, so it needs no font file.
 
-`scripts/build-brand-marks.test.mjs` fails when a file here differs from what the generator writes, when an arc meets its neighbor at an angle, when the back of the neck kinks where it meets the head, and when the tile's curves kink or stray from the superellipse. Edit the generator, not the files.
+`scripts/build-brand-marks.test.mjs` fails when a file here differs from what the generator writes, when an arc meets its neighbor at an angle, when the back of the neck kinks where it meets the head or bends inward, and when the tile's curves kink or stray from the superellipse. Edit the generator, not the files.
 
 ## lmaa-claim.svg
 
