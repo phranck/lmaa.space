@@ -111,6 +111,42 @@ function trapFocus(e: KeyboardEvent, container: HTMLElement | null) {
   }
 }
 
+/**
+ * Finds the element that holds an overlay, which carries `data-overlay-card`,
+ * so focus inside one can be told apart from focus on the page.
+ */
+const OVERLAY_SELECTOR = "[data-overlay-card]";
+
+/** The element that last took focus outside every overlay. */
+let lastFocusOutsideOverlays: HTMLElement | null = null;
+
+if (typeof document !== "undefined") {
+  document.addEventListener(
+    "focusin",
+    (event) => {
+      const target = event.target;
+      if (target instanceof HTMLElement && !target.closest(OVERLAY_SELECTOR)) {
+        lastFocusOutsideOverlays = target;
+      }
+    },
+    true,
+  );
+}
+
+/**
+ * The element to give focus back to when an overlay closes.
+ *
+ * Normally that is whatever has focus when the overlay's effect runs. Content
+ * that focuses itself, such as a field with `autoFocus`, takes focus during the
+ * commit, before that effect, and then the element that had focus before the
+ * overlay opened is the one tracked by the listener above.
+ */
+function findOpener(): HTMLElement | null {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && !active.closest(OVERLAY_SELECTOR)) return active;
+  return lastFocusOutsideOverlays;
+}
+
 // ---------------------------------------------------------------------------
 // OverlayCard
 // ---------------------------------------------------------------------------
@@ -129,7 +165,6 @@ export function OverlayCard({
 }: OverlayCardProps) {
   const overlayId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
   const closingRef = useRef(false);
   const [closing, setClosing] = useState(false);
   const overlayIds = useSyncExternalStore(
@@ -161,10 +196,8 @@ export function OverlayCard({
 
   useEffect(() => {
     if (!open) return;
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-    return () => {
-      previousFocusRef.current?.focus();
-    };
+    const opener = findOpener();
+    return () => opener?.focus();
   }, [open]);
 
   useEffect(() => {
@@ -259,6 +292,7 @@ export function OverlayCard({
   return (
     <OverlayLayerZIndexContext.Provider value={effectiveZIndex}>
       <div
+        data-overlay-card=""
         className="fixed inset-0 flex items-center justify-center px-4"
         style={{ zIndex: effectiveZIndex }}
       >
