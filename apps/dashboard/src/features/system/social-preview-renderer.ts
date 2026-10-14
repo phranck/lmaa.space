@@ -7,6 +7,12 @@ import type {
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
 
+import {
+  canvasShadowOffset,
+  resolveTextShadow,
+  textShadowColor,
+} from "@/features/system/social-preview-text-shadow.ts";
+
 const SOCIAL_PREVIEW_WIDTH = 1200;
 const SOCIAL_PREVIEW_HEIGHT = 630;
 
@@ -281,40 +287,74 @@ async function loadCanvasFont(layer: SocialPreviewTextLayer) {
   );
 }
 
-function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer) {
-  drawLayerFrame(ctx, layer, () => {
-    ctx.textBaseline = "top";
-    ctx.textAlign = "left";
-    const lines = wrapText(ctx, layer);
-    let y = 0;
+/** Draws a text layer's lines into a context whose transform already places the layer. */
+function drawTextLines(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer) {
+  ctx.textBaseline = "top";
+  ctx.textAlign = "left";
+  const lines = wrapText(ctx, layer);
+  let y = 0;
 
-    for (const line of lines) {
-      let cursor =
-        layer.align === "center"
-          ? (layer.width - line.width) / 2
-          : layer.align === "right"
-            ? layer.width - line.width
-            : 0;
-      for (const entry of line.chars) {
-        setCanvasTextStyle(ctx, entry.style);
-        ctx.fillStyle = entry.style.color;
-        ctx.fillText(entry.char, cursor, y);
-        if (entry.style.textDecoration === "underline") {
-          const underlineY = y + entry.style.fontSize * 0.92;
-          ctx.save();
-          ctx.strokeStyle = entry.style.color;
-          ctx.lineWidth = Math.max(1, entry.style.fontSize / 16);
-          ctx.beginPath();
-          ctx.moveTo(cursor, underlineY);
-          ctx.lineTo(cursor + entry.width, underlineY);
-          ctx.stroke();
-          ctx.restore();
-        }
-        cursor += entry.width + entry.style.letterSpacing;
+  for (const line of lines) {
+    let cursor =
+      layer.align === "center"
+        ? (layer.width - line.width) / 2
+        : layer.align === "right"
+          ? layer.width - line.width
+          : 0;
+    for (const entry of line.chars) {
+      setCanvasTextStyle(ctx, entry.style);
+      ctx.fillStyle = entry.style.color;
+      ctx.fillText(entry.char, cursor, y);
+      if (entry.style.textDecoration === "underline") {
+        const underlineY = y + entry.style.fontSize * 0.92;
+        ctx.save();
+        ctx.strokeStyle = entry.style.color;
+        ctx.lineWidth = Math.max(1, entry.style.fontSize / 16);
+        ctx.beginPath();
+        ctx.moveTo(cursor, underlineY);
+        ctx.lineTo(cursor + entry.width, underlineY);
+        ctx.stroke();
+        ctx.restore();
       }
-      y += line.height;
+      cursor += entry.width + entry.style.letterSpacing;
     }
-  });
+    y += line.height;
+  }
+}
+
+/** A blank canvas the size of the one being drawn on, for drawing a layer apart. */
+function createMatchingCanvas(ctx: CanvasRenderingContext2D) {
+  const canvas = document.createElement("canvas");
+  canvas.width = ctx.canvas.width;
+  canvas.height = ctx.canvas.height;
+  return canvas.getContext("2d");
+}
+
+function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer) {
+  const shadow = resolveTextShadow(layer);
+  const glyphCtx = shadow ? createMatchingCanvas(ctx) : null;
+  const groupCtx = shadow ? createMatchingCanvas(ctx) : null;
+  if (!shadow || !glyphCtx || !groupCtx) {
+    drawLayerFrame(ctx, layer, () => drawTextLines(ctx, layer));
+    return;
+  }
+
+  // CSS paints a text shadow behind every letter and then applies the layer's
+  // opacity to text and shadow together. Drawing each letter with a shadow of
+  // its own would lay that shadow over the letter before it, so the text is
+  // drawn once without one, given its shadow as a whole, and only then faded.
+  drawLayerFrame(glyphCtx, { ...layer, opacity: 1 }, () => drawTextLines(glyphCtx, layer));
+  const offset = canvasShadowOffset(shadow, layer.rotation);
+  groupCtx.shadowColor = textShadowColor(shadow);
+  groupCtx.shadowBlur = shadow.blur;
+  groupCtx.shadowOffsetX = offset.x;
+  groupCtx.shadowOffsetY = offset.y;
+  groupCtx.drawImage(glyphCtx.canvas, 0, 0);
+
+  ctx.save();
+  ctx.globalAlpha = layer.opacity;
+  ctx.drawImage(groupCtx.canvas, 0, 0);
+  ctx.restore();
 }
 
 async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewImageLayer) {
