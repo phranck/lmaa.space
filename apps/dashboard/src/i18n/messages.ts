@@ -25,6 +25,7 @@ export interface DashboardMessages {
     create: string;
     delete: string;
     remove: string;
+    chooseImage: string;
     duplicate: string;
     copy: string;
     copyUrl: string;
@@ -1067,6 +1068,8 @@ export interface DashboardMessages {
     bodyText: string;
     footerBanner: string;
     footerText: string;
+    bannerEmpty: string;
+    bannerFormatsHint: string;
     deleteTemplate: string;
     deleteTemplateConfirm: string;
     noTemplates: string;
@@ -1731,6 +1734,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       create: "Erstellen",
       delete: "Löschen",
       remove: "Entfernen",
+      chooseImage: "Bild wählen",
       duplicate: "Duplizieren",
       copy: "Kopieren",
       copyUrl: "URL kopieren",
@@ -2792,11 +2796,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       templateName: "Name",
       templateSubject: "Betreff",
       subjectPlaceholder: "Willkommen bei lmaa.space",
-      headerBanner: "Header-Bild (URL)",
+      headerBanner: "Header-Bild",
       headerText: "Header-Text",
       bodyText: "Inhalt",
-      footerBanner: "Footer-Bild (URL)",
+      footerBanner: "Footer-Bild",
       footerText: "Footer-Text",
+      bannerEmpty: "Kein Bild",
+      bannerFormatsHint:
+        "Nicht jedes E-Mail-Programm zeigt WebP oder AVIF an. Darum stehen hier nur JPEG, PNG und GIF zur Auswahl.",
       deleteTemplate: "Template löschen",
       deleteTemplateConfirm: "Dieses Template wirklich löschen?",
       noTemplates: "Noch keine Templates vorhanden.",
@@ -3523,6 +3530,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       create: "Create",
       delete: "Delete",
       remove: "Remove",
+      chooseImage: "Choose image",
       duplicate: "Duplicate",
       copy: "Copy",
       copyUrl: "Copy URL",
@@ -4578,11 +4586,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       templateName: "Name",
       templateSubject: "Subject",
       subjectPlaceholder: "Welcome to lmaa.space",
-      headerBanner: "Header image (URL)",
+      headerBanner: "Header image",
       headerText: "Header text",
       bodyText: "Body",
-      footerBanner: "Footer image (URL)",
+      footerBanner: "Footer image",
       footerText: "Footer text",
+      bannerEmpty: "No image",
+      bannerFormatsHint:
+        "Not every email client shows WebP or AVIF, so only JPEG, PNG and GIF are offered here.",
       deleteTemplate: "Delete template",
       deleteTemplateConfirm: "Really delete this template?",
       noTemplates: "No templates yet.",
