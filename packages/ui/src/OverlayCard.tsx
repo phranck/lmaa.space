@@ -18,15 +18,27 @@ import {
   subscribeOverlayStack,
   type OverlayLayerZIndex,
 } from "./overlay-stack.ts";
+import { type ResizableCardSize, ResizableDialogCard } from "./ResizableDialogCard.tsx";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-interface OverlayCardProps {
+/**
+ * How large an overlay card is: one of three fixed widths, most of the
+ * window, or a card the user resizes and that keeps its size.
+ */
+export type OverlayCardSize =
+  | "fixed-sm"
+  | "fixed-md"
+  | "fixed-lg"
+  | "fullscreen"
+  | ResizableCardSize;
+
+export interface OverlayCardProps {
   open: boolean;
   onClose: () => void;
-  size?: "fixed-sm" | "fixed-md" | "fixed-lg";
+  size?: OverlayCardSize;
   "aria-label": string;
   className?: string;
   style?: React.CSSProperties;
@@ -182,8 +194,6 @@ export function OverlayCard({
 
   const handleBackdropClick = isTopMost && backdropClose && !closing ? startClose : undefined;
 
-  const fixedMaxWidth =
-    size === "fixed-lg" ? "max-w-lg" : size === "fixed-md" ? "max-w-md" : "max-w-sm";
   const cardAnim = closing
     ? "lmaa-card-out 280ms ease forwards"
     : "lmaa-card-in 380ms ease forwards";
@@ -191,6 +201,60 @@ export function OverlayCard({
     ? "lmaa-overlay-out 280ms ease forwards"
     : "lmaa-overlay-in 360ms ease forwards";
   const effectiveZIndex = isRegistered ? resolveOverlayZIndex(zIndex, stackIndex * 100) : zIndex;
+  const cardProps = { "aria-modal": true, "aria-label": ariaLabel };
+
+  let card: ReactNode;
+  if (typeof size === "object") {
+    card = (
+      <ResizableDialogCard
+        ref={dialogRef}
+        {...size}
+        className={["flex flex-col rounded-[var(--radius-card)] shadow-2xl", className]
+          .filter(Boolean)
+          .join(" ")}
+        style={{ animation: cardAnim, ...style }}
+        {...cardProps}
+      >
+        {children}
+      </ResizableDialogCard>
+    );
+  } else if (size === "fullscreen") {
+    card = (
+      <dialog
+        open
+        ref={dialogRef}
+        className={[
+          "relative m-0 p-0 bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={{ width: "85vw", height: "85vh", animation: cardAnim, ...style }}
+        {...cardProps}
+      >
+        {children}
+      </dialog>
+    );
+  } else {
+    const fixedMaxWidth =
+      size === "fixed-lg" ? "max-w-lg" : size === "fixed-md" ? "max-w-md" : "max-w-sm";
+    card = (
+      <dialog
+        open
+        ref={dialogRef}
+        className={[
+          `relative m-0 p-0 bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl overflow-hidden w-full ${fixedMaxWidth}`,
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={{ animation: cardAnim, ...style }}
+        {...cardProps}
+      >
+        {children}
+      </dialog>
+    );
+  }
 
   return (
     <OverlayLayerZIndexContext.Provider value={effectiveZIndex}>
@@ -212,21 +276,7 @@ export function OverlayCard({
           onClick={handleBackdropClick}
           onAnimationEnd={handleBackdropAnimationEnd}
         />
-        <dialog
-          open
-          ref={dialogRef}
-          className={[
-            `relative m-0 p-0 bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl overflow-hidden w-full ${fixedMaxWidth}`,
-            className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          style={{ animation: cardAnim, ...style }}
-          aria-modal={true}
-          aria-label={ariaLabel}
-        >
-          {children}
-        </dialog>
+        {card}
       </div>
     </OverlayLayerZIndexContext.Provider>
   );
