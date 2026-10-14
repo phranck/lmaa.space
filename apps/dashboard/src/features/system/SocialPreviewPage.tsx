@@ -1,4 +1,5 @@
 import {
+  ApertureIcon,
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
   ArrowSquareOutIcon,
@@ -27,6 +28,7 @@ import {
   PolygonIcon,
   RectangleIcon,
   RulerIcon,
+  SelectionBackgroundIcon,
   SelectionIcon,
   SunDimIcon,
   TextAlignCenterIcon,
@@ -63,7 +65,11 @@ import type {
   SocialPreviewShapeLayer,
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
-import { SOCIAL_PREVIEW_MAX_EDGE_PX } from "@lmaa/contracts";
+import {
+  SOCIAL_PREVIEW_MAX_EDGE_PX,
+  SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX,
+  SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX,
+} from "@lmaa/contracts";
 import { formatDateTime } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -118,6 +124,11 @@ import {
   createTextLayer,
   renderSocialPreviewBlob,
 } from "@/features/system/social-preview-renderer.ts";
+import {
+  cssTextShadow,
+  getTextShadowSettings,
+  resolveTextShadow,
+} from "@/features/system/social-preview-text-shadow.ts";
 import { FRONTEND_URL } from "@/lib/env.ts";
 
 import "./social-preview-fonts.css";
@@ -2985,13 +2996,33 @@ const FOOTER_CONTROL_CLASS =
   "h-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-2 text-sm text-[var(--ds-text)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]";
 
 /**
+ * A ref for an uncontrolled number field that shows `value` whenever nobody is
+ * typing in it.
+ *
+ * The field keeps what is typed in the element itself, so a half-typed entry
+ * such as a lone minus sign survives until it becomes a number. A value that
+ * changes elsewhere, by a drag or an undo, is written into the field only
+ * while it does not have focus.
+ *
+ * @param value - The number the field stands for.
+ * @returns The ref to set on the `<input>`.
+ */
+function useIdleInputValue(value: number) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input && input !== document.activeElement) input.value = String(value);
+  }, [value]);
+  return inputRef;
+}
+
+/**
  * A field for one edge of the output size.
  *
  * It holds what is being typed and hands it on only when the field is left or
  * Enter is pressed, because every keystroke would otherwise resize the canvas
- * through each number on the way, such as 1 and 16 on the way to 1600. A size
- * that changes elsewhere, by a drag or an undo, replaces what the field shows.
- * Escape puts the current size back.
+ * through each number on the way, such as 1 and 16 on the way to 1600. Escape
+ * puts the current size back.
  *
  * @param label - Names the edge for assistive technology and as a tooltip.
  * @param value - The edge's current length in pixels.
@@ -3007,13 +3038,7 @@ function CanvasEdgeInput({
   value: number;
   onCommit: (value: number) => void;
 }) {
-  // The field keeps what is typed in the element itself. Only a size that
-  // changes while somebody is not typing here is written into it.
-  const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    const input = inputRef.current;
-    if (input && input !== document.activeElement) input.value = String(value);
-  }, [value]);
+  const inputRef = useIdleInputValue(value);
 
   function commit(input: HTMLInputElement) {
     const parsed = Number.parseInt(input.value, 10);
@@ -3398,6 +3423,7 @@ function LayerContent({
   }, [editing, layer.type]);
 
   if (layer.type === "text") {
+    const shadow = resolveTextShadow(layer);
     const textStyle: CSSProperties = {
       fontFamily: layer.fontFamily,
       fontSize: layer.fontSize,
@@ -3408,12 +3434,17 @@ function LayerContent({
       textAlign: layer.align,
       lineHeight: layer.lineHeight,
       letterSpacing: layer.letterSpacing,
+      textShadow: shadow ? cssTextShadow(shadow) : undefined,
     };
+    // The text area lies over the rich text with transparent letters, and CSS
+    // still draws a shadow for transparent letters, so it would show a second
+    // one.
     const editTextStyle: CSSProperties = {
       ...textStyle,
       caretColor: layer.color,
       color: "transparent",
       WebkitTextFillColor: "transparent",
+      textShadow: "none",
     };
 
     return selected && editing ? (
@@ -3757,14 +3788,80 @@ function AttributeLabel({
   );
 }
 
+/**
+ * The look of the inputs in the attribute bar, apart from their padding.
+ *
+ * Two padding classes on one element do not override each other by their
+ * order in the `class` attribute, so the padding is left to each input.
+ */
+const ATTRIBUTE_INPUT_CLASS =
+  "h-7 rounded border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] text-xs text-[var(--ds-text)] accent-[var(--color-primary)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]";
+
+/**
+ * A narrow number field without the browser's stepper buttons, which would
+ * cover its digits. The arrow keys still step the value.
+ */
+const COMPACT_NUMBER_INPUT_CLASS =
+  "w-10 px-1 tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
+
 function AttributeInput({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
+  return <input {...props} className={cx(ATTRIBUTE_INPUT_CLASS, "px-2", className)} />;
+}
+
+/**
+ * A whole-number field in the attribute bar that applies each number as it is
+ * typed and accepts negative ones.
+ *
+ * A controlled number field cannot hold a lone minus sign, because the browser
+ * reports it as empty and the field is reset at once. This one keeps what is
+ * typed until it parses, hands on every number it parses to, and shows the
+ * applied value again when it loses focus.
+ *
+ * @param label - Names the field for assistive technology and as a tooltip.
+ * @param value - The applied value.
+ * @param min - The smallest value handed on.
+ * @param max - The largest value handed on.
+ * @param onChange - Receives each typed number, rounded and within `min` and
+ *   `max`.
+ */
+function AttributeNumberInput({
+  label,
+  value,
+  min,
+  max,
+  disabled,
+  className,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  disabled?: boolean;
+  className?: string;
+  onChange: (value: number) => void;
+}) {
+  const inputRef = useIdleInputValue(value);
+
   return (
     <input
-      {...props}
-      className={cx(
-        "h-7 rounded border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-2 text-xs text-[var(--ds-text)] accent-[var(--color-primary)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
-        className,
-      )}
+      ref={inputRef}
+      type="number"
+      step={1}
+      min={min}
+      max={max}
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      defaultValue={value}
+      onChange={(event) => {
+        const parsed = Number.parseFloat(event.currentTarget.value);
+        if (Number.isFinite(parsed)) onChange(clamp(Math.round(parsed), min, max));
+      }}
+      onBlur={(event) => {
+        event.currentTarget.value = String(value);
+      }}
+      className={cx(ATTRIBUTE_INPUT_CLASS, className)}
     />
   );
 }
@@ -4214,6 +4311,108 @@ function ImageLayerAttributes({
   );
 }
 
+/**
+ * The controls for a text layer's shadow: a switch, the shadow's color and
+ * opacity, its blur, and how far it sits from the text.
+ *
+ * They close the attribute bar's first row, beside the layer's position and
+ * size, because the second row is taken by the typography. While the shadow is
+ * off, every field but the switch is disabled and shows the values the shadow
+ * takes when it is switched on.
+ */
+function TextShadowAttributes({
+  layer,
+  messages,
+  onChange,
+}: {
+  layer: SocialPreviewTextLayer;
+  messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  onChange: (patch: Partial<SocialPreviewLayer>) => void;
+}) {
+  const settings = getTextShadowSettings(layer);
+  const disabled = layer.shadow !== true;
+
+  return (
+    <div className="flex items-center gap-1 whitespace-nowrap">
+      <span
+        className="flex size-5 items-center justify-center text-[var(--ds-text-muted)]"
+        title={messages.textShadow}
+      >
+        <SelectionBackgroundIcon weight="duotone" className="size-4" />
+      </span>
+      <input
+        aria-label={messages.textShadow}
+        title={messages.textShadow}
+        type="checkbox"
+        checked={!disabled}
+        onChange={(event) => onChange({ shadow: event.currentTarget.checked })}
+        className="size-4 accent-[var(--color-primary)]"
+      />
+      <AttributeInput
+        aria-label={messages.textShadowColor}
+        title={messages.textShadowColor}
+        type="color"
+        value={settings.color}
+        className="w-9 px-1"
+        disabled={disabled}
+        onChange={(event) => onChange({ shadowColor: event.currentTarget.value })}
+      />
+      <AttributeInput
+        aria-label={messages.textShadowOpacity}
+        title={messages.textShadowOpacity}
+        type="range"
+        min={0}
+        max={100}
+        value={Math.round(settings.opacity * 100)}
+        className="w-12 px-0"
+        disabled={disabled}
+        onChange={(event) =>
+          onChange({ shadowOpacity: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 1) })
+        }
+      />
+      <span
+        className="flex size-5 items-center justify-center text-[var(--ds-text-muted)]"
+        title={messages.textShadowBlur}
+      >
+        <ApertureIcon weight="duotone" className="size-4" />
+      </span>
+      <AttributeNumberInput
+        label={messages.textShadowBlur}
+        value={settings.blur}
+        min={0}
+        max={SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX}
+        disabled={disabled}
+        className={COMPACT_NUMBER_INPUT_CLASS}
+        onChange={(shadowBlur) => onChange({ shadowBlur })}
+      />
+      <span className="text-[var(--ds-text-muted)]" aria-hidden="true">
+        X
+      </span>
+      <AttributeNumberInput
+        label={messages.textShadowOffsetX}
+        value={settings.offsetX}
+        min={-SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX}
+        max={SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX}
+        disabled={disabled}
+        className={COMPACT_NUMBER_INPUT_CLASS}
+        onChange={(shadowOffsetX) => onChange({ shadowOffsetX })}
+      />
+      <span className="text-[var(--ds-text-muted)]" aria-hidden="true">
+        Y
+      </span>
+      <AttributeNumberInput
+        label={messages.textShadowOffsetY}
+        value={settings.offsetY}
+        min={-SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX}
+        max={SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX}
+        disabled={disabled}
+        className={COMPACT_NUMBER_INPUT_CLASS}
+        onChange={(shadowOffsetY) => onChange({ shadowOffsetY })}
+      />
+    </div>
+  );
+}
+
 function TextLayerAttributes({
   layer,
   messages,
@@ -4230,6 +4429,7 @@ function TextLayerAttributes({
 
   return (
     <>
+      <TextShadowAttributes layer={layer} messages={messages} onChange={onChange} />
       <span className="basis-full" aria-hidden="true" />
       <AttributeLabel
         title={messages.fontFamily}
