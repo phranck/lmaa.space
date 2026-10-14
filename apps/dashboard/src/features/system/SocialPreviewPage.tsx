@@ -3319,6 +3319,7 @@ function ShapeLayerContent({ layer }: { layer: SocialPreviewShapeLayer }) {
     <svg
       className="size-full cursor-move overflow-visible"
       viewBox={`0 0 ${layer.width} ${layer.height}`}
+      style={{ filter: layer.blur ? `blur(${layer.blur}px)` : undefined }}
     >
       {layer.shape === "rectangle" ? (
         <rect
@@ -4220,6 +4221,27 @@ function ShapeLayerAttributes({
           disabled={!layer.border}
           onChange={(event) =>
             onChange({ borderOpacity: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 1) })
+          }
+        />
+      </AttributeLabel>
+      <AttributeLabel
+        title={messages.shapeBlur}
+        icon={<ApertureIcon weight="duotone" className="size-4" />}
+      >
+        <span className="w-8 text-right tabular-nums">{layer.blur ?? 0}</span>
+        <AttributeInput
+          aria-label={messages.shapeBlur}
+          type="range"
+          min={0}
+          max={SOCIAL_PREVIEW_MAX_BLUR_PX}
+          step={1}
+          value={layer.blur ?? 0}
+          className="w-20"
+          padding="px-0"
+          onChange={(event) =>
+            onChange({
+              blur: clamp(Number(event.currentTarget.value) || 0, 0, SOCIAL_PREVIEW_MAX_BLUR_PX),
+            })
           }
         />
       </AttributeLabel>

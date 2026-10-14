@@ -7,7 +7,10 @@ import type {
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
 
-import { applyBrightnessContrast } from "@/features/system/social-preview-pixel-filters.ts";
+import {
+  applyBrightnessContrast,
+  applyGaussianBlur,
+} from "@/features/system/social-preview-pixel-filters.ts";
 import {
   canvasShadowOffset,
   resolveTextShadow,
@@ -485,20 +488,75 @@ function buildShapePath(ctx: CanvasRenderingContext2D, layer: SocialPreviewShape
   ctx.closePath();
 }
 
+/** Fills a shape and strokes its border, in a context whose transform already places the layer. */
+function drawShape(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer) {
+  buildShapePath(ctx, layer);
+  ctx.fillStyle = layer.color;
+  ctx.fill();
+  if (layer.border && layer.borderThickness > 0) {
+    ctx.save();
+    ctx.globalAlpha = layer.borderOpacity;
+    ctx.strokeStyle = layer.borderColor;
+    ctx.lineWidth = layer.borderThickness;
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/**
+ * The part of the canvas a blurred layer can reach: its turned bounds, widened
+ * by its border and by three standard deviations of blur, which is where a
+ * Gaussian has faded to nothing.
+ *
+ * @returns Whole pixels within the canvas, or `null` where the layer lies
+ *   entirely outside it.
+ */
+function getBlurRegion(
+  layer: SocialPreviewShapeLayer,
+  blur: number,
+  canvasWidth: number,
+  canvasHeight: number,
+) {
+  const angle = (layer.rotation * Math.PI) / 180;
+  const halfWidth =
+    (Math.abs(Math.cos(angle)) * layer.width + Math.abs(Math.sin(angle)) * layer.height) / 2;
+  const halfHeight =
+    (Math.abs(Math.sin(angle)) * layer.width + Math.abs(Math.cos(angle)) * layer.height) / 2;
+  const margin = Math.ceil(blur * 3 + (layer.border ? layer.borderThickness : 0)) + 1;
+  const centerX = layer.x + layer.width / 2;
+  const centerY = layer.y + layer.height / 2;
+  const left = Math.max(0, Math.floor(centerX - halfWidth - margin));
+  const top = Math.max(0, Math.floor(centerY - halfHeight - margin));
+  const right = Math.min(canvasWidth, Math.ceil(centerX + halfWidth + margin));
+  const bottom = Math.min(canvasHeight, Math.ceil(centerY + halfHeight + margin));
+  if (right <= left || bottom <= top) return null;
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
 function drawShapeLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer) {
-  drawLayerFrame(ctx, layer, () => {
-    buildShapePath(ctx, layer);
-    ctx.fillStyle = layer.color;
-    ctx.fill();
-    if (layer.border && layer.borderThickness > 0) {
-      ctx.save();
-      ctx.globalAlpha = layer.borderOpacity;
-      ctx.strokeStyle = layer.borderColor;
-      ctx.lineWidth = layer.borderThickness;
-      ctx.stroke();
-      ctx.restore();
-    }
-  });
+  const blur = layer.blur ?? 0;
+  const shapeCtx = blur > 0 ? createMatchingCanvas(ctx) : null;
+  if (!shapeCtx) {
+    drawLayerFrame(ctx, layer, () => drawShape(ctx, layer));
+    return;
+  }
+
+  // CSS blurs the shape with its border and then fades the result by the
+  // layer's opacity, so the shape is drawn apart at full opacity, blurred
+  // there, and faded only as it is laid onto the image. Only the region the
+  // blur can reach is read back, because a whole large canvas would take
+  // seconds.
+  drawLayerFrame(shapeCtx, { ...layer, opacity: 1 }, () => drawShape(shapeCtx, layer));
+  const region = getBlurRegion(layer, blur, shapeCtx.canvas.width, shapeCtx.canvas.height);
+  if (!region) return;
+  const pixels = shapeCtx.getImageData(region.x, region.y, region.width, region.height);
+  applyGaussianBlur(pixels.data, region.width, region.height, blur);
+  shapeCtx.putImageData(pixels, region.x, region.y);
+
+  ctx.save();
+  ctx.globalAlpha = layer.opacity;
+  ctx.drawImage(shapeCtx.canvas, 0, 0);
+  ctx.restore();
 }
 
 async function renderSocialPreviewToCanvas(composition: SocialPreviewComposition) {
