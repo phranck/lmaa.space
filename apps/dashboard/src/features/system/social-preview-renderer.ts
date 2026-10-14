@@ -404,20 +404,25 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
 
 function roundedRectPath(
   ctx: CanvasRenderingContext2D,
+  inset: number,
   width: number,
   height: number,
   radius: number,
 ) {
   const r = Math.min(radius, width / 2, height / 2);
-  ctx.moveTo(r, 0);
-  ctx.lineTo(width - r, 0);
-  ctx.quadraticCurveTo(width, 0, width, r);
-  ctx.lineTo(width, height - r);
-  ctx.quadraticCurveTo(width, height, width - r, height);
-  ctx.lineTo(r, height);
-  ctx.quadraticCurveTo(0, height, 0, height - r);
-  ctx.lineTo(0, r);
-  ctx.quadraticCurveTo(0, 0, r, 0);
+  const left = inset;
+  const top = inset;
+  const right = inset + width;
+  const bottom = inset + height;
+  ctx.moveTo(left + r, top);
+  ctx.lineTo(right - r, top);
+  ctx.quadraticCurveTo(right, top, right, top + r);
+  ctx.lineTo(right, bottom - r);
+  ctx.quadraticCurveTo(right, bottom, right - r, bottom);
+  ctx.lineTo(left + r, bottom);
+  ctx.quadraticCurveTo(left, bottom, left, bottom - r);
+  ctx.lineTo(left, top + r);
+  ctx.quadraticCurveTo(left, top, left + r, top);
 }
 
 function regularPolygonPath(
@@ -459,17 +464,22 @@ function starPath(
 
 function buildShapePath(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer) {
   const radius = Math.min(layer.radius, layer.width / 2, layer.height / 2);
+  // `ShapeLayerContent` on the stage draws rectangles, circles and ellipses
+  // half a border width inside the layer, so their border lies within the
+  // layer's bounds. Polygons and stars keep the border centered on their
+  // outline there, and so they do here.
+  const inset = layer.border ? layer.borderThickness / 2 : 0;
   ctx.beginPath();
   switch (layer.shape) {
     case "circle":
-      ctx.arc(layer.width / 2, layer.height / 2, radius, 0, Math.PI * 2);
+      ctx.arc(layer.width / 2, layer.height / 2, Math.max(0, radius - inset), 0, Math.PI * 2);
       break;
     case "ellipse":
       ctx.ellipse(
         layer.width / 2,
         layer.height / 2,
-        layer.width / 2,
-        layer.height / 2,
+        Math.max(0, layer.width / 2 - inset),
+        Math.max(0, layer.height / 2 - inset),
         0,
         0,
         Math.PI * 2,
@@ -482,7 +492,13 @@ function buildShapePath(ctx: CanvasRenderingContext2D, layer: SocialPreviewShape
       starPath(ctx, layer.width / 2, layer.height / 2, radius, layer.points);
       break;
     case "rectangle":
-      roundedRectPath(ctx, layer.width, layer.height, layer.cornerRadius);
+      roundedRectPath(
+        ctx,
+        inset,
+        Math.max(0, layer.width - inset * 2),
+        Math.max(0, layer.height - inset * 2),
+        layer.cornerRadius,
+      );
       break;
   }
   ctx.closePath();
@@ -495,7 +511,8 @@ function drawShape(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer
   ctx.fill();
   if (layer.border && layer.borderThickness > 0) {
     ctx.save();
-    ctx.globalAlpha = layer.borderOpacity;
+    // The layer's own opacity is already set, and the border fades with it.
+    ctx.globalAlpha *= layer.borderOpacity;
     ctx.strokeStyle = layer.borderColor;
     ctx.lineWidth = layer.borderThickness;
     ctx.stroke();
