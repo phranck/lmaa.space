@@ -38,13 +38,16 @@ const FAVICON_DIRECTORIES = ["apps/frontend/public", "apps/dashboard/public"];
 const FAVICON_PNG_SIZE = 64;
 
 /*
- * The wordmark over the claim, their ink centered as one block. The sizes keep
- * the hero's proportion, where the claim runs about 1.8 times as wide as the
- * wordmark's box. The gap runs from the foot of the wordmark's letters to the
- * top of the claim's.
+ * The wordmark over the claim, centered as one block, in the proportion the
+ * hero shows them at 1440 px: the claim's letters run about 1.05 times as wide
+ * as the wordmark, and the gap from the foot of the wordmark to the top of the
+ * claim's letters is 0.107 of the wordmark's width. Both drawings are boxed by
+ * their own ink, so their boxes place them.
  */
-const SOCIAL_IMAGE = { width: 1200, height: 630, wordmarkWidth: 520, claimWidth: 940, gap: 80 };
-const EMAIL_MASTHEAD = { width: 1200, height: 300, wordmarkWidth: 320, claimWidth: 560, gap: 46 };
+const CLAIM_WIDTH_SHARE = 1.05;
+const GAP_SHARE = 0.107;
+const SOCIAL_IMAGE = { width: 1200, height: 630, wordmarkWidth: 640 };
+const EMAIL_MASTHEAD = { width: 1200, height: 300, wordmarkWidth: 400 };
 
 /*
  * Each banner and where it goes; the extension decides the format. The README
@@ -122,63 +125,27 @@ function faviconSvg(icon) {
 }
 
 /**
- * How far a drawing's letters stand inside its box, top and bottom, as
- * shares of its height. The wordmark carries a margin around its letters and
- * the claim carries none, so the two are placed by their letters rather than
- * by their boxes. Measured from the drawing itself, so a redrawn mark needs no
- * new figures here.
- *
- * @param {{viewBox: number[], content: string}} drawing - The drawing.
- * @returns {Promise<{top: number, bottom: number}>} The two insets.
- */
-async function inkInsets(drawing) {
-  const [, , width, height] = drawing.viewBox;
-  const document = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${place(drawing, 0, 0, width, "#000")}</svg>`;
-  const { info } = await sharp(Buffer.from(document))
-    .flatten({ background: "#fff" })
-    .trim()
-    .toBuffer({ resolveWithObject: true });
-  if (info.trimOffsetTop === undefined) throw new Error("sharp reported no trim offset");
-  const top = -info.trimOffsetTop / height;
-  return { top, bottom: 1 - top - info.height / height };
-}
-
-/**
  * A banner: the wordmark in gold over the claim on the dark ground, the
  * claim in paper with its last word in gold, as the hero sets it.
  *
- * @param {typeof SOCIAL_IMAGE} layout - Size and layout of the image.
+ * @param {typeof SOCIAL_IMAGE} layout - Size of the image and width of the wordmark.
  * @param {number} cornerRadius - Radius of the corners cut out of it, or 0.
  * @param {{viewBox: number[], content: string}} wordmark - The wordmark drawing.
- * @param {{top: number, bottom: number}} wordmarkInsets - Its letters' insets.
- * @param {{viewBox: number[], content: string}} claim - The claim drawing,
- *   whose box is its letters.
+ * @param {{viewBox: number[], content: string}} claim - The claim drawing.
  * @returns {string} A complete SVG document.
  */
-function bannerSvg(layout, cornerRadius, wordmark, wordmarkInsets, claim) {
+function bannerSvg(layout, cornerRadius, wordmark, claim) {
+  const claimWidth = layout.wordmarkWidth * CLAIM_WIDTH_SHARE;
+  const gap = layout.wordmarkWidth * GAP_SHARE;
   const wordmarkHeight = heightAt(wordmark, layout.wordmarkWidth);
-  const wordmarkInkTop = wordmarkInsets.top * wordmarkHeight;
-  const wordmarkInkHeight = (1 - wordmarkInsets.top - wordmarkInsets.bottom) * wordmarkHeight;
-  const claimHeight = heightAt(claim, layout.claimWidth);
-  const inkTop = (layout.height - wordmarkInkHeight - layout.gap - claimHeight) / 2;
+  const claimHeight = heightAt(claim, claimWidth);
+  const top = (layout.height - wordmarkHeight - gap - claimHeight) / 2;
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${layout.width}" height="${layout.height}">`,
     `<style>#highlight { color: ${GOLD}; }</style>`,
     `<rect width="${layout.width}" height="${layout.height}" rx="${cornerRadius}" fill="${SALON_GROUND}"/>`,
-    place(
-      wordmark,
-      (layout.width - layout.wordmarkWidth) / 2,
-      inkTop - wordmarkInkTop,
-      layout.wordmarkWidth,
-      GOLD,
-    ),
-    place(
-      claim,
-      (layout.width - layout.claimWidth) / 2,
-      inkTop + wordmarkInkHeight + layout.gap,
-      layout.claimWidth,
-      PAPER,
-    ),
+    place(wordmark, (layout.width - layout.wordmarkWidth) / 2, top, layout.wordmarkWidth, GOLD),
+    place(claim, (layout.width - claimWidth) / 2, top + wordmarkHeight + gap, claimWidth, PAPER),
     "</svg>",
   ].join("\n");
 }
@@ -208,11 +175,8 @@ async function renderFavicons(icon) {
  * @param {{viewBox: number[], content: string}} claim - The claim drawing.
  */
 async function renderBanners(wordmark, claim) {
-  const wordmarkInsets = await inkInsets(wordmark);
   for (const { file, layout, cornerRadius = 0 } of BANNERS) {
-    const image = sharp(
-      Buffer.from(bannerSvg(layout, cornerRadius, wordmark, wordmarkInsets, claim)),
-    );
+    const image = sharp(Buffer.from(bannerSvg(layout, cornerRadius, wordmark, claim)));
     const encoded = file.endsWith(".png")
       ? image.png()
       : image.jpeg({ quality: JPEG_QUALITY, mozjpeg: true });
