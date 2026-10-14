@@ -203,13 +203,11 @@ export function DataTable<T>({
   const sortRows = useCallback(
     (rows: T[]): T[] => {
       if (!sort) return rows;
-      const col = columns.find((c) => c.id === sort.id);
-      if (!col?.sortKey) return rows;
+      const sortKey = columns.find((c) => c.id === sort.id)?.sortKey;
+      if (!sortKey) return rows;
       return Array.from(rows).sort((a, b) => {
-        // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
-        const av = col.sortKey!(a);
-        // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
-        const bv = col.sortKey!(b);
+        const av = sortKey(a);
+        const bv = sortKey(b);
         const cmp =
           typeof av === "number" && typeof bv === "number"
             ? av - bv
