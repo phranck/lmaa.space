@@ -67,14 +67,18 @@ const BANNERS = [
 ];
 
 /*
- * The marks as PNGs with a transparent ground, for the media library of the
- * dashboard's social preview editor, which takes no SVG. Each is drawn in the
- * colors the banners give it, at the width given here.
+ * The marks as PNGs with a transparent ground, at the width given here. The
+ * gold ones, and the claim in paper, are for the media library of the
+ * dashboard's social preview editor, which takes no SVG, and match the
+ * banners. The ink ones fill the squircle and the letters in ink and the
+ * llama's head in gold. Without a head color, the head stays cut out.
  */
 const MEDIA_IMAGES = [
-  { file: "brand/lmaa-icon.png", drawing: "icon", width: 512 },
-  { file: "brand/lmaa-wordmark.png", drawing: "wordmark", width: 1200 },
-  { file: "brand/lmaa-claim.png", drawing: "claim", width: 1200 },
+  { file: "brand/lmaa-icon.png", drawing: "icon", width: 512, color: GOLD },
+  { file: "brand/lmaa-wordmark.png", drawing: "wordmark", width: 1200, color: GOLD },
+  { file: "brand/lmaa-claim.png", drawing: "claim", width: 1200, color: PAPER },
+  { file: "brand/lmaa-icon-ink.png", drawing: "icon", width: 512, color: INK, head: GOLD },
+  { file: "brand/lmaa-wordmark-ink.png", drawing: "wordmark", width: 1200, color: INK, head: GOLD },
 ];
 const JPEG_QUALITY = 90;
 
@@ -120,6 +124,19 @@ function heightAt(drawing, width) {
 }
 
 /**
+ * A style rule that fills the llama's head, the path `lmaa-icon-head` that the
+ * icon and the wordmark carry unfilled. A stroke of one unit closes the seam
+ * between the head and the edge of its cut-out, which would otherwise show
+ * the ground as a hairline around it.
+ *
+ * @param {string} color - The head's color.
+ * @returns {string} A CSS rule.
+ */
+function headFill(color) {
+  return `.lmaa-icon-head { fill: ${color}; stroke: ${color}; stroke-width: 1px; }`;
+}
+
+/**
  * The favicon: the icon in gold with the llama's head in ink. A tab bar is
  * light or dark depending on the browser, so the head is filled rather than
  * left open, and the icon reads the same on either. The drawing carries the
@@ -133,7 +150,7 @@ function faviconSvg(icon) {
   const [, , size] = icon.viewBox;
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox.join(" ")}">`,
-    `<style>.lmaa-icon-head { fill: ${INK}; stroke: ${INK}; stroke-width: 1px; }</style>`,
+    `<style>${headFill(INK)}</style>`,
     place(icon, 0, 0, size, GOLD),
     "</svg>",
     "",
@@ -202,21 +219,20 @@ async function renderBanners(wordmark, claim) {
 }
 
 /**
- * Writes the icon, the wordmark and the claim as PNGs with a transparent
- * ground: the icon and the wordmark in gold, with the head cut out, and the
- * claim in paper with its last word in gold.
+ * Writes the marks as PNGs with a transparent ground, in the colors
+ * `MEDIA_IMAGES` gives each. The claim's last word is always gold.
  *
  * @param {Record<string, {viewBox: number[], content: string}>} drawings - The
  *   drawings by the names `MEDIA_IMAGES` uses.
  */
 async function renderMediaImages(drawings) {
-  for (const { file, drawing, width } of MEDIA_IMAGES) {
+  for (const { file, drawing, width, color, head } of MEDIA_IMAGES) {
     const source = drawings[drawing];
     const height = Math.ceil(heightAt(source, width));
     const svg = [
       `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`,
-      `<style>#highlight { color: ${GOLD}; }</style>`,
-      place(source, 0, 0, width, drawing === "claim" ? PAPER : GOLD),
+      `<style>#highlight { color: ${GOLD}; }${head ? ` ${headFill(head)}` : ""}</style>`,
+      place(source, 0, 0, width, color),
       "</svg>",
     ].join("\n");
     await sharp(Buffer.from(svg)).png().toFile(new URL(file, ROOT).pathname);

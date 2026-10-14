@@ -4,7 +4,7 @@ The drawings of the two LMAA marks and of the claim. The website, the dashboard 
 
 ## lmaa-wordmark.svg
 
-The icon on the left and the word LMAA on its right, as Google Sans Flex sets it at wght 559, wdth 125, ROND 100 and opsz 144. The icon is one and a half times as high as the letters' caps and centered on them. Its head is cut out, so the ground shows through it. The box is the ink's own, without a margin.
+The icon on the left and the word LMAA on its right, as Google Sans Flex sets it at wght 559, wdth 125, ROND 100 and opsz 144. The icon is one and a half times as high as the letters' caps and centered on them. Its head is cut out, so the ground shows through it, and is there a second time as the unfilled path `lmaa-icon-head`, as in the icon. The box is the ink's own, without a margin.
 
 ## lmaa-icon.svg
 

@@ -278,8 +278,10 @@ function iconSvg({ size, tile, head }) {
  *
  * The icon stands WORDMARK_ICON_SIZE high, centered on the letters' cap
  * height, and WORDMARK_GAP from the L's ink. Its head stays cut out, so the
- * ground shows through it. The box is the ink's own, without a margin, so a
- * place that shows the wordmark decides the space around it.
+ * ground shows through it, and is there a second time as the unfilled path
+ * `lmaa-icon-head`, as in the icon, for a place that wants the head in a color
+ * of its own. The box is the ink's own, without a margin, so a place that
+ * shows the wordmark decides the space around it.
  *
  * @param {{ size: number, tile: string, head: string }} icon The icon as `readIcon` returns it.
  * @returns {string}
@@ -300,6 +302,7 @@ function wordmarkSvg({ size, tile, head }) {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">` +
     `<path fill="currentColor" fill-rule="evenodd" transform="${iconPlacement}" d="${tile}${head}"/>` +
+    `<path class="lmaa-icon-head" fill="none" transform="${iconPlacement}" d="${head}"/>` +
     `<path fill="currentColor" d="${LETTERS}"/></svg>\n`
   );
 }
