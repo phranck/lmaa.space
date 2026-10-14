@@ -3804,8 +3804,20 @@ const ATTRIBUTE_INPUT_CLASS =
 const COMPACT_NUMBER_INPUT_CLASS =
   "w-10 px-1 tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
-function AttributeInput({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={cx(ATTRIBUTE_INPUT_CLASS, "px-2", className)} />;
+/**
+ * An input in the attribute bar.
+ *
+ * @param padding - The input's horizontal padding. Color fields take `px-1`
+ *   so the swatch fills the field, and sliders take `px-0` so the track does.
+ *   It is a prop of its own because a padding class in `className` would sit
+ *   beside this one rather than replace it.
+ */
+function AttributeInput({
+  className,
+  padding = "px-2",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { padding?: "px-0" | "px-1" | "px-2" }) {
+  return <input {...props} className={cx(ATTRIBUTE_INPUT_CLASS, padding, className)} />;
 }
 
 /**
@@ -3962,7 +3974,8 @@ function LayerAttributes({
           min={0}
           max={100}
           value={Math.round(layer.opacity * 100)}
-          className="w-20 px-0"
+          className="w-20"
+          padding="px-0"
           onChange={(event) =>
             onChange({ opacity: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 1) })
           }
@@ -4145,7 +4158,8 @@ function ShapeLayerAttributes({
           aria-label={messages.textColor}
           type="color"
           value={layer.color}
-          className="w-9 px-1"
+          className="w-9"
+          padding="px-1"
           onChange={(event) => onChange({ color: event.currentTarget.value })}
         />
       </AttributeLabel>
@@ -4169,7 +4183,8 @@ function ShapeLayerAttributes({
           aria-label={messages.borderColor}
           type="color"
           value={layer.borderColor}
-          className="w-9 px-1"
+          className="w-9"
+          padding="px-1"
           disabled={!layer.border}
           onChange={(event) => onChange({ borderColor: event.currentTarget.value })}
         />
@@ -4200,7 +4215,8 @@ function ShapeLayerAttributes({
           min={0}
           max={100}
           value={Math.round(layer.borderOpacity * 100)}
-          className="w-16 px-0"
+          className="w-16"
+          padding="px-0"
           disabled={!layer.border}
           onChange={(event) =>
             onChange({ borderOpacity: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 1) })
@@ -4234,7 +4250,8 @@ function ImageLayerAttributes({
           max={10}
           step={0.05}
           value={getImageZoom(layer)}
-          className="w-24 px-0"
+          className="w-24"
+          padding="px-0"
           onChange={(event) => onChange({ zoom: Number(event.currentTarget.value) || 1 })}
         />
       </AttributeLabel>
@@ -4246,7 +4263,8 @@ function ImageLayerAttributes({
           aria-label={messages.imageTintColor}
           type="color"
           value={getImageTintColor(layer)}
-          className="w-9 px-1"
+          className="w-9"
+          padding="px-1"
           onChange={(event) => onChange({ tintColor: event.currentTarget.value })}
         />
       </AttributeLabel>
@@ -4263,7 +4281,8 @@ function ImageLayerAttributes({
           min={0}
           max={200}
           value={Math.round(getImageBrightness(layer) * 100)}
-          className="w-20 px-0"
+          className="w-20"
+          padding="px-0"
           onChange={(event) =>
             onChange({ brightness: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 2) })
           }
@@ -4282,7 +4301,8 @@ function ImageLayerAttributes({
           min={0}
           max={200}
           value={Math.round(getImageContrast(layer) * 100)}
-          className="w-20 px-0"
+          className="w-20"
+          padding="px-0"
           onChange={(event) =>
             onChange({ contrast: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 2) })
           }
@@ -4301,7 +4321,8 @@ function ImageLayerAttributes({
           min={0}
           max={100}
           value={Math.round(getImageTintOpacity(layer) * 100)}
-          className="w-20 px-0"
+          className="w-20"
+          padding="px-0"
           onChange={(event) =>
             onChange({ tintOpacity: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 1) })
           }
@@ -4353,7 +4374,8 @@ function TextShadowAttributes({
         title={messages.textShadowColor}
         type="color"
         value={settings.color}
-        className="w-9 px-1"
+        className="w-9"
+        padding="px-1"
         disabled={disabled}
         onChange={(event) => onChange({ shadowColor: event.currentTarget.value })}
       />
@@ -4364,7 +4386,8 @@ function TextShadowAttributes({
         min={0}
         max={100}
         value={Math.round(settings.opacity * 100)}
-        className="w-12 px-0"
+        className="w-12"
+        padding="px-0"
         disabled={disabled}
         onChange={(event) =>
           onChange({ shadowOpacity: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 1) })
@@ -4471,7 +4494,8 @@ function TextLayerAttributes({
           aria-label={messages.textColor}
           type="color"
           value={activeStyle.color}
-          className="w-9 px-1"
+          className="w-9"
+          padding="px-1"
           onChange={(event) => onChange({ color: event.currentTarget.value })}
         />
       </AttributeLabel>
