@@ -435,6 +435,11 @@ export interface DashboardMessages {
       size: string;
       updated: string;
     };
+    imagePicker: {
+      title: string;
+      empty: string;
+      emptyHint: string;
+    };
   };
   landingPage: {
     title: string;
@@ -1592,9 +1597,6 @@ export interface DashboardMessages {
       imageSourceUnsplash: string;
       imageSourceAssets: string;
       imageSourceComputer: string;
-      assetPickerTitle: string;
-      assetPickerEmpty: string;
-      assetPickerEmptyHint: string;
       addShape: string;
       newProject: string;
       newProjectTitle: string;
@@ -2175,6 +2177,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         type: "Typ",
         size: "Größe",
         updated: "Geändert",
+      },
+      imagePicker: {
+        title: "Bild aus Media wählen",
+        empty: "Keine passenden Bilder vorhanden.",
+        emptyHint: "Lade zuerst Bilder in den Media-Bereich hoch.",
       },
     },
     submissions: {
@@ -3382,9 +3389,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imageSourceUnsplash: "Unsplash",
         imageSourceAssets: "Assets",
         imageSourceComputer: "Computer",
-        assetPickerTitle: "Bild aus Assets wählen",
-        assetPickerEmpty: "Keine Bild-Assets verfügbar.",
-        assetPickerEmptyHint: "Lade zuerst Bilder in den Asset Pool hoch.",
         addShape: "Form hinzufügen",
         newProject: "Neues Projekt",
         newProjectTitle: "Neues Projekt erstellen",
@@ -3963,6 +3967,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         type: "Type",
         size: "Size",
         updated: "Updated",
+      },
+      imagePicker: {
+        title: "Choose image from Media",
+        empty: "No matching images yet.",
+        emptyHint: "Upload images to Media first.",
       },
     },
     submissions: {
@@ -5158,9 +5167,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imageSourceUnsplash: "Unsplash",
         imageSourceAssets: "Assets",
         imageSourceComputer: "Computer",
-        assetPickerTitle: "Choose image from assets",
-        assetPickerEmpty: "No image assets available.",
-        assetPickerEmptyHint: "Upload images to the asset pool first.",
         addShape: "Add shape",
         newProject: "New project",
         newProjectTitle: "Create new project",
