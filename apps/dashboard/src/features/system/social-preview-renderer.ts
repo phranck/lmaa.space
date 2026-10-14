@@ -7,6 +7,7 @@ import type {
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
 
+import { applyBrightnessContrast } from "@/features/system/social-preview-pixel-filters.ts";
 import {
   canvasShadowOffset,
   resolveTextShadow,
@@ -366,7 +367,6 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
     const layerCtx = layerCanvas.getContext("2d");
     if (!layerCtx) return;
 
-    layerCtx.filter = `brightness(${layer.brightness ?? 1}) contrast(${layer.contrast ?? 1})`;
     drawCoverImage(
       layerCtx,
       image,
@@ -378,7 +378,13 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
       layer.offsetX ?? 0,
       layer.offsetY ?? 0,
     );
-    layerCtx.filter = "none";
+    const brightness = layer.brightness ?? 1;
+    const contrast = layer.contrast ?? 1;
+    if (brightness !== 1 || contrast !== 1) {
+      const pixels = layerCtx.getImageData(0, 0, layerCanvas.width, layerCanvas.height);
+      applyBrightnessContrast(pixels.data, brightness, contrast);
+      layerCtx.putImageData(pixels, 0, 0);
+    }
 
     if ((layer.tintOpacity ?? 0) > 0) {
       layerCtx.save();
