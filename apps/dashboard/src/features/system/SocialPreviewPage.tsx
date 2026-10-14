@@ -54,7 +54,7 @@ import type {
   SocialPreviewShapeLayer,
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
-import { formatDateTime, type MediaAsset } from "@lmaa/shared";
+import { formatDateTime } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -68,7 +68,6 @@ import {
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
-import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
@@ -77,7 +76,6 @@ import { DataTable, type ColumnDef } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { UnsplashBrowser } from "@/components/ui/UnsplashBrowser.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useAdminMedia } from "@/features/system/hooks/useAdminMedia.ts";
 import {
   useCreateSocialPreviewImage,
   useCreateSocialPreviewProject,
@@ -92,8 +90,8 @@ import {
   useUpdateSocialPreviewProject,
   useUploadSocialPreviewAsset,
 } from "@/features/system/hooks/useSocialPreviewImages.ts";
-import { formatBytes, isImageAsset } from "@/features/system/media/media-utils.ts";
-import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
+import { formatBytes } from "@/features/system/media/media-utils.ts";
+import { MediaImagePickerDialog } from "@/features/system/media/MediaImagePickerDialog.tsx";
 import {
   createEmptySocialPreviewComposition,
   createImageLayer,
@@ -917,7 +915,6 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
   const uploadPreview = useUploadSocialPreviewAsset();
   const importRemotePreviewAsset = useImportRemoteSocialPreviewAsset();
   const createPreview = useCreateSocialPreviewImage();
-  const { data: mediaAssets = [], isLoading: isLoadingMediaAssets } = useAdminMedia();
 
   const [composition, setComposition] = useState<SocialPreviewComposition>(() =>
     migrateBaseImageToLayer(project.composition),
@@ -960,7 +957,6 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
   const selectedLayerLocked = isLayerLocked(selectedLayer);
   const canUndo = historyRef.current.length > 0;
   const canRedo = futureRef.current.length > 0;
-  const imageAssets = useMemo(() => mediaAssets.filter(isImageAsset), [mediaAssets]);
   void historyVersion;
 
   function setDragState(next: DragState | null) {
@@ -1748,12 +1744,8 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
           onClose={() => setBrowserMode(null)}
         />
       ) : null}
-      <AssetImagePickerDialog
+      <MediaImagePickerDialog
         open={assetPickerOpen}
-        messages={t}
-        commonMessages={common}
-        assets={imageAssets}
-        loading={isLoadingMediaAssets}
         onClose={() => setAssetPickerOpen(false)}
         onSelect={(asset) => {
           void addImageLayer(asset.url, asset.displayName);
@@ -2827,90 +2819,6 @@ function RenameDialogContent({
         />
       </Dialog.Footer>
     </Dialog>
-  );
-}
-
-function AssetImagePickerDialog({
-  open,
-  messages,
-  commonMessages,
-  assets,
-  loading,
-  onClose,
-  onSelect,
-}: {
-  open: boolean;
-  messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
-  commonMessages: ReturnType<typeof useI18n>["messages"]["common"];
-  assets: MediaAsset[];
-  loading: boolean;
-  onClose: () => void;
-  onSelect: (asset: MediaAsset) => void;
-}) {
-  if (!open) return null;
-
-  return (
-    <OverlayCard
-      open
-      onClose={onClose}
-      size={{
-        storageKey: "social-preview:asset-image-picker-size",
-        defaultWidth: 860,
-        defaultHeight: 640,
-        minWidth: 520,
-        minHeight: 420,
-      }}
-      aria-label={messages.assetPickerTitle}
-      style={{ maxHeight: "calc(100vh - 2rem)" }}
-    >
-      <OverlayCard.Header>
-        <div className="flex items-center gap-3">
-          <ImageIcon weight="duotone" className={dialogHeaderIconClass} />
-          <h2 className="text-base font-semibold text-[var(--ds-text)]">
-            {messages.assetPickerTitle}
-          </h2>
-        </div>
-      </OverlayCard.Header>
-      <OverlayCard.Body className="min-h-0">
-        {loading ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3">
-            {Array.from({ length: 8 }, (_, index) => `asset-picker-skeleton-${index}`).map(
-              (key) => (
-                <div key={key} className="space-y-2">
-                  <div className="aspect-square animate-pulse rounded-[var(--radius-card)] bg-[var(--ds-bg-elevated)]" />
-                  <div className="mx-2 h-3 animate-pulse rounded bg-[var(--ds-bg-elevated)]" />
-                </div>
-              ),
-            )}
-          </div>
-        ) : assets.length === 0 ? (
-          <div className="flex min-h-[18rem] items-center justify-center">
-            <ContentUnavailableView
-              chromeless
-              icon={<ImageIcon weight="duotone" aria-hidden />}
-              title={messages.assetPickerEmpty}
-              subtitle={messages.assetPickerEmptyHint}
-            />
-          </div>
-        ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3">
-            {assets.map((asset) => (
-              <MediaGridItem
-                key={asset.id}
-                asset={asset}
-                selected={false}
-                showText
-                title={asset.displayName}
-                onSelect={() => onSelect(asset)}
-              />
-            ))}
-          </div>
-        )}
-      </OverlayCard.Body>
-      <OverlayCard.Footer className="flex justify-end gap-2">
-        <CancelActionButton label={commonMessages.cancel} onClick={onClose} />
-      </OverlayCard.Footer>
-    </OverlayCard>
   );
 }
 
