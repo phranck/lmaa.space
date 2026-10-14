@@ -7,6 +7,16 @@ import type {
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
 
+import {
+  applyBrightnessContrast,
+  applyGaussianBlur,
+} from "@/features/system/social-preview-pixel-filters.ts";
+import {
+  canvasShadowOffset,
+  resolveTextShadow,
+  textShadowColor,
+} from "@/features/system/social-preview-text-shadow.ts";
+
 const SOCIAL_PREVIEW_WIDTH = 1200;
 const SOCIAL_PREVIEW_HEIGHT = 630;
 
@@ -281,40 +291,74 @@ async function loadCanvasFont(layer: SocialPreviewTextLayer) {
   );
 }
 
-function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer) {
-  drawLayerFrame(ctx, layer, () => {
-    ctx.textBaseline = "top";
-    ctx.textAlign = "left";
-    const lines = wrapText(ctx, layer);
-    let y = 0;
+/** Draws a text layer's lines into a context whose transform already places the layer. */
+function drawTextLines(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer) {
+  ctx.textBaseline = "top";
+  ctx.textAlign = "left";
+  const lines = wrapText(ctx, layer);
+  let y = 0;
 
-    for (const line of lines) {
-      let cursor =
-        layer.align === "center"
-          ? (layer.width - line.width) / 2
-          : layer.align === "right"
-            ? layer.width - line.width
-            : 0;
-      for (const entry of line.chars) {
-        setCanvasTextStyle(ctx, entry.style);
-        ctx.fillStyle = entry.style.color;
-        ctx.fillText(entry.char, cursor, y);
-        if (entry.style.textDecoration === "underline") {
-          const underlineY = y + entry.style.fontSize * 0.92;
-          ctx.save();
-          ctx.strokeStyle = entry.style.color;
-          ctx.lineWidth = Math.max(1, entry.style.fontSize / 16);
-          ctx.beginPath();
-          ctx.moveTo(cursor, underlineY);
-          ctx.lineTo(cursor + entry.width, underlineY);
-          ctx.stroke();
-          ctx.restore();
-        }
-        cursor += entry.width + entry.style.letterSpacing;
+  for (const line of lines) {
+    let cursor =
+      layer.align === "center"
+        ? (layer.width - line.width) / 2
+        : layer.align === "right"
+          ? layer.width - line.width
+          : 0;
+    for (const entry of line.chars) {
+      setCanvasTextStyle(ctx, entry.style);
+      ctx.fillStyle = entry.style.color;
+      ctx.fillText(entry.char, cursor, y);
+      if (entry.style.textDecoration === "underline") {
+        const underlineY = y + entry.style.fontSize * 0.92;
+        ctx.save();
+        ctx.strokeStyle = entry.style.color;
+        ctx.lineWidth = Math.max(1, entry.style.fontSize / 16);
+        ctx.beginPath();
+        ctx.moveTo(cursor, underlineY);
+        ctx.lineTo(cursor + entry.width, underlineY);
+        ctx.stroke();
+        ctx.restore();
       }
-      y += line.height;
+      cursor += entry.width + entry.style.letterSpacing;
     }
-  });
+    y += line.height;
+  }
+}
+
+/** A blank canvas the size of the one being drawn on, for drawing a layer apart. */
+function createMatchingCanvas(ctx: CanvasRenderingContext2D) {
+  const canvas = document.createElement("canvas");
+  canvas.width = ctx.canvas.width;
+  canvas.height = ctx.canvas.height;
+  return canvas.getContext("2d");
+}
+
+function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer) {
+  const shadow = resolveTextShadow(layer);
+  const glyphCtx = shadow ? createMatchingCanvas(ctx) : null;
+  const groupCtx = shadow ? createMatchingCanvas(ctx) : null;
+  if (!shadow || !glyphCtx || !groupCtx) {
+    drawLayerFrame(ctx, layer, () => drawTextLines(ctx, layer));
+    return;
+  }
+
+  // CSS paints a text shadow behind every letter and then applies the layer's
+  // opacity to text and shadow together. Drawing each letter with a shadow of
+  // its own would lay that shadow over the letter before it, so the text is
+  // drawn once without one, given its shadow as a whole, and only then faded.
+  drawLayerFrame(glyphCtx, { ...layer, opacity: 1 }, () => drawTextLines(glyphCtx, layer));
+  const offset = canvasShadowOffset(shadow, layer.rotation);
+  groupCtx.shadowColor = textShadowColor(shadow);
+  groupCtx.shadowBlur = shadow.blur;
+  groupCtx.shadowOffsetX = offset.x;
+  groupCtx.shadowOffsetY = offset.y;
+  groupCtx.drawImage(glyphCtx.canvas, 0, 0);
+
+  ctx.save();
+  ctx.globalAlpha = layer.opacity;
+  ctx.drawImage(groupCtx.canvas, 0, 0);
+  ctx.restore();
 }
 
 async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewImageLayer) {
@@ -326,7 +370,6 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
     const layerCtx = layerCanvas.getContext("2d");
     if (!layerCtx) return;
 
-    layerCtx.filter = `brightness(${layer.brightness ?? 1}) contrast(${layer.contrast ?? 1})`;
     drawCoverImage(
       layerCtx,
       image,
@@ -338,7 +381,13 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
       layer.offsetX ?? 0,
       layer.offsetY ?? 0,
     );
-    layerCtx.filter = "none";
+    const brightness = layer.brightness ?? 1;
+    const contrast = layer.contrast ?? 1;
+    if (brightness !== 1 || contrast !== 1) {
+      const pixels = layerCtx.getImageData(0, 0, layerCanvas.width, layerCanvas.height);
+      applyBrightnessContrast(pixels.data, brightness, contrast);
+      layerCtx.putImageData(pixels, 0, 0);
+    }
 
     if ((layer.tintOpacity ?? 0) > 0) {
       layerCtx.save();
@@ -355,20 +404,25 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
 
 function roundedRectPath(
   ctx: CanvasRenderingContext2D,
+  inset: number,
   width: number,
   height: number,
   radius: number,
 ) {
   const r = Math.min(radius, width / 2, height / 2);
-  ctx.moveTo(r, 0);
-  ctx.lineTo(width - r, 0);
-  ctx.quadraticCurveTo(width, 0, width, r);
-  ctx.lineTo(width, height - r);
-  ctx.quadraticCurveTo(width, height, width - r, height);
-  ctx.lineTo(r, height);
-  ctx.quadraticCurveTo(0, height, 0, height - r);
-  ctx.lineTo(0, r);
-  ctx.quadraticCurveTo(0, 0, r, 0);
+  const left = inset;
+  const top = inset;
+  const right = inset + width;
+  const bottom = inset + height;
+  ctx.moveTo(left + r, top);
+  ctx.lineTo(right - r, top);
+  ctx.quadraticCurveTo(right, top, right, top + r);
+  ctx.lineTo(right, bottom - r);
+  ctx.quadraticCurveTo(right, bottom, right - r, bottom);
+  ctx.lineTo(left + r, bottom);
+  ctx.quadraticCurveTo(left, bottom, left, bottom - r);
+  ctx.lineTo(left, top + r);
+  ctx.quadraticCurveTo(left, top, left + r, top);
 }
 
 function regularPolygonPath(
@@ -410,17 +464,22 @@ function starPath(
 
 function buildShapePath(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer) {
   const radius = Math.min(layer.radius, layer.width / 2, layer.height / 2);
+  // `ShapeLayerContent` on the stage draws rectangles, circles and ellipses
+  // half a border width inside the layer, so their border lies within the
+  // layer's bounds. Polygons and stars keep the border centered on their
+  // outline there, and so they do here.
+  const inset = layer.border ? layer.borderThickness / 2 : 0;
   ctx.beginPath();
   switch (layer.shape) {
     case "circle":
-      ctx.arc(layer.width / 2, layer.height / 2, radius, 0, Math.PI * 2);
+      ctx.arc(layer.width / 2, layer.height / 2, Math.max(0, radius - inset), 0, Math.PI * 2);
       break;
     case "ellipse":
       ctx.ellipse(
         layer.width / 2,
         layer.height / 2,
-        layer.width / 2,
-        layer.height / 2,
+        Math.max(0, layer.width / 2 - inset),
+        Math.max(0, layer.height / 2 - inset),
         0,
         0,
         Math.PI * 2,
@@ -433,26 +492,88 @@ function buildShapePath(ctx: CanvasRenderingContext2D, layer: SocialPreviewShape
       starPath(ctx, layer.width / 2, layer.height / 2, radius, layer.points);
       break;
     case "rectangle":
-      roundedRectPath(ctx, layer.width, layer.height, layer.cornerRadius);
+      roundedRectPath(
+        ctx,
+        inset,
+        Math.max(0, layer.width - inset * 2),
+        Math.max(0, layer.height - inset * 2),
+        layer.cornerRadius,
+      );
       break;
   }
   ctx.closePath();
 }
 
+/** Fills a shape and strokes its border, in a context whose transform already places the layer. */
+function drawShape(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer) {
+  buildShapePath(ctx, layer);
+  ctx.fillStyle = layer.color;
+  ctx.fill();
+  if (layer.border && layer.borderThickness > 0) {
+    ctx.save();
+    // The layer's own opacity is already set, and the border fades with it.
+    ctx.globalAlpha *= layer.borderOpacity;
+    ctx.strokeStyle = layer.borderColor;
+    ctx.lineWidth = layer.borderThickness;
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/**
+ * The part of the canvas a blurred layer can reach: its turned bounds, widened
+ * by its border and by three standard deviations of blur, which is where a
+ * Gaussian has faded to nothing.
+ *
+ * @returns Whole pixels within the canvas, or `null` where the layer lies
+ *   entirely outside it.
+ */
+function getBlurRegion(
+  layer: SocialPreviewShapeLayer,
+  blur: number,
+  canvasWidth: number,
+  canvasHeight: number,
+) {
+  const angle = (layer.rotation * Math.PI) / 180;
+  const halfWidth =
+    (Math.abs(Math.cos(angle)) * layer.width + Math.abs(Math.sin(angle)) * layer.height) / 2;
+  const halfHeight =
+    (Math.abs(Math.sin(angle)) * layer.width + Math.abs(Math.cos(angle)) * layer.height) / 2;
+  const margin = Math.ceil(blur * 3 + (layer.border ? layer.borderThickness : 0)) + 1;
+  const centerX = layer.x + layer.width / 2;
+  const centerY = layer.y + layer.height / 2;
+  const left = Math.max(0, Math.floor(centerX - halfWidth - margin));
+  const top = Math.max(0, Math.floor(centerY - halfHeight - margin));
+  const right = Math.min(canvasWidth, Math.ceil(centerX + halfWidth + margin));
+  const bottom = Math.min(canvasHeight, Math.ceil(centerY + halfHeight + margin));
+  if (right <= left || bottom <= top) return null;
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
 function drawShapeLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer) {
-  drawLayerFrame(ctx, layer, () => {
-    buildShapePath(ctx, layer);
-    ctx.fillStyle = layer.color;
-    ctx.fill();
-    if (layer.border && layer.borderThickness > 0) {
-      ctx.save();
-      ctx.globalAlpha = layer.borderOpacity;
-      ctx.strokeStyle = layer.borderColor;
-      ctx.lineWidth = layer.borderThickness;
-      ctx.stroke();
-      ctx.restore();
-    }
-  });
+  const blur = layer.blur ?? 0;
+  const shapeCtx = blur > 0 ? createMatchingCanvas(ctx) : null;
+  if (!shapeCtx) {
+    drawLayerFrame(ctx, layer, () => drawShape(ctx, layer));
+    return;
+  }
+
+  // CSS blurs the shape with its border and then fades the result by the
+  // layer's opacity, so the shape is drawn apart at full opacity, blurred
+  // there, and faded only as it is laid onto the image. Only the region the
+  // blur can reach is read back, because a whole large canvas would take
+  // seconds.
+  drawLayerFrame(shapeCtx, { ...layer, opacity: 1 }, () => drawShape(shapeCtx, layer));
+  const region = getBlurRegion(layer, blur, shapeCtx.canvas.width, shapeCtx.canvas.height);
+  if (!region) return;
+  const pixels = shapeCtx.getImageData(region.x, region.y, region.width, region.height);
+  applyGaussianBlur(pixels.data, region.width, region.height, blur);
+  shapeCtx.putImageData(pixels, region.x, region.y);
+
+  ctx.save();
+  ctx.globalAlpha = layer.opacity;
+  ctx.drawImage(shapeCtx.canvas, 0, 0);
+  ctx.restore();
 }
 
 async function renderSocialPreviewToCanvas(composition: SocialPreviewComposition) {

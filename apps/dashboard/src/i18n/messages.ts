@@ -1700,6 +1700,13 @@ export interface DashboardMessages {
       alignRight: string;
       lineHeight: string;
       letterSpacing: string;
+      textShadow: string;
+      textShadowColor: string;
+      textShadowOpacity: string;
+      textShadowBlur: string;
+      textShadowOffsetX: string;
+      textShadowOffsetY: string;
+      shapeBlur: string;
       saveAndActivate: string;
       deleteProjectConfirmTitle: string;
       deleteProjectConfirmDescription: string;
@@ -3503,6 +3510,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         alignRight: "Rechts",
         lineHeight: "Zeilenhöhe",
         letterSpacing: "Zeichenabstand",
+        textShadow: "Schatten",
+        textShadowColor: "Schattenfarbe",
+        textShadowOpacity: "Deckkraft des Schattens",
+        textShadowBlur: "Unschärfe des Schattens",
+        textShadowOffsetX: "Schattenversatz horizontal",
+        textShadowOffsetY: "Schattenversatz vertikal",
+        shapeBlur: "Unschärfe",
         saveAndActivate: "Preview speichern",
         deleteProjectConfirmTitle: "Projekt löschen?",
         deleteProjectConfirmDescription:
@@ -5288,6 +5302,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         alignRight: "Right",
         lineHeight: "Line height",
         letterSpacing: "Letter spacing",
+        textShadow: "Shadow",
+        textShadowColor: "Shadow color",
+        textShadowOpacity: "Shadow opacity",
+        textShadowBlur: "Shadow blur",
+        textShadowOffsetX: "Shadow offset, horizontal",
+        textShadowOffsetY: "Shadow offset, vertical",
+        shapeBlur: "Blur",
         saveAndActivate: "Save preview",
         deleteProjectConfirmTitle: "Delete project?",
         deleteProjectConfirmDescription:

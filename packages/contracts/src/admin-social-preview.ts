@@ -12,6 +12,20 @@ export type SocialPreviewFormat = (typeof SOCIAL_PREVIEW_FORMATS)[number];
  */
 export const SOCIAL_PREVIEW_MAX_EDGE_PX = 4096;
 
+/** The largest blur, of a text shadow or of a shape, in canvas pixels. */
+export const SOCIAL_PREVIEW_MAX_BLUR_PX = 200;
+
+/** How far a text shadow may sit from its text on either axis, in canvas pixels. */
+export const SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX = 500;
+
+/**
+ * A color as `#rrggbb`, the only form `<input type="color">` produces.
+ *
+ * The stage writes such a value into a CSS property, so it takes no other
+ * syntax.
+ */
+const socialPreviewHexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+
 export const socialPreviewTextAlignSchema = z.enum(["left", "center", "right"]);
 export const socialPreviewShapeKindSchema = z.enum([
   "rectangle",
@@ -67,6 +81,22 @@ export const socialPreviewTextLayerSchema = socialPreviewBaseLayerSchema.extend(
   align: socialPreviewTextAlignSchema,
   lineHeight: z.number().positive().max(4),
   letterSpacing: z.number().min(-20).max(100),
+  // A layer stored before shadows existed has none of these, and the editor
+  // fills in its defaults for any that are missing.
+  shadow: z.boolean().optional(),
+  shadowColor: socialPreviewHexColorSchema.optional(),
+  shadowOpacity: z.number().min(0).max(1).optional(),
+  shadowBlur: z.number().min(0).max(SOCIAL_PREVIEW_MAX_BLUR_PX).optional(),
+  shadowOffsetX: z
+    .number()
+    .min(-SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX)
+    .max(SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX)
+    .optional(),
+  shadowOffsetY: z
+    .number()
+    .min(-SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX)
+    .max(SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX)
+    .optional(),
 });
 
 export const socialPreviewImageLayerSchema = socialPreviewBaseLayerSchema.extend({
@@ -94,6 +124,9 @@ export const socialPreviewShapeLayerSchema = socialPreviewBaseLayerSchema.extend
   borderColor: z.string().max(40),
   borderThickness: z.number().min(0).max(200),
   borderOpacity: z.number().min(0).max(1),
+  // The standard deviation of a Gaussian blur, as CSS `blur()` takes it. A
+  // shape stored before blur existed has none and stays sharp.
+  blur: z.number().min(0).max(SOCIAL_PREVIEW_MAX_BLUR_PX).optional(),
 });
 
 export const socialPreviewLayerSchema = z.discriminatedUnion("type", [
