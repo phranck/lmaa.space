@@ -4,13 +4,13 @@ export default {
   lint: true,
   ignore: {
     overrides: [
-      // The support ladder and the support prompt both show page content that
-      // the server already rendered and sanitised through the site's own
-      // Markdown pipeline, the same one the article around them goes through.
-      // Nothing in either comes from a visitor.
+      // The support ladder's `RichText` and the support prompt both show page
+      // content that the server already rendered and sanitized through the
+      // site's own Markdown pipeline, the same one the article around them goes
+      // through. Nothing in either comes from a visitor.
       {
         files: [
-          "src/components/islands/SupportLadder.tsx",
+          "src/components/islands/SupportLadderAmounts.tsx",
           "src/components/islands/SupportPromptSlot.tsx",
         ],
         rules: ["react-doctor/no-danger"],
