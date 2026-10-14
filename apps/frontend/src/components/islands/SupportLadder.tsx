@@ -16,6 +16,7 @@ import type {
   SupportLadderInterval,
   SupportLadderRoute,
 } from "@/lib/content-shortcode-segments";
+import { fitSvgToDrawing, TRIM_ATTEMPTS } from "@/lib/fit-svg-to-drawing";
 import { buttonBaseClass } from "@/lib/form-styles";
 import {
   type AnnouncedSponsorship,
@@ -31,7 +32,7 @@ import {
 import { initialSupportLadderState, supportLadderReducer } from "@/lib/support-ladder-state";
 
 import { AmountGrid, RichText } from "./SupportLadderAmounts.tsx";
-import { fitSvgToDrawing, OutboundRoute, TRIM_ATTEMPTS } from "./SupportLadderRoutes.tsx";
+import { OutboundRoute } from "./SupportLadderRoutes.tsx";
 import { TransferCard } from "./SupportLadderTransfer.tsx";
 
 /**
