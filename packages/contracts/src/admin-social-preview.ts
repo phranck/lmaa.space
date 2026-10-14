@@ -3,6 +3,15 @@ import { z } from "zod";
 export const SOCIAL_PREVIEW_FORMATS = ["image/jpeg", "image/png", "image/webp"] as const;
 export type SocialPreviewFormat = (typeof SOCIAL_PREVIEW_FORMATS)[number];
 
+/**
+ * The largest width, and the largest height, a social preview image may have,
+ * in pixels.
+ *
+ * The API refuses anything larger, and the editor offers no more, so the two
+ * read the limit from here.
+ */
+export const SOCIAL_PREVIEW_MAX_EDGE_PX = 4096;
+
 export const socialPreviewTextAlignSchema = z.enum(["left", "center", "right"]);
 export const socialPreviewShapeKindSchema = z.enum([
   "rectangle",
@@ -95,8 +104,8 @@ export const socialPreviewLayerSchema = z.discriminatedUnion("type", [
 
 export const socialPreviewCompositionSchema = z.object({
   version: z.literal(1),
-  width: z.number().int().positive().max(4096),
-  height: z.number().int().positive().max(4096),
+  width: z.number().int().positive().max(SOCIAL_PREVIEW_MAX_EDGE_PX),
+  height: z.number().int().positive().max(SOCIAL_PREVIEW_MAX_EDGE_PX),
   background: z.object({
     src: z.string().url().max(2000).nullable(),
     name: z.string().trim().min(1).max(200).optional(),
@@ -171,8 +180,8 @@ export const socialPreviewCreateSchema = z.object({
   imageUrl: z.string().url().max(2000),
   mediaAssetId: z.number().int().positive().nullable().optional(),
   composition: socialPreviewCompositionSchema,
-  width: z.number().int().positive().max(4096),
-  height: z.number().int().positive().max(4096),
+  width: z.number().int().positive().max(SOCIAL_PREVIEW_MAX_EDGE_PX),
+  height: z.number().int().positive().max(SOCIAL_PREVIEW_MAX_EDGE_PX),
   format: z.enum(SOCIAL_PREVIEW_FORMATS),
   quality: z.number().int().min(1).max(100),
   sizeBytes: z.number().int().nonnegative(),

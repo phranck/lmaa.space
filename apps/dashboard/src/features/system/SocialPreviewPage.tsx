@@ -40,7 +40,16 @@ import {
   TrashIcon,
   VectorTwoIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
 import type {
@@ -54,6 +63,7 @@ import type {
   SocialPreviewShapeLayer,
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
+import { SOCIAL_PREVIEW_MAX_EDGE_PX } from "@lmaa/contracts";
 import { formatDateTime } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -92,6 +102,15 @@ import {
 } from "@/features/system/hooks/useSocialPreviewImages.ts";
 import { formatBytes } from "@/features/system/media/media-utils.ts";
 import { MediaImagePickerDialog } from "@/features/system/media/MediaImagePickerDialog.tsx";
+import {
+  type CanvasEdge,
+  type CanvasSize,
+  clampCanvasEdge,
+  fitStageScale,
+  resizeCanvasByDrag,
+  rulerStep,
+  SOCIAL_PREVIEW_MIN_EDGE_PX,
+} from "@/features/system/social-preview-canvas-size.ts";
 import {
   createEmptySocialPreviewComposition,
   createImageLayer,
@@ -153,6 +172,27 @@ const RESIZE_HANDLE_CURSOR_CLASSES: Record<ResizeHandle, string> = {
 
 type SelectionTarget = { type: "layer"; id: string } | null;
 type ActiveTool = "text" | "image" | "shape";
+
+/** Width of the rulers along the stage's top and left edges, in pixels. */
+const RULER_PX = 24;
+
+/**
+ * A drag on one of the canvas's edges, as it stood when the drag began.
+ *
+ * @property edge - The edge being dragged.
+ * @property startX - The pointer's screen position when the drag began.
+ * @property startY - The pointer's screen position when the drag began.
+ * @property start - The canvas size when the drag began.
+ * @property scale - The stage's scale when the drag began, kept for the whole
+ *   drag so the edge stays under the pointer.
+ */
+interface CanvasDragState {
+  edge: CanvasEdge;
+  startX: number;
+  startY: number;
+  start: CanvasSize;
+  scale: number;
+}
 
 type DragState =
   | {
@@ -686,23 +726,34 @@ function renderLayerStyle(layer: SocialPreviewLayer): CSSProperties {
   };
 }
 
-function getPointerPosition(event: React.PointerEvent<HTMLElement>, stage: HTMLElement) {
+/**
+ * Where the pointer is on the canvas, in canvas pixels.
+ *
+ * @param event - The pointer event on or over the stage.
+ * @param stage - The stage element, which shows the whole canvas scaled.
+ * @param canvas - The canvas size, which the stage's on-screen size stands for.
+ * @returns The pointer's position from the canvas's top left corner.
+ */
+function getPointerPosition(
+  event: React.PointerEvent<HTMLElement>,
+  stage: HTMLElement,
+  canvas: CanvasSize,
+) {
   const rect = stage.getBoundingClientRect();
-  const scaleX = 1200 / rect.width;
-  const scaleY = 630 / rect.height;
   return {
-    x: (event.clientX - rect.left) * scaleX,
-    y: (event.clientY - rect.top) * scaleY,
+    x: (event.clientX - rect.left) * (canvas.width / rect.width),
+    y: (event.clientY - rect.top) * (canvas.height / rect.height),
   };
 }
 
 function getPointerAngle(
   event: React.PointerEvent<HTMLElement>,
   stage: HTMLElement,
+  canvas: CanvasSize,
   x: number,
   y: number,
 ) {
-  const position = getPointerPosition(event, stage);
+  const position = getPointerPosition(event, stage, canvas);
   return (Math.atan2(position.y - y, position.x - x) * 180) / Math.PI;
 }
 
@@ -856,6 +907,49 @@ function formatRotation(value: number) {
   return Math.round(normalized < 0 ? normalized + 360 : normalized);
 }
 
+function subscribeToWindowSize(onChange: () => void) {
+  window.addEventListener("resize", onChange);
+  return () => window.removeEventListener("resize", onChange);
+}
+
+function readWindowHeight() {
+  return window.innerHeight;
+}
+
+function readNoSize() {
+  return 0;
+}
+
+/**
+ * The width the stage column is given and the window's height, kept current.
+ *
+ * The column's width comes from the layout around it rather than from the
+ * canvas inside it, so the canvas can be sized from it without the measurement
+ * feeding back into itself.
+ *
+ * @param ref - The stage column. Until it is mounted its width reads as 0.
+ * @returns The column's width and the window's height, in screen pixels.
+ */
+function useStageSpace(ref: React.RefObject<HTMLElement | null>): CanvasSize {
+  const subscribeToColumn = useCallback(
+    (onChange: () => void) => {
+      const column = ref.current;
+      if (!column || typeof ResizeObserver === "undefined") return () => undefined;
+      const observer = new ResizeObserver(onChange);
+      observer.observe(column);
+      return () => observer.disconnect();
+    },
+    [ref],
+  );
+  const width = useSyncExternalStore(
+    subscribeToColumn,
+    () => ref.current?.clientWidth ?? 0,
+    readNoSize,
+  );
+  const height = useSyncExternalStore(subscribeToWindowSize, readWindowHeight, readNoSize);
+  return { width, height };
+}
+
 export function SocialPreviewPage() {
   const location = useLocation();
   const { projectId } = useParams<{ projectId?: string }>();
@@ -934,7 +1028,7 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [effectiveQuality, setEffectiveQuality] = useState(90);
   const [renderError, setRenderError] = useState<string | null>(null);
-  const [stageScale, setStageScale] = useState(1);
+  const [canvasDrag, setCanvasDrag] = useState<CanvasDragState | null>(null);
   const [layerSidebarWidth, setLayerSidebarWidth] = useState(() => {
     const stored = window.localStorage.getItem("social-preview-layer-sidebar-width");
     const value = stored ? Number(stored) : 224;
@@ -942,6 +1036,8 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
   });
 
   const stageRef = useRef<HTMLDivElement>(null);
+  const stageSpaceRef = useRef<HTMLDivElement>(null);
+  const stageSpace = useStageSpace(stageSpaceRef);
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const historyRef = useRef<SocialPreviewComposition[]>([]);
   const futureRef = useRef<SocialPreviewComposition[]>([]);
@@ -957,6 +1053,14 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
   const selectedLayerLocked = isLayerLocked(selectedLayer);
   const canUndo = historyRef.current.length > 0;
   const canRedo = futureRef.current.length > 0;
+  const canvasSpaceWidth = Math.max(0, stageSpace.width - RULER_PX);
+  // A drag keeps the scale it began with, so the dragged edge stays under the
+  // pointer. Without one, the canvas fits the space again.
+  const stageScale =
+    canvasDrag?.scale ??
+    (canvasSpaceWidth > 0
+      ? fitStageScale(composition, { ...stageSpace, width: canvasSpaceWidth })
+      : 0);
   void historyVersion;
 
   function setDragState(next: DragState | null) {
@@ -1065,22 +1169,48 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
     };
   });
 
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
+  function handleCanvasResizePointerDown(
+    event: React.PointerEvent<HTMLButtonElement>,
+    edge: CanvasEdge,
+  ) {
+    if (stageScale <= 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    pushHistorySnapshot();
+    setCanvasDrag({
+      edge,
+      startX: event.clientX,
+      startY: event.clientY,
+      start: { width: composition.width, height: composition.height },
+      scale: stageScale,
+    });
+  }
 
-    const updateScale = () => {
-      const rect = stage.getBoundingClientRect();
-      setStageScale(rect.width / composition.width);
-    };
+  function handleCanvasResizePointerMove(event: React.PointerEvent<HTMLButtonElement>) {
+    if (!canvasDrag) return;
+    const size = resizeCanvasByDrag(
+      canvasDrag.start,
+      canvasDrag.edge,
+      { x: event.clientX - canvasDrag.startX, y: event.clientY - canvasDrag.startY },
+      canvasDrag.scale,
+      canvasSpaceWidth,
+      event.shiftKey,
+    );
+    setComposition((current) =>
+      current.width === size.width && current.height === size.height
+        ? current
+        : { ...current, ...size },
+    );
+  }
 
-    updateScale();
-    if (typeof ResizeObserver === "undefined") return;
-
-    const observer = new ResizeObserver(updateScale);
-    observer.observe(stage);
-    return () => observer.disconnect();
-  }, [composition.width]);
+  function setCanvasSize(size: Partial<CanvasSize>) {
+    commitComposition((current) => ({
+      ...current,
+      width: clampCanvasEdge(size.width ?? current.width),
+      height: clampCanvasEdge(size.height ?? current.height),
+    }));
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -1157,7 +1287,7 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
     if (!stage || !layer) return;
     event.preventDefault();
     event.stopPropagation();
-    const position = getPointerPosition(event, stage);
+    const position = getPointerPosition(event, stage, composition);
     setSelection({ type: "layer", id: layer.id });
     setActiveTool(layer.type);
     if (isLayerLocked(layer)) {
@@ -1205,7 +1335,7 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
-    const position = getPointerPosition(event, stage);
+    const position = getPointerPosition(event, stage, composition);
     setSelection({ type: "layer", id: layer.id });
     setActiveTool(layer.type);
     setEditingTextLayerId(null);
@@ -1244,7 +1374,7 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
       id: layer.id,
       centerX,
       centerY,
-      startAngle: getPointerAngle(event, stage, centerX, centerY),
+      startAngle: getPointerAngle(event, stage, composition, centerX, centerY),
       originRotation: layer.rotation,
     });
   }
@@ -1254,12 +1384,18 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
     if (!dragState) return;
     const stage = stageRef.current;
     if (!stage) return;
-    const position = getPointerPosition(event, stage);
+    const position = getPointerPosition(event, stage, composition);
 
     if (dragState.mode === "layer-rotate") {
       const active = composition.layers.find((layer) => layer.id === dragState.id);
       if (!active || isLayerLocked(active)) return;
-      const angle = getPointerAngle(event, stage, dragState.centerX, dragState.centerY);
+      const angle = getPointerAngle(
+        event,
+        stage,
+        composition,
+        dragState.centerX,
+        dragState.centerY,
+      );
       setComposition((current) =>
         updateLayer(current, dragState.id, {
           rotation: dragState.originRotation + angle - dragState.startAngle,
@@ -1597,96 +1733,113 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
                   }}
                 />
 
-                <div className="min-w-0 flex-1 self-start">
-                  <div className="grid grid-cols-[1.5rem_minmax(0,1fr)] grid-rows-[1.5rem_auto] overflow-hidden border border-[var(--ds-border)] bg-[#202427]">
+                <div ref={stageSpaceRef} className="min-w-0 flex-1 self-start">
+                  <div
+                    className="inline-grid border border-[var(--ds-border)] bg-[#202427]"
+                    style={{
+                      gridTemplateColumns: `${RULER_PX}px ${composition.width * stageScale}px`,
+                      gridTemplateRows: `${RULER_PX}px ${composition.height * stageScale}px`,
+                    }}
+                  >
                     <div className="border-b border-r border-white/10 bg-[#2b2f33]" />
-                    <Ruler axis="x" length={composition.width} />
-                    <Ruler axis="y" length={composition.height} />
-                    <div
-                      ref={stageRef}
-                      role="application"
-                      tabIndex={0}
-                      className={cx(
-                        "relative aspect-[1200/630] w-full overflow-hidden bg-[var(--ds-bg-elevated)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
-                        null,
-                      )}
-                      onPointerDown={handleStagePointerDown}
-                      onPointerMove={handlePointerMove}
-                      onPointerUp={finishDrag}
-                      onPointerCancel={finishDrag}
-                      onWheel={handleWheel}
-                      onKeyDown={handleStageKeyDown}
-                      style={{ backgroundColor: composition.background.color }}
-                    >
+                    <Ruler axis="x" length={composition.width} scale={stageScale} />
+                    <Ruler axis="y" length={composition.height} scale={stageScale} />
+                    <div className="relative">
                       <div
-                        className="absolute left-0 top-0 h-[630px] w-[1200px] origin-top-left"
-                        style={{ transform: `scale(${stageScale})` }}
+                        ref={stageRef}
+                        role="application"
+                        tabIndex={0}
+                        className="relative size-full overflow-hidden bg-[var(--ds-bg-elevated)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
+                        onPointerDown={handleStagePointerDown}
+                        onPointerMove={handlePointerMove}
+                        onPointerUp={finishDrag}
+                        onPointerCancel={finishDrag}
+                        onWheel={handleWheel}
+                        onKeyDown={handleStageKeyDown}
+                        style={{ backgroundColor: composition.background.color }}
                       >
-                        {composition.layers.map((layer) => {
-                          if (isLayerHidden(layer)) return null;
-                          const selected = selectedLayer?.id === layer.id;
-                          return (
-                            <div
-                              key={layer.id}
-                              data-layer-id={layer.id}
-                              className={cx("absolute select-none", selected ? "z-20" : "z-10")}
-                              style={renderLayerStyle(layer)}
-                              onPointerDown={handleLayerPointerDown}
-                              onDoubleClick={(event) => {
-                                if (layer.type !== "text" || isLayerLocked(layer)) return;
-                                event.preventDefault();
-                                event.stopPropagation();
-                                setSelection({ type: "layer", id: layer.id });
-                                setActiveTool("text");
-                                setEditingTextLayerId(layer.id);
-                                setDragState(null);
-                              }}
-                            >
-                              <LayerContent
-                                layer={layer}
-                                selected={selected}
-                                editing={editingTextLayerId === layer.id}
-                                textSelection={textSelection}
-                                onChange={updateSelectedLayer}
-                                onEditStart={() => {
-                                  if (layer.type === "text" && !isLayerLocked(layer)) {
-                                    setEditingTextLayerId(layer.id);
-                                  }
+                        <div
+                          className="absolute left-0 top-0 origin-top-left"
+                          style={{
+                            width: composition.width,
+                            height: composition.height,
+                            transform: `scale(${stageScale})`,
+                          }}
+                        >
+                          {composition.layers.map((layer) => {
+                            if (isLayerHidden(layer)) return null;
+                            const selected = selectedLayer?.id === layer.id;
+                            return (
+                              <div
+                                key={layer.id}
+                                data-layer-id={layer.id}
+                                className={cx("absolute select-none", selected ? "z-20" : "z-10")}
+                                style={renderLayerStyle(layer)}
+                                onPointerDown={handleLayerPointerDown}
+                                onDoubleClick={(event) => {
+                                  if (layer.type !== "text" || isLayerLocked(layer)) return;
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  setSelection({ type: "layer", id: layer.id });
+                                  setActiveTool("text");
+                                  setEditingTextLayerId(layer.id);
+                                  setDragState(null);
                                 }}
-                                onTextSelectionChange={setTextSelection}
-                                onEditEnd={() => {
-                                  setEditingTextLayerId(null);
-                                }}
-                              />
-                              {selected && !isLayerLocked(layer) ? (
-                                <SelectionFrame
+                              >
+                                <LayerContent
                                   layer={layer}
-                                  onResizePointerDown={handleResizePointerDown}
-                                  onRotatePointerDown={handleRotatePointerDown}
+                                  selected={selected}
+                                  editing={editingTextLayerId === layer.id}
+                                  textSelection={textSelection}
+                                  onChange={updateSelectedLayer}
+                                  onEditStart={() => {
+                                    if (layer.type === "text" && !isLayerLocked(layer)) {
+                                      setEditingTextLayerId(layer.id);
+                                    }
+                                  }}
+                                  onTextSelectionChange={setTextSelection}
+                                  onEditEnd={() => {
+                                    setEditingTextLayerId(null);
+                                  }}
                                 />
-                              ) : selected ? (
-                                <div className="pointer-events-none absolute -inset-1 border-2 border-amber-300/80 ring-4 ring-amber-300/15" />
-                              ) : null}
-                            </div>
-                          );
-                        })}
+                                {selected && !isLayerLocked(layer) ? (
+                                  <SelectionFrame
+                                    layer={layer}
+                                    onResizePointerDown={handleResizePointerDown}
+                                    onRotatePointerDown={handleRotatePointerDown}
+                                  />
+                                ) : selected ? (
+                                  <div className="pointer-events-none absolute -inset-1 border-2 border-amber-300/80 ring-4 ring-amber-300/15" />
+                                ) : null}
+                              </div>
+                            );
+                          })}
 
-                        {guides.map((guide, index) =>
-                          guide.axis === "x" ? (
-                            <div
-                              key={`x-${guide.position}-${index}`}
-                              className="absolute top-0 z-30 h-full w-px bg-sky-400"
-                              style={{ left: guide.position }}
-                            />
-                          ) : (
-                            <div
-                              key={`y-${guide.position}-${index}`}
-                              className="absolute left-0 z-30 h-px w-full bg-sky-400"
-                              style={{ top: guide.position }}
-                            />
-                          ),
-                        )}
+                          {guides.map((guide, index) =>
+                            guide.axis === "x" ? (
+                              <div
+                                key={`x-${guide.position}-${index}`}
+                                className="absolute top-0 z-30 h-full w-px bg-sky-400"
+                                style={{ left: guide.position }}
+                              />
+                            ) : (
+                              <div
+                                key={`y-${guide.position}-${index}`}
+                                className="absolute left-0 z-30 h-px w-full bg-sky-400"
+                                style={{ top: guide.position }}
+                              />
+                            ),
+                          )}
+                        </div>
                       </div>
+                      <CanvasResizeHandles
+                        messages={t}
+                        dragging={canvasDrag?.edge ?? null}
+                        size={composition}
+                        onPointerDown={handleCanvasResizePointerDown}
+                        onPointerMove={handleCanvasResizePointerMove}
+                        onPointerEnd={() => setCanvasDrag(null)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1721,9 +1874,11 @@ function SocialPreviewEditor({ project }: { project: SocialPreviewProjectEntry }
       <PageFooter>
         <FooterExportControls
           messages={t}
+          canvasSize={composition}
           format={format}
           quality={quality}
           estimatedSizeBytes={previewBlob?.size ?? null}
+          onCanvasSizeChange={setCanvasSize}
           onFormatChange={setFormat}
           onQualityChange={setQuality}
         />
@@ -2085,10 +2240,12 @@ function LivePreviewSection({
         ) : previewUrl && previewSizeBytes !== null ? (
           <div className="flex min-h-0 flex-col gap-3">
             <div className="overflow-hidden rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)]">
+              {/* The image keeps its own proportions, whatever size the project
+                  renders. A tall format is held to most of the window's height. */}
               <img
                 src={previewUrl}
                 alt=""
-                className="block aspect-[1200/630] w-full object-contain"
+                className="block h-auto max-h-[70vh] w-full object-contain"
               />
             </div>
             <p className="shrink-0 text-xs text-[var(--ds-text-muted)]">
@@ -2499,7 +2656,8 @@ function SavedPreviewImagesSection() {
                     <img
                       src={image.imageUrl}
                       alt=""
-                      className="aspect-[1200/630] w-full object-cover"
+                      className="w-full object-cover"
+                      style={{ aspectRatio: `${image.width} / ${image.height}` }}
                     />
                     <div className="absolute left-1 top-1 z-10 flex flex-col items-start gap-1">
                       {image.isActive ? (
@@ -2822,18 +2980,85 @@ function RenameDialogContent({
   );
 }
 
+/** The look of the controls in the editor's footer, shared by its fields and its select. */
+const FOOTER_CONTROL_CLASS =
+  "h-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-2 text-sm text-[var(--ds-text)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]";
+
+/**
+ * A field for one edge of the output size.
+ *
+ * It holds what is being typed and hands it on only when the field is left or
+ * Enter is pressed, because every keystroke would otherwise resize the canvas
+ * through each number on the way, such as 1 and 16 on the way to 1600. A size
+ * that changes elsewhere, by a drag or an undo, replaces what the field shows.
+ * Escape puts the current size back.
+ *
+ * @param label - Names the edge for assistive technology and as a tooltip.
+ * @param value - The edge's current length in pixels.
+ * @param onCommit - Receives the new length, already within the accepted range,
+ *   and only when it differs from `value`.
+ */
+function CanvasEdgeInput({
+  label,
+  value,
+  onCommit,
+}: {
+  label: string;
+  value: number;
+  onCommit: (value: number) => void;
+}) {
+  // The field keeps what is typed in the element itself. Only a size that
+  // changes while somebody is not typing here is written into it.
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input && input !== document.activeElement) input.value = String(value);
+  }, [value]);
+
+  function commit(input: HTMLInputElement) {
+    const parsed = Number.parseInt(input.value, 10);
+    const next = Number.isNaN(parsed) ? value : clampCanvasEdge(parsed);
+    input.value = String(next);
+    if (next !== value) onCommit(next);
+  }
+
+  return (
+    <input
+      ref={inputRef}
+      type="number"
+      inputMode="numeric"
+      min={SOCIAL_PREVIEW_MIN_EDGE_PX}
+      max={SOCIAL_PREVIEW_MAX_EDGE_PX}
+      step={1}
+      aria-label={label}
+      title={label}
+      defaultValue={value}
+      onBlur={(event) => commit(event.currentTarget)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") commit(event.currentTarget);
+        if (event.key === "Escape") event.currentTarget.value = String(value);
+      }}
+      className={cx(FOOTER_CONTROL_CLASS, "w-20 tabular-nums")}
+    />
+  );
+}
+
 function FooterExportControls({
   messages,
+  canvasSize,
   format,
   quality,
   estimatedSizeBytes,
+  onCanvasSizeChange,
   onFormatChange,
   onQualityChange,
 }: {
   messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  canvasSize: CanvasSize;
   format: SocialPreviewFormat;
   quality: number;
   estimatedSizeBytes: number | null;
+  onCanvasSizeChange: (size: Partial<CanvasSize>) => void;
   onFormatChange: (value: SocialPreviewFormat) => void;
   onQualityChange: (value: number) => void;
 }) {
@@ -2842,12 +3067,28 @@ function FooterExportControls({
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-3">
+        <fieldset className="m-0 flex min-w-0 items-center gap-2 border-0 p-0 text-xs text-[var(--ds-text-muted)]">
+          <legend className="sr-only">{messages.canvasSizeLabel}</legend>
+          <span aria-hidden="true">{messages.canvasSizeLabel}</span>
+          <CanvasEdgeInput
+            label={messages.width}
+            value={canvasSize.width}
+            onCommit={(width) => onCanvasSizeChange({ width })}
+          />
+          ×
+          <CanvasEdgeInput
+            label={messages.height}
+            value={canvasSize.height}
+            onCommit={(height) => onCanvasSizeChange({ height })}
+          />
+          px
+        </fieldset>
         <label className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
           {messages.formatLabel}
           <select
             value={format}
             onChange={(event) => onFormatChange(event.currentTarget.value as SocialPreviewFormat)}
-            className="h-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-2 text-sm text-[var(--ds-text)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
+            className={FOOTER_CONTROL_CLASS}
           >
             {FORMAT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -3309,12 +3550,110 @@ function SelectionFrame({
   );
 }
 
-function Ruler({ axis, length }: { axis: "x" | "y"; length: number }) {
-  const marks = Array.from({ length: Math.floor(length / 100) + 1 }, (_, index) => index * 100);
+/** Where each canvas handle sits on the edge, and how its grip is drawn. */
+const CANVAS_HANDLES: ReadonlyArray<{
+  edge: CanvasEdge;
+  labelKey: "resizeCanvasWidth" | "resizeCanvasHeight" | "resizeCanvas";
+  className: string;
+  gripClassName: string;
+}> = [
+  {
+    edge: "right",
+    labelKey: "resizeCanvasWidth",
+    className: "-right-1.5 top-0 h-full w-3 cursor-ew-resize",
+    gripClassName: "h-10 w-1 rounded-full bg-sky-400",
+  },
+  {
+    edge: "bottom",
+    labelKey: "resizeCanvasHeight",
+    className: "-bottom-1.5 left-0 h-3 w-full cursor-ns-resize",
+    gripClassName: "h-1 w-10 rounded-full bg-sky-400",
+  },
+  {
+    edge: "corner",
+    labelKey: "resizeCanvas",
+    className: "-bottom-2 -right-2 size-4 cursor-nwse-resize",
+    gripClassName: "size-4 rounded-full border-2 border-sky-400 bg-white shadow-md",
+  },
+];
+
+/**
+ * The handles that resize the canvas: on its right edge, on its bottom edge,
+ * and on the corner between them, which moves both and keeps the proportions
+ * while Shift is held.
+ *
+ * Each handle lies across its edge, half inside the canvas and half outside,
+ * so it can be caught without aiming at a hairline. While one is dragged, a
+ * label under the corner shows the size the canvas is getting. The handles are
+ * pointer targets only and left out of the tab order, because the size fields
+ * in the footer make the same change from the keyboard.
+ */
+function CanvasResizeHandles({
+  messages,
+  dragging,
+  size,
+  onPointerDown,
+  onPointerMove,
+  onPointerEnd,
+}: {
+  messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  dragging: CanvasEdge | null;
+  size: CanvasSize;
+  onPointerDown: (event: React.PointerEvent<HTMLButtonElement>, edge: CanvasEdge) => void;
+  onPointerMove: (event: React.PointerEvent<HTMLButtonElement>) => void;
+  onPointerEnd: () => void;
+}) {
+  return (
+    <div data-social-preview-editor-control="true">
+      {CANVAS_HANDLES.map((handle) => (
+        <button
+          key={handle.edge}
+          type="button"
+          tabIndex={-1}
+          aria-label={messages[handle.labelKey]}
+          title={messages[handle.labelKey]}
+          className={cx(
+            "absolute z-40 flex touch-none items-center justify-center transition-opacity",
+            dragging === handle.edge ? "opacity-100" : "opacity-60 hover:opacity-100",
+            handle.className,
+          )}
+          onPointerDown={(event) => onPointerDown(event, handle.edge)}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+        >
+          <span aria-hidden="true" className={handle.gripClassName} />
+        </button>
+      ))}
+      {dragging ? (
+        <span className="pointer-events-none absolute -bottom-8 right-0 z-40 whitespace-nowrap rounded bg-black/75 px-2 py-0.5 text-xs tabular-nums text-white">
+          {size.width} × {size.height} px
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * A ruler along the stage, numbered in canvas pixels.
+ *
+ * @param axis - `x` runs along the top edge, `y` along the left edge.
+ * @param length - The canvas's extent along the axis, in canvas pixels.
+ * @param scale - Screen pixels per canvas pixel, which decides how far apart
+ *   the numbers stand.
+ */
+function Ruler({ axis, length, scale }: { axis: "x" | "y"; length: number; scale: number }) {
+  const step = rulerStep(scale);
+  const marks = Array.from({ length: Math.floor(length / step) + 1 }, (_, index) => index * step);
+  const tickStep = step / 4;
+  const ticks = Array.from(
+    { length: Math.floor(length / tickStep) + 1 },
+    (_, index) => index * tickStep,
+  );
 
   if (axis === "x") {
     return (
-      <div className="relative border-b border-white/10 bg-[#2b2f33] text-[9px] text-white/55">
+      <div className="relative overflow-hidden border-b border-white/10 bg-[#2b2f33] text-[9px] text-white/55">
         {marks.map((mark) => (
           <div
             key={mark}
@@ -3326,17 +3665,19 @@ function Ruler({ axis, length }: { axis: "x" | "y"; length: number }) {
             </span>
           </div>
         ))}
-        <div className="absolute inset-x-0 bottom-0 flex h-1 items-end justify-between px-1">
-          {Array.from({ length: 49 }, (_, index) => (
-            <span key={index} className="h-1 w-px bg-white/25" />
-          ))}
-        </div>
+        {ticks.map((tick) => (
+          <span
+            key={tick}
+            className="absolute bottom-0 h-1 w-px bg-white/25"
+            style={{ left: `${(tick / length) * 100}%` }}
+          />
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="relative border-r border-white/10 bg-[#2b2f33] text-[9px] text-white/55">
+    <div className="relative overflow-hidden border-r border-white/10 bg-[#2b2f33] text-[9px] text-white/55">
       {marks.map((mark) => (
         <div
           key={mark}
@@ -3351,11 +3692,13 @@ function Ruler({ axis, length }: { axis: "x" | "y"; length: number }) {
           </span>
         </div>
       ))}
-      <div className="absolute inset-y-0 right-0 flex w-1 flex-col justify-between py-1">
-        {Array.from({ length: 25 }, (_, index) => (
-          <span key={index} className="h-px w-1 bg-white/25" />
-        ))}
-      </div>
+      {ticks.map((tick) => (
+        <span
+          key={tick}
+          className="absolute right-0 h-px w-1 bg-white/25"
+          style={{ top: `${(tick / length) * 100}%` }}
+        />
+      ))}
     </div>
   );
 }
