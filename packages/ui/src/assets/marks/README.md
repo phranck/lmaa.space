@@ -8,7 +8,7 @@ The word LMAA as one closed outline, with the llama's head on the stem of the L.
 
 ## lmaa-icon.svg
 
-The llama's head on a short stub of neck, cut out of a tile shaped as a squircle, the superellipse with exponent 4. Head and neck are the wordmark's; the neck ends a little below the throat in a straight cut with rounded corners. The figure keeps the same distance from the tile's edge at the top and the bottom and is centered across it.
+The llama's head on a short stub of neck, cut out of a tile shaped as a squircle, the superellipse with exponent 4. Head and neck are the wordmark's; the neck ends a little below the throat in a straight cut with rounded corners, and its back bends out a little towards the cut, as an animal's neck does. The figure keeps the same distance from the tile's edge at the top and the bottom and is centered across it.
 
 The head is there a second time as a path of its own with the class `lmaa-icon-head` and no fill. A place that wants the head in a color of its own fills that path, as the header and the favicon do; everywhere else the head stays cut out.
 

@@ -101,6 +101,15 @@ test("every arc of the icon's head meets its edges without a kink", () => {
   assert.deepEqual(kinkedJoints(iconPaths(FULL_PRECISION).head), []);
 });
 
+test("the back of the icon's neck runs into the head without a kink", () => {
+  // The outline starts where the cut's corner ends on the back of the neck,
+  // so its first curve is the back and its second the head's first.
+  const [back, head] = pathContours(iconPaths(FULL_PRECISION).head)[0];
+  const dot = back.arriving[0] * head.leaving[0] + back.arriving[1] * head.leaving[1];
+  const angle = (Math.acos(Math.max(-1, Math.min(1, dot))) * 180) / Math.PI;
+  assert.ok(angle <= TANGENT_TOLERANCE_DEGREES, `turns by ${angle} degrees`);
+});
+
 test("the icon's tile is a squircle of curves that meet without a kink", () => {
   const { tile } = iconPaths(FULL_PRECISION);
   const contours = pathContours(tile);

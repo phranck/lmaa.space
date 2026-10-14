@@ -224,6 +224,9 @@ const ICON_MARGIN = 32;
 // radius of the two corners of its straight cut, as a share as well.
 const ICON_NECK_SHARE = 0.6;
 const ICON_NECK_CORNER_SHARE = 0.2;
+// How much further out the back of the neck stands at the cut than below the
+// head, as a share of the neck's width, so that it bends like an animal's.
+const ICON_NECK_LEAN_SHARE = 0.25;
 // The outline turns left at every rounded corner with y up. Turned over for
 // SVG, that is the direction its sweep flag 0 draws.
 const SWEEP_CONVEX = 0;
@@ -340,6 +343,30 @@ function offsetForTangency(center, radius, [start, end]) {
 }
 
 /**
+ * Where a circular arc rounds the corner between two edges, touching both.
+ *
+ * @param {Line} first The edge the outline arrives on.
+ * @param {Line} second The edge it leaves on.
+ * @param {number} radius The arc's radius.
+ * @returns {{ arrive: [number, number], leave: [number, number] }} Where the
+ *   arc touches the first edge and the second.
+ */
+function roundedCorner(first, second, radius) {
+  const corner = intersect(first, second);
+  const turn = turnBetween(first, second);
+  if (turn <= 0) {
+    throw new Error("a corner that turns right cannot take a radius");
+  }
+  const reach = radius * Math.tan(turn / 2);
+  const [arrivingX, arrivingY] = first.direction;
+  const [leavingX, leavingY] = second.direction;
+  return {
+    arrive: [corner[0] - arrivingX * reach, corner[1] - arrivingY * reach],
+    leave: [corner[0] + leavingX * reach, corner[1] + leavingY * reach],
+  };
+}
+
+/**
  * Collects edges, corners and drawn pieces, and writes them out as SVG path data.
  *
  * A piece is a stretch the edges cannot describe, such as the head or the cap
@@ -378,23 +405,13 @@ class Outline {
       if (item.kind !== "edge" || following.kind !== "edge") {
         return;
       }
-      const corner = intersect(item.line, following.line);
       if (item.radius <= 0) {
+        const corner = intersect(item.line, following.line);
         resolved.set(index, { arrive: corner, leave: corner, radius: null });
         return;
       }
-      const turn = turnBetween(item.line, following.line);
-      if (turn <= 0) {
-        throw new Error(`corner after item ${index} turns right and cannot take a radius`);
-      }
-      const reach = item.radius * Math.tan(turn / 2);
-      const [fx, fy] = item.line.direction;
-      const [sx, sy] = following.line.direction;
-      resolved.set(index, {
-        arrive: [corner[0] - fx * reach, corner[1] - fy * reach],
-        leave: [corner[0] + sx * reach, corner[1] + sy * reach],
-        radius: item.radius,
-      });
+      const { arrive, leave } = roundedCorner(item.line, following.line, item.radius);
+      resolved.set(index, { arrive, leave, radius: item.radius });
     });
     return resolved;
   }
@@ -941,7 +958,8 @@ function squirclePath(format) {
  *
  * The head and the neck are the wordmark's, so the two marks share one
  * drawing. The neck runs on ICON_NECK_SHARE of its width below the throat and
- * ends in a straight cut whose corners are rounded. The figure stands
+ * ends in a straight cut whose corners are rounded. Its back bends out
+ * towards the cut by ICON_NECK_LEAN_SHARE of its width. The figure stands
  * ICON_MARGIN from the tile's edge on its taller side and is centered on both
  * axes.
  *
@@ -954,11 +972,35 @@ export function iconPaths(format = formatNumber) {
   const head = headPiece(L_STEM_LEFT, headScale);
   const neckBottom = head.end[1] - neckWidth * ICON_NECK_SHARE;
 
+  const neckCorner = neckWidth * ICON_NECK_CORNER_SHARE;
+  const cut = new Line([0, neckBottom], [1, 0]);
+  // The back of the neck is a parabola from the cut to the head. Its control
+  // point stands straight below the head, halfway down, so the back leaves the
+  // head without a kink and leans out towards the cut. The cut's corner rounds
+  // into the parabola's tangent at the foot, and the curve starts where that
+  // arc ends.
+  const backFoot = [L_STEM_RIGHT + neckWidth * ICON_NECK_LEAN_SHARE, neckBottom];
+  const backBend = [L_STEM_RIGHT, (neckBottom + head.start[1]) / 2];
+  const back = Line.through(backFoot, backBend);
+  const backStart = roundedCorner(cut, back, neckCorner).leave;
+  const backCurve = [
+    "C",
+    [
+      backStart[0] + (2 / 3) * (backBend[0] - backStart[0]),
+      backStart[1] + (2 / 3) * (backBend[1] - backStart[1]),
+    ],
+    [
+      head.start[0] + (2 / 3) * (backBend[0] - head.start[0]),
+      head.start[1] + (2 / 3) * (backBend[1] - head.start[1]),
+    ],
+    head.start,
+  ];
+
   const outline = new Outline();
-  outline.edge(new Line([0, neckBottom], [1, 0]), neckWidth * ICON_NECK_CORNER_SHARE);
-  outline.edge(new Line([L_STEM_RIGHT, 0], [0, 1]));
-  outline.piece(head.start, head.segments, head.end);
-  outline.edge(new Line([L_STEM_LEFT, 0], [0, -1]), neckWidth * ICON_NECK_CORNER_SHARE);
+  outline.edge(cut, neckCorner);
+  outline.edge(back);
+  outline.piece(backStart, [backCurve, ...head.segments], head.end);
+  outline.edge(new Line([L_STEM_LEFT, 0], [0, -1]), neckCorner);
 
   // Measured on the drawing itself, so the fit follows the curves of the head
   // rather than its control points.
