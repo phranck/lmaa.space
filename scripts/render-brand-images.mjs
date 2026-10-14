@@ -71,7 +71,8 @@ const BANNERS = [
  * gold ones, and the claim in paper, are for the media library of the
  * dashboard's social preview editor, which takes no SVG, and match the
  * banners. The ink ones fill the squircle and the letters in ink and the
- * llama's head in gold. Without a head color, the head stays cut out.
+ * llama's head in gold, and the gold ones swap the two colors. Without a head
+ * color, the head stays cut out.
  */
 const MEDIA_IMAGES = [
   { file: "brand/lmaa-icon.png", drawing: "icon", width: 512, color: GOLD },
@@ -79,6 +80,14 @@ const MEDIA_IMAGES = [
   { file: "brand/lmaa-claim.png", drawing: "claim", width: 1200, color: PAPER },
   { file: "brand/lmaa-icon-ink.png", drawing: "icon", width: 512, color: INK, head: GOLD },
   { file: "brand/lmaa-wordmark-ink.png", drawing: "wordmark", width: 1200, color: INK, head: GOLD },
+  { file: "brand/lmaa-icon-gold.png", drawing: "icon", width: 512, color: GOLD, head: INK },
+  {
+    file: "brand/lmaa-wordmark-gold.png",
+    drawing: "wordmark",
+    width: 1200,
+    color: GOLD,
+    head: INK,
+  },
 ];
 const JPEG_QUALITY = 90;
 
