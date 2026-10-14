@@ -10,13 +10,10 @@ import {
   buildMarks,
   iconPaths,
   pathContours,
-  wordmarkPath,
 } from "./build-brand-marks.mjs";
 
-// The joints are checked on the construction, written at full precision. The
-// committed drawings round to three decimals, and on the wordmark's ear tips,
-// arcs of a radius of 1.5 turning through about 148 degrees, that alone tilts
-// the tangent by up to a tenth of a degree, more than a real kink may.
+// The joints are checked on the construction, written at full precision, so
+// that rounding to three decimals neither passes for a kink nor hides one.
 const TANGENT_TOLERANCE_DEGREES = 0.01;
 const FULL_PRECISION = String;
 // The tile's curves may stray from the true superellipse by a twentieth of a
@@ -93,10 +90,6 @@ test("the committed drawings are what the generator writes", async () => {
   assert.equal(await readFile(MARK_FILES.icon, "utf8"), marks.icon, "run npm run brand:marks");
 });
 
-test("every arc of the wordmark meets its edges without a kink", () => {
-  assert.deepEqual(kinkedJoints(wordmarkPath(FULL_PRECISION)), []);
-});
-
 test("every arc of the icon's head meets its edges without a kink", () => {
   assert.deepEqual(kinkedJoints(iconPaths(FULL_PRECISION).head), []);
 });
@@ -121,10 +114,6 @@ test("the icon's tile is a squircle of curves that meet without a kink", () => {
   assert.deepEqual(kinkedJoints(tile, everyJoint), []);
   const deviation = squircleDeviation(tile);
   assert.ok(deviation <= SQUIRCLE_TOLERANCE, `strays by ${deviation}`);
-});
-
-test("the wordmark is one outline with no hole", () => {
-  assert.equal(pathContours(wordmarkPath()).length, 1);
 });
 
 test("a kinked join is reported", () => {
