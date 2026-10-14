@@ -245,7 +245,8 @@ export default function SupportPromptSlot({
       <div
         className="lmaa-rich lmaa-prompt-copy pr-8 text-sm"
         style={{ color: "var(--ds-text-muted)" }}
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: page content, rendered and sanitised server-side by renderMarkdown, exactly as the ladder's prose is
+        // Page content that renderMarkdown renders and sanitizes on the server,
+        // as it does the ladder's prose.
         dangerouslySetInnerHTML={{ __html: shown.html }}
       />
 

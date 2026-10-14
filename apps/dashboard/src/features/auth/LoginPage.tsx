@@ -43,7 +43,8 @@ function useAutofillSwap(ids: string[], setters: Record<string, (v: string) => v
     return () => document.removeEventListener("animationstart", onAnimationStart);
   }, [ids, setters]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: inputKey triggers re-show after autofill swap
+  // inputKey is the trigger rather than a value the effect reads: the inputs
+  // are swapped after an autofill, and the card is shown again once they are.
   useLayoutEffect(() => {
     if (wrapRef.current) wrapRef.current.style.opacity = "1";
   }, [inputKey]);
