@@ -67,7 +67,7 @@ import type {
 } from "@lmaa/contracts";
 import {
   SOCIAL_PREVIEW_MAX_EDGE_PX,
-  SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX,
+  SOCIAL_PREVIEW_MAX_BLUR_PX,
   SOCIAL_PREVIEW_MAX_SHADOW_OFFSET_PX,
 } from "@lmaa/contracts";
 import { formatDateTime } from "@lmaa/shared";
@@ -4403,7 +4403,7 @@ function TextShadowAttributes({
         label={messages.textShadowBlur}
         value={settings.blur}
         min={0}
-        max={SOCIAL_PREVIEW_MAX_SHADOW_BLUR_PX}
+        max={SOCIAL_PREVIEW_MAX_BLUR_PX}
         disabled={disabled}
         className={COMPACT_NUMBER_INPUT_CLASS}
         onChange={(shadowBlur) => onChange({ shadowBlur })}
