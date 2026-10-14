@@ -25,6 +25,10 @@ import { SystemTemplateCheckbox } from "@/components/ui/SystemTemplateCheckbox.t
 import { SystemTemplateChip } from "@/components/ui/SystemTemplateChip.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import {
+  EmailBannerField,
+  type EmailBannerFieldProps,
+} from "@/features/templates/email-templates/EmailBannerField.tsx";
 import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.tsx";
 import {
   useCreateEmailTemplate,
@@ -395,10 +399,8 @@ function EmailTemplateEditorGrid({ form, labels, onFieldChange }: EmailTemplateE
               icon={<EnvelopeOpenIcon weight="duotone" className="size-4" />}
               title={labels.sectionHeader}
               banner={{
-                id: "tpl-header-banner",
                 value: form.headerBannerUrl,
                 label: labels.headerBanner,
-                placeholder: "https://example.com/header.png",
                 onChange: (value) => onFieldChange("headerBannerUrl", value),
               }}
               editor={{
@@ -438,10 +440,8 @@ function EmailTemplateEditorGrid({ form, labels, onFieldChange }: EmailTemplateE
               icon={<SquareHalfBottomIcon weight="duotone" className="size-4" />}
               title={labels.sectionFooter}
               banner={{
-                id: "tpl-footer-banner",
                 value: form.footerBannerUrl,
                 label: labels.footerBanner,
-                placeholder: "https://example.com/footer.png",
                 onChange: (value) => onFieldChange("footerBannerUrl", value),
               }}
               editor={{
@@ -476,13 +476,7 @@ function EmailTemplateEditorGrid({ form, labels, onFieldChange }: EmailTemplateE
 interface EmailTemplateMarkdownSectionProps {
   icon: ReactNode;
   title: ReactNode;
-  banner?: {
-    id: string;
-    value: string;
-    label: string;
-    placeholder: string;
-    onChange: (value: string) => void;
-  };
+  banner?: EmailBannerFieldProps;
   editor: {
     id: string;
     value: string;
@@ -507,14 +501,7 @@ function EmailTemplateMarkdownSection({
       <DashboardSection.Body className="!gap-0 !p-0">
         {banner && (
           <div className="p-3">
-            <DashboardInput
-              id={banner.id}
-              type="text"
-              value={banner.value}
-              onChange={(event) => banner.onChange(event.target.value)}
-              placeholder={banner.placeholder}
-              label={banner.label}
-            />
+            <EmailBannerField {...banner} />
           </div>
         )}
         <MarkdownEditorField

@@ -7,6 +7,7 @@ import {
   CopyIcon,
   DownloadSimpleIcon,
   FloppyDiskIcon,
+  ImagesIcon,
   PaperPlaneTiltIcon,
   PauseCircleIcon,
   PencilSimpleIcon,
@@ -86,6 +87,13 @@ const DASHBOARD_ACTIONS = {
     colorRole: "danger",
     icon: XCircleIcon,
     labelKey: "common.remove",
+    size: "action",
+  },
+  chooseImage: {
+    ariaBehavior: "visible-label",
+    colorRole: "neutral",
+    icon: ImagesIcon,
+    labelKey: "common.chooseImage",
     size: "action",
   },
   edit: {
