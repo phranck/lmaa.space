@@ -155,7 +155,7 @@ const ICON_NECK_CORNER_SHARE = 0.2;
 // ICON_NECK_BEND_SHARE of the way from the head down to the cut; the further
 // down, the more the curve bulges.
 const ICON_NECK_TAPER_SHARE = 0.35;
-const ICON_NECK_BEND_SHARE = 0.65;
+const ICON_NECK_BEND_SHARE = 0.5;
 // The outline turns left at every rounded corner with y up. Turned over for
 // SVG, that is the direction its sweep flag 0 draws.
 const SWEEP_CONVEX = 0;
