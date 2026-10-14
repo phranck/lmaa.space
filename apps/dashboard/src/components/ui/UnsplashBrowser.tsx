@@ -278,7 +278,8 @@ export function UnsplashBrowser({
   }, [query, orientation, orderBy, color, search]);
 
   const hasMore = photos.length > 0 && photos.length < total;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: photos.length triggers re-observe after append
+  // photos.length is a trigger: after a page is appended, the sentinel has
+  // moved and is observed again.
   useEffect(() => {
     const sentinel = sentinelRef.current;
     const container = scrollContainerRef.current;

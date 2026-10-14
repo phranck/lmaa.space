@@ -770,8 +770,7 @@ export function MarkdownEditorCore({
       ...(placeholder ? [cmPlaceholder(placeholder)] : []),
       ...extraExtensions,
     ],
-    // extraExtensions is spread from props — caller is responsible for stability
-    // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+    // extraExtensions is spread from props, so the caller keeps it stable.
     [onPaste, placeholder, extraExtensions, lineWrap, showLineNumbers, showWhitespace],
   );
 

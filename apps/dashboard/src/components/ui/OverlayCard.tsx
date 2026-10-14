@@ -267,7 +267,7 @@ export function OverlayCard({
         className="fixed inset-0 flex items-center justify-center px-4"
         style={{ zIndex: effectiveZIndex }}
       >
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click handled separately, ESC via overlay-stack */}
+        {/* The backdrop only takes clicks. Escape closes the overlay through overlay-stack. */}
         <div
           className={[
             "absolute inset-0",

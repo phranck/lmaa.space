@@ -1,4 +1,3 @@
-// biome-ignore-all lint/a11y/useMediaCaption: Uploaded dashboard videos do not have managed caption tracks yet.
 import { FileIcon, VideoCameraIcon } from "@phosphor-icons/react";
 
 import type { MediaAsset } from "@lmaa/shared";
