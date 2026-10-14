@@ -1650,6 +1650,10 @@ export interface DashboardMessages {
       targetSizePngHint: string;
       previewMeta: string;
       estimatedSizeLabel: string;
+      canvasSizeLabel: string;
+      resizeCanvasWidth: string;
+      resizeCanvasHeight: string;
+      resizeCanvas: string;
       selectionTitle: string;
       backgroundColor: string;
       backgroundZoom: string;
@@ -3449,6 +3453,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         targetSizePngHint: "PNG ignoriert Qualitäts- und Zielgrößensteuerung.",
         previewMeta: "Live-Vorschau: {size}, effektive Qualität {quality}%",
         estimatedSizeLabel: "Dateigröße",
+        canvasSizeLabel: "Ausgabegröße",
+        resizeCanvasWidth: "Bildbreite ändern",
+        resizeCanvasHeight: "Bildhöhe ändern",
+        resizeCanvas: "Bildgröße ändern, mit Shift proportional",
         selectionTitle: "Auswahl und Attribute",
         backgroundColor: "Hintergrundfarbe",
         backgroundZoom: "Grundbild-Zoom",
@@ -5230,6 +5238,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         targetSizePngHint: "PNG ignores quality and target-size controls.",
         previewMeta: "Live preview: {size}, effective quality {quality}%",
         estimatedSizeLabel: "Estimated size",
+        canvasSizeLabel: "Output size",
+        resizeCanvasWidth: "Change image width",
+        resizeCanvasHeight: "Change image height",
+        resizeCanvas: "Change image size, proportionally with Shift",
         selectionTitle: "Selection and attributes",
         backgroundColor: "Background color",
         backgroundZoom: "Base image zoom",
