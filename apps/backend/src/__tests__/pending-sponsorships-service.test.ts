@@ -27,7 +27,23 @@ const configMocks = vi.hoisted(() => ({
   getSponsoringConfig: vi.fn(),
 }));
 
+// An address on no known service is asked for NodeInfo, and the SSRF check in
+// front of that fetch resolves the host over real DNS, which the fetch guard in
+// setup.ts does not cover. Unmocked, the outcome of a test depends on the
+// runner's resolver.
+const ogMocks = vi.hoisted(() => ({
+  detectPlatformFromHost: vi.fn(),
+}));
+
+const dnsMocks = vi.hoisted(() => ({
+  lookup: vi.fn(async () => {
+    throw new Error("A test reached DNS.");
+  }),
+}));
+
 vi.mock("../repositories/pending-sponsorships.js", () => repoMocks);
+vi.mock("../lib/og.js", () => ogMocks);
+vi.mock("node:dns/promises", () => dnsMocks);
 vi.mock("../repositories/sponsors.js", () => sponsorRepoMocks);
 vi.mock("../repositories/donations.js", () => donationRepoMocks);
 vi.mock("../services/sponsor-avatar.js", () => avatarMocks);
@@ -129,6 +145,23 @@ describe("createPendingSponsorship", () => {
     const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
     expect(stored.socialMedia).toEqual([
       { platform: "website", url: "https://kim-lorenz.example" },
+    ]);
+    expect(dnsMocks.lookup).not.toHaveBeenCalled();
+  });
+
+  it("files an address as the service its host names through NodeInfo", async () => {
+    // A Pixelfed profile is a single path segment on a host of its own, which
+    // is exactly what a personal website looks like by its address.
+    ogMocks.detectPlatformFromHost.mockResolvedValueOnce("pixelfed");
+
+    await createPendingSponsorship(form({ link: "https://pixels.kim-lorenz.example/kim" }));
+
+    expect(ogMocks.detectPlatformFromHost).toHaveBeenCalledWith(
+      "https://pixels.kim-lorenz.example/kim",
+    );
+    const [stored] = repoMocks.insertPendingSponsorship.mock.calls[0];
+    expect(stored.socialMedia).toEqual([
+      { platform: "pixelfed", url: "https://pixels.kim-lorenz.example/kim" },
     ]);
   });
 
