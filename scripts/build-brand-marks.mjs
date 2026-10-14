@@ -214,11 +214,10 @@ const ROUNDING_NUDGE = 1e-7;
 // The icon: a 512 tile shaped as a squircle, and the head on a stub of neck
 // standing the margin away from the tile's edge on its taller side.
 export const ICON_TILE = 512;
-// The squircle is the superellipse |x|^5 + |y|^5 = 1 stretched over the tile.
-// With exponent 5 its corners reach as far out along the diagonal as circular
-// corners of 22 percent of the side would. Each eighth of it, from the middle
-// of a side to the diagonal, is written as ICON_SQUIRCLE_CURVES cubic curves.
-export const ICON_SQUIRCLE_EXPONENT = 5;
+// The squircle is the superellipse |x|^4 + |y|^4 = 1, the classic one,
+// stretched over the tile. Each eighth of it, from the middle of a side to the
+// diagonal, is written as ICON_SQUIRCLE_CURVES cubic curves.
+export const ICON_SQUIRCLE_EXPONENT = 4;
 const ICON_SQUIRCLE_CURVES = 6;
 const ICON_MARGIN = 32;
 // How far the neck runs on below the throat, as a share of its width, and the
