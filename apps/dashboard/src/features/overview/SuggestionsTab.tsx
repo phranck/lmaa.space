@@ -172,6 +172,7 @@ export function SuggestionsTab({
       messages,
       navigate,
       reviewBySubmission,
+      reviewMessages,
       statusLabels,
       submissionsMessages,
     ],

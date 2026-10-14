@@ -33,7 +33,6 @@ export function RichText({
       role={role}
       className={`lmaa-rich ${className ?? ""}`}
       style={style}
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: page content, rendered and sanitised server-side by renderMarkdownSSR
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
