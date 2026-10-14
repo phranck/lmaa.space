@@ -3,16 +3,18 @@
 /**
  * Renders every image that shows the LMAA marks outside a page: the favicons
  * of the website and the dashboard, the default social image, the email
- * masthead and the README's hero. All of them are drawn from the drawings in
- * `packages/ui/src/assets/marks`, so a change to a mark reaches every image by
- * running this once more:
+ * masthead, the README's hero, the Mastodon header, and the marks as PNGs for
+ * the media library of the dashboard's social preview editor. All of them are
+ * drawn from the drawings in `packages/ui/src/assets/marks`, so a change to a
+ * mark reaches every image by running this once more:
  *
  *   node scripts/render-brand-images.mjs
  *
- * `favicons` or `banners` as the argument renders only that half.
+ * `favicons`, `banners` or `media` as the argument renders only that part.
  *
  * The output is committed. The email masthead keeps its name because stored
- * email settings link it by URL.
+ * email settings link it by URL. What goes into `brand/` is uploaded by hand
+ * to Mastodon and to the dashboard.
  */
 
 import { readFile, writeFile } from "node:fs/promises";
@@ -48,6 +50,8 @@ const CLAIM_WIDTH_SHARE = 1.05;
 const GAP_SHARE = 0.107;
 const SOCIAL_IMAGE = { width: 1200, height: 630, wordmarkWidth: 640 };
 const EMAIL_MASTHEAD = { width: 1200, height: 300, wordmarkWidth: 400 };
+// Mastodon scales every profile header to 1500 by 500, and X takes the same.
+const PROFILE_HEADER = { width: 1500, height: 500, wordmarkWidth: 640 };
 
 /*
  * Each banner and where it goes; the extension decides the format. The README
@@ -59,6 +63,18 @@ const BANNERS = [
   { file: "apps/frontend/public/og-image.jpg", layout: SOCIAL_IMAGE },
   { file: "apps/frontend/public/email-masthead.jpg", layout: EMAIL_MASTHEAD },
   { file: ".github/assets/hero.png", layout: SOCIAL_IMAGE, cornerRadius: 33 },
+  { file: "brand/mastodon-header.png", layout: PROFILE_HEADER },
+];
+
+/*
+ * The marks as PNGs with a transparent ground, for the media library of the
+ * dashboard's social preview editor, which takes no SVG. Each is drawn in the
+ * colors the banners give it, at the width given here.
+ */
+const MEDIA_IMAGES = [
+  { file: "brand/lmaa-icon.png", drawing: "icon", width: 512 },
+  { file: "brand/lmaa-wordmark.png", drawing: "wordmark", width: 1200 },
+  { file: "brand/lmaa-claim.png", drawing: "claim", width: 1200 },
 ];
 const JPEG_QUALITY = 90;
 
@@ -185,12 +201,36 @@ async function renderBanners(wordmark, claim) {
   }
 }
 
+/**
+ * Writes the icon, the wordmark and the claim as PNGs with a transparent
+ * ground: the icon and the wordmark in gold, with the head cut out, and the
+ * claim in paper with its last word in gold.
+ *
+ * @param {Record<string, {viewBox: number[], content: string}>} drawings - The
+ *   drawings by the names `MEDIA_IMAGES` uses.
+ */
+async function renderMediaImages(drawings) {
+  for (const { file, drawing, width } of MEDIA_IMAGES) {
+    const source = drawings[drawing];
+    const height = Math.ceil(heightAt(source, width));
+    const svg = [
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`,
+      `<style>#highlight { color: ${GOLD}; }</style>`,
+      place(source, 0, 0, width, drawing === "claim" ? PAPER : GOLD),
+      "</svg>",
+    ].join("\n");
+    await sharp(Buffer.from(svg)).png().toFile(new URL(file, ROOT).pathname);
+    console.log(file);
+  }
+}
+
 const [icon, wordmark, claim] = await Promise.all(
   ["lmaa-icon.svg", "lmaa-wordmark.svg", "lmaa-claim.svg"].map(readDrawing),
 );
 const only = process.argv[2];
-if (only !== undefined && only !== "favicons" && only !== "banners") {
-  throw new Error(`unknown argument ${only}: give favicons, banners, or nothing for both`);
+if (only !== undefined && !["favicons", "banners", "media"].includes(only)) {
+  throw new Error(`unknown argument ${only}: give favicons, banners, media, or nothing for all`);
 }
-if (only !== "banners") await renderFavicons(icon);
-if (only !== "favicons") await renderBanners(wordmark, claim);
+if (only === undefined || only === "favicons") await renderFavicons(icon);
+if (only === undefined || only === "banners") await renderBanners(wordmark, claim);
+if (only === undefined || only === "media") await renderMediaImages({ icon, wordmark, claim });

@@ -1,6 +1,6 @@
 # LMAA marks
 
-The drawings of the two LMAA marks and of the claim. The website, the dashboard and the API reference show the marks, and `scripts/render-brand-images.mjs` renders the favicons, the default social image, the email masthead and the README's hero from them. Each drawing fills with `currentColor`, so the place that shows it decides its color.
+The drawings of the two LMAA marks and of the claim. The website, the dashboard and the API reference show the marks, and `scripts/render-brand-images.mjs` renders the favicons, the default social image, the email masthead, the README's hero and the images in `brand/` from them. Each drawing fills with `currentColor`, so the place that shows it decides its color.
 
 ## lmaa-wordmark.svg
 
@@ -21,7 +21,7 @@ npm run brand:marks
 node scripts/render-brand-images.mjs
 ```
 
-The second one renders the favicons and the banners. The letters of the wordmark were shaped once by HarfBuzz from Google Sans Flex 5.000 and drawn with fontTools. The generator keeps their outlines, so it needs no font file.
+The second one renders the favicons, the banners and the images in `brand/`. The letters of the wordmark were shaped once by HarfBuzz from Google Sans Flex 5.000 and drawn with fontTools. The generator keeps their outlines, so it needs no font file.
 
 `scripts/build-brand-marks.test.mjs` fails when a file here differs from what the generator writes. Change the icon or the generator, never the wordmark.
 
