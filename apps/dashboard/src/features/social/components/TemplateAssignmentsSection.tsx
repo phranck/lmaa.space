@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 import {
   BLUESKY_FIXED_MAX_POST_CHARACTERS,
@@ -96,9 +96,14 @@ export function TemplateAssignmentsSection({
     return previewFor(platform, row.templateId)?.overflow ?? false;
   });
 
+  // Reports a change of the overflow, not a change of the callback. Callers
+  // pass an inline function that dispatches into their own state, so an
+  // effect that ran whenever the callback changed would re-render them, get a
+  // new callback, and run again without end.
+  const reportOverflow = useEffectEvent(onOverflowChange);
   useEffect(() => {
-    onOverflowChange(hasOverflow);
-  }, [hasOverflow, onOverflowChange]);
+    reportOverflow(hasOverflow);
+  }, [hasOverflow]);
 
   if (assignments.length === 0) return null;
 
