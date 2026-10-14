@@ -345,61 +345,6 @@ button {
   }
 }
 
-/* Overlay animations */
-@keyframes overlay-in {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(24px);
-  }
-}
-@keyframes overlay-out {
-  from {
-    opacity: 1;
-    backdrop-filter: blur(24px);
-  }
-  to {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-}
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-@keyframes card-out {
-  from {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.96) translateY(8px);
-  }
-}
-
-.overlay-backdrop-enter {
-  animation: overlay-in 360ms ease forwards;
-}
-.overlay-backdrop-exit {
-  animation: overlay-out 280ms ease forwards;
-}
-.overlay-card-enter {
-  animation: card-in 380ms ease forwards;
-}
-.overlay-card-exit {
-  animation: card-out 280ms ease forwards;
-}
-
 /* Save notification animations */
 @keyframes save-notification-in {
   from {
