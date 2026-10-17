@@ -10,12 +10,14 @@ import { toHeadquartersPayload } from "@/lib/form-payload-builders.ts";
  * Loads submissions by moderation status.
  *
  * @param status - Submission status filter.
+ * @param enabled - Whether the authenticated role may load submissions here.
  * @returns React Query result with submission rows.
  */
-export function useAdminSubmissions(status: SubmissionStatus) {
+export function useAdminSubmissions(status: SubmissionStatus, enabled = true) {
   return useQuery({
     queryKey: ["submissions", status],
     queryFn: () => api.get<Submission[]>(`/admin/submissions?status=${status}`),
+    enabled,
   });
 }
 

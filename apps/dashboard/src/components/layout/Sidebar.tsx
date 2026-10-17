@@ -64,6 +64,7 @@ import { SubMenu } from "@/components/ui/SubMenu.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { hasAdminDashboardAccess } from "@/features/auth/dashboard-access.ts";
 import { useUpdateUiPreferences } from "@/features/auth/useUpdateUiPreferences.ts";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
@@ -92,7 +93,6 @@ import {
   useSocialMediaPostTemplates,
 } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 
-const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
 const SIDEBAR_GROUP_STORAGE_KEYS = [
   "sidebar-reports-open",
   "sidebar-pages-open",
@@ -104,7 +104,7 @@ const SIDEBAR_GROUP_STORAGE_KEYS = [
 
 const SIDEBAR_SECTION_IDS = ["general", "content", "sponsoring", "builders", "system"] as const;
 type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
-const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["sponsoring", "builders", "system"];
+const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["general", "sponsoring", "builders", "system"];
 const SECTION_DRAG_LABEL = {
   de: "Abschnitt verschieben",
   en: "Move section",
@@ -659,7 +659,7 @@ export function Sidebar({
 }: SidebarProps) {
   const { messages } = useI18n();
   const sidebarMessages = messages.layout.sidebar;
-  const isAdmin = role !== undefined && ROLE_RANK[role] >= ROLE_RANK.admin;
+  const isAdmin = hasAdminDashboardAccess(role);
   const { user } = useAuth();
   const updatePreferences = useUpdateUiPreferences();
 
@@ -667,12 +667,12 @@ export function Sidebar({
   const { data: categories = [] } = useAdminCategories();
   const { data: users = [] } = useAdminUsers();
   const { data: media = [] } = useAdminMedia();
-  const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
-  const { data: deadLinks = [] } = useDeadLinkReports();
-  const { data: shopConcerns = [] } = useShopConcernReports();
+  const { data: pendingSubmissions = [] } = useAdminSubmissions("pending", isAdmin);
+  const { data: deadLinks = [] } = useDeadLinkReports(isAdmin);
+  const { data: shopConcerns = [] } = useShopConcernReports(isAdmin);
   // The same query the automated checks page reads, under the same key, so the
   // badge counts exactly the rows that table shows.
-  const { data: reviewJobs = [] } = useReviewJobs();
+  const { data: reviewJobs = [] } = useReviewJobs(isAdmin);
   const { data: socialMediaAccounts = [] } = useSocialMediaAccounts();
   // Only the owner may read the connection, and only the owner sees the entry
   // it belongs to, so nobody else asks for it.
