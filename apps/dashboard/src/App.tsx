@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ContentEditorLoadingFallback } from "@/components/app/ContentEditorLoadingFallback.tsx";
 import { I18nProvider } from "@/context/I18nContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
+import { dashboardHomePath, hasAdminDashboardAccess } from "@/features/auth/dashboard-access.ts";
 import { KeyboardSaveProvider } from "@/lib/hooks/useKeyboardSave.ts";
 
 const AdminLayout = lazy(() =>
@@ -221,6 +222,8 @@ const BankConnectionCallbackPage = lazy(() =>
 
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
+  const authenticatedHomePath = user ? dashboardHomePath(user.role) : "/login";
+  const hasAdminAccess = hasAdminDashboardAccess(user?.role);
 
   if (isLoading) {
     return (
@@ -240,7 +243,7 @@ function AppRoutes() {
               <SetupPage />
             </Suspense>
           ) : (
-            <Navigate to={user ? "/" : "/login"} replace />
+            <Navigate to={authenticatedHomePath} replace />
           )
         }
       />
@@ -248,7 +251,7 @@ function AppRoutes() {
         path="/invite/:token"
         element={
           user ? (
-            <Navigate to="/" replace />
+            <Navigate to={authenticatedHomePath} replace />
           ) : (
             <Suspense fallback={<ContentEditorLoadingFallback />}>
               <InvitePage />
@@ -260,7 +263,7 @@ function AppRoutes() {
         path="/login"
         element={
           user ? (
-            <Navigate to="/" replace />
+            <Navigate to={authenticatedHomePath} replace />
           ) : (
             <Suspense fallback={<ContentEditorLoadingFallback />}>
               <LoginPage />
@@ -280,35 +283,43 @@ function AppRoutes() {
           <Route
             index
             element={
-              <Suspense fallback={<ContentEditorLoadingFallback />}>
-                <DashboardPage />
-              </Suspense>
+              hasAdminAccess ? (
+                <Suspense fallback={<ContentEditorLoadingFallback />}>
+                  <DashboardPage />
+                </Suspense>
+              ) : (
+                <Navigate to={authenticatedHomePath} replace />
+              )
             }
           />
-          <Route
-            path="reports"
-            element={
-              <Suspense fallback={<ContentEditorLoadingFallback />}>
-                <SubmissionsPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="reports/:tab"
-            element={
-              <Suspense fallback={<ContentEditorLoadingFallback />}>
-                <SubmissionsPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="reports/suggestions/:submissionId"
-            element={
-              <Suspense fallback={<ContentEditorLoadingFallback />}>
-                <SubmissionEditorPage />
-              </Suspense>
-            }
-          />
+          {hasAdminAccess && (
+            <>
+              <Route
+                path="reports"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SubmissionsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="reports/:tab"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SubmissionsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="reports/suggestions/:submissionId"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SubmissionEditorPage />
+                  </Suspense>
+                }
+              />
+            </>
+          )}
           <Route
             path="shops"
             element={
@@ -594,7 +605,7 @@ function AppRoutes() {
           )}
           {/* backward compat redirect */}
           <Route path="content/:slug" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to={authenticatedHomePath} replace />} />
         </Route>
       ) : (
         <Route path="*" element={<Navigate to={needsSetup ? "/setup" : "/login"} replace />} />

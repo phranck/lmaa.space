@@ -126,16 +126,18 @@ export function useReloadSubmissionAfterReview(
 /**
  * Loads every automated check, newest first.
  *
+ * @param enabled - Whether the authenticated role may load the check list.
  * @returns The query, whose data lists each check with its shop and its cost.
  *
  * @remarks
  * Polls whilst any check is still running, so the overview keeps up with the
  * worker without a manual reload.
  */
-export function useReviewJobs() {
+export function useReviewJobs(enabled = true) {
   return useQuery({
     queryKey: ["review-jobs"] as const,
     queryFn: () => api.get<ReviewJobListItem[]>("/admin/review-jobs"),
+    enabled,
     refetchInterval: (query) =>
       query.state.data?.some((job) => isActiveReviewJobState(job.state))
         ? ACTIVE_POLL_INTERVAL_MS

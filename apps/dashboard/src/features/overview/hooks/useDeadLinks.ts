@@ -7,12 +7,14 @@ import { api } from "@/lib/api.ts";
 /**
  * Loads aggregated dead-link reports.
  *
+ * @param enabled - Whether the authenticated role may load these reports.
  * @returns React Query result with dead-link report rows.
  */
-export function useDeadLinkReports() {
+export function useDeadLinkReports(enabled = true) {
   return useQuery({
     queryKey: ["dead-link-reports"],
     queryFn: () => api.get<DeadLinkReportSummary[]>("/admin/dead-link-reports"),
+    enabled,
   });
 }
 
