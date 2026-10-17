@@ -99,16 +99,25 @@ export default function ShopCardReact({
           style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
         >
           {ogImage ? (
-            <img
-              src={ogImage}
-              alt=""
-              aria-hidden="true"
-              loading="lazy"
-              width={48}
-              height={48}
-              className="size-full object-contain"
-              referrerPolicy="no-referrer"
-            />
+            <>
+              <img
+                src={ogImage}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                width={48}
+                height={48}
+                className="size-full object-contain"
+                referrerPolicy="no-referrer"
+                data-img-fallback=""
+              />
+              <span
+                className="hidden items-center justify-center size-full text-lg font-bold text-stone-300 select-none"
+                aria-hidden="true"
+              >
+                {letter}
+              </span>
+            </>
           ) : (
             // The letter stands on the shop's logo ground, which is the same
             // light colour in both themes, so its grey is fixed as well. It
