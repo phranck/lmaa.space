@@ -24,6 +24,14 @@ function render(props: Partial<Parameters<typeof ShopCardReact>[0]> = {}): strin
 }
 
 describe("ShopCardReact", () => {
+  it("provides the letter fallback consumed by the global image error handler", () => {
+    const html = render({ name: "Evas Teeplantage", ogImage: "https://example.com/expired.png" });
+
+    expect(html).toContain('data-img-fallback=""');
+    expect(html).toContain("hidden items-center justify-center size-full");
+    expect(html).toContain(">E</span>");
+  });
+
   it("names how many people kept the shop", () => {
     const html = render({ likeCount: 7 });
 
