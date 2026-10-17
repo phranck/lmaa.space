@@ -12,11 +12,11 @@
 
 <!-- BADGES:END -->
 
-# lmaa.space
-
 <p align="center">
-  <img src=".github/assets/og-image.jpg" alt="LMAA - Lokale Märkte. Alternative Anbieter." />
+  <img src=".github/assets/hero.png" alt="LMAA: Lokale Märkte. Alternative Anbieter." width="860" />
 </p>
+
+# lmaa.space
 
 ## Lokale Märkte. Alternative Anbieter.
 

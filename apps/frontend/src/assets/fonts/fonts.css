@@ -1,15 +1,22 @@
 /*
+ * The Barlow files here carry ascent 950 and descent -250 instead of the 1000
+ * and -200 they are published with. Their capitals are 700 high, so these
+ * values put the middle of the capitals in the middle of every line, and a
+ * label sits optically centered in its button. A replaced file needs
+ * `python3 -I scripts/center-font-metrics.py` again; fonts.test.ts fails until
+ * it has had it.
+ *
  * Metric-adjusted fallback for "Barlow Condensed". Sized to Barlow Condensed's
- * own metrics (unitsPerEm 1000, ascent 1000, descent -200, xAvgCharWidth 417)
- * against Arial (unitsPerEm 2048, xWidthAvg 904) so the fallback occupies the
- * same width and line box if a display font cannot be loaded.
+ * metrics as above (unitsPerEm 1000, ascent 950, descent -250, xAvgCharWidth
+ * 417) against Arial (unitsPerEm 2048, xWidthAvg 904) so the fallback occupies
+ * the same width and line box if a display font cannot be loaded.
  */
 @font-face {
   font-family: "Barlow Condensed Fallback";
   src: local("Arial"), local("Helvetica Neue");
   size-adjust: 94.47%;
-  ascent-override: 105.85%;
-  descent-override: 21.17%;
+  ascent-override: 100.56%;
+  descent-override: 26.46%;
   line-gap-override: 0%;
 }
 
@@ -192,20 +199,4 @@
   font-weight: 800;
   font-display: block;
   src: url("./barlow-condensed-800.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "DynaPuff";
-  font-style: normal;
-  font-weight: 500;
-  font-display: block;
-  src: url("./dynapuff-500.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "DynaPuff";
-  font-style: normal;
-  font-weight: 600;
-  font-display: block;
-  src: url("./dynapuff-600.woff2") format("woff2");
 }

@@ -1,0 +1,96 @@
+---
+import { MonitorIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
+
+import { THEME_CHOICES, type ThemeChoice } from "@/lib/theme";
+
+/**
+ * Props for the theme switch in the header.
+ *
+ * @property variant - `segments` draws the three choices side by side in the
+ *   sliding switch the support ladder uses, for the wide header. `menu` draws
+ *   one round button showing the choice made, which opens the three choices as
+ *   a list, for the narrow one.
+ * @property class - Decides at which widths this one is shown. The header holds
+ *   one switch per layout and shows one of them at a time.
+ */
+interface Props {
+  variant: "segments" | "menu";
+  class?: string;
+}
+
+const { variant, class: className = "" } = Astro.props;
+
+/** What each choice is called and the symbol it shows. */
+const OPTIONS: Record<ThemeChoice, { label: string; Icon: typeof SunIcon }> = {
+  system: { label: "System", Icon: MonitorIcon },
+  light: { label: "Hell", Icon: SunIcon },
+  dark: { label: "Dunkel", Icon: MoonIcon },
+};
+
+/** The name the switch goes by for a screen reader. */
+const GROUP_LABEL = "Darstellung";
+
+// Each switch is a radio group of its own, because radio buttons sharing a name
+// are one group across the whole page. The switch's script finds every group
+// by this prefix and keeps them showing the same choice.
+const name = `theme-choice-${variant}`;
+---
+
+{variant === "segments" ? (
+  <fieldset class={`lmaa-segments lmaa-theme-switch ${className}`}>
+    <legend class="sr-only">{GROUP_LABEL}</legend>
+    <span class="lmaa-segment-marker" aria-hidden="true" />
+    {THEME_CHOICES.map((choice) => {
+      const { label, Icon } = OPTIONS[choice];
+      return (
+        <label class="lmaa-theme-segment" data-theme-option={choice} title={label}>
+          <input
+            class="sr-only"
+            type="radio"
+            name={name}
+            value={choice}
+            checked={choice === "system"}
+          />
+          <Icon weight="duotone" className="size-3.5" aria-hidden="true" />
+          <span class="sr-only">{label}</span>
+        </label>
+      );
+    })}
+  </fieldset>
+) : (
+  <details class={`lmaa-theme-menu ${className}`} data-header-disclosure>
+    <summary class="size-9" aria-label={GROUP_LABEL}>
+      {THEME_CHOICES.map((choice) => {
+        const { Icon } = OPTIONS[choice];
+        return (
+          <span data-theme-option={choice}>
+            <Icon weight="duotone" className="block size-4" aria-hidden="true" />
+          </span>
+        );
+      })}
+    </summary>
+    <fieldset class="lmaa-theme-menu-panel" data-disclosure-panel>
+      <legend class="sr-only">{GROUP_LABEL}</legend>
+      {THEME_CHOICES.map((choice) => {
+        const { label, Icon } = OPTIONS[choice];
+        return (
+          <label class="lmaa-theme-option" data-theme-option={choice}>
+            <input
+              class="sr-only"
+              type="radio"
+              name={name}
+              value={choice}
+              checked={choice === "system"}
+            />
+            <Icon weight="duotone" className="size-4" aria-hidden="true" />
+            {label}
+          </label>
+        );
+      })}
+    </fieldset>
+  </details>
+)}
+
+<script>
+  import "@/scripts/theme-switch";
+</script>

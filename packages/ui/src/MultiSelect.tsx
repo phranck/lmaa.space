@@ -14,7 +14,7 @@ const multiSelectVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-[var(--color-primary)] text-white",
+        default: "border-transparent bg-[var(--color-primary)] text-[var(--ds-accent-on)]",
         secondary:
           "border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[var(--ds-text)]",
         destructive: "border-transparent bg-red-500 text-white",
@@ -215,7 +215,9 @@ export function MultiSelect({
                   : "border-[var(--ds-border-strong)] opacity-50",
               )}
             >
-              {allSelected && <CheckIcon className="size-2.5 text-white" strokeWidth={3} />}
+              {allSelected && (
+                <CheckIcon className="size-2.5 text-[var(--ds-accent-on)]" strokeWidth={3} />
+              )}
             </span>
           }
         >
@@ -241,7 +243,9 @@ export function MultiSelect({
                       : "border-[var(--ds-border-strong)]",
                   )}
                 >
-                  {isSelected && <CheckIcon className="size-2.5 text-white" strokeWidth={3} />}
+                  {isSelected && (
+                    <CheckIcon className="size-2.5 text-[var(--ds-accent-on)]" strokeWidth={3} />
+                  )}
                 </span>
               }
             >

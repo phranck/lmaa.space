@@ -1,29 +1,38 @@
-# LMAA marks
+# Brand images for other platforms
 
-The source drawings of the LMAA wordmark and icon. Every other form of the marks, such as favicons, social images and the marks the site and the dashboard show, is derived from these two files. Both fill with `currentColor`, so the place that shows them decides their color.
+The images here show the LMAA marks where the website does not serve them. They are uploaded by hand.
 
-## lmaa-wordmark.svg
+| File                     | Size        | Where it goes                                               |
+| ------------------------ | ----------- | ----------------------------------------------------------- |
+| `mastodon-header.jpg`    | 1500 × 500  | The header of the Mastodon account. X takes the same size.  |
+| `mastodon-avatar.png`    | 400 × 400   | The avatar of the Mastodon account.                         |
+| `bluesky-banner.jpg`     | 2000 × 667  | The banner of the Bluesky account.                          |
+| `bluesky-avatar.png`     | 1000 × 1000 | The avatar of the Bluesky account.                          |
+| `github-preview.jpg`     | 1280 × 640  | The social preview in the GitHub repository's settings.     |
+| `lmaa-icon.png`          | 512 × 512   | The media library of the dashboard's social preview editor. |
+| `lmaa-wordmark.png`      | 1200 wide   | The media library of the dashboard's social preview editor. |
+| `lmaa-claim.png`         | 1200 wide   | The media library of the dashboard's social preview editor. |
+| `lmaa-icon-ink.png`      | 512 × 512   | Wherever the logo stands on a light ground.                 |
+| `lmaa-wordmark-ink.png`  | 1200 wide   | Wherever the wordmark stands on a light ground.             |
+| `lmaa-icon-gold.png`     | 512 × 512   | Wherever the logo shows in gold, as the favicon does.       |
+| `lmaa-wordmark-gold.png` | 1200 wide   | Wherever the wordmark shows in gold.                        |
 
-The word LMAA as one closed outline, with the llama's head on the stem of the L. The letters run into one another: the foot of the L carries the M, and the M and both A share their feet. Each A's crossbar hangs from its right leg and ends on the left in a round cap. The box is the ink's own, without a margin.
+The banners stand in the shop window, like the default social image, the email masthead and the README's hero: the photograph `shop-window.jpg` under the veil the home page lays over its photographs, the wordmark in gold, a gold line fading out at both ends, and the claim in light grey with its last word in gold. The Mastodon header and the Bluesky banner set the three in one row, because Mastodon's web view shows a header only as a strip cut from its middle.
 
-## lmaa-icon.svg
+The avatars show the icon in gold with the llama's head in ink, as the favicon does. The Bluesky one is smaller inside its square, because Bluesky shows avatars round.
 
-The L with the llama, cut out of a square tile with rounded corners. Its stem and foot are heavier than in the wordmark so it holds at small sizes. The letter keeps the same distance from all four sides of the tile, and the end of its foot is rounded around the same center as the tile's corner.
+The three PNGs for the editor have a transparent ground: the icon and the wordmark in gold with the llama's head cut out, the claim in paper with its last word in gold. The editor takes no SVG, which is why they exist as PNGs.
 
-The letter is there a second time as a path of its own with the class `lmaa-icon-letter` and no fill. A place that wants the letter in a color of its own fills that path; everywhere else the letter stays cut out.
+The ink and the gold PNGs have a transparent ground as well. In the ink ones the squircle and the letters are ink black (`#0f0f0f`) and the llama's head is gold (`#cea836`). The gold ones swap the two colors.
 
-## How they are made
-
-`scripts/build-brand-marks.mjs` constructs both drawings and writes them here. Run it after changing anything in it:
+All of them are rendered from the drawings in `packages/ui/src/assets/marks`, so a change to a mark reaches them by running:
 
 ```bash
-npm run brand:marks
+node scripts/render-brand-images.mjs
 ```
 
-The letters are built from straight edges measured off Google Sans Flex at wght 559, wdth 125, ROND 100 and opsz 144. Every rounded corner is a circular arc that touches both of its edges, so no edge meets an arc at an angle. The llama's head is a drawing, so it is the one part made of Bézier curves.
+Change the drawings, never these files.
 
-`scripts/build-brand-marks.test.mjs` fails when a file here differs from what the generator writes, and when an arc meets its neighbor at an angle. Edit the generator, not the files.
+## shop-window.jpg
 
-## Fonts
-
-The letters are measured from [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+Flex), and the head is drawn after [Bodoni Moda](https://github.com/indestructible-type/Bodoni). Both are published under the SIL Open Font License 1.1. A logo made from an OFL font is not subject to that license, and its maker holds its copyright, as [questions 1.1 and 1.1.1 of the OFL FAQ](https://openfontlicense.org/ofl-faq/) state.
+[Closed door](https://unsplash.com/photos/closed-door-D2ArvCaoEAM) by [Taylor Vick](https://unsplash.com/@tvick), from Unsplash, 2400 px wide. It is one of the photographs in the home page's rotation. The [Unsplash License](https://unsplash.com/license) allows using and changing it for free, without permission and without credit; the credit stands here anyway.

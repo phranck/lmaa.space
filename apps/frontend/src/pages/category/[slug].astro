@@ -7,6 +7,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { buildFilterQuery, parseFiltersFromUrl } from "@/lib/filter-query";
 import { slugToTitle } from "@/lib/slug";
+import { unsplashAvif } from "@/lib/unsplash-photo";
 
 const { slug } = Astro.params;
 
@@ -85,14 +86,14 @@ const jsonLd = {
   <!-- Hero Banner -->
   <div class="relative h-52 sm:h-64 overflow-hidden">
     <img
-      src={category.imageUrl ?? `/images/${slug}.jpg`}
+      src={category.imageUrl ? unsplashAvif(category.imageUrl) : `/images/${slug}.jpg`}
       alt=""
       aria-hidden="true"
       fetchpriority="high"
       class="w-full h-full object-cover"
       style={`object-position: 50% ${category.imageFocalPointY ?? 50}%`}
     />
-    <div class="absolute inset-0 bg-stone-900/65"></div>
+    <div class="lmaa-head-veil absolute inset-0"></div>
     {category.imagePhotographer && category.imagePhotographerUrl && (
       <UnsplashAttribution
         photographer={category.imagePhotographer}
@@ -101,8 +102,10 @@ const jsonLd = {
       />
     )}
     <div class="absolute inset-0 flex flex-col justify-end px-6 sm:px-10 pb-8">
-      <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-white">{category.name}</h1>
-      <p class="text-stone-300 text-sm mt-1">
+      <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-[var(--ds-photo-text)]">
+        {category.name}
+      </h1>
+      <p class="text-[var(--ds-photo-text-muted)] text-sm mt-1">
         {shopCount} {shopCount === 1 ? "Shop" : "Shops"} in dieser Kategorie
       </p>
     </div>
@@ -110,8 +113,8 @@ const jsonLd = {
 
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     {isFallback ? (
-      <div class="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
-        <p class="text-stone-700">
+      <div class="text-center py-20 bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)]">
+        <p class="text-[var(--ds-text-muted)]">
           Kategorie-Inhalte sind gerade nicht erreichbar. Bitte in wenigen Minuten erneut laden.
         </p>
       </div>

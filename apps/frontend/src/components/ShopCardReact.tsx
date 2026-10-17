@@ -66,12 +66,12 @@ export default function ShopCardReact({
   return (
     <a
       href={detailHref}
-      className="relative block bg-white rounded-2xl border border-stone-200 p-2 sm:p-4 hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+      className="relative block bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border)] p-2 sm:p-4 hover:border-[var(--ds-border-hover)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
       {(liked || zeigtZahl) && (
         <span
           className={`absolute -right-2 -top-2 z-10 inline-flex items-center gap-1 ${
-            liked ? "text-red-500" : "text-stone-400"
+            liked ? "text-red-500" : "text-[var(--ds-text-subtle)]"
           }`}
           // The heart alone carries no reading, so it stays hidden. Where a
           // figure stands beside it, the pair is announced as one label.
@@ -85,14 +85,17 @@ export default function ShopCardReact({
         </span>
       )}
       {hasCoordinates && (
-        <span className="absolute top-2 right-2 text-stone-300" title="Standort verfügbar">
+        <span
+          className="absolute top-2 right-2 text-[var(--ds-text-placeholder)]"
+          title="Standort verfügbar"
+        >
           <MapPinLineIcon weight="duotone" className="size-3.5" />
         </span>
       )}
       <div className="flex items-center gap-3">
         {/* Avatar */}
         <div
-          className="shrink-0 size-12 rounded-lg overflow-hidden border border-stone-100 flex items-center justify-center"
+          className="shrink-0 size-12 rounded-lg overflow-hidden border border-[var(--ds-border-subtle)] flex items-center justify-center"
           style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
         >
           {ogImage ? (
@@ -107,16 +110,21 @@ export default function ShopCardReact({
               referrerPolicy="no-referrer"
             />
           ) : (
-            <span className="text-lg font-bold text-stone-300 select-none">{letter}</span>
+            // The letter stands on the shop's logo ground, which is the same
+            // light colour in both themes, so its grey is fixed as well. It
+            // repeats the name beside it, so a screen reader skips it.
+            <span className="text-lg font-bold text-stone-300 select-none" aria-hidden="true">
+              {letter}
+            </span>
           )}
         </div>
 
         {/* Name + domain */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-serif font-semibold text-stone-900 text-base leading-snug truncate">
+          <h3 className="font-serif font-semibold text-[var(--ds-text)] text-base leading-snug truncate">
             {name}
           </h3>
-          <p className="text-xs text-stone-600 mt-0.5 truncate">{domain}</p>
+          <p className="text-xs text-[var(--ds-text-muted)] mt-0.5 truncate">{domain}</p>
         </div>
       </div>
 
@@ -126,13 +134,13 @@ export default function ShopCardReact({
           {visibleCategories.map((cat) => (
             <span
               key={cat.id}
-              className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70"
+              className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--ds-accent-tint)] text-[var(--ds-accent-text)]"
             >
               {cat.name}
             </span>
           ))}
           {extraCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-50 text-stone-600">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]">
               +{extraCount}
             </span>
           )}

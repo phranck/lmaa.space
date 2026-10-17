@@ -34,7 +34,194 @@ html {
   --accent-hover: var(--ds-accent-hover);
   --accent-active: var(--ds-accent-active);
   --accent-text: var(--ds-accent-fg);
-  --hero-highlight-color: #ffb900;
+
+  /* ── THEMES ─────────────────────────────────────────────────
+     The public site has two themes, drawn from the new wordmark: Papier, the
+     light one, stated here on the root, and Salon, the dark one, under
+     `html.dark` below, which is the class UnoCSS's dark variant reads. Both
+     state the semantic roles of the shared token file for this site alone.
+     The dashboard imports that file without this one and keeps its own dark
+     values, so nothing here reaches it.
+
+     Every text and control pair is held to WCAG AA in both themes by
+     `theme-contrast.test.ts`, which reads this file. */
+  color-scheme: light;
+
+  /* The two colors the themes trade between them: the paper of the light
+     header and of the type on the light theme's actions, which is the type of
+     the dark one, and the ink of the light theme's actions, which is the type
+     on the dark theme's gold ones. */
+  --ds-color-paper: #f4efe6;
+  --ds-color-ink: #0f0f0f;
+
+  /* Papier: surfaces. The page is lighter and less yellow than paper, so the
+     header, which keeps the paper, stands apart from it. A card is a step
+     lighter than the page, a raised or inset surface a step darker. */
+  --ds-bg: #f8f6f2;
+  --ds-surface: #fdfcfa;
+  --ds-bg-elevated: #efe8dc;
+  --ds-surface-inset: #ebe4d7;
+  --ds-surface-alt: var(--ds-surface-inset);
+  --ds-border: #e0d7c6;
+  --ds-border-subtle: #e8e0d1;
+  /* Dark enough for a field's edge to reach 3:1 on every surface, which is
+     what a control's boundary needs. */
+  --ds-border-strong: #857a6b;
+
+  /* Papier: type. Warm greys in the hue of the paper. */
+  --ds-text: #1a1814;
+  --ds-text-muted: #5f594f;
+  --ds-text-subtle: #6a6358;
+  --ds-text-placeholder: #776f63;
+  --ds-text-inverse: var(--ds-surface);
+  --ds-control-hover-bg: color-mix(in srgb, var(--ds-text) 6%, transparent);
+
+  /* Papier: the gold is kept for marks and details. Links, chips and the
+     focus ring take the dark step of it, because the gold itself measures
+     about 1.9:1 on paper. Actions are ink with paper type. */
+  --ds-accent-text: var(--ds-color-brand-800);
+  --ds-focus-ring: var(--ds-accent-text);
+  --ds-btn-filled-bg: var(--ds-color-ink);
+  --ds-btn-filled-hover: #2b2722;
+  --ds-btn-filled-fg: var(--ds-color-paper);
+
+  /* Papier: the header is paper under its blur, a step darker than the page.
+     The browser paints its own bar around the page in the same color, which
+     the head script reads from `--ds-theme-color` into the `theme-color` meta
+     element, so the color is stated here and nowhere else. Its icon is an ink
+     tile like the actions, with the llama's head in gold. */
+  --ds-theme-color: var(--ds-color-paper);
+  --ds-header-bg: color-mix(in srgb, var(--ds-theme-color) 92%, transparent);
+  --ds-header-mark: var(--ds-color-ink);
+  --ds-header-mark-head: var(--ds-accent);
+
+  /* Papier: the outlined controls in the header, the support button and the
+     theme switch, are drawn in ink. */
+  --ds-header-control-text: var(--ds-text);
+  --ds-header-control-border: color-mix(in srgb, var(--ds-text) 35%, transparent);
+  --ds-header-control-hover-bg: var(--ds-control-hover-bg);
+
+  /* Papier: a band across the page that sets an invitation off from it, such
+     as the home page's call to suggest a shop, takes the accent's wash. */
+  --ds-band-bg: var(--ds-accent-tint);
+
+  /* Papier: the shared token file's red and amber type reach only 4.4:1 on
+     their own washes, so they go a step darker here. */
+  --ds-danger-text: hsl(0 75% 44%);
+  --ds-warning-text: hsl(40 100% 27%);
+
+  /* Roles derived from the ones above, so they follow either theme: the
+     primary action is the theme's action, its outline form and the accent's
+     quiet surfaces take the gold, the neutral button lifts to the raised
+     surface under the pointer, and the outline button for a state takes that
+     state's colours. */
+  --ds-btn-primary-bg: var(--ds-btn-filled-bg);
+  --ds-btn-primary-hover: var(--ds-btn-filled-hover);
+  --ds-btn-primary-fg: var(--ds-btn-filled-fg);
+  --ds-btn-primary-border: color-mix(in srgb, var(--ds-accent) 45%, var(--ds-border));
+  --ds-btn-primary-text: var(--ds-accent-text);
+  --ds-btn-primary-hover-border: var(--ds-accent);
+  --ds-btn-primary-hover-bg: var(--ds-accent-tint);
+  --ds-btn-neutral-hover-bg: var(--ds-bg-elevated);
+  /* Half way to the strong edge, for a card the pointer rests on. */
+  --ds-border-hover: color-mix(in srgb, var(--ds-border) 50%, var(--ds-border-strong));
+  --ds-btn-danger-border: var(--ds-danger-border);
+  --ds-btn-danger-text: var(--ds-danger-text);
+  --ds-btn-danger-hover-bg: var(--ds-danger-bg);
+  --ds-btn-danger-hover-border: var(--ds-danger-text);
+  --ds-btn-success-border: var(--ds-success-border);
+  --ds-btn-success-text: var(--ds-success-text);
+  --ds-btn-success-hover-bg: var(--ds-success-bg);
+  --ds-btn-success-hover-border: var(--ds-success-text);
+  --ds-btn-warning-border: var(--ds-warning-border);
+  --ds-btn-warning-text: var(--ds-warning-text);
+  --ds-btn-warning-hover-bg: var(--ds-warning-bg);
+  --ds-btn-warning-hover-border: var(--ds-warning-text);
+  --ds-accent-subtle: color-mix(in srgb, var(--ds-accent) 16%, var(--ds-surface));
+  --ds-surface-form: color-mix(in srgb, var(--ds-surface) 75%, transparent);
+
+  /* Photographs stand behind type in the page heads of the home, category
+     and shop pages. They are the same in both themes, so their veil and the
+     type on it are too: light type on a dark veil, dark enough that even the
+     quieter line reaches 4.5:1 over a white photograph. */
+  --ds-photo-veil: oklch(14.7% 0.004 49.25 / 0.7);
+  --ds-photo-text: #ffffff;
+  --ds-photo-text-muted: oklch(92.3% 0.003 48.717);
+  /* Gold for the kicker and the claim's last word, two steps lighter than the
+     wordmark's, because the wordmark's own gold reaches only 3.5:1 over a
+     bright photograph and the kicker is small type. */
+  --ds-photo-accent: var(--ds-color-brand-300);
+  /* The head of a category page sets its type at the bottom, so its veil is
+     only as dark as that type needs there and lightens towards the top, where
+     there is only the photograph. 0.65 keeps the quieter line at 5:1 over a
+     white photograph. */
+  --ds-photo-veil-text: oklch(14.7% 0.004 49.25 / 0.65);
+  --ds-photo-veil-light: oklch(14.7% 0.004 49.25 / 0.2);
+}
+
+/* Salon: a warm charcoal rather than black. A card stands a step lighter
+   than the page, a raised surface another step, and the header sits a step
+   darker so that it frames the page. Type is paper, the gold carries links,
+   chips, the focus ring and every action, with ink type on it. */
+html.dark {
+  color-scheme: dark;
+
+  --ds-bg: #1e1c19;
+  --ds-surface: #282521;
+  --ds-bg-elevated: #2f2c27;
+  --ds-surface-alt: #24221e;
+  --ds-surface-inset: #191714;
+  --ds-border: #3e3a33;
+  --ds-border-subtle: #34312b;
+  --ds-border-strong: #807a6e;
+
+  --ds-text: var(--ds-color-paper);
+  --ds-text-muted: #c4bdb0;
+  --ds-text-subtle: #9d968a;
+  /* Darker than the subtle grey, because on a dark page a hint recedes
+     downwards. */
+  --ds-text-placeholder: #999286;
+  --ds-text-inverse: var(--ds-bg);
+  --ds-control-hover-bg: color-mix(in srgb, var(--ds-text) 8%, transparent);
+
+  --ds-accent-text: var(--ds-accent);
+  --ds-btn-filled-bg: var(--ds-accent);
+  --ds-btn-filled-hover: var(--ds-color-brand-400);
+  --ds-btn-filled-fg: var(--ds-color-ink);
+
+  --ds-theme-color: var(--ds-surface-inset);
+  --ds-header-mark: var(--ds-accent);
+  --ds-header-mark-head: var(--ds-surface-inset);
+
+  --ds-header-control-text: var(--ds-accent);
+  --ds-header-control-border: color-mix(in srgb, var(--ds-accent) 45%, transparent);
+  --ds-header-control-hover-bg: var(--ds-accent-tint);
+
+  /* The band takes the step a card takes above the page, because the gold
+     wash turns the charcoal yellow. */
+  --ds-band-bg: var(--ds-surface);
+
+  /* Status colours on a dark ground: a deep wash, a mid border and a light
+     type, each in the hue the light theme uses for the same state. */
+  --ds-success-bg: #1f2e20;
+  --ds-success-border: #3f6b44;
+  --ds-success-text: #7fcf8a;
+  --ds-danger-bg: #3a201d;
+  --ds-danger-border: #7a3a33;
+  --ds-danger-text: #f08a7e;
+  --ds-warning-bg: #352a14;
+  --ds-warning-border: #7a5f26;
+  --ds-warning-text: #e0b55a;
+  --ds-info-bg: #1c2a36;
+  --ds-info-border: #3c6380;
+  --ds-info-text: #84b8e6;
+
+  /* Deeper shadows, because a shadow has to carry against a dark surface. */
+  --ds-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --ds-shadow-sm: 0 2px 10px rgb(0 0 0 / 0.35);
+  --ds-shadow-md: 0 8px 24px rgb(0 0 0 / 0.4);
+  --ds-shadow-lg: 0 10px 18px rgb(0 0 0 / 0.45);
+  --ds-shadow-xl: 0 20px 28px rgb(0 0 0 / 0.5);
 }
 
 *:focus {
@@ -382,15 +569,38 @@ details > summary::-webkit-details-marker {
 }
 
 /* A link inside a card reads like a link anywhere else on the page.
-   The prose around it resolves its link colour to the same palette variable,
-   so both sides take that one value instead of naming a colour twice. */
+   The prose around it resolves its link colour to the same role, so both
+   sides take that one value instead of naming a colour twice. */
 .lmaa-rich a {
-  color: var(--colors-amber-700);
+  color: var(--ds-accent-text);
   text-decoration: none;
 }
 
 .lmaa-rich a:hover {
   text-decoration: underline;
+}
+
+/* Prose takes its type from the theme. The typography preset states its own
+   palette on `.prose` and on every `prose-<colour>` class; the root in front
+   of this selector outweighs both, so no page has to name a palette. */
+html .prose {
+  --un-prose-body: var(--ds-text-muted);
+  --un-prose-lead: var(--ds-text-muted);
+  --un-prose-headings: var(--ds-text);
+  --un-prose-bold: var(--ds-text);
+  --un-prose-links: var(--ds-accent-text);
+  --un-prose-counters: var(--ds-text-subtle);
+  --un-prose-bullets: var(--ds-border-strong);
+  --un-prose-hr: var(--ds-border);
+  --un-prose-quotes: var(--ds-text);
+  --un-prose-quote-borders: var(--ds-border);
+  --un-prose-captions: var(--ds-text-subtle);
+  --un-prose-kbd: var(--ds-text);
+  --un-prose-code: var(--ds-text);
+  --un-prose-pre-code: var(--ds-text);
+  --un-prose-pre-bg: var(--ds-surface-inset);
+  --un-prose-th-borders: var(--ds-border);
+  --un-prose-td-borders: var(--ds-border-subtle);
 }
 
 /* A footnote marker set as ordinary superscript is a grey speck a reader misses.
@@ -403,8 +613,8 @@ details > summary::-webkit-details-marker {
   min-width: 1.35em;
   padding: 0 0.28em;
   border-radius: 0.35em;
-  background: var(--ds-accent-tint, rgb(180 131 27 / 0.14));
-  color: var(--colors-amber-800);
+  background: var(--ds-accent-tint);
+  color: var(--ds-accent-text);
   font-weight: 700;
   font-size: 0.78em;
   line-height: 1.5;
@@ -414,8 +624,8 @@ details > summary::-webkit-details-marker {
 
 .lmaa-rich sup a:hover,
 .prose sup a:hover {
-  background: var(--colors-amber-700);
-  color: white;
+  background: var(--ds-accent-text);
+  color: var(--ds-text-inverse);
   text-decoration: none;
 }
 
@@ -454,6 +664,63 @@ details > summary::-webkit-details-marker {
   border: none;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* The veil over the photograph at the head of a category page. It holds the
+   strength the type needs up to the height the type reaches, 144 px with a
+   name on two lines, and fades towards the top from there. */
+.lmaa-head-veil {
+  background: linear-gradient(to top, var(--ds-photo-veil-text) 9rem, var(--ds-photo-veil-light));
+}
+
+/* The icon in the header.
+   The llama's head is a path of its own on top of the tile's cut-out, so the
+   header fills it in a color of its own. A stroke of one unit closes the seam
+   between the two edges, which would otherwise show the header's ground as a
+   hairline around the head. */
+.lmaa-header-icon .lmaa-icon-head {
+  fill: var(--ds-header-mark-head);
+  stroke: var(--ds-header-mark-head);
+  stroke-width: 1px;
+}
+
+/* The line between the large parts of a page: under the header, under the
+   hero, over the home page's band and over the footer. It fades out towards
+   both ends in the wordmark's gold, in both themes, and is drawn as a gradient
+   a pixel high because a border cannot fade.
+
+   `lmaa-fade-rule` is a line of its own. `lmaa-fade-rule-top` and
+   `lmaa-fade-rule-bottom` lay it along an edge of a positioned element, so
+   that element keeps its height. */
+.lmaa-fade-rule,
+.lmaa-fade-rule-top::before,
+.lmaa-fade-rule-bottom::after {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ds-accent), transparent);
+}
+
+.lmaa-fade-rule-top::before,
+.lmaa-fade-rule-bottom::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+}
+
+.lmaa-fade-rule-top::before {
+  top: 0;
+}
+
+.lmaa-fade-rule-bottom::after {
+  bottom: 0;
+}
+
+/* In Salon the footer stands on the header's color, so the page is framed by
+   one color at the top and at the bottom. The color the dashboard configures
+   for the footer holds in Papier. This outweighs the footer's own stylesheet,
+   which reads that color from `--footer-bg`. */
+html.dark .footer-root {
+  background: var(--ds-theme-color);
 }
 
 /* The switch between the ways of giving.
@@ -507,6 +774,195 @@ details > summary::-webkit-details-marker {
   .lmaa-ladder-body {
     transition: none;
   }
+}
+
+/* The theme switch in the header.
+   In the wide header it is three segments in the switch above, as tall as the
+   support button beside it. In the narrow one it is a round button showing
+   the choice made, which opens the three choices as a list.
+
+   Which choice is made is read from `data-theme-choice` on the root rather
+   than from the radio buttons. The head script sets it before the first
+   paint, whilst the radio buttons learn the choice only once the switch's own
+   script has run, so the mark would otherwise slide into place on every page
+   that opens. The chosen option states what it shows differently, and every
+   part of the switch reads that with its resting look as the fallback. */
+:root[data-theme-choice="system"] [data-theme-option="system"],
+:root[data-theme-choice="light"] [data-theme-option="light"],
+:root[data-theme-choice="dark"] [data-theme-option="dark"] {
+  --theme-option-ink: var(--ds-header-control-text);
+  --theme-option-fill: var(--ds-accent-tint);
+  --theme-option-shown: 1;
+}
+
+.lmaa-theme-switch {
+  /* As tall as the support button beside it, which is `h-9`. A segment fills
+     that height inside the inset and the frame's edge and is as wide as it is
+     tall, so the mark travels its own width from one segment to the next. */
+  --theme-switch-height: 2.25rem;
+  --theme-segment-size: calc(
+    var(--theme-switch-height) - 2 * var(--segment-inset) - 2 * var(--card-border-width)
+  );
+  /* The chosen segment's place, in the order of `THEME_CHOICES`. */
+  --theme-choice-index: 0;
+  align-items: center;
+  height: var(--theme-switch-height);
+  margin: 0;
+  border: var(--card-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-pill);
+}
+
+:root[data-theme-choice="light"] .lmaa-theme-switch {
+  --theme-choice-index: 1;
+}
+
+:root[data-theme-choice="dark"] .lmaa-theme-switch {
+  --theme-choice-index: 2;
+}
+
+/* The travel is stated in the segment's size rather than as a percentage of
+   the mark's own width. WebKit rounded that percentage of 32.5 px to 33 px, and
+   the mark drifted half a pixel off each segment it passed. */
+.lmaa-theme-switch .lmaa-segment-marker {
+  left: var(--segment-inset);
+  width: var(--theme-segment-size);
+  transform: translateX(calc(var(--theme-choice-index) * var(--theme-segment-size)));
+}
+
+/* A segment stands above the mark, which is positioned and would otherwise
+   cover it. */
+.lmaa-theme-segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--theme-segment-size);
+  height: var(--theme-segment-size);
+  border-radius: var(--ds-radius-pill);
+  color: var(--theme-option-ink, var(--ds-text-subtle));
+  cursor: pointer;
+  transition:
+    color var(--ds-duration-base) var(--ds-ease),
+    box-shadow var(--ds-duration-fast) var(--ds-ease);
+}
+
+.lmaa-theme-segment:hover {
+  color: var(--theme-option-ink, var(--ds-text));
+}
+
+.lmaa-theme-menu {
+  position: relative;
+}
+
+.lmaa-theme-menu > summary {
+  display: grid;
+  place-items: center;
+  border: var(--card-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-pill);
+  color: var(--ds-header-control-text);
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration-base) var(--ds-ease),
+    box-shadow var(--ds-duration-fast) var(--ds-ease);
+}
+
+.lmaa-theme-menu > summary:hover {
+  background: var(--ds-header-control-hover-bg);
+}
+
+/* The button holds all three symbols on one spot and shows the chosen one,
+   so a new choice fades in where the old one fades out. */
+.lmaa-theme-menu > summary > [data-theme-option] {
+  grid-area: 1 / 1;
+  opacity: var(--theme-option-shown, 0);
+  transition: opacity var(--ds-duration-base) var(--ds-ease);
+}
+
+.lmaa-theme-menu-panel {
+  --theme-menu-padding: var(--ds-space-xs);
+  --theme-menu-radius: var(--ds-radius-2xl);
+  position: absolute;
+  top: calc(100% + var(--ds-space-xs));
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+  margin: 0;
+  padding: var(--theme-menu-padding);
+  border: var(--card-border-width) solid var(--ds-border);
+  border-radius: var(--theme-menu-radius);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-md);
+}
+
+/* A row's corner is the list's, less the distance between the two edges. */
+.lmaa-theme-option {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-sm);
+  padding: var(--ds-space-xs) var(--ds-space-sm);
+  border-radius: max(
+    calc(var(--theme-menu-radius) - var(--card-border-width) - var(--theme-menu-padding)),
+    0px
+  );
+  background: var(--theme-option-fill, transparent);
+  color: var(--ds-text);
+  font-size: var(--ds-text-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration-base) var(--ds-ease),
+    box-shadow var(--ds-duration-fast) var(--ds-ease);
+}
+
+.lmaa-theme-option:hover {
+  background: var(--theme-option-fill, var(--ds-control-hover-bg));
+}
+
+.lmaa-theme-option > svg {
+  color: var(--theme-option-ink, var(--ds-text-subtle));
+  transition: color var(--ds-duration-base) var(--ds-ease);
+}
+
+/* Keyboard focus is on the radio button, which is hidden, so the option it
+   belongs to shows it. */
+.lmaa-theme-segment:has(:focus-visible),
+.lmaa-theme-option:has(:focus-visible),
+.lmaa-theme-menu > summary:focus-visible {
+  box-shadow: 0 0 0 2px var(--ds-focus-ring);
+}
+
+/* A menu in the header fades in under its button when it opens and back out
+   when it closes. The header's script holds a closing menu open until its
+   animation has finished, because a closed `details` element hides its
+   contents at once. */
+@keyframes lmaa-disclosure-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--ds-space-xs)));
+  }
+}
+
+@keyframes lmaa-disclosure-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--ds-space-xs)));
+  }
+}
+
+[data-header-disclosure][open] [data-disclosure-panel] {
+  animation: lmaa-disclosure-in var(--ds-duration-fast) var(--ds-ease-out);
+}
+
+[data-header-disclosure].is-closing [data-disclosure-panel] {
+  animation: lmaa-disclosure-out var(--ds-duration-fast) var(--ds-ease-in) forwards;
+}
+
+/* A change of theme crossfades the page as one picture. Left to the elements,
+   those that carry a color transition would fade and the rest would jump, so
+   the change would arrive in two stages. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--ds-duration-slow);
 }
 
 /* A block that names one way to pay stands off the page, so the ways read as
@@ -1064,12 +1520,10 @@ details > summary::-webkit-details-marker {
   gap: var(--ds-space-xs);
   border-radius: var(--radius-control);
   padding: var(--ds-space-xs) var(--ds-space-sm);
-  background: var(--ds-accent);
-  /* White on the accent measures 2.26:1, which is below every threshold there
-     is. The weight carries part of that and cannot carry all of it; the colour
-     of the label is the thing to change, and that is a decision about the
-     design system rather than about this button. */
-  color: var(--ds-accent-fg);
+  /* The theme's filled action, as every other action on the site: ink with
+     paper type in Papier, gold with ink type in Salon. */
+  background: var(--ds-btn-filled-bg);
+  color: var(--ds-btn-filled-fg);
   /* One size for every button on the site, label and symbol alike, so two of
      them side by side read as the same kind of thing. The reading size rather
      than the small one: a button is a thing to hit, not a footnote. */
@@ -1098,7 +1552,7 @@ details > summary::-webkit-details-marker {
 }
 
 .lmaa-invite-action:hover {
-  background: var(--ds-accent-hover);
+  background: var(--ds-btn-filled-hover);
   transform: translateY(-1px);
   box-shadow: var(--ds-shadow-md);
 }

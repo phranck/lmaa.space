@@ -47,8 +47,10 @@ scripts/*
 !scripts/verify-deploy-artifacts.mjs
 !scripts/install-git-hooks.mjs
 !scripts/package-scripts.test.mjs
+!scripts/render-brand-images.mjs
 !scripts/build-brand-marks.mjs
 !scripts/build-brand-marks.test.mjs
+!scripts/center-font-metrics.py
 # Git does not descend into an ignored directory, so scripts/lib has to be
 # opened again before a single file inside it can be allowed through.
 !scripts/lib/

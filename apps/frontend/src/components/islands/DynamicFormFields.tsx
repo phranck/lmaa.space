@@ -325,14 +325,21 @@ function CustomCheckbox({ checked }: { checked: boolean }) {
       className={`shrink-0 size-5 rounded border-2 flex items-center justify-center transition-colors ${
         checked
           ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-          : "bg-white border-[var(--ds-border)]"
+          : "bg-[var(--ds-input-bg)] border-[var(--ds-border)]"
       }`}
     >
       {checked && (
-        <svg width="10" height="8" viewBox="0 0 12 10" fill="none" aria-hidden="true">
+        <svg
+          width="10"
+          height="8"
+          viewBox="0 0 12 10"
+          fill="none"
+          className="text-[var(--ds-accent-on)]"
+          aria-hidden="true"
+        >
           <path
             d="M1 5l3.5 3.5L11 1"
-            stroke="white"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -455,7 +462,7 @@ function MultiSelectDropdown({
       {open && (
         <fieldset
           id={listboxId}
-          className="absolute z-20 w-full mt-1 bg-white border border-[var(--ds-border)] rounded-xl shadow-lg max-h-64 overflow-y-auto"
+          className="absolute z-20 w-full mt-1 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg max-h-64 overflow-y-auto"
         >
           <legend className="sr-only">{label} Optionen</legend>
           <label className="flex items-center gap-3 px-4 py-1.5 cursor-pointer hover:bg-[var(--ds-surface-alt)] select-none border-b border-[var(--ds-border)]">

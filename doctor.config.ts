@@ -92,6 +92,13 @@ export default {
         files: ["src/features/content/donations/charts/FundingProgressBar.tsx"],
         rules: ["react-doctor/prefer-tag-over-role"],
       },
+      // The icon is a box filled with the gold and cut to shape by the drawing
+      // as a mask. An `img` would draw the file itself, whose `currentColor`
+      // an image cannot inherit, so it would come out black.
+      {
+        files: ["src/components/ui/LmaaIcon.tsx"],
+        rules: ["react-doctor/prefer-tag-over-role"],
+      },
       // The date formatters are built once per language and period size and
       // held in a module-level map. The rule sees the constructor inside a
       // function and cannot see the cache around it.

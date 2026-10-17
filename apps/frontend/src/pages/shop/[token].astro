@@ -25,6 +25,7 @@ import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { slugToTitle } from "@/lib/slug";
 import { loadSupportPrompts } from "@/lib/support-prompts";
+import { unsplashAvif } from "@/lib/unsplash-photo";
 
 const { token } = Astro.params;
 
@@ -155,7 +156,7 @@ const metaDescription = shop.description
   {categoryImageUrl && (
     <div class="relative h-52 sm:h-64 overflow-hidden">
       <img
-        src={categoryImageUrl}
+        src={unsplashAvif(categoryImageUrl)}
         alt=""
         aria-hidden="true"
         fetchpriority="high"
@@ -163,7 +164,7 @@ const metaDescription = shop.description
         height={256}
         class="w-full h-full object-cover"
       />
-      <div class="absolute inset-0 bg-stone-900/65"></div>
+      <div class="absolute inset-0 bg-[var(--ds-photo-veil)]"></div>
     </div>
   )}
 
@@ -175,29 +176,32 @@ const metaDescription = shop.description
     <nav class="flex items-center gap-3 mb-8" aria-label="Breadcrumb">
       <a
         href={backHref}
-        class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-stone-600 hover:text-stone-800 hover:bg-stone-100 transition-colors"
+        class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-control-hover-bg)] transition-colors"
         aria-label="Zurück"
       >
         <ArrowLeftIcon weight="bold" className="w-4 h-4" />
       </a>
-      <ol class="flex items-center gap-1.5 text-sm text-stone-600 min-w-0">
+      <ol class="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)] min-w-0">
         {breadcrumb.map((item, i) => (
           <li class="flex items-center gap-1.5 min-w-0">
             {i > 0 && (
-              <span class="text-stone-300 shrink-0" aria-hidden="true">
+              <span class="text-[var(--ds-text-placeholder)] shrink-0" aria-hidden="true">
                 ›
               </span>
             )}
-            <a href={item.href} class="hover:text-amber-700 transition-colors truncate">
+            <a
+              href={item.href}
+              class="hover:text-[var(--ds-accent-text)] transition-colors truncate"
+            >
               {item.label}
             </a>
           </li>
         ))}
         <li class="flex items-center gap-1.5 min-w-0">
-          <span class="text-stone-300 shrink-0" aria-hidden="true">
+          <span class="text-[var(--ds-text-placeholder)] shrink-0" aria-hidden="true">
             ›
           </span>
-          <span class="text-stone-600 truncate">{shop.name}</span>
+          <span class="text-[var(--ds-text-muted)] truncate">{shop.name}</span>
         </li>
       </ol>
     </nav>
@@ -227,12 +231,12 @@ const metaDescription = shop.description
       <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-start gap-3">
           <div class="min-w-0 flex-1">
-            <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-stone-900 leading-tight">
+            <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-[var(--ds-text)] leading-tight">
               <a
                 href={visitUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="transition-colors hover:text-amber-700"
+                class="transition-colors hover:text-[var(--ds-accent-text)]"
                 data-analytics-event="shop-visit-click"
                 data-analytics-source="shop-detail-name"
                 data-shop-id={String(shop.id)}
@@ -246,7 +250,7 @@ const metaDescription = shop.description
               href={visitUrl}
               target="_blank"
               rel="noopener noreferrer"
-              class="text-sm text-stone-600 hover:text-amber-700 transition-colors mt-1 inline-block"
+              class="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-accent-text)] transition-colors mt-1 inline-block"
             >
               {domain}
             </a>
@@ -255,7 +259,7 @@ const metaDescription = shop.description
           <div class="flex items-stretch gap-3 shrink-0">
             {hasHq && (
               <Fragment>
-                <address class="hidden sm:block text-sm text-stone-700 not-italic leading-relaxed text-right">
+                <address class="hidden sm:block text-sm text-[var(--ds-text-muted)] not-italic leading-relaxed text-right">
                   {hqParts.map((part, i) => (
                     <Fragment>
                       {i > 0 && <br />}
@@ -263,7 +267,7 @@ const metaDescription = shop.description
                     </Fragment>
                   ))}
                 </address>
-                <div class="hidden sm:block w-px bg-stone-200" aria-hidden="true" />
+                <div class="hidden sm:block w-px bg-[var(--ds-border)]" aria-hidden="true" />
               </Fragment>
             )}
             <div class="flex flex-col items-center gap-1">
@@ -274,7 +278,7 @@ const metaDescription = shop.description
               <button
                 type="button"
                 class:list={[
-                  "like-btn h-9 px-2 inline-flex items-center rounded-full border border-stone-300 bg-white text-stone-500 hover:border-red-300 hover:text-red-500 cursor-pointer relative overflow-visible",
+                  "like-btn h-9 px-2 inline-flex items-center rounded-full border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text-subtle)] hover:border-red-300 hover:text-red-500 cursor-pointer relative overflow-visible",
                   shop.likeCount > 0 && "has-count",
                 ]}
                 data-action="like"
@@ -301,7 +305,7 @@ const metaDescription = shop.description
               </button>
               <button
                 type="button"
-                class="w-9 h-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-amber-700 hover:bg-stone-100 transition-colors cursor-pointer"
+                class="w-9 h-9 flex items-center justify-center rounded-lg text-[var(--ds-text-subtle)] hover:text-[var(--ds-accent-text)] hover:bg-[var(--ds-control-hover-bg)] transition-colors cursor-pointer"
                 data-action="share"
                 data-share-url={`${site}/shop/${shopToken}`}
                 data-share-title={shop.name}
@@ -319,7 +323,7 @@ const metaDescription = shop.description
     {descriptionHtml && (
       <section class="mb-8">
         <div
-          class="text-sm sm:text-base text-stone-600 leading-relaxed prose prose-stone max-w-none prose-p:my-3 prose-a:text-amber-700 prose-headings:font-serif"
+          class="text-sm sm:text-base leading-relaxed prose max-w-none prose-p:my-3 prose-headings:font-serif"
           set:html={descriptionHtml}
         />
       </section>
@@ -343,35 +347,50 @@ const metaDescription = shop.description
     <!-- Info grid -->
     <div class="grid sm:grid-cols-2 gap-4 mb-8">
       {shop.shipping && (
-        <div class="flex items-start gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100">
-          <PackageIcon weight="duotone" className="w-5 h-5 text-stone-400 shrink-0 mt-0.5" />
+        <div class="flex items-start gap-3 p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+          <PackageIcon
+            weight="duotone"
+            className="w-5 h-5 text-[var(--ds-text-subtle)] shrink-0 mt-0.5"
+          />
           <div>
-            <p class="text-xs font-medium text-stone-600 uppercase tracking-wide mb-1">Versand</p>
-            <p class="text-sm text-stone-700">{shop.shipping}</p>
+            <p class="text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide mb-1">
+              Versand
+            </p>
+            <p class="text-sm text-[var(--ds-text-muted)]">{shop.shipping}</p>
           </div>
         </div>
       )}
 
       {shop.pickup && (
-        <div class="flex items-start gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100">
-          <StorefrontIcon weight="duotone" className="w-5 h-5 text-stone-400 shrink-0 mt-0.5" />
+        <div class="flex items-start gap-3 p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+          <StorefrontIcon
+            weight="duotone"
+            className="w-5 h-5 text-[var(--ds-text-subtle)] shrink-0 mt-0.5"
+          />
           <div>
-            <p class="text-xs font-medium text-stone-600 uppercase tracking-wide mb-1">Abholung</p>
-            <p class="text-sm text-stone-700">{shop.pickup}</p>
+            <p class="text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide mb-1">
+              Abholung
+            </p>
+            <p class="text-sm text-[var(--ds-text-muted)]">{shop.pickup}</p>
           </div>
         </div>
       )}
 
       {shop.paymentMethods?.length > 0 && (
-        <div class="p-4 rounded-2xl bg-stone-50 border border-stone-100 sm:col-span-2">
+        <div class="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] sm:col-span-2">
           <div class="mb-3 flex items-center gap-2">
-            <CreditCardIcon weight="duotone" className="size-5 shrink-0 text-stone-400" />
-            <p class="text-xs font-medium text-stone-600 uppercase tracking-wide">Zahlungsarten</p>
+            <CreditCardIcon
+              weight="duotone"
+              className="size-5 shrink-0 text-[var(--ds-text-subtle)]"
+            />
+            <p class="text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
+              Zahlungsarten
+            </p>
           </div>
           <PaymentMethodIcons
             methods={shop.paymentMethods}
             locale="de"
-            className="gap-3 pl-7 text-stone-400"
+            className="gap-3 pl-7 text-[var(--ds-text-subtle)]"
             showLabels={false}
             iconSize={48}
           />
@@ -389,7 +408,7 @@ const metaDescription = shop.description
           {shop.categories?.map((cat) => (
             <a
               href={`/category/${cat.slug}`}
-              class="px-3 py-1.5 rounded-full text-sm font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
+              class="px-3 py-1.5 rounded-full text-sm font-medium bg-[var(--ds-accent-tint)] text-[var(--ds-accent-text)] hover:bg-[var(--ds-accent-tint-strong)] transition-colors"
               data-analytics-event="category-click"
               data-analytics-source="shop-detail"
               data-category-id={String(cat.id)}
@@ -429,7 +448,7 @@ const metaDescription = shop.description
           latitude={hq.latitude}
           longitude={hq.longitude}
           name={shop.name}
-          className="rounded-[var(--map-radius)] border border-stone-100 h-100"
+          className="rounded-[var(--map-radius)] border border-[var(--ds-border-subtle)] h-100"
         />
       </section>
     )}
@@ -450,7 +469,7 @@ const metaDescription = shop.description
           href={`https://www.openstreetmap.org/directions?to=${hq.latitude},${hq.longitude}#map=15/${hq.latitude}/${hq.longitude}`}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1.5 text-sm text-stone-600 hover:text-amber-700 transition-colors"
+          class="inline-flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-accent-text)] transition-colors"
         >
           Route planen ↗
         </a>
@@ -458,7 +477,7 @@ const metaDescription = shop.description
       <div class="flex items-center gap-4" data-shop-actions>
         <button
           type="button"
-          class="text-sm text-stone-500 hover:text-red-500 transition-colors"
+          class="text-sm text-[var(--ds-text-subtle)] hover:text-[var(--ds-danger-text)] transition-colors"
           data-action="dead-link"
           data-shop-id={shop.id}
           data-dialog={deadDialogId}
@@ -468,7 +487,7 @@ const metaDescription = shop.description
         </button>
         <button
           type="button"
-          class="text-sm text-stone-500 hover:text-red-500 transition-colors"
+          class="text-sm text-[var(--ds-text-subtle)] hover:text-[var(--ds-danger-text)] transition-colors"
           data-action="report"
           data-shop-id={shop.id}
           data-dialog={reportDialogId}

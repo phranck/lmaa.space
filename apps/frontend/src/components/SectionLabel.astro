@@ -6,6 +6,8 @@ interface Props {
 const { class: className = "" } = Astro.props;
 ---
 
-<h2 class={`text-base font-semibold uppercase tracking-widest text-stone-600 ${className}`}>
+<h2
+  class={`text-base font-semibold uppercase tracking-widest text-[var(--ds-text-muted)] ${className}`}
+>
   <slot />
 </h2>

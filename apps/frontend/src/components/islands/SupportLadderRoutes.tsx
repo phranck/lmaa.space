@@ -10,10 +10,14 @@ import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 
 import { PAYMENT_METHOD_MAP } from "@lmaa/ui";
 
+import githubLockupSvg from "@/assets/brands/github-lockup.svg?raw";
 import githubLockupUrl from "@/assets/brands/github-lockup.svg?url";
+import paypalLockupSvg from "@/assets/brands/paypal-lockup.svg?raw";
 import paypalLockupUrl from "@/assets/brands/paypal-lockup.svg?url";
+import sepaLockupSvg from "@/assets/brands/sepa-lockup.svg?raw";
 import sepaLockupUrl from "@/assets/brands/sepa-lockup.svg?url";
 import { NoticeCard } from "@/components/NoticeCard";
+import { salonLockupUrl } from "@/lib/brand-lockups";
 import type { SupportLadderRoute } from "@/lib/content-shortcode-segments";
 
 import { RichText } from "./SupportLadderAmounts.tsx";
@@ -37,17 +41,30 @@ const ROUTE_ICON_PX = 72;
 const BRAND_MARK_PX = 102;
 
 /**
- * The logos a brand publishes itself, each taken from that brand's own pack.
+ * The logos a brand publishes itself, each taken from that brand's own pack,
+ * with their rendition for Salon's dark cards from `brand-lockups.ts`.
  *
  * They are used where a block is that brand's route out of the page, which is
  * what the trademark holders permit their marks to be used for.
  */
-const BRAND_MARKS: Record<string, { url: string; width: number }> = {
-  github: { url: githubLockupUrl, width: BRAND_MARK_PX },
-  sepa: { url: sepaLockupUrl, width: BRAND_MARK_PX },
+const BRAND_MARKS: Record<string, { url: string; salonUrl: string; width: number }> = {
+  github: {
+    url: githubLockupUrl,
+    salonUrl: salonLockupUrl("github", githubLockupSvg),
+    width: BRAND_MARK_PX,
+  },
+  sepa: {
+    url: sepaLockupUrl,
+    salonUrl: salonLockupUrl("sepa", sepaLockupSvg),
+    width: BRAND_MARK_PX,
+  },
   // PayPal draws its lockup without the margin GitHub builds into theirs, so it
   // is set two pixels narrower to carry the same weight beside it.
-  paypal: { url: paypalLockupUrl, width: BRAND_MARK_PX - 2 },
+  paypal: {
+    url: paypalLockupUrl,
+    salonUrl: salonLockupUrl("paypal", paypalLockupSvg),
+    width: BRAND_MARK_PX - 2,
+  },
 };
 
 /**
@@ -70,14 +87,25 @@ export function RouteIcon({ name }: { name?: string }) {
 
   const lockup = BRAND_MARKS[name];
   if (lockup) {
+    // Both are in the page and the theme shows one of them, so a change of
+    // theme needs no render and the first paint already shows the right one.
     return (
-      <img
-        src={lockup.url}
-        alt=""
-        aria-hidden="true"
-        className="shrink-0"
-        style={{ width: lockup.width, height: "auto" }}
-      />
+      <>
+        <img
+          src={lockup.url}
+          alt=""
+          aria-hidden="true"
+          className="shrink-0 dark:hidden"
+          style={{ width: lockup.width, height: "auto" }}
+        />
+        <img
+          src={lockup.salonUrl}
+          alt=""
+          aria-hidden="true"
+          className="shrink-0 hidden dark:block"
+          style={{ width: lockup.width, height: "auto" }}
+        />
+      </>
     );
   }
 

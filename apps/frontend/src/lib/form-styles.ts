@@ -7,13 +7,22 @@
  */
 
 /**
+ * The colours of a field: its edge, its ground, its type, its placeholder and
+ * its focus ring, all from the theme.
+ *
+ * Kept apart from the geometry, because the search fields and the filter bar
+ * size their fields themselves and still have to look like every other field.
+ */
+export const fieldColorsClass =
+  "border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]";
+
+/**
  * One line of input: a text field, a select, or a textarea with its own height.
  *
  * Its height is the one every control in a website form takes, so a dropdown
  * beside it reads the same token rather than a number of its own.
  */
-export const inputClass =
-  "w-full px-3 h-[var(--ds-control-h-field-large)] border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
+export const inputClass = `w-full px-3 h-[var(--ds-control-h-field-large)] rounded-control text-sm ${fieldColorsClass}`;
 
 /** What a field says when what was typed does not hold up. */
 export const errorClass = "text-[var(--ds-danger-text)] text-xs mt-1";

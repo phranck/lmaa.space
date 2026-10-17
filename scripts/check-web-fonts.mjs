@@ -1,37 +1,25 @@
 #!/usr/bin/env node
 
+import { readFileSync, readdirSync } from "node:fs";
 import { access, readFile, readdir } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const EXPECTED_FONT_FILES = [
-  "barlow-400-italic-latin-ext.woff2",
-  "barlow-400-italic-latin.woff2",
-  "barlow-400-latin-ext.woff2",
-  "barlow-400-latin.woff2",
-  "barlow-500-italic-latin-ext.woff2",
-  "barlow-500-italic-latin.woff2",
-  "barlow-500-latin-ext.woff2",
-  "barlow-500-latin.woff2",
-  "barlow-600-italic-latin-ext.woff2",
-  "barlow-600-italic-latin.woff2",
-  "barlow-600-latin-ext.woff2",
-  "barlow-600-latin.woff2",
-  "barlow-condensed-400.woff2",
-  "barlow-condensed-500.woff2",
-  "barlow-condensed-600.woff2",
-  "barlow-condensed-700.woff2",
-  "barlow-condensed-800.woff2",
-  "dynapuff-500.woff2",
-  "dynapuff-600.woff2",
-];
+const FONT_DIRECTORY = new URL("../apps/frontend/src/assets/fonts/", import.meta.url);
+const LAYOUT = new URL("../apps/frontend/src/layouts/BaseLayout.astro", import.meta.url);
 
+/**
+ * Every font file the website ships, read from the folder that holds them, so
+ * a face added there is expected here without a second list to keep in step.
+ */
+export const EXPECTED_FONT_FILES = readdirSync(FONT_DIRECTORY)
+  .filter((name) => name.endsWith(".woff2"))
+  .sort();
+
+/** The font files the layout preloads, read from its `?url` imports. */
 export const CRITICAL_FONT_FILES = [
-  "barlow-condensed-400.woff2",
-  "barlow-condensed-600.woff2",
-  "barlow-condensed-700.woff2",
-  "dynapuff-500.woff2",
-];
+  ...readFileSync(LAYOUT, "utf8").matchAll(/@\/assets\/fonts\/([\w-]+\.woff2)\?url/g),
+].map((match) => match[1]);
 
 function invariant(condition, message) {
   if (!condition) throw new Error(message);

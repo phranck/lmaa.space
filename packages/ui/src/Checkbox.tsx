@@ -45,7 +45,9 @@ export function Checkbox({
             : "border-[var(--ds-border-strong)]"
         }`}
       >
-        {checked && <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+        {checked && (
+          <CheckIcon className="h-2.5 w-2.5 text-[var(--ds-accent-on)]" strokeWidth={3} />
+        )}
       </span>
       {label && <span className="text-sm text-[var(--ds-text)]">{label}</span>}
     </label>

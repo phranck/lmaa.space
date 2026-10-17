@@ -4,13 +4,15 @@ import type { NavItem } from "@lmaa/shared";
 
 import barlowCondensed400Url from "@/assets/fonts/barlow-condensed-400.woff2?url";
 import barlowCondensed600Url from "@/assets/fonts/barlow-condensed-600.woff2?url";
-import barlowCondensed700Url from "@/assets/fonts/barlow-condensed-700.woff2?url";
-import dynaPuff500Url from "@/assets/fonts/dynapuff-500.woff2?url";
 import Footer from "@/components/Footer.astro";
 import type { SocialMediaProfile } from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
 import { apiGet } from "@/lib/api";
 import { ANALYTICS_SCRIPT_INTEGRITY, ANALYTICS_SCRIPT_URL } from "@/lib/csp";
+// In the frontmatter, so that the dev server serves the theme in the head as
+// the build does. A stylesheet that a script imports arrives after the first
+// paint, and the page would show without its colors until then.
+import "@/styles/global.css";
 
 interface Props {
   title?: string;
@@ -19,6 +21,11 @@ interface Props {
   ogImage?: string;
   noindex?: boolean;
   jsonLd?: Record<string, unknown>;
+  /**
+   * Display cuts the page's first screen sets beyond the ones every page
+   * does, as `?url` imports of files in `src/assets/fonts`.
+   */
+  fontPreloads?: string[];
 }
 
 const {
@@ -28,6 +35,7 @@ const {
   ogImage,
   noindex = false,
   jsonLd,
+  fontPreloads = [],
 } = Astro.props;
 
 const siteTitle = title
@@ -39,12 +47,11 @@ const canonical =
 const defaultOgImage = new URL("/og-image.jpg", publicSite).href;
 let resolvedOgImage = ogImage ?? defaultOgImage;
 
-const criticalFontPreloads = [
-  barlowCondensed400Url,
-  barlowCondensed600Url,
-  barlowCondensed700Url,
-  dynaPuff500Url,
-] as const;
+// The display cuts the first screen of every page sets: the navigation and the
+// headings in Barlow Condensed 400 and 600, and a page's own on top. The
+// display faces wait for their files rather than paint a fallback, so a cut
+// that is not preloaded leaves its text blank for a moment.
+const criticalFontPreloads = [barlowCondensed400Url, barlowCondensed600Url, ...fontPreloads];
 
 function withPreviewVersion(url: string, version: string): string {
   const versionedUrl = new URL(url);
@@ -97,7 +104,10 @@ try {
 ---
 
 <!doctype html>
-<html lang="de" data-theme="theme-autumn">
+{/* The head script puts the visitor's theme only on a page whose root carries
+    `data-theme-choice`. System stands until it has read the choice, and is
+    what a browser without scripts keeps. */}
+<html lang="de" data-theme-choice="system">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -111,7 +121,7 @@ try {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" href="/favicon.png" />
 
-    <!-- Build-resolved critical fonts for navigation, headings, and the hero logo. -->
+    <!-- Build-resolved critical fonts for navigation and headings. -->
     {criticalFontPreloads.map((href) => (
       <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
     ))}
@@ -130,8 +140,9 @@ try {
     <!-- JSON-LD -->
     {jsonLd && <script is:inline type="application/ld+json" set:html={serializeJsonLd(jsonLd)} />}
 
-    <!-- Theme color -->
-    <meta name="theme-color" content="#1C1917" />
+    {/* The color of the browser's own bar, which the head script fills in from
+        the theme's `--ds-theme-color` before the first paint. */}
+    <meta name="theme-color" content="" />
 
     {/* Umami Analytics (privacy-friendly, no cookies).
 
@@ -157,7 +168,6 @@ try {
     </main>
     <Footer config={footerConfig} navItems={footerNav} socialMediaProfiles={socialMediaProfiles} />
     <script>
-      import "@/styles/global.css";
       import "@/scripts/hls-video.ts";
       import "@/scripts/shop-actions.ts";
       import "@/scripts/site-analytics.ts";

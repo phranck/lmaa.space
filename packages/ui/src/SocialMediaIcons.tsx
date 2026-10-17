@@ -68,14 +68,19 @@ export function SocialMediaIcons({
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-stone-400 hover:text-stone-600 transition-colors"
+            className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
             aria-label={label}
             title={label}
           >
             {mark}
           </a>
         ) : (
-          <span key={`${key}-${url}`} className="text-stone-400" aria-label={label} title={label}>
+          <span
+            key={`${key}-${url}`}
+            className="text-[var(--ds-text-muted)]"
+            aria-label={label}
+            title={label}
+          >
             {mark}
           </span>
         );

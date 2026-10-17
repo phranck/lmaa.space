@@ -100,14 +100,17 @@ export default function FilterableCategoryShops({
     <>
       {/* Breadcrumb + Filter toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
-        <nav className="flex items-center gap-1.5 text-sm text-stone-400" aria-label="Breadcrumb">
-          <a href="/" className="hover:text-amber-700 transition-colors">
+        <nav
+          className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]"
+          aria-label="Breadcrumb"
+        >
+          <a href="/" className="hover:text-[var(--ds-accent-text)] transition-colors">
             Start
           </a>
-          <span className="text-stone-300" aria-hidden="true">
+          <span className="text-[var(--ds-text-placeholder)]" aria-hidden="true">
             ›
           </span>
-          <span className="text-stone-600">{categoryName}</span>
+          <span className="text-[var(--ds-text-muted)]">{categoryName}</span>
         </nav>
         <FilterToggleButton
           showFilter={showFilter}
@@ -131,8 +134,8 @@ export default function FilterableCategoryShops({
 
       {/* Shop grid */}
       {shops.length === 0 ? (
-        <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
-          <p className="text-stone-500">
+        <div className="text-center py-20 bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)]">
+          <p className="text-[var(--ds-text-subtle)]">
             {filtersActive
               ? "Keine Shops in dieser Kategorie für diesen Filter gefunden."
               : "Noch keine Shops in dieser Kategorie."}
@@ -140,7 +143,7 @@ export default function FilterableCategoryShops({
           {!filtersActive && (
             <a
               href="/suggestion"
-              className="inline-block mt-5 px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
+              className="inline-block mt-5 px-6 py-3 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-xl text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
             >
               Ersten Shop vorschlagen
             </a>
