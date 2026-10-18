@@ -8,6 +8,9 @@ const hydrateShopOgImageInBackground = vi.fn();
 const setAdminShopOgImage = vi.fn();
 const dispatchTemplateAssignments = vi.fn();
 const recordBackgroundError = vi.fn();
+const getEmailTemplateById = vi.fn();
+const renderEmailTemplate = vi.fn();
+const sendMail = vi.fn();
 
 async function loadServiceModule() {
   vi.resetModules();
@@ -17,6 +20,7 @@ async function loadServiceModule() {
       NODE_ENV: "test",
       SMTP2GO_API_KEY: "",
       EMAIL_FROM: "test@test.com",
+      FRONTEND_URL: "https://lmaa.space",
       LOG_LEVEL: "silent",
     },
   }));
@@ -48,6 +52,18 @@ async function loadServiceModule() {
     recordBackgroundError,
   }));
 
+  vi.doMock("../repositories/email-templates.js", () => ({
+    getEmailTemplateById,
+  }));
+
+  vi.doMock("../services/email-renderer.js", () => ({
+    renderEmailTemplate,
+  }));
+
+  vi.doMock("../services/email.js", () => ({
+    sendMail,
+  }));
+
   return import("../services/admin-submissions.js");
 }
 
@@ -66,6 +82,9 @@ describe("admin-submissions service", () => {
     dispatchTemplateAssignments.mockReset();
     recordBackgroundError.mockReset();
     recordBackgroundError.mockResolvedValue(undefined);
+    getEmailTemplateById.mockReset();
+    renderEmailTemplate.mockReset();
+    sendMail.mockReset();
   });
 
   it("allows deleting onhold submissions", async () => {
@@ -224,6 +243,42 @@ describe("admin-submissions service", () => {
       ok: true,
       submission: expect.objectContaining({ logoBackgroundColor: null }),
     });
+  });
+
+  it("gives approval emails the canonical readable shop page URL", async () => {
+    const submission = {
+      id: 4,
+      shopName: "Good Karma Coffee",
+      shopUrl: "https://goodkarma.example",
+      submitterEmail: "person@example.com",
+      ogImage: "https://cdn.example.com/preview.png",
+      rejectionToken: null,
+    };
+    reviewSubmission.mockResolvedValue({
+      submission,
+      newShop: { id: 16, slug: "good-karma-coffee", url: submission.shopUrl },
+      conflict: null,
+    });
+    getEmailTemplateById.mockResolvedValue({ id: 9 });
+    renderEmailTemplate.mockResolvedValue({ subject: "Accepted", html: "<p>Accepted</p>" });
+    sendMail.mockResolvedValue(undefined);
+    const service = await loadServiceModule();
+
+    await service.reviewAdminSubmission({
+      id: 4,
+      status: "approved",
+      adminId: 1,
+      notificationTemplateId: 9,
+    });
+    await flushPromises();
+
+    expect(renderEmailTemplate).toHaveBeenCalledWith(
+      { id: 9 },
+      expect.objectContaining({
+        shopUrl: "https://goodkarma.example",
+        shopPageUrl: "https://lmaa.space/shop/good-karma-coffee",
+      }),
+    );
   });
 
   it("forwards templateAssignments to the dispatcher with submission context", async () => {
