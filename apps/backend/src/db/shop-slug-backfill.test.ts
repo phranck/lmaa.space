@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it, vi } from "vitest";
 
 import { backfillShopSlugs, repairShopSlugs } from "./shop-slug-backfill.js";
+import { SHOP_SLUG_ALLOCATION_LOCK } from "./shop-slug-lock.js";
 
 describe("backfillShopSlugs", () => {
   it("assigns deterministic canonical slugs only to shops that lack one", async () => {
@@ -35,15 +38,14 @@ describe("backfillShopSlugs", () => {
     ]);
   });
 
-  it("repairs artificial suffixes while retaining their former paths as aliases", async () => {
-    const inserts: Array<[string, number]> = [];
+  it("repairs a canonical slug without creating an alias", async () => {
     const updates: Array<[string, number]> = [];
     const sql = vi.fn((parts: TemplateStringsArray, ...values: unknown[]) => {
       const query = parts.join("?");
-      if (query.includes('SELECT slug, shop_id AS "shopId", canonical')) {
+      if (query.includes('SELECT slug, shop_id AS "shopId"')) {
         return Promise.resolve([
-          { slug: "kaoskvlt-2", shopId: 7, canonical: true },
-          { slug: "stable-shop", shopId: 8, canonical: true },
+          { slug: "kaoskvlt-2", shopId: 7 },
+          { slug: "stable-shop", shopId: 8 },
         ]);
       }
       if (query.includes("SELECT id, name")) {
@@ -51,10 +53,6 @@ describe("backfillShopSlugs", () => {
           { id: 7, name: "KaosKvlt" },
           { id: 8, name: "Stable Shop" },
         ]);
-      }
-      if (query.includes("INSERT INTO shop_slugs")) {
-        inserts.push(values as [string, number]);
-        return Promise.resolve([]);
       }
       if (query.includes("UPDATE shop_slugs")) {
         updates.push(values as [string, number]);
@@ -64,29 +62,41 @@ describe("backfillShopSlugs", () => {
     });
 
     await expect(repairShopSlugs(sql as never)).resolves.toEqual({ repaired: 1 });
-    expect(inserts).toEqual([["kaoskvlt", 7]]);
     expect(updates).toEqual([["kaoskvlt", 7]]);
   });
 
-  it("promotes an existing historical slug without inserting it again", async () => {
+  it("makes reconciliation idempotent once every shop has one canonical row", async () => {
     const queries: string[] = [];
     const sql = vi.fn((parts: TemplateStringsArray) => {
       const query = parts.join("?");
       queries.push(query);
-      if (query.includes('SELECT slug, shop_id AS "shopId", canonical')) {
-        return Promise.resolve([
-          { slug: "kaoskvlt", shopId: 7, canonical: false },
-          { slug: "kaoskvlt-2", shopId: 7, canonical: true },
-        ]);
+      if (query.includes('SELECT slug, shop_id AS "shopId"')) {
+        return Promise.resolve([{ slug: "kaoskvlt", shopId: 7 }]);
       }
       if (query.includes("SELECT id, name")) {
         return Promise.resolve([{ id: 7, name: "KaosKvlt" }]);
       }
-      if (query.includes("UPDATE shop_slugs")) return Promise.resolve([]);
       throw new Error(`Unexpected query: ${query}`);
     });
 
-    await expect(repairShopSlugs(sql as never)).resolves.toEqual({ repaired: 1 });
-    expect(queries.filter((query) => query.includes("INSERT INTO shop_slugs"))).toHaveLength(0);
+    await expect(repairShopSlugs(sql as never)).resolves.toEqual({ repaired: 0 });
+    expect(queries.filter((query) => query.includes("UPDATE shop_slugs"))).toHaveLength(0);
+  });
+
+  it("locks allocation, deletes aliases, and enforces one slug per shop in the migration", () => {
+    const migration = readFileSync(
+      new URL("../../drizzle/0104_nosy_tempest.sql", import.meta.url),
+      "utf8",
+    );
+
+    expect(migration.indexOf(`pg_advisory_xact_lock(${SHOP_SLUG_ALLOCATION_LOCK})`)).toBeLessThan(
+      migration.indexOf('DELETE FROM "shop_slugs" WHERE "canonical" = false'),
+    );
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "shop_slugs_shop_id_unique" ON "shop_slugs" USING btree ("shop_id")',
+    );
+    expect(migration).toContain(
+      'ADD CONSTRAINT "shop_slugs_canonical_check" CHECK ("shop_slugs"."canonical" = true)',
+    );
   });
 });

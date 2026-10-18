@@ -9,7 +9,7 @@
 ## Bucket Keys
 
 - A key uses `{routePath}:{clientIp}`, which names the matched route rather than the requested path.
-- `/shops/:identifier` is one bucket regardless of which slug or legacy token is requested. `/shops/id/:token` is a separate bucket for namespaced token requests.
+- `/shops/:identifier` is one bucket regardless of which canonical slug or temporary legacy token is requested.
 - The path contains an identifier selected by the caller. Including it in the key would give every attempt its own bucket and prevent the limit from stopping the enumeration it protects against.
 - Entries written with an older key format expire by themselves and require no migration.
 

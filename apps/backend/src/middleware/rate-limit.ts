@@ -200,9 +200,9 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
  *
  * @remarks
  * Hidden behavior:
- * - Keying strategy is `"{routePath}:{clientIp}"`, so each of
- *   `/shops/:identifier` and `/shops/id/:token` is one bucket whichever
- *   identifier was asked for. Keying on the requested path instead
+ * - Keying strategy is `"{routePath}:{clientIp}"`, so
+ *   `/shops/:identifier` is one bucket whichever identifier was asked for.
+ *   Keying on the requested path instead
  *   would give every identifier its own bucket, and a caller working through
  *   identifiers would never be refused.
  * - Requests presenting the configured `INTERNAL_API_TOKEN` skip the limit

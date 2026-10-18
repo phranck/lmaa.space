@@ -242,20 +242,7 @@ export async function getManagedPublicShopById(id: number) {
 }
 
 /**
- * Resolves a public shop from an explicitly namespaced Sqid token.
- *
- * @param token - Encoded persisted shop identifier.
- * @returns Full public shop payload, or a typed not-found result.
- */
-export async function getManagedPublicShopByToken(token: string) {
-  const id = decodeShopToken(token);
-  if (id === null) return failure("not_found");
-  return getManagedPublicShopById(id);
-}
-
-/**
- * Resolves a public shop from either its canonical or historical slug, or its
- * legacy unprefixed Sqid token.
+ * Resolves a public shop from its canonical slug or a temporary legacy Sqid.
  *
  * @param identifier - Validated lowercase path segment from the public route.
  * @returns Full public shop payload, including its current canonical slug, or
@@ -263,8 +250,9 @@ export async function getManagedPublicShopByToken(token: string) {
  */
 export async function getManagedPublicShopByIdentifier(identifier: string) {
   const slugMatch = await findPublicShopBySlug(identifier);
-  if (slugMatch) return getManagedPublicShopById(slugMatch.id);
-  return getManagedPublicShopByToken(identifier);
+  const id = slugMatch?.id ?? decodeShopToken(identifier);
+  if (id === null) return failure("not_found");
+  return getManagedPublicShopById(id);
 }
 
 /**

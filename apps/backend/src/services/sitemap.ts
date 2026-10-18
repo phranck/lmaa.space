@@ -99,7 +99,6 @@ export async function generateSitemapXml(): Promise<string> {
           eq(shops.visibility, "public"),
         ),
       )
-      .where(eq(shopSlugs.canonical, true))
       .orderBy(shopSlugs.slug),
   ]);
 

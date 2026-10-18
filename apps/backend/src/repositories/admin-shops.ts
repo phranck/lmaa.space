@@ -65,7 +65,7 @@ export interface UpdateAdminShopData {
 export async function listAdminShops(visibility?: ShopVisibility): Promise<AdminShopListItem[]> {
   const rows = await db.execute<AdminShopListItem & Record<string, unknown>>(sql`
     SELECT s.id, s.name,
-           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
            s.url, s.region,
            s.description,
            s.shipping,
@@ -125,7 +125,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
 export async function getAdminShopById(id: number): Promise<SharedShop | null> {
   const [shop] = await db.execute<SharedShop & Record<string, unknown>>(sql`
     SELECT s.id, s.name,
-           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
            s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.logo_background_color as "logoBackgroundColor",
            s.contact_email as "contactEmail",

@@ -27,7 +27,7 @@ export function issuedShopTokens(shopIds: Iterable<number>): Set<string> {
  * valid readable slugs.
  *
  * @param name - Current public shop name.
- * @param unavailable - Canonical and historical slugs owned by other shops.
+ * @param unavailable - Canonical slugs and issued legacy tokens unavailable to this shop.
  * @returns The first deterministic candidate outside both unavailable sets.
  */
 export function allocateShopSlug(name: string, unavailable: ReadonlySet<string>): string {

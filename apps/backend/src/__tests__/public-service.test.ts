@@ -68,7 +68,6 @@ import {
   getManagedPublicRejectedShops,
   getManagedPublicShopById,
   getManagedPublicShopByIdentifier,
-  getManagedPublicShopByToken,
   getManagedPublicShops,
   getManagedPublicStats,
   getPublicFilterOptions,
@@ -212,11 +211,10 @@ describe("getManagedPublicShopById", () => {
 describe("getManagedPublicShopByIdentifier", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("resolves a canonical or historical slug before loading the shop", async () => {
+  it("resolves a canonical slug before loading the shop", async () => {
     shopSlugMocks.findPublicShopBySlug.mockResolvedValue({
       id: 7,
       slug: "current-name",
-      canonical: false,
     });
     publicRepoMocks.getFullPublicShopById.mockResolvedValue({
       id: 7,
@@ -225,7 +223,7 @@ describe("getManagedPublicShopByIdentifier", () => {
     });
     headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(new Map());
 
-    const result = await getManagedPublicShopByIdentifier("old-name");
+    const result = await getManagedPublicShopByIdentifier("current-name");
 
     expect(result).toMatchObject({ ok: true, data: { id: 7, slug: "current-name" } });
   });
@@ -245,22 +243,10 @@ describe("getManagedPublicShopByIdentifier", () => {
     expect(publicRepoMocks.getFullPublicShopById).toHaveBeenCalledWith(7);
   });
 
-  it("resolves a token through the explicit ID namespace", async () => {
-    publicRepoMocks.getFullPublicShopById.mockResolvedValue({
-      id: 7,
-      name: "Current Name",
-      slug: "current-name",
-    });
-    headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(new Map());
+  it("does not resolve a former readable slug", async () => {
+    shopSlugMocks.findPublicShopBySlug.mockResolvedValue(null);
 
-    const result = await getManagedPublicShopByToken(encodeShopToken(7));
-
-    expect(result).toMatchObject({ ok: true, data: { id: 7, slug: "current-name" } });
-    expect(shopSlugMocks.findPublicShopBySlug).not.toHaveBeenCalled();
-  });
-
-  it("rejects an invalid token in the explicit ID namespace", async () => {
-    await expect(getManagedPublicShopByToken("not-a-token")).resolves.toEqual({
+    await expect(getManagedPublicShopByIdentifier("old-name")).resolves.toEqual({
       ok: false,
       reason: "not_found",
     });

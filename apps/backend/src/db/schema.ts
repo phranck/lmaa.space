@@ -127,10 +127,10 @@ export const shops = pgTable(
 );
 
 /**
- * Canonical and historical public paths for shops.
+ * The sole canonical public path for each shop.
  *
- * A slug is never moved between shops. Exactly one row per shop is canonical;
- * older rows remain aliases so links survive a shop rename.
+ * Both the slug and shop id are unique, so a shop rename replaces its path
+ * rather than retaining additional aliases.
  */
 export const shopSlugs = pgTable(
   "shop_slugs",
@@ -139,14 +139,12 @@ export const shopSlugs = pgTable(
     shopId: integer("shop_id")
       .notNull()
       .references(() => shops.id, { onDelete: "cascade" }),
-    canonical: boolean("canonical").notNull().default(false),
+    canonical: boolean("canonical").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex("idx_shop_slugs_one_canonical")
-      .on(table.shopId)
-      .where(sql`${table.canonical} = true`),
-    index("idx_shop_slugs_shop").on(table.shopId),
+    uniqueIndex("shop_slugs_shop_id_unique").on(table.shopId),
+    check("shop_slugs_canonical_check", sql`${table.canonical} = true`),
     check(
       "shop_slugs_format_check",
       sql`length(${table.slug}) BETWEEN 1 AND 80 AND ${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`,
