@@ -22,7 +22,11 @@ const postgresMocks = vi.hoisted(() => {
   const sql = vi.fn((strings: TemplateStringsArray) => {
     callLog.push(strings.join("?").trim());
     return Promise.resolve([]);
-  }) as ReturnType<typeof vi.fn> & { end: ReturnType<typeof vi.fn> };
+  }) as ReturnType<typeof vi.fn> & {
+    begin: ReturnType<typeof vi.fn>;
+    end: ReturnType<typeof vi.fn>;
+  };
+  sql.begin = vi.fn((callback: (tx: typeof sql) => Promise<unknown>) => callback(sql));
   sql.end = vi.fn(() => Promise.resolve());
   return { sql, factory: vi.fn(() => sql) };
 });
@@ -60,6 +64,9 @@ describe("runMigrations", () => {
 
     expect(locked).toBeGreaterThanOrEqual(0);
     expect(migrated).toBeGreaterThan(locked);
+    expect(callLog.findIndex((entry) => entry.includes("pg_advisory_xact_lock"))).toBeGreaterThan(
+      migrated,
+    );
     expect(unlocked).toBeGreaterThan(migrated);
   });
 

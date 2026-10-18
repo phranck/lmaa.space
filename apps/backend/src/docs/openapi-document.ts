@@ -100,6 +100,7 @@ function withCommonErrors(
 const samplePathsByOperationId: Record<string, string> = {
   listPublicShops: "/api/v1/shops",
   getPublicShop: "/api/v1/shops/layered-work",
+  getPublicShopByToken: "/api/v1/shops/id/nrqimu18",
   listPublicCategories: "/api/v1/categories",
   getPublicCategory: "/api/v1/categories/fair-fashion",
   searchPublicCatalog: "/api/v1/search?q=kaffee",
@@ -304,6 +305,19 @@ const shopIdentifierParam: SchemaObject = {
   },
   description:
     "Canonical or historical shop slug, or a legacy Sqid token. Read the canonical slug from the response for links.",
+};
+
+const shopTokenParam: SchemaObject = {
+  in: "path",
+  name: "token",
+  required: true,
+  schema: {
+    type: "string",
+    maxLength: SHOP_SLUG_MAX_LENGTH,
+    pattern: "^[a-z0-9]+$",
+  },
+  description:
+    "Issued Sqid token for a persisted shop. Use the canonical slug from the response for public links.",
 };
 
 const slugParam: SchemaObject = {
@@ -954,11 +968,30 @@ const publicOpenApiOperations: OpenApiOperation[] = [
   },
   {
     method: "get",
+    path: "/api/v1/shops/id/{token}",
+    tags: ["Shops"],
+    summary: "Get one public shop by ID token",
+    description:
+      "Returns a single public shop through the explicit identifier namespace. This route cannot collide with readable shop slugs and returns the canonical slug clients should use for links.",
+    operationId: "getPublicShopByToken",
+    parameters: [shopTokenParam],
+    responses: withCommonErrors(
+      {
+        "200": jsonResponse("Public shop detail.", ref("ShopDetailEnvelope")),
+      },
+      {
+        badRequest: "Identifier outside the documented format.",
+        notFound: "Shop not found.",
+      },
+    ),
+  },
+  {
+    method: "get",
     path: "/api/v1/shops/{identifier}",
     tags: ["Shops"],
     summary: "Get one public shop",
     description:
-      "Returns a single public shop by canonical slug, historical slug, or legacy Sqid token, enriched with headquarters data and a short-lived like challenge token.",
+      "Returns a single public shop by canonical slug, historical slug, or a legacy unprefixed Sqid token. New identifier links use /api/v1/shops/id/{token}. The response includes headquarters data and a short-lived like challenge token.",
     operationId: "getPublicShop",
     parameters: [shopIdentifierParam],
     responses: withCommonErrors(

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { allocateShopSlug, isReservedShopSlug, SHOP_SLUG_MAX_LENGTH } from "./shop-slug.js";
+import { allocateShopSlug, issuedShopTokens, SHOP_SLUG_MAX_LENGTH } from "./shop-slug.js";
 
 describe("allocateShopSlug", () => {
   it("derives a readable slug from the shop name", () => {
@@ -18,9 +18,15 @@ describe("allocateShopSlug", () => {
     );
   });
 
-  it("never allocates a value that can be decoded as a shop token", () => {
-    expect(isReservedShopSlug("nrqimu18")).toBe(true);
-    expect(allocateShopSlug("nrqimu18", new Set())).toBe("nrqimu18-2");
+  it("allows readable names that only resemble hypothetical shop tokens", () => {
+    expect(allocateShopSlug("KaosKvlt", new Set())).toBe("kaoskvlt");
+  });
+
+  it("avoids tokens that were actually issued for shops", () => {
+    const unavailable = issuedShopTokens([564]);
+
+    expect(unavailable).toContain("nrqimu18");
+    expect(allocateShopSlug("nrqimu18", unavailable)).toBe("nrqimu18-2");
   });
 
   it("keeps the complete slug inside the route bound", () => {

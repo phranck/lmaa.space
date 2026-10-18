@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
-import postgres from "postgres";
+import postgres, { type Sql } from "postgres";
 
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
@@ -9,7 +9,8 @@ import {
   assertSafeMigrationConnection,
 } from "./migration-safety.js";
 import { getMigratorDatabaseUrl, resolveMigrationsFolder } from "./migrations/metadata.js";
-import { backfillShopSlugs } from "./shop-slug-backfill.js";
+import { backfillShopSlugs, repairShopSlugs } from "./shop-slug-backfill.js";
+import { SHOP_SLUG_ALLOCATION_LOCK } from "./shop-slug-lock.js";
 
 /**
  * Key for the advisory lock that serialises migration runs.
@@ -54,9 +55,21 @@ export async function runMigrations(): Promise<void> {
     await sql`SELECT pg_advisory_lock(${MIGRATION_ADVISORY_LOCK_KEY})`;
     try {
       await migrate(db, { migrationsFolder });
-      const backfilledShopSlugs = await backfillShopSlugs(sql);
+      const { backfilledShopSlugs, repairedShopSlugs } = await sql.begin(async (tx) => {
+        // postgres.js transactions are callable tagged-template clients at
+        // runtime, but its TransactionSql Omit type drops that call signature.
+        const transaction = tx as unknown as Sql;
+        await transaction`SELECT pg_advisory_xact_lock(${SHOP_SLUG_ALLOCATION_LOCK})`;
+        return {
+          backfilledShopSlugs: await backfillShopSlugs(transaction),
+          repairedShopSlugs: await repairShopSlugs(transaction),
+        };
+      });
       await assertMigrationTableOwnership(sql, env.DB_MIGRATION_ROLE ?? "local");
-      logger.info({ backfilledShopSlugs }, "all migrations applied successfully");
+      logger.info(
+        { backfilledShopSlugs, repairedShopSlugs },
+        "all migrations applied successfully",
+      );
     } finally {
       await sql`SELECT pg_advisory_unlock(${MIGRATION_ADVISORY_LOCK_KEY})`;
     }
