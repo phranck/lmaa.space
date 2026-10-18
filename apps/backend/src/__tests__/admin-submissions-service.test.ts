@@ -8,6 +8,9 @@ const hydrateShopOgImageInBackground = vi.fn();
 const setAdminShopOgImage = vi.fn();
 const dispatchTemplateAssignments = vi.fn();
 const recordBackgroundError = vi.fn();
+const getEmailTemplateById = vi.fn();
+const renderEmailTemplate = vi.fn();
+const sendMail = vi.fn();
 
 async function loadServiceModule() {
   vi.resetModules();
@@ -17,6 +20,7 @@ async function loadServiceModule() {
       NODE_ENV: "test",
       SMTP2GO_API_KEY: "",
       EMAIL_FROM: "test@test.com",
+      FRONTEND_URL: "https://lmaa.space",
       LOG_LEVEL: "silent",
     },
   }));
@@ -48,6 +52,18 @@ async function loadServiceModule() {
     recordBackgroundError,
   }));
 
+  vi.doMock("../repositories/email-templates.js", () => ({
+    getEmailTemplateById,
+  }));
+
+  vi.doMock("../services/email-renderer.js", () => ({
+    renderEmailTemplate,
+  }));
+
+  vi.doMock("../services/email.js", () => ({
+    sendMail,
+  }));
+
   return import("../services/admin-submissions.js");
 }
 
@@ -66,6 +82,9 @@ describe("admin-submissions service", () => {
     dispatchTemplateAssignments.mockReset();
     recordBackgroundError.mockReset();
     recordBackgroundError.mockResolvedValue(undefined);
+    getEmailTemplateById.mockReset();
+    renderEmailTemplate.mockReset();
+    sendMail.mockReset();
   });
 
   it("allows deleting onhold submissions", async () => {
@@ -142,6 +161,7 @@ describe("admin-submissions service", () => {
       },
       newShop: {
         id: 17,
+        slug: "shop-17",
         url: "https://example.com",
       },
     });
@@ -176,6 +196,7 @@ describe("admin-submissions service", () => {
       },
       newShop: {
         id: 20,
+        slug: "shop-20",
         url: "https://colorful.example",
       },
       conflict: null,
@@ -205,6 +226,7 @@ describe("admin-submissions service", () => {
       },
       newShop: {
         id: 21,
+        slug: "shop-21",
         url: "https://plain.example",
       },
       conflict: null,
@@ -223,6 +245,42 @@ describe("admin-submissions service", () => {
     });
   });
 
+  it("gives approval emails the canonical readable shop page URL", async () => {
+    const submission = {
+      id: 4,
+      shopName: "Good Karma Coffee",
+      shopUrl: "https://goodkarma.example",
+      submitterEmail: "person@example.com",
+      ogImage: "https://cdn.example.com/preview.png",
+      rejectionToken: null,
+    };
+    reviewSubmission.mockResolvedValue({
+      submission,
+      newShop: { id: 16, slug: "good-karma-coffee", url: submission.shopUrl },
+      conflict: null,
+    });
+    getEmailTemplateById.mockResolvedValue({ id: 9 });
+    renderEmailTemplate.mockResolvedValue({ subject: "Accepted", html: "<p>Accepted</p>" });
+    sendMail.mockResolvedValue(undefined);
+    const service = await loadServiceModule();
+
+    await service.reviewAdminSubmission({
+      id: 4,
+      status: "approved",
+      adminId: 1,
+      notificationTemplateId: 9,
+    });
+    await flushPromises();
+
+    expect(renderEmailTemplate).toHaveBeenCalledWith(
+      { id: 9 },
+      expect.objectContaining({
+        shopUrl: "https://goodkarma.example",
+        shopPageUrl: "https://lmaa.space/shop/good-karma-coffee",
+      }),
+    );
+  });
+
   it("forwards templateAssignments to the dispatcher with submission context", async () => {
     const submission = {
       id: 5,
@@ -232,7 +290,7 @@ describe("admin-submissions service", () => {
     };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: { id: 17, url: "https://goodkarma.example" },
+      newShop: { id: 17, slug: "shop-17", url: "https://goodkarma.example" },
       conflict: null,
     });
     getSubmissionCategoryNames.mockResolvedValue(["Coffee", "Food"]);
@@ -260,7 +318,7 @@ describe("admin-submissions service", () => {
       expect.objectContaining({
         kind: "submission",
         submission,
-        newShopId: 17,
+        newShopSlug: "shop-17",
         adminNote: "Looks good",
         categoryNames: ["Coffee", "Food"],
       }),
@@ -278,7 +336,7 @@ describe("admin-submissions service", () => {
     };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: { id: 18, url: "https://tea.example" },
+      newShop: { id: 18, slug: "shop-18", url: "https://tea.example" },
       conflict: null,
     });
     getSubmissionCategoryNames.mockResolvedValue(["Tea"]);
@@ -298,7 +356,7 @@ describe("admin-submissions service", () => {
       null,
       "submission",
       [{ accountId: 50, templateId: 12 }],
-      expect.objectContaining({ kind: "submission", newShopId: 18 }),
+      expect.objectContaining({ kind: "submission", newShopSlug: "shop-18" }),
     );
   });
 
@@ -313,7 +371,7 @@ describe("admin-submissions service", () => {
     };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: { id: 19, url: "https://quiet.example" },
+      newShop: { id: 19, slug: "shop-19", url: "https://quiet.example" },
       conflict: null,
     });
     const service = await loadServiceModule();
@@ -365,7 +423,7 @@ describe("admin-submissions service", () => {
     };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: { id: 19, url: "https://x.example" },
+      newShop: { id: 19, slug: "shop-19", url: "https://x.example" },
       conflict: null,
     });
     const service = await loadServiceModule();

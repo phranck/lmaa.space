@@ -134,7 +134,13 @@ describe("idempotencyKey", () => {
   function submissionContext(
     submission: Submission,
   ): import("../services/post-context.js").PostContext {
-    return { kind: "submission", submission, newShopId: 0, adminNote: "", categoryNames: [] };
+    return {
+      kind: "submission",
+      submission,
+      newShopSlug: "shop-0",
+      adminNote: "",
+      categoryNames: [],
+    };
   }
 
   it("is stable: same account/template/submission produces the same hash", () => {
@@ -217,7 +223,7 @@ describe("postToMastodonAccount", () => {
     await postToMastodonAccount(account, template, {
       kind: "submission",
       submission,
-      newShopId: 99,
+      newShopSlug: "shop-99",
       adminNote: "",
       categoryNames: [],
     });
@@ -252,7 +258,7 @@ describe("postToMastodonAccount", () => {
       postToMastodonAccount(account, template, {
         kind: "submission",
         submission: makeSubmission(),
-        newShopId: 5,
+        newShopSlug: "shop-5",
         adminNote: "",
         categoryNames: [],
       }),
@@ -275,7 +281,7 @@ describe("postToMastodonAccount", () => {
       postToMastodonAccount(account, template, {
         kind: "submission",
         submission: makeSubmission(),
-        newShopId: 5,
+        newShopSlug: "shop-5",
         adminNote: "",
         categoryNames: [],
       }),
@@ -289,7 +295,7 @@ describe("postToMastodonAccount", () => {
       postToMastodonAccount(account, template, {
         kind: "submission",
         submission: makeSubmission(),
-        newShopId: 1,
+        newShopSlug: "shop-1",
         adminNote: "",
         categoryNames: [],
       }),
@@ -303,7 +309,7 @@ describe("postToMastodonAccount", () => {
       postToMastodonAccount(account, template, {
         kind: "submission",
         submission: makeSubmission(),
-        newShopId: 1,
+        newShopSlug: "shop-1",
         adminNote: "",
         categoryNames: [],
       }),
@@ -321,7 +327,7 @@ describe("postToMastodonAccount", () => {
       postToMastodonAccount(account, template, {
         kind: "submission",
         submission: makeSubmission(),
-        newShopId: 1,
+        newShopSlug: "shop-1",
         adminNote: "",
         categoryNames: [],
       }),
@@ -339,7 +345,7 @@ describe("postToMastodonAccount", () => {
     await postToMastodonAccount(account, template, {
       kind: "submission",
       submission: makeSubmission(),
-      newShopId: 1,
+      newShopSlug: "shop-1",
       adminNote: "",
       categoryNames: [],
     });

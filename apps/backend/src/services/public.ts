@@ -7,7 +7,7 @@ import type {
   PublicRejectedShopSortDirection,
   PublicRejectedShopSortField,
 } from "@lmaa/contracts";
-import { encodeShopToken } from "@lmaa/shared";
+import { decodeShopToken } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
 import { UNKNOWN_CLIENT_IP } from "../lib/client-ip.js";
@@ -49,6 +49,7 @@ import {
   searchPublicShops,
   setShopLikeState,
 } from "../repositories/public.js";
+import { findPublicShopBySlug } from "../repositories/shop-slugs.js";
 import { findMatchingDomainAlertRule } from "./domain-alert-rules.js";
 
 const NUMERIC_REJECTED_SHOP_PAGE_SIZES = new Set([10, 15, 20, 30, 50]);
@@ -241,6 +242,21 @@ export async function getManagedPublicShopById(id: number) {
 }
 
 /**
+ * Resolves a public shop from either its canonical or historical slug, or its
+ * legacy Sqid token.
+ *
+ * @param identifier - Validated lowercase path segment from the public route.
+ * @returns Full public shop payload, including its current canonical slug, or
+ *   a typed not-found result.
+ */
+export async function getManagedPublicShopByIdentifier(identifier: string) {
+  const slugMatch = await findPublicShopBySlug(identifier);
+  const id = slugMatch?.id ?? decodeShopToken(identifier);
+  if (id === null) return failure("not_found");
+  return getManagedPublicShopById(id);
+}
+
+/**
  * Returns all public shops with their categories.
  *
  * @returns Every active, publicly visible shop, ordered by name.
@@ -318,7 +334,7 @@ export async function validateShopUrl(urlRaw: string | undefined) {
     return {
       status: "published" as const,
       shopName: match.name,
-      shopUrl: `/shop/${encodeShopToken(match.id)}`,
+      shopUrl: `/shop/${match.slug}`,
     };
   }
 

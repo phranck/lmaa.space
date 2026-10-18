@@ -1,7 +1,7 @@
 import { QrCodeIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 import { useEffect, useReducer, useRef, useState } from "react";
 
-import { encodeShopToken, type Shop } from "@lmaa/shared";
+import type { Shop } from "@lmaa/shared";
 
 import SupportPromptSlot from "@/components/islands/SupportPromptSlot";
 import ShopCardReact from "@/components/ShopCardReact";
@@ -13,6 +13,7 @@ import {
   parseImportParam,
   saveLikedShopIds,
 } from "@/lib/liked-shops";
+import { shopDetailPath } from "@/lib/shop-detail-path";
 import type { SupportPromptSlotData } from "@/lib/support-prompts";
 
 // ── Import Dialog ────────────────────────────────────────────────────
@@ -369,7 +370,7 @@ export default function LikedShopsGrid({ supportPrompts }: LikedShopsGridProps) 
                   logoBackgroundColor={shop.logoBackgroundColor}
                   url={shop.url}
                   categories={shop.categories}
-                  detailHref={`/shop/${encodeShopToken(shop.id)}?from=likes`}
+                  detailHref={`${shopDetailPath(shop.slug)}?from=likes`}
                   hasCoordinates={
                     shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
                   }

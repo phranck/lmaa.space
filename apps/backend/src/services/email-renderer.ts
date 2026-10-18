@@ -193,6 +193,7 @@ export async function renderEmailTemplate(
 const SAMPLE_TEMPLATE_VARIABLES: Record<string, string> = {
   shopName: "Beispiel-Shop",
   shopUrl: "https://beispiel-shop.de",
+  shopPageUrl: "https://lmaa.space/shop/beispiel-shop",
   username: "maxmustermann",
   password: "Xy7!Beispiel",
   loginUrl: "https://dashboard.lmaa.space",

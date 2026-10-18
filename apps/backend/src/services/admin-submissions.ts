@@ -82,6 +82,7 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     sendReviewNotification(submission.submitterEmail, input.notificationTemplateId, {
       shopName: submission.shopName,
       shopUrl: submission.shopUrl,
+      shopPageUrl: newShop ? `${env.FRONTEND_URL}/shop/${newShop.slug}` : "",
       adminNote: input.adminNote ?? "",
       rejectionToken: submission.rejectionToken ?? "",
       rejectionUrl: submission.rejectionToken
@@ -99,7 +100,7 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     const context: PostContext = {
       kind: "submission",
       submission,
-      newShopId: newShop.id,
+      newShopSlug: newShop.slug,
       adminNote: input.adminNote ?? "",
       categoryNames,
     };
@@ -129,7 +130,7 @@ export async function deleteAdminSubmission(id: number) {
 /**
  * Sends a review notification email in the background (fire-and-forget).
  *
- * Template variables: `{{shopName}}`, `{{shopUrl}}`, `{{adminNote}}`, `{{rejectionToken}}`, `{{rejectionUrl}}`.
+ * Template variables: `{{shopName}}`, `{{shopUrl}}`, `{{shopPageUrl}}`, `{{adminNote}}`, `{{rejectionToken}}`, `{{rejectionUrl}}`.
  */
 function sendReviewNotification(
   to: string,

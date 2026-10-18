@@ -1,7 +1,7 @@
 import { XCircleIcon } from "@phosphor-icons/react";
 import { useCallback, useReducer } from "react";
 
-import { encodeShopToken, type Shop } from "@lmaa/shared";
+import type { Shop } from "@lmaa/shared";
 
 import ShopCardReact from "@/components/ShopCardReact";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
@@ -9,6 +9,7 @@ import { useGridAnimation } from "@/hooks/useGridAnimation";
 import { fetchJson } from "@/lib/fetch-json";
 import { type ShopFilters, buildCategoryHref, buildFilterQuery } from "@/lib/filter-query";
 import { fieldColorsClass } from "@/lib/form-styles";
+import { shopDetailPath } from "@/lib/shop-detail-path";
 
 import ShopFilterBar from "./ShopFilterBar";
 
@@ -56,9 +57,17 @@ function searchResultsReducer(
   }
 }
 
-function buildShopDetailHref(shopId: number, query: string, filters: ShopFilters): string {
+/**
+ * Builds a canonical shop URL while preserving the search return context.
+ *
+ * @param shopSlug - Persisted canonical shop slug.
+ * @param query - Search query shown when returning to results.
+ * @param filters - Active catalog filters to preserve.
+ * @returns Canonical detail URL with search context parameters.
+ */
+function buildShopDetailHref(shopSlug: string, query: string, filters: ShopFilters): string {
   const filterQuery = buildFilterQuery(filters);
-  const base = `/shop/${encodeShopToken(shopId)}?from=search&q=${encodeURIComponent(query)}`;
+  const base = `${shopDetailPath(shopSlug)}?from=search&q=${encodeURIComponent(query)}`;
   return filterQuery ? `${base}&${filterQuery}` : base;
 }
 
@@ -241,7 +250,7 @@ export default function FilterableSearchResults({
                 hasCoordinates={
                   shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
                 }
-                detailHref={buildShopDetailHref(shop.id, query.trim(), currentFilters)}
+                detailHref={buildShopDetailHref(shop.slug, query.trim(), currentFilters)}
                 likeCount={shop.likeCount}
               />
             ))}

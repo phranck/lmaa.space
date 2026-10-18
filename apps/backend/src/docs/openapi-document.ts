@@ -1,4 +1,10 @@
-import { SOCIAL_PLATFORM_KEYS, REGION_CODES, SHOP_VISIBILITIES } from "@lmaa/shared";
+import {
+  SHOP_SLUG_MAX_LENGTH,
+  SHOP_SLUG_PATTERN,
+  SOCIAL_PLATFORM_KEYS,
+  REGION_CODES,
+  SHOP_VISIBILITIES,
+} from "@lmaa/shared";
 
 type HttpMethod = "get" | "post" | "put" | "delete" | "patch";
 type SchemaObject = Record<string, unknown>;
@@ -287,12 +293,17 @@ function buildCodeSamples(operationId: string): OpenApiCodeSample[] {
   ];
 }
 
-const tokenParam: SchemaObject = {
+const shopIdentifierParam: SchemaObject = {
   in: "path",
-  name: "token",
+  name: "identifier",
   required: true,
-  schema: { type: "string" },
-  description: "Public token from the lmaa.space URL. This is not the raw numeric shop ID.",
+  schema: {
+    type: "string",
+    maxLength: SHOP_SLUG_MAX_LENGTH,
+    pattern: SHOP_SLUG_PATTERN.source,
+  },
+  description:
+    "Canonical or historical shop slug, or a legacy Sqid token. Read the canonical slug from the response for links.",
 };
 
 const slugParam: SchemaObject = {
@@ -458,9 +469,13 @@ const schemas: Record<string, SchemaObject> = {
       id: {
         type: "integer",
         description:
-          "Numeric shop identifier. The shop detail endpoint takes the URL token instead, so this is only useful for correlating records.",
+          "Numeric shop identifier, useful for correlating records and write operations but not for public links.",
       },
       name: { type: "string", description: "Shop name. All listings are sorted by it." },
+      slug: {
+        type: "string",
+        description: "Canonical public path segment for this shop.",
+      },
       url: {
         type: "string",
         format: "uri",
@@ -504,6 +519,7 @@ const schemas: Record<string, SchemaObject> = {
     required: [
       "id",
       "name",
+      "slug",
       "url",
       "categories",
       "region",
@@ -553,6 +569,7 @@ const schemas: Record<string, SchemaObject> = {
     properties: {
       id: { type: "integer" },
       name: { type: "string" },
+      slug: { type: "string", description: "Canonical public path segment for this shop." },
       url: { type: "string", format: "uri" },
       region: arrayOf(ref("RegionCode")),
       pickup: { type: "string" },
@@ -565,6 +582,7 @@ const schemas: Record<string, SchemaObject> = {
     required: [
       "id",
       "name",
+      "slug",
       "url",
       "region",
       "pickup",
@@ -784,7 +802,7 @@ const schemas: Record<string, SchemaObject> = {
           shopUrl: {
             type: "string",
             description:
-              "Path of the shop page on lmaa.space, relative to the site root, for example /shop/ab12cd34. This is not the shop's own address.",
+              "Canonical path of the shop page on lmaa.space, relative to the site root, for example /shop/ma-oldtimer. This is not the shop's own address.",
           },
         },
         required: ["status", "shopName", "shopUrl"],
@@ -936,19 +954,19 @@ const publicOpenApiOperations: OpenApiOperation[] = [
   },
   {
     method: "get",
-    path: "/api/v1/shops/{token}",
+    path: "/api/v1/shops/{identifier}",
     tags: ["Shops"],
     summary: "Get one public shop",
     description:
-      "Returns a single public shop by its URL token, enriched with headquarters data and a short-lived like challenge token.",
+      "Returns a single public shop by canonical slug, historical slug, or legacy Sqid token, enriched with headquarters data and a short-lived like challenge token.",
     operationId: "getPublicShop",
-    parameters: [tokenParam],
+    parameters: [shopIdentifierParam],
     responses: withCommonErrors(
       {
         "200": jsonResponse("Public shop detail.", ref("ShopDetailEnvelope")),
       },
       {
-        badRequest: "Invalid shop token.",
+        badRequest: "Identifier outside the documented format.",
         notFound: "Shop not found.",
       },
     ),

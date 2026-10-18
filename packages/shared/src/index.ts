@@ -30,8 +30,10 @@ export * from "./utils/api-error.js";
 export * from "./utils/social-media.js";
 /** Rejection token generation for public rejection pages. */
 export * from "./utils/rejection-token.js";
-/** Shop ID encoding/decoding for public URLs. */
+/** Shop ID encoding/decoding for legacy public URLs. */
 export * from "./utils/shop-token.js";
+/** Canonical shop-slug normalization and collision allocation. */
+export * from "./utils/shop-slug.js";
 /** Money, written the one way this project writes it. */
 export * from "./utils/money.js";
 /** Slugs, written the one way this project writes them. */

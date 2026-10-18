@@ -127,6 +127,34 @@ export const shops = pgTable(
 );
 
 /**
+ * Canonical and historical public paths for shops.
+ *
+ * A slug is never moved between shops. Exactly one row per shop is canonical;
+ * older rows remain aliases so links survive a shop rename.
+ */
+export const shopSlugs = pgTable(
+  "shop_slugs",
+  {
+    slug: text("slug").primaryKey(),
+    shopId: integer("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    canonical: boolean("canonical").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_shop_slugs_one_canonical")
+      .on(table.shopId)
+      .where(sql`${table.canonical} = true`),
+    index("idx_shop_slugs_shop").on(table.shopId),
+    check(
+      "shop_slugs_format_check",
+      sql`length(${table.slug}) BETWEEN 1 AND 80 AND ${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`,
+    ),
+  ],
+);
+
+/**
  * Idempotent public like state per shop and anonymous visitor key.
  */
 export const shopLikes = pgTable(
@@ -535,6 +563,8 @@ export type Shop = typeof shops.$inferSelect;
  * Inferred insert type for `shops`.
  */
 export type ShopInsert = typeof shops.$inferInsert;
+/** Inferred select type for `shop_slugs`. */
+export type ShopSlug = typeof shopSlugs.$inferSelect;
 /**
  * Inferred select type for `shop_likes`.
  */

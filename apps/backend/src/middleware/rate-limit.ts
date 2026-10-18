@@ -200,7 +200,7 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
  *
  * @remarks
  * Hidden behavior:
- * - Keying strategy is `"{routePath}:{clientIp}"`, so `/shops/:token` is one
+ * - Keying strategy is `"{routePath}:{clientIp}"`, so `/shops/:identifier` is one
  *   bucket whichever token was asked for. Keying on the requested path instead
  *   would give every identifier its own bucket, and a caller working through
  *   identifiers would never be refused.

@@ -100,7 +100,7 @@ describe("postToBlueskyAccount", () => {
     await postToBlueskyAccount(account, template, {
       kind: "submission",
       submission,
-      newShopId: 100,
+      newShopSlug: "shop-100",
       adminNote: "",
       categoryNames: [],
     });
@@ -120,7 +120,7 @@ describe("postToBlueskyAccount", () => {
       postToBlueskyAccount(account, longTemplate, {
         kind: "submission",
         submission,
-        newShopId: 100,
+        newShopSlug: "shop-100",
         adminNote: "",
         categoryNames: [],
       }),
@@ -134,7 +134,7 @@ describe("postToBlueskyAccount", () => {
       postToBlueskyAccount(wrongAccount, template, {
         kind: "submission",
         submission,
-        newShopId: 100,
+        newShopSlug: "shop-100",
         adminNote: "",
         categoryNames: [],
       }),
@@ -149,7 +149,7 @@ describe("postToBlueskyAccount", () => {
       postToBlueskyAccount(account, template, {
         kind: "submission",
         submission,
-        newShopId: 100,
+        newShopSlug: "shop-100",
         adminNote: "",
         categoryNames: [],
       }),

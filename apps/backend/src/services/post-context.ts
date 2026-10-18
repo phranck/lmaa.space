@@ -1,5 +1,3 @@
-import { encodeShopToken } from "@lmaa/shared";
-
 import { env } from "../config/env.js";
 import type { Category, Submission } from "../db/schema.js";
 
@@ -12,7 +10,7 @@ export type PostContext =
   | {
       kind: "submission";
       submission: Submission;
-      newShopId: number;
+      newShopSlug: string;
       adminNote: string;
       categoryNames: string[];
     }
@@ -36,7 +34,7 @@ export function buildPostVariables(ctx: PostContext): Record<string, string> {
       shopPickup: ctx.submission.pickup ?? "",
       shopContactEmail: ctx.submission.contactEmail ?? "",
       shopCategories: ctx.categoryNames.join(", "),
-      shopPageUrl: `${env.FRONTEND_URL}/shop/${encodeShopToken(ctx.newShopId)}`,
+      shopPageUrl: `${env.FRONTEND_URL}/shop/${ctx.newShopSlug}`,
       adminNote: ctx.adminNote,
       frontendUrl: env.FRONTEND_URL,
       dashboardUrl: env.DASHBOARD_URL,

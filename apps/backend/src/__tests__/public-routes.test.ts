@@ -23,7 +23,7 @@ const publicServiceMocks = vi.hoisted(() => ({
   getManagedPublicNavItems: vi.fn(),
   getManagedPublicRejectedShops: vi.fn(),
   getManagedPublicRejectionPageByToken: vi.fn(),
-  getManagedPublicShopById: vi.fn(),
+  getManagedPublicShopByIdentifier: vi.fn(),
   getManagedPublicShops: vi.fn(),
   getManagedPublicStats: vi.fn(),
   getPublicFilterOptions: vi.fn(),
@@ -268,6 +268,29 @@ describe("publicRoutes", () => {
       expect(res.status).toBe(200);
       expect(res.headers.get("Cache-Control")).toBe("public, max-age=60");
       expect(await res.json()).toEqual({ data: [{ id: 1 }] });
+    });
+  });
+
+  describe("GET /shops/:identifier", () => {
+    it("resolves canonical slugs through the bounded public service", async () => {
+      publicServiceMocks.getManagedPublicShopByIdentifier.mockResolvedValue({
+        ok: true,
+        data: { id: 42, name: "MA-Oldtimer.de", slug: "ma-oldtimer" },
+      });
+
+      const res = await app.request("/shops/ma-oldtimer");
+
+      expect(res.status).toBe(200);
+      expect(publicServiceMocks.getManagedPublicShopByIdentifier).toHaveBeenCalledWith(
+        "ma-oldtimer",
+      );
+    });
+
+    it("rejects identifiers outside the slug and token alphabet", async () => {
+      const res = await app.request("/shops/MA_Oldtimer");
+
+      expect(res.status).toBe(400);
+      expect(publicServiceMocks.getManagedPublicShopByIdentifier).not.toHaveBeenCalled();
     });
   });
 
