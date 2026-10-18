@@ -25,7 +25,7 @@ export async function backfillShopSlugs(sql: Sql): Promise<number> {
         FROM shops s
        WHERE NOT EXISTS (
          SELECT 1 FROM shop_slugs ss
-          WHERE ss.shop_id = s.id AND ss.canonical = true
+          WHERE ss.shop_id = s.id
        )
        ORDER BY s.id
        FOR UPDATE OF s
@@ -48,33 +48,32 @@ export async function backfillShopSlugs(sql: Sql): Promise<number> {
   await Promise.all(
     planned.map(
       ({ slug, shopId }) => sql`
-      INSERT INTO shop_slugs (slug, shop_id, canonical)
-      VALUES (${slug}, ${shopId}, true)
+      INSERT INTO shop_slugs (slug, shop_id)
+      VALUES (${slug}, ${shopId})
     `,
     ),
   );
   return planned.length;
 }
 
-/** Result of repairing canonical slugs after the legacy reservation correction. */
+/** Result of reconciling the one canonical slug retained for each shop. */
 export interface ShopSlugRepairResult {
   repaired: number;
 }
 
 /**
- * Reallocates canonical slugs with only actually issued legacy tokens reserved.
+ * Reconciles each shop's sole readable slug after migrations and backfill.
  *
- * Existing canonical values are retained as historical aliases. The function
- * is idempotent: after a successful pass, every shop already owns the slug the
- * corrected allocator chooses and no writes are made on the next pass.
+ * The function is idempotent: after a successful pass, every shop owns the
+ * slug the allocator chooses and no writes occur on the next pass.
  *
  * @param sql - Vetted migration connection held under the advisory lock.
  * @returns Number of canonical shop slugs changed.
  */
 export async function repairShopSlugs(sql: Sql): Promise<ShopSlugRepairResult> {
   const [rows, shops] = await Promise.all([
-    sql<Array<{ slug: string; shopId: number; canonical: boolean }>>`
-      SELECT slug, shop_id AS "shopId", canonical
+    sql<Array<{ slug: string; shopId: number }>>`
+      SELECT slug, shop_id AS "shopId"
         FROM shop_slugs
        ORDER BY shop_id, slug
     `,
@@ -95,7 +94,7 @@ export async function repairShopSlugs(sql: Sql): Promise<ShopSlugRepairResult> {
 
   const issuedTokens = issuedShopTokens(shops.map((shop) => shop.id));
   const unavailable = new Set([...issuedTokens, ...rows.map((row) => row.slug)]);
-  const repairs: Array<{ shopId: number; desired: string; insert: boolean }> = [];
+  const repairs: Array<{ shopId: number; desired: string }> = [];
 
   for (const shop of shops) {
     const owned = rowsByShopId.get(shop.id) ?? [];
@@ -104,30 +103,21 @@ export async function repairShopSlugs(sql: Sql): Promise<ShopSlugRepairResult> {
     for (const token of issuedTokens) blocked.add(token);
 
     const desired = allocateShopSlug(shop.name, blocked);
-    if (owned.some((row) => row.canonical && row.slug === desired)) continue;
+    const current = owned[0];
+    if (current?.slug === desired) continue;
 
-    const insert = !owned.some((row) => row.slug === desired);
-    repairs.push({ shopId: shop.id, desired, insert });
+    repairs.push({ shopId: shop.id, desired });
+    if (current) unavailable.delete(current.slug);
     unavailable.add(desired);
   }
 
-  await Promise.all(
-    repairs.map(({ shopId, desired, insert }) => {
-      const inserted = insert
-        ? sql`
-            INSERT INTO shop_slugs (slug, shop_id, canonical)
-            VALUES (${desired}, ${shopId}, false)
-          `
-        : Promise.resolve();
-      return inserted.then(
-        () => sql`
-        UPDATE shop_slugs
-           SET canonical = (slug = ${desired})
-         WHERE shop_id = ${shopId}
-      `,
-      );
-    }),
-  );
+  for (const { shopId, desired } of repairs) {
+    await sql`
+      UPDATE shop_slugs
+         SET slug = ${desired}
+       WHERE shop_id = ${shopId}
+    `;
+  }
 
   return { repaired: repairs.length };
 }

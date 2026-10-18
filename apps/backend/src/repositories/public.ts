@@ -172,7 +172,7 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
     .select({
       id: shops.id,
       name: shops.name,
-      slug: sql<string>`(SELECT slug FROM shop_slugs WHERE shop_id = ${shops.id} AND canonical = true)`,
+      slug: sql<string>`(SELECT slug FROM shop_slugs WHERE shop_id = ${shops.id})`,
       url: shops.url,
       region: shops.region,
       pickup: shops.pickup,
@@ -201,7 +201,7 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
 export async function listAllPublicShopsWithCategories() {
   return db.execute<PublicShopRow>(sql`
     SELECT s.id, s.name,
-           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
            s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
@@ -249,7 +249,7 @@ export async function searchPublicShops(
 
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name,
-           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
            s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
@@ -319,7 +319,7 @@ export async function findShopByDomain(domain: string) {
     import("tldts"),
     db.execute<ShopByDomainRow & Record<string, unknown>>(sql`
       SELECT s.id, s.name,
-             (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+             (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
              s.url, s.visibility, s.rejection_token AS "rejectionToken"
       FROM shops s
       WHERE s.url LIKE ${"%" + domain + "%"}
@@ -668,7 +668,7 @@ export async function getFullPublicShopById(id: number) {
     }
   >(sql`
     SELECT s.id, s.name,
-           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
            s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",

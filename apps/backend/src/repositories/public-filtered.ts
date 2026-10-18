@@ -214,7 +214,7 @@ export async function listFilteredShopsByCategoryId(categoryId: number, filters:
 
   return db.execute<FilteredShopRow>(sql`
     SELECT s.id, s.name,
-           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
            s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
@@ -248,7 +248,7 @@ export async function listFilteredPublicShops(filters: ShopFilterParams) {
 
   return db.execute<FilteredShopRow>(sql`
     SELECT s.id, s.name,
-           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
            s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
@@ -295,7 +295,7 @@ export async function searchFilteredPublicShops(
 
   return db.execute<FilteredShopRow & { rank: number }>(sql`
     SELECT s.id, s.name,
-           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id) AS slug,
            s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",

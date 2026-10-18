@@ -24,7 +24,6 @@ const publicServiceMocks = vi.hoisted(() => ({
   getManagedPublicRejectedShops: vi.fn(),
   getManagedPublicRejectionPageByToken: vi.fn(),
   getManagedPublicShopByIdentifier: vi.fn(),
-  getManagedPublicShopByToken: vi.fn(),
   getManagedPublicShops: vi.fn(),
   getManagedPublicStats: vi.fn(),
   getPublicFilterOptions: vi.fn(),
@@ -272,19 +271,11 @@ describe("publicRoutes", () => {
     });
   });
 
-  describe("GET /shops/id/:token", () => {
-    it("resolves namespaced shop tokens", async () => {
-      publicServiceMocks.getManagedPublicShopByToken.mockResolvedValue({
-        ok: true,
-        data: { id: 42, name: "MA-Oldtimer.de", slug: "ma-oldtimer" },
-      });
+  it("does not expose a namespaced shop-token route", async () => {
+    const res = await app.request("/shops/id/nrqimu18");
 
-      const res = await app.request("/shops/id/nrqimu18");
-
-      expect(res.status).toBe(200);
-      expect(publicServiceMocks.getManagedPublicShopByToken).toHaveBeenCalledWith("nrqimu18");
-      expect(publicServiceMocks.getManagedPublicShopByIdentifier).not.toHaveBeenCalled();
-    });
+    expect(res.status).toBe(404);
+    expect(publicServiceMocks.getManagedPublicShopByIdentifier).not.toHaveBeenCalled();
   });
 
   describe("GET /shops/:identifier", () => {
