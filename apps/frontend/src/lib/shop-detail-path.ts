@@ -1,3 +1,5 @@
+import { encodeShopToken } from "@lmaa/shared";
+
 /**
  * Builds the one canonical public path for a shop.
  *
@@ -6,6 +8,16 @@
  */
 export function shopDetailPath(slug: string): string {
   return `/shop/${slug}`;
+}
+
+/**
+ * Builds an unambiguous identifier path for a shop.
+ *
+ * @param id - Persisted numeric shop identifier.
+ * @returns Namespaced public path that cannot collide with a readable slug.
+ */
+export function shopIdDetailPath(id: number): string {
+  return `/shop/id/${encodeShopToken(id)}`;
 }
 
 /**

@@ -60,6 +60,7 @@ import {
   getManagedPublicRejectedShops,
   getManagedPublicRejectionPageByToken,
   getManagedPublicShopByIdentifier,
+  getManagedPublicShopByToken,
   getManagedPublicShops,
   getManagedPublicStats,
   searchManagedPublicCatalog,
@@ -109,6 +110,12 @@ const concernBodySchema = z.object({ reason: z.string().min(1).max(2000) });
 const shopIdentifierSchema = z.object({
   identifier: z.string().max(SHOP_SLUG_MAX_LENGTH).regex(SHOP_SLUG_PATTERN),
 });
+const shopTokenSchema = z.object({
+  token: z
+    .string()
+    .max(SHOP_SLUG_MAX_LENGTH)
+    .regex(/^[a-z0-9]+$/),
+});
 const rejectedShopsQuerySchema = z.object({
   q: z.string().max(200).optional().default(""),
   page: z.coerce.number().int().positive().catch(1),
@@ -151,6 +158,22 @@ publicRoutes.get("/shops", publicReadLimit, async (c) => {
   c.header("Cache-Control", CACHE_VOLATILE);
   return ok(c, shops);
 });
+
+// GET /api/shops/id/:token
+publicRoutes.get(
+  "/shops/id/:token",
+  publicReadLimit,
+  validate("param", shopTokenSchema),
+  async (c) => {
+    const result = await getManagedPublicShopByToken(c.req.valid("param").token);
+    if (!result.ok) {
+      return fail(c, 404, "Shop not found");
+    }
+
+    c.header("Cache-Control", CACHE_VOLATILE);
+    return ok(c, result.data);
+  },
+);
 
 // GET /api/shops/:identifier
 publicRoutes.get(

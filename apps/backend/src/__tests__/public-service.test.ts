@@ -68,6 +68,7 @@ import {
   getManagedPublicRejectedShops,
   getManagedPublicShopById,
   getManagedPublicShopByIdentifier,
+  getManagedPublicShopByToken,
   getManagedPublicShops,
   getManagedPublicStats,
   getPublicFilterOptions,
@@ -242,6 +243,28 @@ describe("getManagedPublicShopByIdentifier", () => {
 
     expect(result).toMatchObject({ ok: true, data: { id: 7, slug: "current-name" } });
     expect(publicRepoMocks.getFullPublicShopById).toHaveBeenCalledWith(7);
+  });
+
+  it("resolves a token through the explicit ID namespace", async () => {
+    publicRepoMocks.getFullPublicShopById.mockResolvedValue({
+      id: 7,
+      name: "Current Name",
+      slug: "current-name",
+    });
+    headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(new Map());
+
+    const result = await getManagedPublicShopByToken(encodeShopToken(7));
+
+    expect(result).toMatchObject({ ok: true, data: { id: 7, slug: "current-name" } });
+    expect(shopSlugMocks.findPublicShopBySlug).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid token in the explicit ID namespace", async () => {
+    await expect(getManagedPublicShopByToken("not-a-token")).resolves.toEqual({
+      ok: false,
+      reason: "not_found",
+    });
+    expect(publicRepoMocks.getFullPublicShopById).not.toHaveBeenCalled();
   });
 });
 

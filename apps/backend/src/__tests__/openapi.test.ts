@@ -28,6 +28,7 @@ vi.mock("../services/public.js", () => ({
   getManagedPublicNavItems: vi.fn(),
   getManagedPublicRejectionPageByToken: vi.fn(),
   getManagedPublicShopByIdentifier: vi.fn(),
+  getManagedPublicShopByToken: vi.fn(),
   getManagedPublicShops: vi.fn(),
   getManagedPublicStats: vi.fn(),
   getPublicFilterOptions: vi.fn(),
@@ -84,6 +85,7 @@ const repositoryRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 const APPROVED_DOCUMENTED_ROUTE_KEYS = [
   "GET /api/v1/shops",
   "GET /api/v1/shops/{identifier}",
+  "GET /api/v1/shops/id/{token}",
   "GET /api/v1/categories",
   "GET /api/v1/categories/{slug}",
   "GET /api/v1/search",

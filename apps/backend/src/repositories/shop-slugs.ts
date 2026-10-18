@@ -1,14 +1,12 @@
 import { eq, sql } from "drizzle-orm";
 
-import { allocateShopSlug } from "@lmaa/shared";
+import { allocateShopSlug, issuedShopTokens } from "@lmaa/shared";
 
 import { db } from "../db/client.js";
 import { shopSlugs } from "../db/schema.js";
+import { SHOP_SLUG_ALLOCATION_LOCK } from "../db/shop-slug-lock.js";
 
 type DbLike = Pick<typeof db, "select" | "insert" | "update" | "execute">;
-
-/** Advisory-lock namespace used to serialize canonical shop-slug allocation. */
-const SHOP_SLUG_ALLOCATION_LOCK = 46_102_027;
 
 /** Persisted slug state used while planning a canonical transition. */
 export interface ShopSlugState {
@@ -37,7 +35,10 @@ export function planCanonicalShopSlug(
   name: string,
 ): CanonicalShopSlugPlan {
   const owned = rows.filter((row) => row.shopId === shopId);
-  const unavailable = new Set(rows.filter((row) => row.shopId !== shopId).map((row) => row.slug));
+  const unavailable = issuedShopTokens(new Set([...rows.map((row) => row.shopId), shopId]));
+  for (const row of rows) {
+    if (row.shopId !== shopId) unavailable.add(row.slug);
+  }
   const slug = allocateShopSlug(name, unavailable);
   const current = owned.find((row) => row.canonical);
   if (current?.slug === slug) return { slug, change: "none" };
