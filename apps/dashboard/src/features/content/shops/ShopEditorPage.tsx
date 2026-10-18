@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
-import { encodeShopToken, formatDateTime } from "@lmaa/shared";
+import { formatDateTime } from "@lmaa/shared";
 
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
@@ -106,8 +106,8 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
     deleteMutation.isPending ||
     acceptReviewMutation.isPending;
   const shopDetailUrl =
-    !controller.isNew && activeShop?.visibility === "public" && typeof activeShop.id === "number"
-      ? `${FRONTEND_URL}/shop/${encodeShopToken(activeShop.id)}`
+    !controller.isNew && activeShop?.visibility === "public" && activeShop.slug
+      ? `${FRONTEND_URL}/shop/${activeShop.slug}`
       : null;
 
   return (

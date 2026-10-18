@@ -55,7 +55,7 @@ function renderPreview(template: string) {
       shopPickup: "Berlin",
       shopContactEmail: "hello@goodkarma.example",
       shopCategories: "Kaffee, Feinkost",
-      shopPageUrl: "https://lmaa.space/shop/abc12345",
+      shopPageUrl: "https://lmaa.space/shop/good-karma-coffee",
       adminNote: "Neu im Verzeichnis.",
       categoryName: "Fair Fashion",
       categorySlug: "fair-fashion",

@@ -7,11 +7,6 @@ vi.mock("../config/env.js", () => ({
   },
 }));
 
-vi.mock("@lmaa/shared", async () => {
-  const actual = await vi.importActual<typeof import("@lmaa/shared")>("@lmaa/shared");
-  return { ...actual, encodeShopToken: (id: number) => `tok-${id}` };
-});
-
 import type { Category, Submission } from "../db/schema.js";
 import { buildPostVariables, idempotencyEntityKey } from "../services/post-context.js";
 
@@ -42,12 +37,12 @@ describe("post-context", () => {
       const vars = buildPostVariables({
         kind: "submission",
         submission: baseSubmission,
-        newShopId: 99,
+        newShopSlug: "shop-99",
         adminNote: "looks fine",
         categoryNames: ["food", "books"],
       });
       expect(vars.shopName).toBe("Shop A");
-      expect(vars.shopPageUrl).toBe("https://test.example/shop/tok-99");
+      expect(vars.shopPageUrl).toBe("https://test.example/shop/shop-99");
       expect(vars.shopCategories).toBe("food, books");
       expect(vars.adminNote).toBe("looks fine");
       expect(vars.frontendUrl).toBe("https://test.example");
@@ -79,7 +74,7 @@ describe("post-context", () => {
         idempotencyEntityKey({
           kind: "submission",
           submission: baseSubmission,
-          newShopId: 99,
+          newShopSlug: "shop-99",
           adminNote: "",
           categoryNames: [],
         }),

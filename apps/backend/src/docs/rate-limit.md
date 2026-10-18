@@ -9,7 +9,7 @@
 ## Schlüssel eines Eimers
 
 - Der Schlüssel lautet `{routePath}:{clientIp}`, nennt also die **getroffene Route** und nicht den angefragten Pfad.
-- `/shops/:token` ist damit ein Eimer, gleich welcher Token angefragt wurde.
+- `/shops/:identifier` ist damit ein Eimer, gleich welcher Slug oder Token angefragt wurde.
 - Der Pfad trägt den Bezeichner, den der Aufrufer selbst wählt. Auf ihn zu schlüsseln gibt jedem Rateversuch einen eigenen Eimer, und die Grenze erreicht genau den Angriff nie, für den sie da ist.
 - Einträge im alten Schlüsselformat laufen von selbst ab, es muss nichts migriert werden.
 

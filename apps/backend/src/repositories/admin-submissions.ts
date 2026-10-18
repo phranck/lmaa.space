@@ -27,6 +27,7 @@ import {
   upsertSubmissionHeadquarters,
 } from "./headquarters.js";
 import { enqueueReviewJob } from "./review-jobs.js";
+import { assignCanonicalShopSlug } from "./shop-slugs.js";
 
 /**
  * Editable fields for a pending submission.
@@ -69,7 +70,7 @@ interface SubmissionReviewData {
  */
 interface SubmissionReviewResult {
   submission: Submission | null;
-  newShop: Pick<Shop, "id" | "url"> | null;
+  newShop: (Pick<Shop, "id" | "url"> & { slug: string }) | null;
   conflict: { existingShopId: number; existingShopName: string } | null;
 }
 
@@ -237,6 +238,8 @@ export async function reviewSubmission(
           .returning({ id: shops.id, url: shops.url }),
       ]);
 
+      const slug = await assignCanonicalShopSlug(tx, shop.id, submission.shopName);
+
       if (categoryRows.length > 0) {
         await tx
           .insert(shopCategories)
@@ -245,7 +248,7 @@ export async function reviewSubmission(
 
       await copySubmissionHeadquartersToShop(tx, submission.id, shop.id);
 
-      return { submission, newShop: shop, conflict: null };
+      return { submission, newShop: { ...shop, slug }, conflict: null };
     }
 
     async function applyReviewUpdate(): Promise<SubmissionReviewResult> {

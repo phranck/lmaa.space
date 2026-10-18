@@ -99,7 +99,7 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     const context: PostContext = {
       kind: "submission",
       submission,
-      newShopId: newShop.id,
+      newShopSlug: newShop.slug,
       adminNote: input.adminNote ?? "",
       categoryNames,
     };

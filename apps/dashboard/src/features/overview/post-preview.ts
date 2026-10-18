@@ -1,10 +1,8 @@
-import type { Category, Submission } from "@lmaa/shared";
+import { allocateShopSlug, type Category, type Submission } from "@lmaa/shared";
 
 import { FRONTEND_URL } from "@/lib/env.ts";
 
 const VAR_REGEX = /\{\{(\w+)\}\}/g;
-const SHOP_TOKEN_PLACEHOLDER = "12345678";
-
 interface PostPreviewContext {
   submission: Submission;
   adminNote: string;
@@ -17,9 +15,9 @@ interface PostPreviewContext {
  * dialog so the moderator can see whether a post will fit the platform
  * limit before approving.
  *
- * `shopPageUrl` uses a deterministic placeholder slug — the real slug is
- * generated server-side at approval time, but its length matches the 8-char
- * `encodeShopToken` output so the count is realistic.
+ * `shopPageUrl` uses the same deterministic name normalization as approval.
+ * A collision suffix can still add characters, so the server remains the
+ * authority for the final platform-length validation.
  */
 export function renderPostPreview(body: string | null, context: PostPreviewContext): string {
   if (!body) return "";
@@ -42,7 +40,7 @@ function buildPreviewVariables(context: PostPreviewContext): Record<string, stri
     shopPickup: submission.pickup ?? "",
     shopContactEmail: submission.contactEmail ?? "",
     shopCategories: categoryNames.join(", "),
-    shopPageUrl: `${FRONTEND_URL}/shop/${SHOP_TOKEN_PLACEHOLDER}`,
+    shopPageUrl: `${FRONTEND_URL}/shop/${allocateShopSlug(submission.shopName, new Set())}`,
     adminNote,
     frontendUrl: FRONTEND_URL,
     dashboardUrl,

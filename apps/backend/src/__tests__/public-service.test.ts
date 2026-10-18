@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { encodeShopToken } from "@lmaa/shared";
+
 const publicRepoMocks = vi.hoisted(() => ({
   countPendingSubmissions: vi.fn(),
   countPublicRejectedShops: vi.fn(),
@@ -37,6 +39,10 @@ const headquartersMocks = vi.hoisted(() => ({
   loadShopHeadquartersMap: vi.fn(),
 }));
 
+const shopSlugMocks = vi.hoisted(() => ({
+  findPublicShopBySlug: vi.fn(),
+}));
+
 const envMock = vi.hoisted(() => ({
   env: { NODE_ENV: "development", IP_HASH_SALT: "test-salt-1234567890" },
 }));
@@ -48,6 +54,7 @@ const appSettingsMocks = vi.hoisted(() => ({
 vi.mock("../repositories/public.js", () => publicRepoMocks);
 vi.mock("../repositories/public-filtered.js", () => filteredRepoMocks);
 vi.mock("../repositories/headquarters.js", () => headquartersMocks);
+vi.mock("../repositories/shop-slugs.js", () => shopSlugMocks);
 vi.mock("../repositories/app-settings.js", () => appSettingsMocks);
 vi.mock("../config/env.js", () => envMock);
 vi.mock("../lib/result.js", async (importOriginal) => importOriginal());
@@ -60,6 +67,7 @@ import {
   getManagedPublicCategoryBySlug,
   getManagedPublicRejectedShops,
   getManagedPublicShopById,
+  getManagedPublicShopByIdentifier,
   getManagedPublicShops,
   getManagedPublicStats,
   getPublicFilterOptions,
@@ -197,6 +205,43 @@ describe("getManagedPublicShopById", () => {
         likeToken: expect.stringMatching(/^[a-f0-9]+\.\d+$/),
       },
     });
+  });
+});
+
+describe("getManagedPublicShopByIdentifier", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("resolves a canonical or historical slug before loading the shop", async () => {
+    shopSlugMocks.findPublicShopBySlug.mockResolvedValue({
+      id: 7,
+      slug: "current-name",
+      canonical: false,
+    });
+    publicRepoMocks.getFullPublicShopById.mockResolvedValue({
+      id: 7,
+      name: "Current Name",
+      slug: "current-name",
+    });
+    headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(new Map());
+
+    const result = await getManagedPublicShopByIdentifier("old-name");
+
+    expect(result).toMatchObject({ ok: true, data: { id: 7, slug: "current-name" } });
+  });
+
+  it("keeps legacy Sqid tokens as a lookup alias", async () => {
+    shopSlugMocks.findPublicShopBySlug.mockResolvedValue(null);
+    publicRepoMocks.getFullPublicShopById.mockResolvedValue({
+      id: 7,
+      name: "Current Name",
+      slug: "current-name",
+    });
+    headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(new Map());
+
+    const result = await getManagedPublicShopByIdentifier(encodeShopToken(7));
+
+    expect(result).toMatchObject({ ok: true, data: { id: 7, slug: "current-name" } });
+    expect(publicRepoMocks.getFullPublicShopById).toHaveBeenCalledWith(7);
   });
 });
 
@@ -373,6 +418,7 @@ describe("validateShopUrl", () => {
     publicRepoMocks.findShopByDomain.mockResolvedValue({
       id: 42,
       name: "Shop",
+      slug: "shop-page",
       visibility: "public",
     });
 
@@ -381,7 +427,7 @@ describe("validateShopUrl", () => {
     expect(result).toEqual({
       status: "published",
       shopName: "Shop",
-      shopUrl: expect.stringMatching(/^\/shop\/[a-z0-9]+$/),
+      shopUrl: "/shop/shop-page",
     });
   });
 

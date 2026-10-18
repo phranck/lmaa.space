@@ -9,6 +9,7 @@ import {
   assertSafeMigrationConnection,
 } from "./migration-safety.js";
 import { getMigratorDatabaseUrl, resolveMigrationsFolder } from "./migrations/metadata.js";
+import { backfillShopSlugs } from "./shop-slug-backfill.js";
 
 /**
  * Key for the advisory lock that serialises migration runs.
@@ -53,8 +54,9 @@ export async function runMigrations(): Promise<void> {
     await sql`SELECT pg_advisory_lock(${MIGRATION_ADVISORY_LOCK_KEY})`;
     try {
       await migrate(db, { migrationsFolder });
+      const backfilledShopSlugs = await backfillShopSlugs(sql);
       await assertMigrationTableOwnership(sql, env.DB_MIGRATION_ROLE ?? "local");
-      logger.info("all migrations applied successfully");
+      logger.info({ backfilledShopSlugs }, "all migrations applied successfully");
     } finally {
       await sql`SELECT pg_advisory_unlock(${MIGRATION_ADVISORY_LOCK_KEY})`;
     }

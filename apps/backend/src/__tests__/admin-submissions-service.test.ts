@@ -142,6 +142,7 @@ describe("admin-submissions service", () => {
       },
       newShop: {
         id: 17,
+        slug: "shop-17",
         url: "https://example.com",
       },
     });
@@ -176,6 +177,7 @@ describe("admin-submissions service", () => {
       },
       newShop: {
         id: 20,
+        slug: "shop-20",
         url: "https://colorful.example",
       },
       conflict: null,
@@ -205,6 +207,7 @@ describe("admin-submissions service", () => {
       },
       newShop: {
         id: 21,
+        slug: "shop-21",
         url: "https://plain.example",
       },
       conflict: null,
@@ -232,7 +235,7 @@ describe("admin-submissions service", () => {
     };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: { id: 17, url: "https://goodkarma.example" },
+      newShop: { id: 17, slug: "shop-17", url: "https://goodkarma.example" },
       conflict: null,
     });
     getSubmissionCategoryNames.mockResolvedValue(["Coffee", "Food"]);
@@ -260,7 +263,7 @@ describe("admin-submissions service", () => {
       expect.objectContaining({
         kind: "submission",
         submission,
-        newShopId: 17,
+        newShopSlug: "shop-17",
         adminNote: "Looks good",
         categoryNames: ["Coffee", "Food"],
       }),
@@ -278,7 +281,7 @@ describe("admin-submissions service", () => {
     };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: { id: 18, url: "https://tea.example" },
+      newShop: { id: 18, slug: "shop-18", url: "https://tea.example" },
       conflict: null,
     });
     getSubmissionCategoryNames.mockResolvedValue(["Tea"]);
@@ -298,7 +301,7 @@ describe("admin-submissions service", () => {
       null,
       "submission",
       [{ accountId: 50, templateId: 12 }],
-      expect.objectContaining({ kind: "submission", newShopId: 18 }),
+      expect.objectContaining({ kind: "submission", newShopSlug: "shop-18" }),
     );
   });
 
@@ -313,7 +316,7 @@ describe("admin-submissions service", () => {
     };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: { id: 19, url: "https://quiet.example" },
+      newShop: { id: 19, slug: "shop-19", url: "https://quiet.example" },
       conflict: null,
     });
     const service = await loadServiceModule();
@@ -365,7 +368,7 @@ describe("admin-submissions service", () => {
     };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: { id: 19, url: "https://x.example" },
+      newShop: { id: 19, slug: "shop-19", url: "https://x.example" },
       conflict: null,
     });
     const service = await loadServiceModule();

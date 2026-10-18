@@ -10,7 +10,7 @@ import {
   StorefrontIcon,
 } from "@phosphor-icons/react";
 
-import { countryName, encodeShopToken, type Shop } from "@lmaa/shared";
+import { SHOP_SLUG_MAX_LENGTH, SHOP_SLUG_PATTERN, countryName, type Shop } from "@lmaa/shared";
 import { PaymentMethodIcons, SocialMediaIcons } from "@lmaa/ui";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 
@@ -23,13 +23,18 @@ import { getFavicons } from "@/lib/favicons";
 import { stripMarkdown } from "@/lib/markdown";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
+import { canonicalShopRedirectPath, shopDetailPath } from "@/lib/shop-detail-path";
 import { slugToTitle } from "@/lib/slug";
 import { loadSupportPrompts } from "@/lib/support-prompts";
 import { unsplashAvif } from "@/lib/unsplash-photo";
 
-const { token } = Astro.params;
+const { identifier } = Astro.params;
 
-if (!token || !/^[a-z0-9]+$/.test(token)) {
+if (
+  !identifier ||
+  identifier.length > SHOP_SLUG_MAX_LENGTH ||
+  !SHOP_SLUG_PATTERN.test(identifier)
+) {
   return Astro.redirect("/404");
 }
 
@@ -39,7 +44,7 @@ const fromSlug = Astro.url.searchParams.get("slug");
 const fromQuery = Astro.url.searchParams.get("q");
 
 // Fetch shop + category image in parallel when navigating from a category page
-const shopPromise = apiGet<Shop>(`/shops/${token}`);
+const shopPromise = apiGet<Shop>(`/shops/${identifier}`);
 const categoryFromSlugPromise =
   from === "category" && fromSlug
     ? apiGet<{ imageUrl?: string | null }>(`/categories/${fromSlug}`).catch(() => null)
@@ -54,8 +59,12 @@ try {
 
 const categoryFromSlugResult = await categoryFromSlugPromise;
 
-const shopToken = encodeShopToken(shop.id);
+const redirectPath = canonicalShopRedirectPath(identifier, shop.slug, Astro.url.search);
+if (redirectPath) {
+  return Astro.redirect(redirectPath, 308);
+}
 
+const shopPath = shopDetailPath(shop.slug);
 const domain = shopDomain(shop.url);
 const visitUrl = shopRefUrl(shop.url);
 const descriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
@@ -136,7 +145,7 @@ const jsonLd = {
       "@type": "ListItem",
       position: breadcrumb.length + 1,
       name: shop.name,
-      item: `${site}/shop/${shopToken}`,
+      item: `${site}${shopPath}`,
     },
   ],
 };
@@ -151,6 +160,7 @@ const metaDescription = shop.description
   description={metaDescription}
   ogImage={shop.ogImage ?? undefined}
   jsonLd={jsonLd}
+  canonicalUrl={`${site}${shopPath}`}
 >
   <!-- Hero Banner (category context) -->
   {categoryImageUrl && (
@@ -307,7 +317,7 @@ const metaDescription = shop.description
                 type="button"
                 class="w-9 h-9 flex items-center justify-center rounded-lg text-[var(--ds-text-subtle)] hover:text-[var(--ds-accent-text)] hover:bg-[var(--ds-control-hover-bg)] transition-colors cursor-pointer"
                 data-action="share"
-                data-share-url={`${site}/shop/${shopToken}`}
+                data-share-url={`${site}${shopPath}`}
                 data-share-title={shop.name}
                 aria-label={`${shop.name} teilen`}
               >
@@ -336,7 +346,7 @@ const metaDescription = shop.description
       <SupportPromptSlot
         client:only="react"
         slot="shop-detail"
-        shopSlug={shopToken}
+        shopSlug={shop.slug}
         prompts={supportPrompts.prompts}
         limits={supportPrompts.limits}
         liveIds={supportPrompts.liveIds}

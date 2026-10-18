@@ -15,6 +15,7 @@ import { deadLinkReports, shopCategories, shops } from "../db/schema.js";
 import type { Shop as DbShop } from "../db/schema.js";
 import type { HeadquartersInput } from "./headquarters.js";
 import { loadShopHeadquartersMap, upsertShopHeadquarters } from "./headquarters.js";
+import { assignCanonicalShopSlug } from "./shop-slugs.js";
 
 /**
  * Payload used when creating a shop from dashboard.
@@ -63,7 +64,9 @@ export interface UpdateAdminShopData {
  */
 export async function listAdminShops(visibility?: ShopVisibility): Promise<AdminShopListItem[]> {
   const rows = await db.execute<AdminShopListItem & Record<string, unknown>>(sql`
-    SELECT s.id, s.name, s.url, s.region,
+    SELECT s.id, s.name,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           s.url, s.region,
            s.description,
            s.shipping,
            s.like_count as "likeCount",
@@ -121,7 +124,9 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
  */
 export async function getAdminShopById(id: number): Promise<SharedShop | null> {
   const [shop] = await db.execute<SharedShop & Record<string, unknown>>(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+    SELECT s.id, s.name,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.logo_background_color as "logoBackgroundColor",
            s.contact_email as "contactEmail",
            s.shop_check_notes as "shopCheckNotes",
@@ -162,7 +167,9 @@ export async function getAdminShopById(id: number): Promise<SharedShop | null> {
  * @param data - Validated shop payload.
  * @returns Inserted raw DB shop row.
  */
-export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop> {
+export async function createAdminShop(
+  data: CreateAdminShopData,
+): Promise<DbShop & { slug: string }> {
   return db.transaction(async (tx) => {
     const { categoryIds, contactEmail, headquarters, ...shopData } = data;
     const [shop] = await tx
@@ -173,6 +180,8 @@ export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop
       })
       .returning();
 
+    const slug = await assignCanonicalShopSlug(tx, shop.id, shop.name);
+
     if (categoryIds.length > 0) {
       await tx
         .insert(shopCategories)
@@ -181,7 +190,7 @@ export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop
 
     await upsertShopHeadquarters(tx, shop.id, headquarters);
 
-    return shop;
+    return { ...shop, slug };
   });
 }
 
@@ -198,7 +207,7 @@ export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop
 export async function updateAdminShop(
   id: number,
   data: UpdateAdminShopData,
-): Promise<DbShop | null> {
+): Promise<(DbShop & { slug: string }) | null> {
   return db.transaction(async (tx) => {
     const {
       categoryIds,
@@ -223,7 +232,10 @@ export async function updateAdminShop(
       .where(eq(shops.id, id))
       .returning();
 
+    let slug: string | null = null;
     if (shop) {
+      slug = await assignCanonicalShopSlug(tx, shop.id, shop.name);
+
       if (categoryIds !== undefined) {
         await tx.delete(shopCategories).where(eq(shopCategories.shopId, id));
 
@@ -239,7 +251,7 @@ export async function updateAdminShop(
       }
     }
 
-    return shop ?? null;
+    return shop && slug ? { ...shop, slug } : null;
   });
 }
 

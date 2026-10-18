@@ -22,6 +22,7 @@ export type CategoryShopRow = Pick<
   Shop,
   | "id"
   | "name"
+  | "slug"
   | "url"
   | "region"
   | "pickup"
@@ -47,6 +48,7 @@ type SearchShopRow = Shop & { categories: ShopCategory[]; rank: number };
 interface ShopByDomainRow {
   id: number;
   name: string;
+  slug: string;
   url: string;
   visibility: "public" | "onhold" | "deleted" | "rejected";
   rejectionToken: string | null;
@@ -170,6 +172,7 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
     .select({
       id: shops.id,
       name: shops.name,
+      slug: sql<string>`(SELECT slug FROM shop_slugs WHERE shop_id = ${shops.id} AND canonical = true)`,
       url: shops.url,
       region: shops.region,
       pickup: shops.pickup,
@@ -197,7 +200,9 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
  */
 export async function listAllPublicShopsWithCategories() {
   return db.execute<PublicShopRow>(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+    SELECT s.id, s.name,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
            s.social_media as "socialMedia",
@@ -243,7 +248,9 @@ export async function searchPublicShops(
   const categoryMatch = categoryNameMatch(pattern);
 
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+    SELECT s.id, s.name,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
            s.is_active as "isActive",
@@ -311,7 +318,9 @@ export async function findShopByDomain(domain: string) {
   const [{ getDomain }, candidates] = await Promise.all([
     import("tldts"),
     db.execute<ShopByDomainRow & Record<string, unknown>>(sql`
-      SELECT s.id, s.name, s.url, s.visibility, s.rejection_token AS "rejectionToken"
+      SELECT s.id, s.name,
+             (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+             s.url, s.visibility, s.rejection_token AS "rejectionToken"
       FROM shops s
       WHERE s.url LIKE ${"%" + domain + "%"}
         AND s.visibility IN ('public', 'rejected')
@@ -658,7 +667,9 @@ export async function getFullPublicShopById(id: number) {
       likeCount: number;
     }
   >(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+    SELECT s.id, s.name,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
            s.social_media as "socialMedia",

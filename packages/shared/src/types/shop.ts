@@ -52,6 +52,8 @@ export interface ShopCheckNotes {
 export interface ShopSummary {
   id: number;
   name: string;
+  /** Stable canonical path segment used by public links. */
+  slug: string;
   url: string;
   categories: ShopCategory[];
   region: RegionCode[];
@@ -108,6 +110,8 @@ export interface AdminShopListItem extends ShopSummary {
 export interface Shop {
   id: number;
   name: string;
+  /** Stable canonical path segment used by every public shop link. */
+  slug: string;
   url: string;
   categories: ShopCategory[];
   region: RegionCode[];

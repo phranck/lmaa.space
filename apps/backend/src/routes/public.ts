@@ -13,7 +13,7 @@ import {
   type SponsorsPayload,
   pendingSponsorshipInputSchema,
 } from "@lmaa/contracts";
-import { decodeShopToken, formatCreditorReference } from "@lmaa/shared";
+import { SHOP_SLUG_MAX_LENGTH, SHOP_SLUG_PATTERN, formatCreditorReference } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
 import {
@@ -59,7 +59,7 @@ import {
   getManagedPublicNavItems,
   getManagedPublicRejectedShops,
   getManagedPublicRejectionPageByToken,
-  getManagedPublicShopById,
+  getManagedPublicShopByIdentifier,
   getManagedPublicShops,
   getManagedPublicStats,
   searchManagedPublicCatalog,
@@ -106,6 +106,9 @@ const PENDING_SPONSORSHIP_BODY_BYTES = 4 * 1024;
  */
 const PENDING_SPONSORSHIP_MAX_PER_HOUR = 5;
 const concernBodySchema = z.object({ reason: z.string().min(1).max(2000) });
+const shopIdentifierSchema = z.object({
+  identifier: z.string().max(SHOP_SLUG_MAX_LENGTH).regex(SHOP_SLUG_PATTERN),
+});
 const rejectedShopsQuerySchema = z.object({
   q: z.string().max(200).optional().default(""),
   page: z.coerce.number().int().positive().catch(1),
@@ -149,21 +152,21 @@ publicRoutes.get("/shops", publicReadLimit, async (c) => {
   return ok(c, shops);
 });
 
-// GET /api/shops/:token
-publicRoutes.get("/shops/:token", publicReadLimit, async (c) => {
-  const id = decodeShopToken(c.req.param("token"));
-  if (id === null) {
-    return fail(c, 400, "Invalid shop token");
-  }
+// GET /api/shops/:identifier
+publicRoutes.get(
+  "/shops/:identifier",
+  publicReadLimit,
+  validate("param", shopIdentifierSchema),
+  async (c) => {
+    const result = await getManagedPublicShopByIdentifier(c.req.valid("param").identifier);
+    if (!result.ok) {
+      return fail(c, 404, "Shop not found");
+    }
 
-  const result = await getManagedPublicShopById(id);
-  if (!result.ok) {
-    return fail(c, 404, "Shop not found");
-  }
-
-  c.header("Cache-Control", CACHE_VOLATILE);
-  return ok(c, result.data);
-});
+    c.header("Cache-Control", CACHE_VOLATILE);
+    return ok(c, result.data);
+  },
+);
 
 // GET /api/search?q=...
 publicRoutes.get("/search", publicReadLimit, async (c) => {

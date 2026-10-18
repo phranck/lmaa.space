@@ -213,7 +213,9 @@ export async function listFilteredShopsByCategoryId(categoryId: number, filters:
   const extra = whereFragment(buildConditions(f));
 
   return db.execute<FilteredShopRow>(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+    SELECT s.id, s.name,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
            s.social_media as "socialMedia",
@@ -245,7 +247,9 @@ export async function listFilteredPublicShops(filters: ShopFilterParams) {
   const extra = whereFragment(buildConditions(f));
 
   return db.execute<FilteredShopRow>(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+    SELECT s.id, s.name,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
            s.social_media as "socialMedia",
@@ -290,7 +294,9 @@ export async function searchFilteredPublicShops(
   const extra = whereFragment(buildConditions(f));
 
   return db.execute<FilteredShopRow & { rank: number }>(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+    SELECT s.id, s.name,
+           (SELECT slug FROM shop_slugs WHERE shop_id = s.id AND canonical = true) AS slug,
+           s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.logo_background_color as "logoBackgroundColor",
            s.social_media as "socialMedia",

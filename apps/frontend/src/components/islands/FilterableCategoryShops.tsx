@@ -1,6 +1,6 @@
 import { useCallback, useReducer } from "react";
 
-import { encodeShopToken, type Shop } from "@lmaa/shared";
+import type { Shop } from "@lmaa/shared";
 
 import FilterToggleButton from "@/components/FilterToggleButton";
 import ShopCardReact from "@/components/ShopCardReact";
@@ -8,6 +8,7 @@ import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 import { useGridAnimation } from "@/hooks/useGridAnimation";
 import { fetchJson } from "@/lib/fetch-json";
 import { type ShopFilters, buildFilterQuery } from "@/lib/filter-query";
+import { shopDetailPath } from "@/lib/shop-detail-path";
 
 import ShopFilterBar from "./ShopFilterBar";
 
@@ -38,9 +39,17 @@ function hasActiveShopFilters(filters: ShopFilters): boolean {
   return filters.city !== "" || filters.country.length > 0 || filters.region.length > 0;
 }
 
-function buildShopDetailHref(shopId: number, slug: string, filters: ShopFilters): string {
+/**
+ * Builds a canonical shop URL while preserving the category return context.
+ *
+ * @param shopSlug - Persisted canonical shop slug.
+ * @param categorySlug - Category path segment shown when returning.
+ * @param filters - Active catalog filters to preserve.
+ * @returns Canonical detail URL with category context parameters.
+ */
+function buildShopDetailHref(shopSlug: string, categorySlug: string, filters: ShopFilters): string {
   const filterQuery = buildFilterQuery(filters);
-  const base = `/shop/${encodeShopToken(shopId)}?from=category&slug=${slug}`;
+  const base = `${shopDetailPath(shopSlug)}?from=category&slug=${categorySlug}`;
   return filterQuery ? `${base}&${filterQuery}` : base;
 }
 
@@ -160,7 +169,7 @@ export default function FilterableCategoryShops({
               logoBackgroundColor={shop.logoBackgroundColor}
               url={shop.url}
               categories={shop.categories}
-              detailHref={buildShopDetailHref(shop.id, slug, currentFilters)}
+              detailHref={buildShopDetailHref(shop.slug, slug, currentFilters)}
               hasCoordinates={
                 shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
               }
