@@ -158,6 +158,13 @@ export default {
         files: ["src/services/sponsor-avatar.ts"],
         rules: ["react-doctor/async-await-in-loop"],
       },
+      // A slug repair may take the slug an earlier repair in the same pass has just
+      // given up, and the slug is the primary key, so the updates run in the order
+      // they were planned. Running them at once would collide on that key.
+      {
+        files: ["src/db/shop-slug-backfill.ts"],
+        rules: ["react-doctor/async-await-in-loop"],
+      },
       // Migration safety, the Drizzle run, and ownership verification are strict phases.
       {
         files: ["src/db/run-migrations.ts"],
@@ -196,6 +203,14 @@ export default {
       {
         files: ["src/repositories/review-jobs.ts"],
         rules: ["react-doctor/async-await-in-loop", "react-doctor/async-parallel"],
+      },
+      // Approving a submission writes the shop's slug, categories and headquarters
+      // inside one transaction, which is one connection, so issuing them at once
+      // would not make them concurrent either. The slug is taken under its own
+      // advisory lock, and keeping the steps in order keeps that lock first.
+      {
+        files: ["src/repositories/admin-submissions.ts"],
+        rules: ["react-doctor/server-sequential-independent-await"],
       },
       // Sending the finished check's report is deliberately ahead of the mode
       // guard, because delivery has a setting of its own. Moving it below would
