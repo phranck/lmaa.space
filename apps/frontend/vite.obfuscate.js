@@ -8,9 +8,6 @@ import JavaScriptObfuscator from "javascript-obfuscator";
 /**
  * How the browser bundle is obfuscated.
  *
- * The same settings `phranck/velvet` uses in `site/vite.static-tool.ts`, so the
- * two projects answer this question once rather than twice.
- *
  * Minification has already taken the identifiers. What it leaves in plain sight
  * are the string literals, and those are the readable part of a bundle: route
  * paths, storage keys, selectors and messages say what the code does far more
