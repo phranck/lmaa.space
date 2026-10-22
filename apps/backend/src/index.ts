@@ -152,10 +152,9 @@ app.get("/health", async (c) => {
   }
 });
 
-// ── Health endpoints for the public status page (status.lmaa.space) ──────────
-// Each service is probed through a consistent /health/<service> URL so the
-// IPv4-only GitHub Actions monitor can reach IPv6-only Zerops services through
-// the backend, which shares the dual-stack Zerops network.
+// ── Health endpoints, one /health/<service> URL per service ─────────────────
+// Each service is probed through the backend under the same /health/<service>
+// pattern, so a monitor needs no route of its own to each one.
 
 /** Timeout for upstream liveness probes (ms). */
 const UPSTREAM_HEALTH_TIMEOUT_MS = 5000;
@@ -251,7 +250,7 @@ app.get("/health/db", async (c) => {
   const result = await checkDbReadiness();
   if (result.ok) return c.json({ status: "ok" });
 
-  // The status page only needs to know whether the service is ready. Which
+  // A monitor only needs to know whether the service is ready. Which
   // tables are missing is diagnostic detail and goes to the log, where it is
   // tied to the request id, rather than to an unauthenticated caller.
   logger.error(

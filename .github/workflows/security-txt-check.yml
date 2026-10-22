@@ -31,5 +31,4 @@ jobs:
           domains: |
             lmaa.space
           ignore: |
-            status.lmaa.space: Velvet status page living in its own repository
             link.lmaa.space: SMTP2GO link tracking, no place of ours to put a file
