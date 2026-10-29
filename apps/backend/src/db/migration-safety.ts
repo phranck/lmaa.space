@@ -10,7 +10,18 @@ export interface TableOwnershipMismatch {
   tableName: string;
 }
 
-const LOCAL_DATABASE_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+/**
+ * The development database runs in OrbStack on the LAN server rather than on the
+ * machine that runs the code, so it is the one non-loopback host that counts as local.
+ */
+const DEVELOPMENT_DATABASE_SERVER = "macserver.fritz.box";
+
+const LOCAL_DATABASE_HOSTS = new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  DEVELOPMENT_DATABASE_SERVER,
+]);
 
 export function assertSafeMigrationIdentity(identity: MigrationIdentity): void {
   if (LOCAL_DATABASE_HOSTS.has(identity.host)) return;

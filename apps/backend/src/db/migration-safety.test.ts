@@ -28,6 +28,16 @@ describe("assertSafeMigrationIdentity", () => {
     ).toThrow(/expected role/i);
   });
 
+  it("treats the development database server as local", () => {
+    expect(() =>
+      assertSafeMigrationIdentity({
+        currentRole: "postgres",
+        host: "macserver.fritz.box",
+        isSuperuser: true,
+      }),
+    ).not.toThrow();
+  });
+
   it("allows the expected non-superuser role", () => {
     expect(() =>
       assertSafeMigrationIdentity({
