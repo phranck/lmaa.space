@@ -32,7 +32,7 @@ describe("assertSafeMigrationIdentity", () => {
     expect(() =>
       assertSafeMigrationIdentity({
         currentRole: "postgres",
-        host: "macserver.local",
+        host: "macserver.fritz.box",
         isSuperuser: true,
       }),
     ).not.toThrow();

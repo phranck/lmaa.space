@@ -14,7 +14,7 @@ export interface TableOwnershipMismatch {
  * The development database runs in OrbStack on the LAN server rather than on the
  * machine that runs the code, so it is the one non-loopback host that counts as local.
  */
-const DEVELOPMENT_DATABASE_SERVER = "macserver.local";
+const DEVELOPMENT_DATABASE_SERVER = "macserver.fritz.box";
 
 const LOCAL_DATABASE_HOSTS = new Set([
   "localhost",
