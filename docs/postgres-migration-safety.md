@@ -6,4 +6,4 @@ Before `run-migrations.ts` calls Drizzle, `migration-safety.ts` queries `current
 
 After Drizzle completes, the runner queries every application table in `public` and aborts if any owner differs from the connected application role. `db/doctor.ts` separately verifies migration hashes and pending-schema drift.
 
-Local development uses the development database only, the container `lmaa` on `macserver.fritz.box`. `migration-safety.ts` treats that host like a loopback host, so it needs no `DB_MIGRATION_ROLE`. Administrative production connections must never feed the normal migration or application environment. An ownership repair requires explicit approval and documented owner/privilege checks before and after the change.
+Local development uses the development database only, the container `lmaa-staging` on `macserver.fritz.box`. `migration-safety.ts` treats that host like a loopback host, so it needs no `DB_MIGRATION_ROLE`. Administrative production connections must never feed the normal migration or application environment. An ownership repair requires explicit approval and documented owner/privilege checks before and after the change.
