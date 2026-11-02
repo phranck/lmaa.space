@@ -40,7 +40,13 @@ export async function listMediaAssetsByFolder(folderId: number | null) {
     .orderBy(desc(mediaAssets.createdAt), desc(mediaAssets.id));
 }
 
-async function getMediaAssetById(id: number) {
+/**
+ * Returns one media asset with its current storage location.
+ *
+ * @param id - Existing database identifier of the asset.
+ * @returns The asset, or `null` when the ID does not exist.
+ */
+export async function getMediaAssetById(id: number) {
   const [asset] = await db
     .select(MEDIA_SELECT_FIELDS)
     .from(mediaAssets)
@@ -180,6 +186,7 @@ export async function replaceMediaAssetStorage(
 export async function listMediaAliases() {
   return db
     .select({
+      id: mediaAssets.id,
       alias: mediaAssets.alias,
       storedFilename: mediaAssets.storedFilename,
       posterStoredFilename: mediaAssets.posterStoredFilename,

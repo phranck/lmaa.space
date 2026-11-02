@@ -229,6 +229,9 @@ mediaRoutes.delete("/media/:id", requireAdmin, async (c) => {
   if (!id) return fail(c, 400, "Invalid id");
 
   const result = await deleteManagedMediaAsset(id);
+  if (!result.ok && result.reason === "in_use") {
+    return fail(c, 409, "Media asset is used by an email template", "MEDIA_IN_USE");
+  }
   if (!result.ok) return fail(c, 404, "Media asset not found");
 
   return ok(c, { message: "Deleted" });

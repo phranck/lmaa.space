@@ -5,7 +5,7 @@ import type { FolderContentsResponse, MediaFolder } from "@lmaa/shared";
 import { db } from "../db/client.js";
 import { mediaAssets, mediaFolders } from "../db/schema.js";
 import { removeStoredMediaAsset } from "../lib/media-storage.js";
-import { listManagedMediaAssetsByFolder } from "./admin-media.js";
+import { hasEmailTemplateMediaReferences, listManagedMediaAssetsByFolder } from "./admin-media.js";
 
 type MediaFolderRow = typeof mediaFolders.$inferSelect;
 
@@ -339,6 +339,10 @@ export async function deleteFolderCascade(folderId: number): Promise<DeleteFolde
             .select({ id: mediaAssets.id, storedFilename: mediaAssets.storedFilename })
             .from(mediaAssets)
             .where(inArray(mediaAssets.folderId, descendantIds));
+
+    if (await hasEmailTemplateMediaReferences(assets)) {
+      throw new Error("media_in_use");
+    }
 
     await tx.delete(mediaFolders).where(eq(mediaFolders.id, folderId));
 

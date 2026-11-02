@@ -39,6 +39,7 @@ const formConfigMocks = vi.hoisted(() => ({
 }));
 
 const mediaMocks = vi.hoisted(() => ({
+  getManagedMediaAssetStorageUrl: vi.fn(),
   getMediaAliasMap: vi.fn(),
   getMediaShortcodeAssetMap: vi.fn(),
 }));
@@ -1086,6 +1087,27 @@ describe("publicRoutes", () => {
 
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ data: { countries: ["DE"] } });
+    });
+  });
+
+  describe("GET /media/:id/content", () => {
+    it("redirects to the current storage object without caching", async () => {
+      mediaMocks.getManagedMediaAssetStorageUrl.mockResolvedValue(
+        "https://cdn.example.com/current-image.jpg",
+      );
+
+      const res = await app.request("/media/7/content");
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get("Location")).toBe("https://cdn.example.com/current-image.jpg");
+      expect(res.headers.get("Cache-Control")).toBe("no-store");
+    });
+
+    it("rejects an invalid asset ID", async () => {
+      const res = await app.request("/media/invalid/content");
+
+      expect(res.status).toBe(400);
+      expect(mediaMocks.getManagedMediaAssetStorageUrl).not.toHaveBeenCalled();
     });
   });
 
