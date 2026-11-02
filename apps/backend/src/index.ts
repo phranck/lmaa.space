@@ -26,7 +26,6 @@ import { faviconRoutes } from "./routes/favicon.js";
 import { payeeRoutes } from "./routes/payee.js";
 import { publicRoutes } from "./routes/public.js";
 import { redirectUrlRoutes } from "./routes/redirect-urls.js";
-import { securityTxtRoutes } from "./routes/security-txt.js";
 import { sitemapRoutes } from "./routes/sitemap.js";
 import { startBankWorker } from "./services/bank-ingestion.js";
 import { startPendingSponsorshipExpiry } from "./services/pending-sponsorships.js";
@@ -115,7 +114,6 @@ app.use("*", async (c, next) => {
 });
 
 app.route("/", sitemapRoutes);
-app.route("/", securityTxtRoutes);
 // Everything under `/internal` is for this project's own server-side renderer
 // and for nobody else. The check sits on the mount rather than on the routes
 // beneath it, so a route added here later is covered by having been put here.
