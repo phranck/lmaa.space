@@ -4,6 +4,7 @@ import {
   type MediaKind,
 } from "@lmaa/shared";
 
+import { env } from "../config/env.js";
 import {
   completeStagedHlsBundle,
   type S3MediaMeta,
@@ -24,12 +25,35 @@ import {
   deleteMediaAsset,
   deleteMediaAssetByFilename,
   findMediaAssetByDisplayNameInsensitive,
+  getMediaAssetById,
   listMediaAliases,
   listMediaAssets,
   listMediaAssetsByFolder,
   replaceMediaAssetStorage,
   updateMediaAssetMeta,
 } from "../repositories/admin-media.js";
+import { countEmailTemplateMediaReferences } from "../repositories/email-templates.js";
+
+/**
+ * Builds the stable public URL of a media asset.
+ *
+ * @param id - Existing database identifier of the asset.
+ * @returns An absolute URL on the configured frontend origin. The ID stays unchanged across storage overwrites.
+ */
+export function getManagedMediaAssetPublicUrl(id: number): string {
+  return new URL(`/api/v1/media/${id}/content`, env.FRONTEND_URL).toString();
+}
+
+/**
+ * Resolves the current object-storage URL behind a stable media URL.
+ *
+ * @param id - Existing database identifier of the asset.
+ * @returns The current storage URL, or `null` when the asset does not exist.
+ */
+export async function getManagedMediaAssetStorageUrl(id: number): Promise<string | null> {
+  const asset = await getMediaAssetById(id);
+  return asset ? getMediaPublicUrl(asset.storedFilename) : null;
+}
 
 function mapMediaAsset(row: {
   id: number;
@@ -60,7 +84,7 @@ function mapMediaAsset(row: {
     width: row.width,
     height: row.height,
     folderId: row.folderId,
-    url: getMediaPublicUrl(row.storedFilename),
+    url: getManagedMediaAssetPublicUrl(row.id),
     posterUrl: row.posterStoredFilename ? getMediaPublicUrl(row.posterStoredFilename) : null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -299,7 +323,7 @@ export async function getMediaAliasMap(): Promise<Record<string, string>> {
   const map: Record<string, string> = {};
   for (const row of rows) {
     if (row.alias) {
-      map[row.alias] = getMediaPublicUrl(row.storedFilename);
+      map[row.alias] = getManagedMediaAssetPublicUrl(row.id);
     }
   }
   return map;
@@ -313,7 +337,7 @@ export async function getMediaShortcodeAssetMap(): Promise<
   for (const row of rows) {
     if (row.alias) {
       map[row.alias] = {
-        url: getMediaPublicUrl(row.storedFilename),
+        url: getManagedMediaAssetPublicUrl(row.id),
         posterUrl: row.posterStoredFilename ? getMediaPublicUrl(row.posterStoredFilename) : null,
       };
     }
@@ -321,7 +345,38 @@ export async function getMediaShortcodeAssetMap(): Promise<
   return map;
 }
 
+/**
+ * Checks whether any email template references one of the supplied assets.
+ *
+ * @param assets - Media IDs and their current storage keys. Both stable and legacy URLs are checked.
+ * @returns `true` when at least one header or footer references an asset.
+ */
+export async function hasEmailTemplateMediaReferences(
+  assets: Array<{ id: number; storedFilename: string }>,
+): Promise<boolean> {
+  const urls = assets.flatMap((asset) => [
+    getManagedMediaAssetPublicUrl(asset.id),
+    getMediaPublicUrl(asset.storedFilename),
+  ]);
+  return (await countEmailTemplateMediaReferences(urls)) > 0;
+}
+
+/**
+ * Deletes an unreferenced media asset from the database and object storage.
+ *
+ * @param id - Existing database identifier of the asset.
+ * @returns `not_found` for an unknown ID, `in_use` while an email template references its stable or legacy URL, or success after both deletes complete.
+ */
 export async function deleteManagedMediaAsset(id: number) {
+  const asset = await getMediaAssetById(id);
+  if (!asset) {
+    return { ok: false as const, reason: "not_found" as const };
+  }
+
+  if (await hasEmailTemplateMediaReferences([asset])) {
+    return { ok: false as const, reason: "in_use" as const };
+  }
+
   const deleted = await deleteMediaAsset(id);
   if (!deleted) {
     return { ok: false as const, reason: "not_found" as const };

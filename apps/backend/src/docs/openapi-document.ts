@@ -1170,6 +1170,7 @@ export const excludedPublicRouteKeys = [
   "GET /api/v1/rejected-shops",
   "GET /api/v1/media-aliases",
   "GET /api/v1/media-shortcode-assets",
+  "GET /api/v1/media/{id}/content",
   "GET /api/v1/hero",
   // The site's own asks, read by the website to decide what to show a reader.
   // Of no use to anybody else, and its shape follows the dashboard.

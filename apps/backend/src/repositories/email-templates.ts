@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray, or } from "drizzle-orm";
 
 import { db } from "../db/client.js";
 import { type EmailTemplate, type EmailTemplateInsert, emailTemplates } from "../db/schema.js";
@@ -28,6 +28,27 @@ export async function getEmailTemplateByName(name: string): Promise<EmailTemplat
     .where(eq(emailTemplates.name, name))
     .limit(1);
   return row ?? null;
+}
+
+/**
+ * Counts email templates that reference any of the supplied banner URLs.
+ *
+ * @param urls - Stable or legacy object-storage URLs. An empty list performs no query.
+ * @returns The number of templates whose header or footer references one of the URLs.
+ */
+export async function countEmailTemplateMediaReferences(urls: string[]): Promise<number> {
+  if (urls.length === 0) return 0;
+
+  const rows = await db
+    .select({ id: emailTemplates.id })
+    .from(emailTemplates)
+    .where(
+      or(
+        inArray(emailTemplates.headerBannerUrl, urls),
+        inArray(emailTemplates.footerBannerUrl, urls),
+      ),
+    );
+  return rows.length;
 }
 
 /**

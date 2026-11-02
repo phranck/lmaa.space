@@ -75,6 +75,9 @@ folderRoutes.delete("/media/folders/:id", requireAdmin, async (c) => {
     const result = await deleteFolderCascade(id);
     return ok(c, result);
   } catch (error) {
+    if (error instanceof Error && error.message === "media_in_use") {
+      return fail(c, 409, "Media asset is used by an email template", "MEDIA_IN_USE");
+    }
     if (error instanceof Error && error.message === "not_found") {
       return fail(c, 404, "Media folder not found");
     }

@@ -36,7 +36,11 @@ import {
   getManagedPublicFormConfig,
   getManagedPublicFormConfigBySlug,
 } from "../services/admin-form-config.js";
-import { getMediaAliasMap, getMediaShortcodeAssetMap } from "../services/admin-media.js";
+import {
+  getManagedMediaAssetStorageUrl,
+  getMediaAliasMap,
+  getMediaShortcodeAssetMap,
+} from "../services/admin-media.js";
 import { getContentPreviewSession } from "../services/content-preview-store.js";
 import { getDonationTotals } from "../services/donations.js";
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
@@ -741,6 +745,20 @@ publicRoutes.get("/filter-options", publicReadLimit, async (c) => {
   c.header("Cache-Control", CACHE_STABLE);
   return ok(c, options);
 });
+
+// Stable public address of the current storage object.
+publicRoutes.get(
+  "/media/:id/content",
+  publicReadLimit,
+  validate("param", z.object({ id: z.coerce.number().int().positive() })),
+  async (c) => {
+    const storageUrl = await getManagedMediaAssetStorageUrl(c.req.valid("param").id);
+    if (!storageUrl) return fail(c, 404, "Media asset not found");
+
+    c.header("Cache-Control", CACHE_NONE);
+    return c.redirect(storageUrl, 307);
+  },
+);
 
 // GET /api/media-aliases – alias → public URL map for markdown shortcodes
 publicRoutes.get("/media-aliases", publicReadLimit, async (c) => {
