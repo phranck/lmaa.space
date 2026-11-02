@@ -110,13 +110,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Add security.txt
-        uses: phranck/security-txt-action@v1
-        with:
-          host: api.lmaa.space
-          output: apps/backend/public/.well-known
-          signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
-          signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
       - uses: ./.github/actions/zerops-deploy
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
@@ -131,13 +124,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Add security.txt
-        uses: phranck/security-txt-action@v1
-        with:
-          host: lmaa.space
-          output: apps/frontend/public/.well-known
-          signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
-          signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
       - uses: ./.github/actions/zerops-deploy
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
@@ -152,13 +138,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Add security.txt
-        uses: phranck/security-txt-action@v1
-        with:
-          host: dashboard.lmaa.space
-          output: apps/dashboard/public/.well-known
-          signing-key: ${{ secrets.SECURITY_TXT_SIGNING_KEY }}
-          signing-passphrase: ${{ secrets.SECURITY_TXT_SIGNING_PASSPHRASE }}
       - uses: ./.github/actions/zerops-deploy
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}

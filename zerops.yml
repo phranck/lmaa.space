@@ -29,7 +29,6 @@ zerops:
         - apps/backend/dist
         - apps/backend/docs-dist
         - apps/backend/drizzle
-        - apps/backend/public
         # The automated review sends these rules to the provider on every run
         # and refuses to run without them, so they ship with the backend.
         - .claude/skills/lmaa-shop-check/SKILL.md
