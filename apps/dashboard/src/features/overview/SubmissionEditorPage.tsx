@@ -2,7 +2,7 @@ import { StorefrontIcon } from "@phosphor-icons/react";
 import { useReducer, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
-import { REJECT_TOKEN_PLACEHOLDER } from "@lmaa/contracts";
+import { REJECT_TOKEN_PLACEHOLDER, reviewAcceptSchema } from "@lmaa/contracts";
 import { formatDateTime, generateRejectionToken, type Submission } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -11,6 +11,7 @@ import { EditorPageTitleDetails } from "@/components/ui/EditorPageTitleDetails.t
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useShopEditorController } from "@/features/content/shops/hooks/useShopEditorController.ts";
+import { applyShopCheckJsonToForm } from "@/features/content/shops/shop-editor-utils.ts";
 import { ShopEditorFormContent } from "@/features/content/shops/ShopEditorFormContent.tsx";
 import { useReviewJob } from "@/features/overview/hooks/useReviewJob.ts";
 import {
@@ -165,6 +166,7 @@ function LoadedSubmissionEditorPage({
   const navigate = useNavigate();
   const [reviewState, dispatchReview] = useReducer(reviewReducer, EMPTY_REVIEW_STATE);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [approvalJson, setApprovalJson] = useState<string | null>(null);
   const { phase: reviewSavedPhase, show: showReviewSaved } = useSaveNotification();
   const common = messages.common;
   const submissionsMessages = messages.submissions;
@@ -183,6 +185,23 @@ function LoadedSubmissionEditorPage({
     initialOgImage: submission.ogImage,
     dataRevision: submission.updatedAt,
   });
+  const isDeferred =
+    reviewJob?.verdict === "onhold" &&
+    reviewJob.result !== null &&
+    typeof reviewJob.result === "object" &&
+    "verdict" in reviewJob.result &&
+    reviewJob.result.verdict === "onhold";
+  const parsedAccept = reviewAcceptSchema.safeParse(
+    reviewJob?.result && typeof reviewJob.result === "object" && "accept" in reviewJob.result
+      ? reviewJob.result.accept
+      : null,
+  );
+  const acceptProposal =
+    isDeferred && reviewJob?.state === "completed" && parsedAccept.success
+      ? parsedAccept.data
+      : null;
+  const hasDeferredAcceptance = acceptProposal !== null;
+  const deferredApproveLabel = locale === "de" ? "Trotzdem freischalten" : "Approve anyway";
 
   usePersistedTextareaHeight(
     "submission-editor-admin-note",
@@ -214,6 +233,15 @@ function LoadedSubmissionEditorPage({
   }
 
   function openApproveReview() {
+    if (acceptProposal && controller.categoriesReady) {
+      const nextForm = applyShopCheckJsonToForm(
+        controller.form,
+        acceptProposal,
+        controller.categories,
+      );
+      if (nextForm) controller.setForm(nextForm);
+      setApprovalJson(JSON.stringify(acceptProposal, null, 2));
+    }
     dispatchReview({
       type: "openApprove",
       adminNote: submission.adminNote ?? "",
@@ -347,6 +375,9 @@ function LoadedSubmissionEditorPage({
             saveLabel={saveLabel}
             messages={submissionsMessages}
             onApprove={openApproveReview}
+            hasDeferredAcceptance={hasDeferredAcceptance}
+            canUseDeferredAcceptance={controller.categoriesReady}
+            deferredApproveLabel={deferredApproveLabel}
             onReject={openRejectReview}
             onSetStatus={handleSetStatus}
             onDelete={() => setShowDeleteDialog(true)}
@@ -362,7 +393,7 @@ function LoadedSubmissionEditorPage({
       >
         <div className="flex flex-col gap-6">
           <SubmissionReviewPanel submissionId={submission.id} />
-          <ShopEditorFormContent controller={controller} />
+          <ShopEditorFormContent controller={controller} importedJson={approvalJson} />
         </div>
       </EditorPageShell>
 
@@ -385,6 +416,7 @@ function LoadedSubmissionEditorPage({
         navigateBack={navigateBack}
         common={common}
         submissionsMessages={submissionsMessages}
+        deferredApproveLabel={hasDeferredAcceptance ? deferredApproveLabel : null}
       />
     </>
   );

@@ -226,10 +226,22 @@ describe("reviewResultSchema", () => {
   });
 
   it("refuses a verdict that carries the wrong payload", () => {
-    const parsed = reviewResultSchema.safeParse(
-      acceptResult({ verdict: "onhold", onhold: { reason: "Zu wenig Belege", missing: [] } }),
-    );
+    const parsed = reviewResultSchema.safeParse(acceptResult({ verdict: "reject" }));
     expect(parsed.success).toBe(false);
+  });
+
+  it("keeps complete acceptance and rejection drafts on hold without applying either", () => {
+    const parsed = reviewResultSchema.safeParse({
+      ...rejectResult(),
+      verdict: "onhold",
+      accept: acceptPayload,
+      onhold: { reason: "Die Belege zur Unternehmensgröße widersprechen sich.", missing: [] },
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.accept?.name).toBe("Beispielladen");
+      expect(parsed.data.reject?.longText).toBe(longRejectionText.trim());
+    }
   });
 
   it("refuses an unknown schema version", () => {

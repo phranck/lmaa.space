@@ -12,7 +12,7 @@ import { isSafeConfiguredUrl } from "./safe-url";
  * version it does not know, which is what stops an old provider response from
  * being interpreted against newer rules after a deployment.
  */
-export const REVIEW_RESULT_SCHEMA_VERSION = "2";
+export const REVIEW_RESULT_SCHEMA_VERSION = "3";
 
 /**
  * Placeholder the rejection comment must still contain when it reaches us.
@@ -448,10 +448,8 @@ export const reviewOnholdSchema = z
  * A complete automated review result.
  *
  * @remarks
- * The verdict decides which payload must be present, and the other two must be
- * absent. Carrying an acceptance payload alongside a rejection would leave the
- * applying code to pick one, which is exactly the ambiguity `onhold` exists to
- * prevent.
+ * A held result may carry validated drafts for either manual decision. The
+ * automation never applies those drafts itself.
  */
 export const reviewResultSchema = z
   .object({
@@ -475,9 +473,8 @@ export const reviewResultSchema = z
 
     for (const [verdict, payload] of Object.entries(payloads)) {
       const required = verdict === value.verdict;
-      // `null` and an absent key both mean "this verdict was not chosen". The
-      // provider schema requires all three keys and nulls the two that do not
-      // apply, whilst a hand-written fixture may simply omit them.
+      // `null` and an absent key both mean no draft was produced. A held
+      // result may include either draft for a moderator to inspect.
       if (required && payload == null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -485,7 +482,7 @@ export const reviewResultSchema = z
           message: `verdict "${value.verdict}" requires the ${verdict} payload`,
         });
       }
-      if (!required && payload != null) {
+      if (!required && value.verdict !== "onhold" && payload != null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: [verdict],

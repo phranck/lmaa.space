@@ -219,7 +219,7 @@ export const SubmissionReviewPanel = memo(function SubmissionReviewPanel({
             </div>
           ) : null}
 
-          {detail.verdict === "reject" && hasRejectTexts ? (
+          {(detail.verdict === "reject" || detail.verdict === "onhold") && hasRejectTexts ? (
             <Notice
               colorClass="bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]"
               icon={<XCircleIcon weight="duotone" className="size-5 shrink-0" />}
