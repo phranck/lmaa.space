@@ -2,7 +2,7 @@ import { StorefrontIcon } from "@phosphor-icons/react";
 import { useReducer, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
-import { REJECT_TOKEN_PLACEHOLDER, reviewAcceptSchema } from "@lmaa/contracts";
+import { REJECT_TOKEN_PLACEHOLDER } from "@lmaa/contracts";
 import { formatDateTime, generateRejectionToken, type Submission } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -20,6 +20,7 @@ import {
   useEditRejectionText,
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
+import { readDeferredAcceptProposal } from "@/features/overview/review-accept-proposal.ts";
 import { readRejectProposal } from "@/features/overview/review-reject-proposal.ts";
 import { EMPTY_REVIEW_STATE, reviewReducer } from "@/features/overview/submission-review-state.ts";
 import { SubmissionDialogs } from "@/features/overview/SubmissionDialogs.tsx";
@@ -185,21 +186,7 @@ function LoadedSubmissionEditorPage({
     initialOgImage: submission.ogImage,
     dataRevision: submission.updatedAt,
   });
-  const isDeferred =
-    reviewJob?.verdict === "onhold" &&
-    reviewJob.result !== null &&
-    typeof reviewJob.result === "object" &&
-    "verdict" in reviewJob.result &&
-    reviewJob.result.verdict === "onhold";
-  const parsedAccept = reviewAcceptSchema.safeParse(
-    reviewJob?.result && typeof reviewJob.result === "object" && "accept" in reviewJob.result
-      ? reviewJob.result.accept
-      : null,
-  );
-  const acceptProposal =
-    isDeferred && reviewJob?.state === "completed" && parsedAccept.success
-      ? parsedAccept.data
-      : null;
+  const acceptProposal = readDeferredAcceptProposal(reviewJob);
   const hasDeferredAcceptance = acceptProposal !== null;
   const deferredApproveLabel = locale === "de" ? "Trotzdem freischalten" : "Approve anyway";
 
@@ -284,6 +271,7 @@ function LoadedSubmissionEditorPage({
         status: "approved",
         adminNote: reviewState.adminNote,
         notificationTemplateId: reviewState.notificationTemplateId,
+        allowDomainConflict: hasDeferredAcceptance,
         templateAssignments: reviewState.templateAssignments,
       });
 

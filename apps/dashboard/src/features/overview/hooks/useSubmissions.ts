@@ -50,6 +50,7 @@ export function useReviewSubmission() {
       rejectionLongText,
       rejectionToken,
       notificationTemplateId,
+      allowDomainConflict,
       templateAssignments,
     }: {
       id: number;
@@ -58,6 +59,7 @@ export function useReviewSubmission() {
       rejectionLongText?: string;
       rejectionToken?: string;
       notificationTemplateId?: number;
+      allowDomainConflict?: boolean;
       templateAssignments?: Array<{ accountId: number; templateId: number | null }>;
     }) =>
       api.patch<Submission>(`/admin/submissions/${id}`, {
@@ -66,6 +68,7 @@ export function useReviewSubmission() {
         rejectionLongText: rejectionLongText || undefined,
         rejectionToken: rejectionToken || undefined,
         notificationTemplateId: notificationTemplateId || undefined,
+        allowDomainConflict,
         templateAssignments: templateAssignments?.length ? templateAssignments : undefined,
       }),
     onSuccess: (_submission, variables) => {

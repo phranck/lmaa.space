@@ -59,14 +59,17 @@ interface SubmissionReviewData {
   rejectionToken?: string;
   /** Moderator who decided, or `null` when the automated reviewer applied the result. */
   adminId: number | null;
+  /** Skips the public-domain conflict check only for an explicit deferred approval. Defaults to `false`. */
+  allowDomainConflict?: boolean;
 }
 
 /**
  * Result of a review transaction including optional newly created shop.
  *
- * `conflict` is only populated when approving a submission whose registered
- * domain is already claimed by an existing public shop; in that case neither
- * `submission` nor `newShop` is returned and no writes occur.
+ * `conflict` is populated when an ordinary approval finds the registered domain
+ * on an existing public shop; in that case neither `submission` nor `newShop` is
+ * returned and no writes occur. An explicit deferred approval can set
+ * `allowDomainConflict` to proceed instead.
  */
 interface SubmissionReviewResult {
   submission: Submission | null;
@@ -211,7 +214,7 @@ export async function reviewSubmission(
     const emptyResult: SubmissionReviewResult = { submission: null, newShop: null, conflict: null };
 
     async function findApprovalConflict(current: Pick<Submission, "shopUrl">) {
-      if (data.status !== "approved") return null;
+      if (data.status !== "approved" || data.allowDomainConflict === true) return null;
 
       const domain = getDomain(current.shopUrl);
       if (!domain) return null;

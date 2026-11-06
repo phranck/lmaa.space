@@ -153,6 +153,28 @@ describe("admin-submissions service", () => {
     expect(hydrateShopOgImageInBackground).not.toHaveBeenCalled();
   });
 
+  it("allows an explicit deferred approval to override a domain conflict", async () => {
+    reviewSubmission.mockImplementation(async ({ allowDomainConflict }) =>
+      allowDomainConflict
+        ? { submission: { id: 442 }, newShop: null, conflict: null }
+        : {
+            submission: null,
+            newShop: null,
+            conflict: { existingShopId: 11, existingShopName: "Good Karma Coffee" },
+          },
+    );
+    const service = await loadServiceModule();
+
+    await expect(
+      service.reviewAdminSubmission({
+        id: 442,
+        status: "approved",
+        adminId: 1,
+        allowDomainConflict: true,
+      }),
+    ).resolves.toEqual({ ok: true, submission: { id: 442 } });
+  });
+
   it("skips OG hydration when an approved submission already has an og image", async () => {
     reviewSubmission.mockResolvedValue({
       submission: {

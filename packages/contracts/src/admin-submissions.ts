@@ -33,6 +33,8 @@ export const reviewSchema = z.object({
     .regex(/^[0-9a-f]{32}$/)
     .optional(),
   notificationTemplateId: z.number().int().positive().optional(),
+  /** Allows an explicit deferred approval to create a second public shop for the domain. Defaults to `false`. */
+  allowDomainConflict: z.boolean().optional(),
   templateAssignments: z
     .array(
       z.object({

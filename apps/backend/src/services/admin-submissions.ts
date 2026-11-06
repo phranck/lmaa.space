@@ -31,6 +31,8 @@ interface ReviewAdminSubmissionInput {
   /** Moderator who decided, or `null` when the automated reviewer applied the result. */
   adminId: number | null;
   notificationTemplateId?: number;
+  /** Allows a second public shop for the domain only when an administrator explicitly approves a deferred review. Defaults to `false`. */
+  allowDomainConflict?: boolean;
   templateAssignments?: TemplateAssignment[];
 }
 
@@ -49,6 +51,10 @@ interface ReviewAdminSubmissionInput {
  * Side effects:
  * - May create a new shop when status is `approved`.
  * - May hydrate and persist OG image for newly created shop.
+ *
+ * The domain conflict remains enforced unless `allowDomainConflict` is `true`.
+ * Automatic approval never sets that flag, so only the explicit deferred
+ * moderation action can create a second public shop for the same domain.
  */
 export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
   const { submission, newShop, conflict } = await reviewSubmission({
@@ -58,6 +64,7 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     rejectionLongText: input.rejectionLongText,
     rejectionToken: input.rejectionToken,
     adminId: input.adminId,
+    allowDomainConflict: input.allowDomainConflict,
   });
 
   if (conflict) {
