@@ -179,6 +179,27 @@ describe("submissionsRoutes", () => {
       );
     });
 
+    it("allows an explicit deferred approval to override a domain conflict", async () => {
+      serviceMocks.reviewAdminSubmission.mockImplementation(async ({ allowDomainConflict }) =>
+        allowDomainConflict
+          ? { ok: true, submission: { id: 442, status: "approved" } }
+          : {
+              ok: false,
+              reason: "shop_exists",
+              existingShopName: "Good Karma Coffee",
+            },
+      );
+
+      const res = await app.request("/submissions/442", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "approved", allowDomainConflict: true }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ data: { id: 442, status: "approved" } });
+    });
+
     it("returns 404 when submission not found", async () => {
       serviceMocks.reviewAdminSubmission.mockResolvedValue({ ok: false, reason: "not_found" });
 

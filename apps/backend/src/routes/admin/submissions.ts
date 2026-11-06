@@ -72,6 +72,7 @@ submissionsRoutes.patch(
       rejectionLongText,
       rejectionToken,
       notificationTemplateId,
+      allowDomainConflict,
       templateAssignments,
     } = c.req.valid("json");
     const adminId = c.get("adminId");
@@ -84,6 +85,7 @@ submissionsRoutes.patch(
       rejectionToken,
       adminId,
       notificationTemplateId,
+      allowDomainConflict,
       templateAssignments,
     });
 
