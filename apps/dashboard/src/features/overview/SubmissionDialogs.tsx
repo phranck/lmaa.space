@@ -58,6 +58,7 @@ interface SubmissionDialogsProps {
   navigateBack: () => void;
   common: DashboardMessages["common"];
   submissionsMessages: DashboardMessages["submissions"];
+  deferredApproveLabel: string | null;
 }
 
 export function SubmissionDialogs({
@@ -79,6 +80,7 @@ export function SubmissionDialogs({
   navigateBack,
   common,
   submissionsMessages,
+  deferredApproveLabel,
 }: SubmissionDialogsProps) {
   return (
     <>
@@ -103,7 +105,7 @@ export function SubmissionDialogs({
         reviewing={submission}
         savedLabel={common.saved}
         savedPhase={combinedSavedPhase}
-        submitLabel={submissionsMessages.suggestions.accept}
+        submitLabel={deferredApproveLabel ?? submissionsMessages.suggestions.accept}
         isPending={controller.isPending || reviewMutation.isPending}
         emailTemplates={emailTemplates}
         notificationTemplateId={reviewState.notificationTemplateId}

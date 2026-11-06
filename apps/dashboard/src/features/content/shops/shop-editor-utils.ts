@@ -223,11 +223,18 @@ export function applyShopCheckJsonToForm(
   }
 
   const socialMedia = getRecord(payload.socialMedia);
-  if (socialMedia !== null) {
-    const imported = Object.entries(socialMedia).flatMap(([platform, value]) => {
-      const url = getString(value);
-      return url === null ? [] : [{ platform: platform as SocialPlatformKey, url }];
-    });
+  if (socialMedia !== null || Array.isArray(payload.socialMedia)) {
+    const imported = Array.isArray(payload.socialMedia)
+      ? payload.socialMedia.flatMap((entry) => {
+          const link = getRecord(entry);
+          const platform = getString(link?.platform);
+          const url = getString(link?.url);
+          return platform && url ? [{ platform: platform as SocialPlatformKey, url }] : [];
+        })
+      : Object.entries(socialMedia ?? {}).flatMap(([platform, value]) => {
+          const url = getString(value);
+          return url === null ? [] : [{ platform: platform as SocialPlatformKey, url }];
+        });
     // The import adds addresses rather than replacing them, because a shop may
     // legitimately hold two of one kind and the editor may already be showing
     // one the import does not know about.

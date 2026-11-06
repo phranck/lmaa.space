@@ -1,5 +1,5 @@
 import { BracketsCurlyIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 import { FormErrorText } from "@lmaa/ui/form-primitives";
@@ -18,12 +18,21 @@ import { applyShopCheckJsonToForm, sanitizeJsonControlChars } from "./shop-edito
 import { ShopPreviewImageSection } from "./ShopPreviewImageSection.tsx";
 import { ShopReminderSection } from "./ShopReminderSection.tsx";
 
-export function ShopEditorFormContent({ controller }: { controller: ShopEditorController }) {
+export function ShopEditorFormContent({
+  controller,
+  importedJson,
+}: {
+  controller: ShopEditorController;
+  importedJson?: string | null;
+}) {
   const activeReviewData = controller.activeShop?.reviewData;
   const [shopCheckJson, setShopCheckJson] = useState(() =>
     activeReviewData ? JSON.stringify(activeReviewData, null, 2) : "",
   );
   const [jsonImportError, setJsonImportError] = useState<string | null>(null);
+  useEffect(() => {
+    if (importedJson !== undefined && importedJson !== null) setShopCheckJson(importedJson);
+  }, [importedJson]);
   const {
     categories,
     displayImage,

@@ -23,6 +23,9 @@ interface SubmissionToolbarProps {
   saveLabel: string;
   messages: DashboardMessages["submissions"];
   onApprove: () => void;
+  hasDeferredAcceptance: boolean;
+  canUseDeferredAcceptance: boolean;
+  deferredApproveLabel: string;
   onReject: (editingRejection: boolean) => void;
   onSetStatus: (status: "pending" | "onhold", options?: { navigateBack?: boolean }) => void;
   onDelete: () => void;
@@ -37,6 +40,9 @@ export function SubmissionToolbar({
   saveLabel,
   messages: submissionsMessages,
   onApprove,
+  hasDeferredAcceptance,
+  canUseDeferredAcceptance,
+  deferredApproveLabel,
   onReject,
   onSetStatus,
   onDelete,
@@ -78,17 +84,27 @@ export function SubmissionToolbar({
           <div className="w-4" aria-hidden />
           <EditorToolbarButton
             onClick={onApprove}
-            disabled={isActionPending}
+            disabled={isActionPending || (hasDeferredAcceptance && !canUseDeferredAcceptance)}
             variant="success"
             icon={<CheckCircleIcon weight="duotone" className="size-3.5" />}
           >
-            {submissionsMessages.suggestions.approve}
+            {hasDeferredAcceptance ? deferredApproveLabel : submissionsMessages.suggestions.approve}
           </EditorToolbarButton>
         </>
       )}
 
       {isOnHold && (
         <>
+          {hasDeferredAcceptance && (
+            <EditorToolbarButton
+              onClick={onApprove}
+              disabled={isActionPending || !canUseDeferredAcceptance}
+              variant="success"
+              icon={<CheckCircleIcon weight="duotone" className="size-3.5" />}
+            >
+              {deferredApproveLabel}
+            </EditorToolbarButton>
+          )}
           <EditorToolbarButton
             onClick={() => onSetStatus("pending")}
             disabled={isActionPending}

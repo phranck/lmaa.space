@@ -51,7 +51,8 @@ export function useShopEditorController({
   const hasImmediateFormData = initialData !== undefined;
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
 
-  const { data: categories = [] } = useAdminCategories();
+  const categoriesQuery = useAdminCategories();
+  const categories = categoriesQuery.data ?? [];
   const { data: shopData, isLoading: isLoadingShop } = useAdminShop(
     typeof shopId === "number" && !hasImmediateFormData ? shopId : null,
   );
@@ -300,6 +301,7 @@ export function useShopEditorController({
     canReject,
     canSave,
     categories,
+    categoriesReady: categoriesQuery.isSuccess,
     common,
     displayImage,
     error,
