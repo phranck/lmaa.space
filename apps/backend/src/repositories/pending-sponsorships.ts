@@ -1,10 +1,11 @@
-import { asc, eq, lt } from "drizzle-orm";
+import { type SQL, asc, eq, lt } from "drizzle-orm";
 
 import { db } from "../db/client.js";
 import {
   type PendingSponsorshipInsert,
   type PendingSponsorshipRow,
   pendingSponsorships,
+  retiredSponsorshipReferences,
 } from "../db/schema.js";
 
 /**
@@ -86,29 +87,63 @@ export async function getPendingSponsorshipByReference(
 }
 
 /**
- * Removes every entry announced before the given moment.
+ * Says whether this project issued a reference, whatever became of its entry.
+ *
+ * @param reference - The reference as it is stored, without spaces, upper case.
+ * @returns `true` when an entry still carries it or `retired_sponsorship_references`
+ *   holds it, `false` when this project never issued it.
+ */
+export async function wasSponsorshipReferenceIssued(reference: string): Promise<boolean> {
+  if (await getPendingSponsorshipByReference(reference)) return true;
+
+  const [retired] = await db
+    .select({ reference: retiredSponsorshipReferences.reference })
+    .from(retiredSponsorshipReferences)
+    .where(eq(retiredSponsorshipReferences.reference, reference))
+    .limit(1);
+  return Boolean(retired);
+}
+
+/**
+ * Deletes the entries a condition selects and keeps their references.
+ *
+ * Every way an entry leaves goes through here, so no reference this project
+ * issued is forgotten. Both writes share one transaction: an entry never goes
+ * without its reference being kept, and a reference is never kept for an entry
+ * that stayed.
+ *
+ * @param where - Which entries to delete.
+ * @returns How many were deleted.
+ */
+async function retirePendingSponsorships(where: SQL): Promise<number> {
+  return db.transaction(async (tx) => {
+    const removed = await tx
+      .delete(pendingSponsorships)
+      .where(where)
+      .returning({ reference: pendingSponsorships.reference });
+    if (removed.length > 0) {
+      await tx.insert(retiredSponsorshipReferences).values(removed).onConflictDoNothing();
+    }
+    return removed.length;
+  });
+}
+
+/**
+ * Removes every entry announced before the given moment, keeping its reference.
  *
  * @param before - Entries created earlier than this are removed.
  * @returns How many were removed, which is what the log line reports.
  */
 export async function deletePendingSponsorshipsBefore(before: Date): Promise<number> {
-  const removed = await db
-    .delete(pendingSponsorships)
-    .where(lt(pendingSponsorships.createdAt, before))
-    .returning({ id: pendingSponsorships.id });
-  return removed.length;
+  return retirePendingSponsorships(lt(pendingSponsorships.createdAt, before));
 }
 
 /**
- * Removes one entry.
+ * Removes one entry, keeping its reference.
  *
  * @param id - The identifier of the entry.
  * @returns `true` when a row was removed, `false` when it was already gone.
  */
 export async function deletePendingSponsorship(id: string): Promise<boolean> {
-  const removed = await db
-    .delete(pendingSponsorships)
-    .where(eq(pendingSponsorships.id, id))
-    .returning({ id: pendingSponsorships.id });
-  return removed.length > 0;
+  return (await retirePendingSponsorships(eq(pendingSponsorships.id, id))) > 0;
 }

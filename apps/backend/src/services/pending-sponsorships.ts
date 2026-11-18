@@ -1,12 +1,8 @@
-import { randomBytes } from "node:crypto";
-
 import { PENDING_SPONSORSHIP_DAYS, type PendingSponsorshipInput } from "@lmaa/contracts";
 import {
-  buildCreditorReference,
   classifyProfileLink,
   normalizeCreditorReference,
   normalizeSocialMediaValue,
-  randomReferenceBody,
   type SocialPlatformKey,
 } from "@lmaa/shared";
 
@@ -27,30 +23,7 @@ import {
 import { insertSponsor } from "../repositories/sponsors.js";
 import { resolveSponsorAvatar } from "./sponsor-avatar.js";
 import { getSponsoringConfig } from "./sponsors.js";
-
-/**
- * What every reference opens with, so a statement says what the payment is.
- *
- * The prefix is the same for everybody and is therefore worth nothing against
- * guessing. It buys the payee a word on the bank statement, which is what the
- * free text would have carried had a reference left room for one.
- */
-const REFERENCE_PREFIX = "SPON";
-
-/**
- * How many drawn characters follow the prefix.
- *
- * `REFERENCE_BODY_ALPHABET` holds 32 characters, so each one is worth 5 bits and
- * twelve of them are 60 bits, or 1.15e18 references. The reference addresses a
- * private record, so it is sized against being guessed rather than against two
- * of them colliding, and 60 bits is far past what a rate-limited endpoint could
- * be walked through.
- *
- * Twelve rather than the 17 that would fill an ISO 11649 reference, because the
- * whole thing then prints as five clean groups of four and somebody typing it
- * into a banking app by hand has 20 characters to get right instead of 25.
- */
-const REFERENCE_RANDOM_LENGTH = 12;
+import { drawSponsorshipReference } from "./sponsorship-reference.js";
 
 /**
  * How many times a taken reference is redrawn before the attempt is given up.
@@ -63,16 +36,6 @@ const REFERENCE_ATTEMPTS = 3;
 
 /** The unique constraint that holds one entry per reference. */
 const REFERENCE_UNIQUE_CONSTRAINT = "pending_sponsorships_reference_unique";
-
-/**
- * Draws one reference, being `RF`, its two check digits, the prefix, and chance.
- *
- * @returns The reference as it travels, without the spaces it is printed with.
- */
-function drawReference(): string {
-  const drawn = randomReferenceBody(REFERENCE_RANDOM_LENGTH, (size) => randomBytes(size));
-  return buildCreditorReference(`${REFERENCE_PREFIX}${drawn}`);
-}
 
 /**
  * Takes what somebody said about themselves and answers with their reference.
@@ -169,7 +132,7 @@ export async function createPendingSponsorship(
   for (let attempt = 1; attempt <= REFERENCE_ATTEMPTS; attempt++) {
     try {
       const pending = await insertPendingSponsorship({
-        reference: drawReference(),
+        reference: drawSponsorshipReference(),
         ...prepared.fields,
       });
       return success({ pending });

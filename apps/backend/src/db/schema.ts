@@ -1372,6 +1372,26 @@ export const pendingSponsorships = pgTable(
 );
 
 /**
+ * Every reference whose announcement is gone from `pending_sponsorships`.
+ *
+ * An announcement leaves when it is taken over, when it runs out unclaimed, and
+ * when the operator removes it, and the reference must still be recognized
+ * afterwards: a standing order keeps paying under it, and a payment can arrive
+ * after its announcement expired. The bank import books a reference only when
+ * this project issued it, and an issued reference stands either in
+ * `pending_sponsorships` or here.
+ *
+ * Only the reference is kept. It is drawn at random and names nobody, so what
+ * the announcement said about the person still goes when the announcement does.
+ */
+export const retiredSponsorshipReferences = pgTable("retired_sponsorship_references", {
+  /** The reference as it is stored, upper case and without its printed spaces. */
+  reference: text("reference").primaryKey(),
+  /** When its announcement left `pending_sponsorships`. Defaults to the moment of writing. */
+  retiredAt: timestamp("retired_at").defaultNow().notNull(),
+});
+
+/**
  * Inferred select type for `sponsors`.
  */
 export type SponsorRow = typeof sponsors.$inferSelect;

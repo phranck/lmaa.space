@@ -23,8 +23,13 @@ const pendingMocks = vi.hoisted(() => ({
   takeOverPendingSponsorshipByReference: vi.fn(),
 }));
 
+const referenceMocks = vi.hoisted(() => ({
+  wasSponsorshipReferenceIssued: vi.fn(),
+}));
+
 vi.mock("../services/enable-banking-client.js", () => clientMocks);
 vi.mock("../services/pending-sponsorships.js", () => pendingMocks);
+vi.mock("../repositories/pending-sponsorships.js", () => referenceMocks);
 vi.mock("../repositories/bank-reads.js", () => ({
   claimBankRead: repositoryMocks.claimBankRead,
   completeBankRead: repositoryMocks.completeBankRead,
@@ -43,21 +48,41 @@ vi.mock("../services/bank-consent.js", () => ({
   announceConsentStage: vi.fn(),
 }));
 
+import { buildCreditorReference, formatCreditorReference } from "@lmaa/shared";
+
 import { HttpError } from "../lib/http.js";
+import { logger } from "../lib/logger.js";
 import {
   carriesSiteMarker,
   classifyTransaction,
-  findIssuedReference,
+  findCreditorReference,
+  namesOtherProject,
   runBankIngestion,
 } from "../services/bank-ingestion.js";
 
 /**
- * A reference of the shape the sponsor form issues, with its real check digits.
+ * A reference of the shape the sponsor form issues: `SPON` and twelve drawn
+ * characters.
  *
- * Built by `buildCreditorReference("SPON2ABCD3EFGH4")` rather than written out
- * from memory, because the check digits are what these tests turn on.
+ * Built rather than written out, because the check digits are what these tests
+ * turn on.
  */
-const ISSUED = "RF35SPON2ABCD3EFGH4";
+const ISSUED = buildCreditorReference("SPON2ABCD3EFGH4J");
+
+/**
+ * A reference musiccloud issues on its own support page, which pays into the
+ * same account: `MCSP` and twelve drawn characters.
+ */
+const MUSICCLOUD = buildCreditorReference("MCSP7Q2K9X4M8T3B");
+
+/** A sound reference some other payee issued, such as a shop refunding an order. */
+const MERCHANT = buildCreditorReference("539007547034");
+
+/**
+ * A reference that opens with this project's tag but has a body the sponsor
+ * form never draws, so it cannot be one this project issued.
+ */
+const SPON_WRONG_LENGTH = buildCreditorReference("SPON2ABCD3EFGH4");
 
 /**
  * What the driver throws when the entry is already in the ledger.
@@ -92,30 +117,86 @@ function transaction(overrides: Record<string, unknown> = {}) {
   };
 }
 
-describe("finding a reference this project issued", () => {
-  it("finds one standing alone on a line", () => {
-    expect(findIssuedReference([ISSUED])).toBe(ISSUED);
+describe("finding a creditor reference", () => {
+  const own = { kind: "own", reference: ISSUED };
+
+  it("finds this project's reference standing alone on a line", () => {
+    expect(findCreditorReference([ISSUED])).toEqual(own);
   });
 
   it("finds one inside a sentence, on whichever line it landed", () => {
-    expect(findIssuedReference(["Ueberweisung", `Verwendungszweck ${ISSUED} danke`])).toBe(ISSUED);
+    expect(findCreditorReference(["Ueberweisung", `Verwendungszweck ${ISSUED} danke`])).toEqual(
+      own,
+    );
   });
 
   it("reads one back that arrived in lower case", () => {
     // ISO/IEC 7064 reads the two cases as one number, so a bank that lowercased
     // it still hands back the reference that was issued.
-    expect(findIssuedReference([ISSUED.toLowerCase()])).toBe(ISSUED);
+    expect(findCreditorReference([ISSUED.toLowerCase()])).toEqual(own);
+  });
+
+  it("finds one printed in groups of four, the way the site shows it", () => {
+    expect(findCreditorReference([`Spende ${formatCreditorReference(ISSUED)} danke`])).toEqual(own);
+  });
+
+  it("finds one a bank split across two lines", () => {
+    const printed = formatCreditorReference(ISSUED);
+    expect(findCreditorReference([printed.slice(0, 12), printed.slice(12)])).toEqual(own);
+  });
+
+  it("finds one followed by punctuation", () => {
+    expect(findCreditorReference([`Ref.:${ISSUED}.`])).toEqual(own);
+  });
+
+  it("does not take one that runs on into other characters", () => {
+    // Without a boundary the match swallowed what followed, and the reference
+    // it then checked was not the one that was printed.
+    expect(findCreditorReference([`${ISSUED}X`])?.kind).not.toBe("own");
+  });
+
+  it("does not take one glued onto a word in front of it", () => {
+    expect(findCreditorReference([`ABC${ISSUED}`])).toBeNull();
   });
 
   it("refuses one whose check digits do not hold", () => {
     // A single character changed. The check digits are what stop a damaged
     // reference landing on somebody else's announcement.
     const damaged = `${ISSUED.slice(0, -1)}${ISSUED.endsWith("H") ? "J" : "H"}`;
-    expect(findIssuedReference([damaged])).toBeNull();
+    expect(findCreditorReference([damaged])).toBeNull();
+  });
+
+  it("calls another payee's sound reference foreign", () => {
+    expect(findCreditorReference([`Erstattung ${MERCHANT}`])).toEqual({ kind: "foreign" });
+  });
+
+  it("calls a musiccloud reference foreign, printed either way", () => {
+    expect(findCreditorReference([MUSICCLOUD])).toEqual({ kind: "foreign" });
+    expect(findCreditorReference([formatCreditorReference(MUSICCLOUD)])).toEqual({
+      kind: "foreign",
+    });
+  });
+
+  it("calls a reference with this project's tag but another shape foreign", () => {
+    expect(findCreditorReference([SPON_WRONG_LENGTH])).toEqual({ kind: "foreign" });
   });
 
   it("finds nothing in an ordinary remittance text", () => {
-    expect(findIssuedReference(["Miete September", "Gehalt"])).toBeNull();
+    expect(findCreditorReference(["Miete September", "Gehalt"])).toBeNull();
+  });
+});
+
+describe("recognizing another project on the account", () => {
+  it("finds musiccloud's host", () => {
+    expect(namesOtherProject(["Spende musiccloud.io"])).toBe(true);
+  });
+
+  it("finds it whatever the case and spacing", () => {
+    expect(namesOtherProject(["SPENDE:   MUSICCLOUD.IO"])).toBe(true);
+  });
+
+  it("finds nothing in a text naming this project alone", () => {
+    expect(namesOtherProject(["Spende: lmaa.space"])).toBe(false);
   });
 });
 
@@ -162,12 +243,105 @@ describe("deciding what an entry is", () => {
     expect(classifyTransaction(transaction(), marker)).toEqual({ kind: "donation" });
   });
 
+  it("takes a reference printed in groups of four", () => {
+    const decided = classifyTransaction(
+      transaction({ remittanceLines: [formatCreditorReference(ISSUED)] }),
+      marker,
+    );
+    expect(decided).toEqual({ kind: "sponsorship", reference: ISSUED });
+  });
+
   it("ignores everything else", () => {
     // A private account carries salary, rent and shopping, and none of it is a
     // donation.
     expect(classifyTransaction(transaction({ remittanceLines: ["Gehalt"] }), marker)).toEqual({
       kind: "ignore",
     });
+  });
+
+  it("ignores another payee's reference, even beside this site's host", () => {
+    // A shop refunding an order to the private account carries its own
+    // reference, and the payment is the shop's business rather than a gift.
+    const decided = classifyTransaction(
+      transaction({ remittanceLines: [`${MERCHANT} lmaa.space`] }),
+      marker,
+    );
+    expect(decided).toEqual({ kind: "ignore" });
+  });
+
+  it("ignores a musiccloud sponsor's reference", () => {
+    expect(classifyTransaction(transaction({ remittanceLines: [MUSICCLOUD] }), marker)).toEqual({
+      kind: "ignore",
+    });
+  });
+
+  it("ignores a musiccloud reference that also names this site", () => {
+    const decided = classifyTransaction(
+      transaction({ remittanceLines: [`${MUSICCLOUD} Spende lmaa.space`] }),
+      marker,
+    );
+    expect(decided).toEqual({ kind: "ignore" });
+  });
+
+  it("ignores a text naming both projects", () => {
+    // The money can only be counted once, and where the text does not say whose
+    // it is, it belongs to neither ledger until a person decides.
+    const decided = classifyTransaction(
+      transaction({ remittanceLines: ["lmaa.space / musiccloud.io"] }),
+      marker,
+    );
+    expect(decided).toEqual({ kind: "ignore" });
+  });
+
+  it("ignores this project's reference beside the other project's host", () => {
+    const decided = classifyTransaction(
+      transaction({ remittanceLines: [`${ISSUED} musiccloud.io`] }),
+      marker,
+    );
+    expect(decided).toEqual({ kind: "ignore" });
+  });
+
+  it("ignores a text naming the other project alone", () => {
+    expect(
+      classifyTransaction(transaction({ remittanceLines: ["Spende musiccloud.io"] }), marker),
+    ).toEqual({ kind: "ignore" });
+  });
+
+  it("refuses to book a payment in another currency", () => {
+    // 100 dollars would otherwise be stored as 10000 cents and counted as euros.
+    expect(classifyTransaction(transaction({ currency: "USD" }), marker)).toEqual({
+      kind: "unbookable",
+    });
+  });
+
+  it("refuses to book a payment that names no currency", () => {
+    expect(classifyTransaction(transaction({ currency: "" }), marker)).toEqual({
+      kind: "unbookable",
+    });
+  });
+
+  it("refuses to book a payment of nothing", () => {
+    expect(classifyTransaction(transaction({ amountCents: 0 }), marker)).toEqual({
+      kind: "unbookable",
+    });
+  });
+
+  it("refuses to book a payment whose amount the bank left empty", () => {
+    // The client reads an empty amount as zero, so this is the entry it hands
+    // over for one.
+    const decided = classifyTransaction(
+      transaction({ amountCents: 0, remittanceLines: [ISSUED] }),
+      marker,
+    );
+    expect(decided).toEqual({ kind: "unbookable" });
+  });
+
+  it("leaves a foreign-currency entry that is not this project's ignored", () => {
+    // Shopping abroad is nothing to do with the project, so it is not even
+    // counted as skipped.
+    expect(
+      classifyTransaction(transaction({ currency: "USD", remittanceLines: ["Amazon"] }), marker),
+    ).toEqual({ kind: "ignore" });
   });
 });
 
@@ -196,6 +370,7 @@ describe("a run over the account", () => {
     repositoryMocks.insertDonation.mockResolvedValue({ id: "d1" });
     repositoryMocks.fillDonationPayerName.mockResolvedValue(false);
     pendingMocks.takeOverPendingSponsorshipByReference.mockResolvedValue({ ok: true });
+    referenceMocks.wasSponsorshipReferenceIssued.mockResolvedValue(true);
     clientMocks.fetchTransactions.mockResolvedValue({ transactions: [], continuationKey: null });
   });
 
@@ -378,9 +553,9 @@ describe("a run over the account", () => {
     expect(repositoryMocks.insertDonation).not.toHaveBeenCalled();
   });
 
-  it("still records a payment whose reference no longer has an announcement", async () => {
-    // A reference already taken over looks exactly like this, and the money
-    // still arrived.
+  it("still records a payment under a reference it issued whose announcement is gone", async () => {
+    // A reference already taken over, or one whose announcement ran out, looks
+    // exactly like this. The project issued it, and the money still arrived.
     pendingMocks.takeOverPendingSponsorshipByReference.mockResolvedValue({ ok: false });
     clientMocks.fetchTransactions.mockResolvedValue({
       transactions: [transaction({ remittanceLines: [ISSUED] })],
@@ -389,8 +564,63 @@ describe("a run over the account", () => {
 
     const result = await runBankIngestion("background");
 
+    expect(referenceMocks.wasSponsorshipReferenceIssued).toHaveBeenCalledWith(ISSUED);
     expect(result).toMatchObject({ imported: 1 });
     expect(repositoryMocks.insertDonation).toHaveBeenCalledTimes(1);
+  });
+
+  it("books nothing under a reference of this shape it never issued", async () => {
+    // A reference anybody can build with the right check digits is not a
+    // payment to this project until this project is the one that issued it.
+    pendingMocks.takeOverPendingSponsorshipByReference.mockResolvedValue({ ok: false });
+    referenceMocks.wasSponsorshipReferenceIssued.mockResolvedValue(false);
+    clientMocks.fetchTransactions.mockResolvedValue({
+      transactions: [transaction({ remittanceLines: [`${ISSUED} lmaa.space`] })],
+      continuationKey: null,
+    });
+
+    const result = await runBankIngestion("background");
+
+    expect(result).toMatchObject({ read: 1, imported: 0, filled: 0, skipped: 0 });
+    expect(repositoryMocks.insertDonation).not.toHaveBeenCalled();
+  });
+
+  it("never books a musiccloud sponsor's transfer", async () => {
+    clientMocks.fetchTransactions.mockResolvedValue({
+      transactions: [transaction({ remittanceLines: [MUSICCLOUD, "Spende musiccloud.io"] })],
+      continuationKey: null,
+    });
+
+    const result = await runBankIngestion("background");
+
+    expect(result).toMatchObject({ read: 1, imported: 0, skipped: 0 });
+    expect(pendingMocks.takeOverPendingSponsorshipByReference).not.toHaveBeenCalled();
+    expect(repositoryMocks.insertDonation).not.toHaveBeenCalled();
+  });
+
+  it("skips a payment it cannot book and counts it in the log line alone", async () => {
+    const info = vi.spyOn(logger, "info");
+    clientMocks.fetchTransactions.mockResolvedValue({
+      transactions: [
+        transaction({ currency: "USD" }),
+        transaction({ entryReference: "entry-2", amountCents: 0 }),
+      ],
+      continuationKey: null,
+    });
+
+    const result = await runBankIngestion("background");
+
+    expect(result).toMatchObject({ read: 2, imported: 0, filled: 0, skipped: 0 });
+    expect(repositoryMocks.insertDonation).not.toHaveBeenCalled();
+    const finished = info.mock.calls.find(
+      ([fields]) => (fields as { event?: string }).event === "bank_ingestion.finished",
+    );
+    expect(finished?.[0]).toMatchObject({ unbookable: 2 });
+    // The count and nothing else: no amount and no remittance text.
+    const logged = JSON.stringify(finished);
+    expect(logged).not.toContain("lmaa.space");
+    expect(logged).not.toContain("2500");
+    info.mockRestore();
   });
 
   it("never takes money leaving the account, however it is marked", async () => {

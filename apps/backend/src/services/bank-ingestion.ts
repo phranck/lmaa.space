@@ -1,4 +1,4 @@
-import { normalizeCreditorReference } from "@lmaa/shared";
+import { MAX_CREDITOR_REFERENCE, normalizeCreditorReference } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
 import { isUniqueViolation } from "../lib/db-errors.js";
@@ -13,6 +13,7 @@ import {
   type BankReadKind,
 } from "../repositories/bank-reads.js";
 import { fillDonationPayerName, insertDonation } from "../repositories/donations.js";
+import { wasSponsorshipReferenceIssued } from "../repositories/pending-sponsorships.js";
 import { announceConsentRefused, announceConsentStage } from "./bank-consent.js";
 import {
   BACKGROUND_INTERVAL_MS,
@@ -22,6 +23,7 @@ import {
 } from "./bank-read-schedule.js";
 import { fetchTransactions, type BankTransaction } from "./enable-banking-client.js";
 import { takeOverPendingSponsorshipByReference } from "./pending-sponsorships.js";
+import { isSponsorshipReferenceShape } from "./sponsorship-reference.js";
 
 /** How far back the very first run reaches, in days. */
 const FIRST_RUN_LOOKBACK_DAYS = 90;
@@ -68,6 +70,14 @@ const MAX_PAYER_NAME_LENGTH = 80;
 
 /** A day in milliseconds. */
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The only currency the ledger is kept in.
+ *
+ * `amountCents` carries no currency, so a payment in any other one would be
+ * counted as though it were euros.
+ */
+const BOOKED_CURRENCY = "EUR";
 
 /** Why a run did nothing. */
 export type BankIngestionSkip =
@@ -162,31 +172,109 @@ function siteMarker(): string {
   }
 }
 
+/**
+ * The hosts of the other projects that are paid into the same account.
+ *
+ * A transfer naming one of them is that project's to book, even where its text
+ * also names this site, because money that lands in two ledgers is counted
+ * twice. Lower case and without `www.`, as `siteMarker` returns this site's own.
+ */
+const OTHER_PROJECT_HOSTS: readonly string[] = ["musiccloud.io"];
+
 /** One line of remittance text, with its spacing and case taken out. */
 function flatten(line: string): string {
   return line.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
+/** The opening of a creditor reference: `RF` and its two check digits. */
+const REFERENCE_START = /^RF[0-9]{2}/;
+
+/** What separates one word of a remittance text from the next. */
+const WORD_SEPARATOR = /[^A-Z0-9]+/;
+
 /**
- * Finds the reference this project issued, if the payment carries one.
+ * What the creditor reference on a payment says about whose it is.
+ *
+ * `own` carries the reference as it is stored, in the shape this project
+ * issues. `foreign` is a sound reference some other payee issued, such as
+ * musiccloud or a shop refunding an order.
+ */
+export type FoundReference = { kind: "own"; reference: string } | { kind: "foreign" };
+
+/**
+ * Finds the creditor reference a payment carries, and says whether it is
+ * this project's.
  *
  * @param lines - The remittance text, line by line.
- * @returns The reference as it is stored, or `null`.
+ * @returns `own` with the stored reference when the text carries one in this
+ *   project's shape, `foreign` when it carries only references of other payees,
+ *   and `null` when it carries none whose check digits hold.
  *
  * @remarks
- * Every line is searched, because a bank splits a remittance text wherever it
- * likes and the reference may sit on any of them. The check digits decide: a
- * reference that arrived damaged fails them and is not treated as a match, so a
- * near miss never lands on somebody else's announcement.
+ * The lines are read as one text, because a bank splits a remittance text
+ * wherever it likes, even inside a reference. The text is cut into words at
+ * anything that is not a letter or a digit, and a reference starts at a word
+ * opening with `RF` and two digits. Whole words are what make the boundary: a
+ * reference glued onto the word in front of it or the characters after it is
+ * not the one that was printed, and is not taken.
+ *
+ * A reference printed in groups of four arrives as several words, so each
+ * starting word is joined with the ones after it, up to the longest reference
+ * ISO 11649 allows, and every join is checked. The check digits decide: a
+ * reference that arrived damaged fails them, so a near miss never lands on
+ * somebody else's announcement. A reference in this project's shape wins over
+ * any other the text carries.
  */
-export function findIssuedReference(lines: string[]): string | null {
-  for (const line of lines) {
-    for (const candidate of line.toUpperCase().match(/RF[0-9]{2}[A-Z0-9]{1,21}/g) ?? []) {
+export function findCreditorReference(lines: string[]): FoundReference | null {
+  const words = lines.join(" ").toUpperCase().split(WORD_SEPARATOR).filter(Boolean);
+  let foreign = false;
+
+  for (let start = 0; start < words.length; start++) {
+    if (!REFERENCE_START.test(words[start])) continue;
+
+    let candidate = "";
+    for (let end = start; end < words.length; end++) {
+      candidate += words[end];
+      if (candidate.length > MAX_CREDITOR_REFERENCE) break;
+
       const reference = normalizeCreditorReference(candidate);
-      if (reference) return reference;
+      if (!reference) continue;
+      if (isSponsorshipReferenceShape(reference)) return { kind: "own", reference };
+      foreign = true;
     }
   }
-  return null;
+
+  return foreign ? { kind: "foreign" } : null;
+}
+
+/**
+ * Says whether a payment names another project paid into the same account.
+ *
+ * @param lines - The remittance text, line by line.
+ * @returns `true` when any line contains one of `OTHER_PROJECT_HOSTS`.
+ *
+ * @remarks
+ * Matched the way `carriesSiteMarker` matches this site's host, so a text that
+ * names both is recognized as naming the other one.
+ */
+export function namesOtherProject(lines: string[]): boolean {
+  return OTHER_PROJECT_HOSTS.some((host) => carriesSiteMarker(lines, host));
+}
+
+/**
+ * Says whether a payment can stand in the ledger as it arrived.
+ *
+ * @param transaction - The entry as it came back.
+ * @returns `true` for a whole, positive number of cents in `BOOKED_CURRENCY`.
+ *   The client reads an amount the bank left empty as zero, which is refused
+ *   here with every other amount that is not above zero.
+ */
+function isBookable(transaction: BankTransaction): boolean {
+  return (
+    transaction.currency === BOOKED_CURRENCY &&
+    Number.isInteger(transaction.amountCents) &&
+    transaction.amountCents > 0
+  );
 }
 
 /**
@@ -208,6 +296,23 @@ export function carriesSiteMarker(lines: string[], marker: string): boolean {
 }
 
 /**
+ * What one entry was decided to be.
+ *
+ * - `sponsorship`: it carries a reference in this project's shape, which the
+ *   import still checks this project issued before booking anything.
+ * - `donation`: it names this site and carries no reference.
+ * - `unbookable`: it is this project's by its text, but its amount is not a
+ *   positive sum in `BOOKED_CURRENCY`. It is skipped and counted in the run's
+ *   log line.
+ * - `ignore`: it is not this project's, and is neither stored nor counted.
+ */
+export type TransactionClass =
+  | { kind: "sponsorship"; reference: string }
+  | { kind: "donation" }
+  | { kind: "unbookable" }
+  | { kind: "ignore" };
+
+/**
  * Decides what one entry is, without looking anything up.
  *
  * @param transaction - The entry as it came back.
@@ -215,19 +320,35 @@ export function carriesSiteMarker(lines: string[], marker: string): boolean {
  * @returns What to do with it.
  *
  * @remarks
- * The account is a private one, carrying salary, rent and shopping. Anything
- * this does not recognise is nothing to do with the project, and it leaves here
- * unstored, uncounted and unlogged. That is the whole reason the decision is a
- * positive list rather than a filter with an exception.
+ * The account is a private one, carrying salary, rent and shopping, and other
+ * projects are paid into it as well. Anything this does not recognize as this
+ * project's is nothing to do with it, and it leaves here unstored, uncounted and
+ * unlogged. That is the whole reason the decision is a positive list rather
+ * than a filter with an exception.
+ *
+ * Whose a payment is comes first. A text naming another project, or a
+ * reference some other payee issued, is not this project's even where it also
+ * names this site, because a payment can only be counted in one ledger. Only a
+ * payment that is this project's is then measured for whether it can be booked.
  */
 export function classifyTransaction(
   transaction: BankTransaction,
   marker: string,
-): { kind: "sponsorship"; reference: string } | { kind: "donation" } | { kind: "ignore" } {
-  const reference = findIssuedReference(transaction.remittanceLines);
-  if (reference) return { kind: "sponsorship", reference };
-  if (carriesSiteMarker(transaction.remittanceLines, marker)) return { kind: "donation" };
-  return { kind: "ignore" };
+): TransactionClass {
+  const lines = transaction.remittanceLines;
+  if (namesOtherProject(lines)) return { kind: "ignore" };
+
+  const found = findCreditorReference(lines);
+  if (found?.kind === "foreign") return { kind: "ignore" };
+
+  const claimed: TransactionClass | null = found
+    ? { kind: "sponsorship", reference: found.reference }
+    : carriesSiteMarker(lines, marker)
+      ? { kind: "donation" }
+      : null;
+  if (!claimed) return { kind: "ignore" };
+
+  return isBookable(transaction) ? claimed : { kind: "unbookable" };
 }
 
 /** What became of one recognised payment. */
@@ -237,17 +358,25 @@ type ImportOutcome =
   /** It was already there without a name, and now carries one. */
   | "filled"
   /** It was already there and the entry had nothing to add. */
-  | "skipped";
+  | "skipped"
+  /** Its reference has this project's shape, but this project never issued it. */
+  | "ignored";
 
 /**
  * Takes one recognised payment into the ledger, or completes what stands there.
  *
  * @param transaction - The entry as it came back.
  * @param classified - What the entry was decided to be.
- * @returns Whether the payment was written, completed, or already stood
- *   complete.
+ * @returns Whether the payment was written, completed, already stood complete,
+ *   or was left alone because this project never issued its reference.
  *
  * @remarks
+ * A reference in this project's shape is booked only when this project issued
+ * it. Anybody can build one whose check digits hold, so the shape alone is not
+ * enough. Where the announcement is gone but the reference was issued, as with
+ * an announcement already taken over or one that ran out, the payment still
+ * goes into the ledger, without a sponsor beside it.
+ *
  * The second run over a day is the ordinary case rather than the exception: the
  * window reaches back further than the interval, and a person may ask for a
  * range that was read months ago. Such a run therefore completes what stands in
@@ -260,7 +389,7 @@ type ImportOutcome =
  */
 async function importTransaction(
   transaction: BankTransaction,
-  classified: { kind: "sponsorship"; reference: string } | { kind: "donation" },
+  classified: Extract<TransactionClass, { kind: "sponsorship" | "donation" }>,
 ): Promise<ImportOutcome> {
   const externalRef = `${PROVIDER}:${transaction.entryReference}`;
   const payment = {
@@ -272,15 +401,13 @@ async function importTransaction(
   try {
     if (classified.kind === "sponsorship") {
       const taken = await takeOverPendingSponsorshipByReference(classified.reference, payment);
-      // No announcement carries that reference any more, which is what a
-      // reference already taken over looks like. The payment is still this
-      // project's, so it goes into the ledger without a sponsor beside it.
       if (taken.ok) return "imported";
+      if (!(await wasSponsorshipReferenceIssued(classified.reference))) return "ignored";
     }
 
     await insertDonation({
       // The name as the statement writes it, whole. Only reached where no
-      // reference matched; where one did, the name comes from the form its
+      // announcement matched; where one did, the name comes from the form its
       // owner filled in, which is the better of the two.
       name: transaction.payerName.slice(0, MAX_PAYER_NAME_LENGTH),
       socialMedia: [],
@@ -318,7 +445,8 @@ async function importTransaction(
  * never read as a period without donations, so the run stops and says so rather
  * than recording a day on which it found nothing.
  *
- * What goes to the log is how many entries were read, taken and skipped. No
+ * What goes to the log is how many entries were read, taken, skipped, and
+ * refused because their currency or amount could not be booked. No
  * amount, no reference, no remittance text and no account number, because the
  * account is private and most of what passes through here is somebody's
  * ordinary life.
@@ -363,6 +491,10 @@ export async function runBankIngestion(
   let imported = 0;
   let filled = 0;
   let skipped = 0;
+  // Payments that are this project's by their text but cannot be booked as
+  // they arrived. The log line counts them so the case is known; nothing else
+  // about them is kept.
+  let unbookable = 0;
   let continuationKey: string | undefined;
 
   // The failure is caught rather than left to escape. Escaping it left the
@@ -390,11 +522,15 @@ export async function runBankIngestion(
         }
 
         if (classified.kind === "ignore") continue;
+        if (classified.kind === "unbookable") {
+          unbookable += 1;
+          continue;
+        }
 
         const outcome = await importTransaction(transaction, classified);
         if (outcome === "imported") imported += 1;
         else if (outcome === "filled") filled += 1;
-        else skipped += 1;
+        else if (outcome === "skipped") skipped += 1;
       }
 
       if (!answer.continuationKey) break;
@@ -416,7 +552,17 @@ export async function runBankIngestion(
   });
 
   logger.info(
-    { event: "bank_ingestion.finished", kind, from, to, read, imported, filled, skipped },
+    {
+      event: "bank_ingestion.finished",
+      kind,
+      from,
+      to,
+      read,
+      imported,
+      filled,
+      skipped,
+      unbookable,
+    },
     "bank account read",
   );
 
