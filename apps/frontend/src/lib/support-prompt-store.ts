@@ -71,14 +71,13 @@ function emptyRecord(): SupportPromptRecord {
 /**
  * Reads a store back from what was stored, dropping anything unusable.
  *
- * Records for prompts that no longer exist are dropped, so a deleted prompt
- * leaves nothing behind in anybody's browser.
+ * Keep history even when a prompt is absent from a response: that tells us
+ * nothing about whether the prompt will be shown again.
  *
  * @param raw - What the storage held, or `null` when it held nothing.
- * @param knownIds - The prompts that still exist.
  * @returns A store that is safe to use, whatever was in the storage.
  */
-export function parseStore(raw: string | null, knownIds: readonly string[]): SupportPromptStore {
+export function parseStore(raw: string | null): SupportPromptStore {
   const store = emptyStore();
   if (!raw) return store;
 
@@ -98,18 +97,22 @@ export function parseStore(raw: string | null, knownIds: readonly string[]): Sup
   store.shopViews = Number.isFinite(candidate.shopViews) ? Number(candidate.shopViews) : 0;
   store.lastShopSlug = typeof candidate.lastShopSlug === "string" ? candidate.lastShopSlug : null;
 
-  const known = new Set(knownIds);
   const records = candidate.prompts;
   if (records && typeof records === "object") {
+    const entries: [string, SupportPromptRecord][] = [];
     for (const [id, record] of Object.entries(records)) {
-      if (!known.has(id) || typeof record !== "object" || record === null) continue;
+      if (typeof record !== "object" || record === null) continue;
       const entry = record as Partial<SupportPromptRecord>;
-      store.prompts[id] = {
-        shown: Number.isFinite(entry.shown) ? Number(entry.shown) : 0,
-        dismissed: Number.isFinite(entry.dismissed) ? Number(entry.dismissed) : 0,
-        resolved: entry.resolved === true,
-      };
+      entries.push([
+        id,
+        {
+          shown: Number.isFinite(entry.shown) ? Number(entry.shown) : 0,
+          dismissed: Number.isFinite(entry.dismissed) ? Number(entry.dismissed) : 0,
+          resolved: entry.resolved === true,
+        },
+      ]);
     }
+    store.prompts = Object.fromEntries(entries);
   }
 
   return store;

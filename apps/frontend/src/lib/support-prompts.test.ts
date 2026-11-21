@@ -8,6 +8,7 @@ const markdownMocks = vi.hoisted(() => ({
 }));
 vi.mock("./markdown-ssr", () => markdownMocks);
 
+import { choosePrompt, countShopView, parseStore } from "./support-prompt-store";
 import { loadSupportPrompts } from "./support-prompts";
 
 /** One prompt as the backend sends it, with only the fields under test set. */
@@ -56,22 +57,34 @@ describe("loadSupportPrompts", () => {
     expect(markdownMocks.renderMarkdownSSR).toHaveBeenCalledWith("a", { breaks: true });
   });
 
-  it("names every live prompt, not only the ones for this slot", async () => {
-    // The reader's store keeps a record per prompt and forgets the ones that no
-    // longer exist. Told only about this slot's prompts it would forget the
-    // other slots' records, and somebody who dismissed a prompt on one page
-    // would meet it again after visiting another.
-    const data = await loadSupportPrompts("my-shops");
-
-    expect(data.liveIds).toEqual(["a", "b", "c", "d"]);
-  });
-
   it("answers with nothing when the backend cannot be reached", async () => {
-    apiMocks.apiGet.mockRejectedValue(new Error("backend down"));
+    apiMocks.apiGet.mockRejectedValueOnce(new Error("backend down"));
 
     const data = await loadSupportPrompts("my-shops");
 
     expect(data.prompts).toEqual([]);
-    expect(data.liveIds).toEqual([]);
+  });
+
+  it.each([
+    ["an unavailable backend", undefined, 0],
+    ["a temporarily unpublished prompt", { prompts: [], limits: {} }, 3],
+  ] as const)("keeps settled history through %s", async (_scenario, payload, dismissed) => {
+    const record = { shown: 1, dismissed, resolved: true };
+    const stored = JSON.stringify({ shown: 1, prompts: { b: record } });
+    if (payload) apiMocks.apiGet.mockResolvedValueOnce(payload);
+    else apiMocks.apiGet.mockRejectedValueOnce(new Error("backend down"));
+
+    const unavailable = await loadSupportPrompts("shop-detail");
+    expect(unavailable.prompts).toEqual([]);
+    // Shop detail still persists visit progress while there is nothing to show.
+    const visited = countShopView(parseStore(stored), "eine-werkstatt");
+    const restored = await loadSupportPrompts("shop-detail");
+    expect(restored.prompts.map(({ id }) => id)).toEqual(["b"]);
+
+    const reloaded = parseStore(JSON.stringify(visited));
+    expect(reloaded.prompts.b).toEqual(record);
+    expect(
+      choosePrompt(restored.prompts, reloaded, restored.limits, { liked: 0, viewed: 1 }, 0),
+    ).toBeNull();
   });
 });

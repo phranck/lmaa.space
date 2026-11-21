@@ -47,15 +47,6 @@ export interface SupportPromptSlotData {
    * production. The backend decides it; the site only follows.
    */
   devAlwaysShow: boolean;
-  /**
-   * Every prompt that is live right now, across all slots.
-   *
-   * The reader's store holds a record per prompt and forgets the ones that no
-   * longer exist. Deciding that from one slot's prompts alone would forget the
-   * other slots' records, and somebody who dismissed a prompt on one page
-   * would meet it again after visiting another.
-   */
-  liveIds: string[];
 }
 
 /** Nothing to show, which is also the answer when the backend is unreachable. */
@@ -65,7 +56,6 @@ const EMPTY: SupportPromptSlotData = {
   // silently missing from the page that could not reach the backend.
   limits: SUPPORT_PROMPT_LIMIT_DEFAULTS,
   devAlwaysShow: false,
-  liveIds: [],
 };
 
 /**
@@ -112,7 +102,6 @@ export async function loadSupportPrompts(slot: SupportPromptSlot): Promise<Suppo
       prompts,
       limits: payload.limits,
       devAlwaysShow: payload.devAlwaysShow ?? false,
-      liveIds: payload.prompts.map((prompt) => prompt.id),
     };
   } catch {
     return EMPTY;
