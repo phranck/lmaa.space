@@ -270,24 +270,23 @@ describe("countShopView", () => {
 
 describe("parseStore", () => {
   it("returns an empty store for nothing, for rubbish, and for the wrong shape", () => {
-    expect(parseStore(null, [])).toEqual(emptyStore());
-    expect(parseStore("{not json", [])).toEqual(emptyStore());
-    expect(parseStore('"a string"', [])).toEqual(emptyStore());
+    expect(parseStore(null)).toEqual(emptyStore());
+    expect(parseStore("{not json")).toEqual(emptyStore());
+    expect(parseStore('"a string"')).toEqual(emptyStore());
   });
 
   it("drops what it cannot read rather than failing", () => {
-    const store = parseStore('{"shown":"viele","prompts":{"a":null}}', ["a"]);
+    const store = parseStore('{"shown":"viele","prompts":{"a":null}}');
     expect(store.shown).toBe(0);
     expect(store.prompts).toEqual({});
   });
 
-  it("forgets prompts that no longer exist", () => {
-    const raw = JSON.stringify({
-      shown: 2,
-      prompts: { alive: { shown: 1, dismissed: 0, resolved: false }, gone: { shown: 5 } },
-    });
-    const store = parseStore(raw, ["alive"]);
-    expect(Object.keys(store.prompts)).toEqual(["alive"]);
+  it("normalizes stored records without treating identifiers as object properties", () => {
+    const raw = '{"shown":2,"prompts":{"gone":{"shown":5},"__proto__":{"shown":1}}}';
+    const store = parseStore(raw);
     expect(store.shown).toBe(2);
+    expect(store.prompts.gone).toEqual({ shown: 5, dismissed: 0, resolved: false });
+    expect(Object.hasOwn(store.prompts, "__proto__")).toBe(true);
+    expect(Object.getPrototypeOf(store.prompts)).toBe(Object.prototype);
   });
 });

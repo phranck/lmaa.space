@@ -132,7 +132,6 @@ export default function SupportPromptSlot({
   slot,
   prompts,
   limits,
-  liveIds,
   devAlwaysShow,
   shopSlug,
   className,
@@ -143,7 +142,7 @@ export default function SupportPromptSlot({
   const [shown, setShown] = useState<{ prompt: RenderedSupportPrompt; html: string } | null>(null);
 
   useEffect(() => {
-    let store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
+    let store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY));
 
     // Counted before anything can return, because the visit happened whether or
     // not this page has a prompt to show for it, and the counter is not this
@@ -179,14 +178,14 @@ export default function SupportPromptSlot({
       html: fillPromptNumbers(prompt.html, { likedShops, shopViews: store.shopViews }),
     });
     trackWebsiteEvent("support-prompt-shown", { prompt: prompt.name, id: prompt.id, slot });
-  }, [prompts, limits, liveIds, devAlwaysShow, slot, shopSlug]);
+  }, [prompts, limits, devAlwaysShow, slot, shopSlug]);
 
   if (!shown) return null;
   const visible = shown.prompt;
 
   function close() {
     if (!shown) return;
-    const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
+    const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY));
     persist(recordDismissed(store, visible.id, limits, Date.now()));
     trackWebsiteEvent("support-prompt-dismissed", {
       prompt: visible.name,
@@ -198,7 +197,7 @@ export default function SupportPromptSlot({
 
   function follow() {
     if (!shown) return;
-    const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY), liveIds);
+    const store = parseStore(window.localStorage.getItem(SUPPORT_PROMPT_STORAGE_KEY));
     persist(recordResolved(store, visible.id));
     // Where it led as well as which prompt it was: with more than one
     // destination in play, the two questions have different answers.
